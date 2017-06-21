@@ -125,6 +125,8 @@ class CometaryEnhancements(GingaPlugin.LocalPlugin):
         #cw.addWidget(widget, stretch=1)
 
     def enhance_cb(self, w):
+        import numpy as np
+        
         try:
             xc = float(self.w.x_center.get_text())
             yc = float(self.w.y_center.get_text())
