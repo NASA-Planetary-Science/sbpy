@@ -1,14 +1,8 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-Skeleton example of a Ginga local plugin called 'CometaryEnhancements'
-
-To enable it, run ginga with the command
-    $ ginga --plugins=CometaryEnhancements
-
-it will then be available from the "Operations" button.
-
+Skeleton example of a Ginga local plugin called 'CometaryEnhancements'.
 """
 
-from ginga import AstroImage
 from ginga import GingaPlugin
 from ginga.gw import Widgets
 
@@ -63,20 +57,34 @@ class CometaryEnhancements(GingaPlugin.LocalPlugin):
 
         # Frame for instructions and add the text widget with another
         # blank widget to stretch as needed to fill emp
-        fr = Widgets.Expander("Instructions")
-        fr.set_widget(tw)
-        vbox.add_widget(fr, stretch=0)
+        frame = Widgets.Expander("Instructions")
+        frame.set_widget(tw)
+        vbox.add_widget(frame, stretch=0)
 
-        captions = (('X center:', 'label', 'X center', 'entry'),
-                    ('Y center:', 'label', 'Y center', 'entry'),
-                    ('Enhancement:', 'label', 'Enhancement', 'combobox'))
+        frame = Widgets.Frame('Center')
+        hbox = Widgets.HBox()
+        w, b = Widgets.build_info(
+            (('X center:', 'label', 'X center', 'entry'),
+             ('Y center:', 'label', 'Y center', 'entry'))
+        )
+        self.w.update(b)
+        hbox.add_widget(w)
+
+        w, b = Widgets.build_info(
+            (('Pick center', 'button'),
+             ('Centroid', 'button'))
+        )
+        self.w.update(b)
+        hbox.add_widget(w)
+
+        frame.set_widget(hbox)
+        vbox.add_widget(frame)
+        
+        captions = (('Enhancement:', 'label', 'Enhancement', 'combobox',
+                     'Enhance', 'button'),)
         w, b = Widgets.build_info(captions)
         self.w.update(b)
-
-        b.x_center.add_callback('activated', self.set_center_cb)
-        b.x_center.set_tooltip('Set target x center (press Enter)')
-        b.y_center.add_callback('activated', self.set_center_cb)
-        b.y_center.set_tooltip('Set target y center (press Enter)')
+        b.enhance.add_callback('activated', self.enhance_cb)
 
         for name in self.enhancement_options:
             b.enhancement.append_text(name)
@@ -115,8 +123,9 @@ class CometaryEnhancements(GingaPlugin.LocalPlugin):
         #cw = container.get_widget()
         #cw.addWidget(widget, stretch=1)
 
-    def set_center_cb(self, w):
+    def enhance_cb(self, w):
         from mskpy.image import rarray
+        
         try:
             xc = float(self.w.x_center.get_text())
             yc = float(self.w.y_center.get_text())
@@ -126,9 +135,11 @@ class CometaryEnhancements(GingaPlugin.LocalPlugin):
         if self.image is None:
             self.image = self.fitsimage.get_image()
 
-        print(self.image)  # AstroImage
         r = rarray(self.image.shape, yx=(yc, xc))
-        self.fitsimage.set_image(self.image * r)
+        enhanced = self.image.copy()
+        enhanced.set_data(enhanced.get_data() * r)
+        chname = self.fv.get_current_channel().name + '(1/rho)'
+        self.fv.add_image('1/rho enhanced', enhanced, chname=chname)
         
     def set_enhancement_cb(self):
         i = self.w.enhancement.get_index()
