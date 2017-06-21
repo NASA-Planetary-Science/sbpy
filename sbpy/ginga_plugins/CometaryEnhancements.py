@@ -1,12 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-"""
-Skeleton example of a Ginga local plugin called 'CometaryEnhancements'.
+"""Skeleton example of a Ginga local plugin called 'CometaryEnhancements'.
+
+With sbpy installed, this plugin should be automatically discovered by
+Ginga and available in the Operations menu.
+
 """
 
 from ginga import GingaPlugin
 from ginga.gw import Widgets
-
-# import any other modules you want here--it's a python world!
 
 class CometaryEnhancements(GingaPlugin.LocalPlugin):
 
@@ -124,8 +125,6 @@ class CometaryEnhancements(GingaPlugin.LocalPlugin):
         #cw.addWidget(widget, stretch=1)
 
     def enhance_cb(self, w):
-        from mskpy.image import rarray
-        
         try:
             xc = float(self.w.x_center.get_text())
             yc = float(self.w.y_center.get_text())
@@ -135,9 +134,11 @@ class CometaryEnhancements(GingaPlugin.LocalPlugin):
         if self.image is None:
             self.image = self.fitsimage.get_image()
 
-        r = rarray(self.image.shape, yx=(yc, xc))
+        y, x = np.indices(self.image.shape, float)
+        rho = np.sqrt((x - xc)**2 + (y - yc)**2)
+        
         enhanced = self.image.copy()
-        enhanced.set_data(enhanced.get_data() * r)
+        enhanced.set_data(enhanced.get_data() * rho)
         chname = self.fv.get_current_channel().name + '(1/rho)'
         self.fv.add_image('1/rho enhanced', enhanced, chname=chname)
         
