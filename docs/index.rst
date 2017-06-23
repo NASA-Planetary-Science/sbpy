@@ -1,17 +1,23 @@
-Documentation
-=============
+SBPy Documentation
+==================
 
-This is the documentation for sbpy.
-A Python Module for Asteroid and Comet Research
 
+SBPy - A Python Module for Small-Body Research
+
+**Please note that this package is under heavy development. The current documentation is only intended to provide an outline for the API to be used in SBPy.**
+
+
+API Outline
+-----------
+ 
 .. toctree::
-  :maxdepth: 2
+  :maxdepth: 1
 
-  sbpy/index.rst
-
-.. note:: The layout of this directory is simply a suggestion.  To follow
-          traditional practice, do *not* edit this page, but instead place
-          all documentation for the affiliated package inside ``sbpy/``.
-          The traditional practice was intended to allow the affiliated
-          package to eventually be merged into the main astropy package.
-          You can follow this practice or choose your own layout.
+  sbpy/activity.rst
+  sbpy/photometry.rst
+  sbpy/spectroscopy.rst
+  sbpy/imageanalysis.rst
+  sbpy/obsutil.rst
+  sbpy/data.rst
+  sbpy/bib.rst
+  
