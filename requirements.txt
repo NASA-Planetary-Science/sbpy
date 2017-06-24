@@ -1,2 +1,2 @@
-numpy
-astropy-helpers
+numpy==1.11.3
+astropy-helpers==1.3.1
