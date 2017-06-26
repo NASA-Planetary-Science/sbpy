@@ -7,7 +7,7 @@ SBPy Photometry Module
 created on June 23, 2017
 """
 
-__all__ = ['HG', 'HG12', 'HG1G2']
+__all__ = ['ModelClass', 'HG', 'HG12', 'HG1G2']
 
 class ModelClass():
 

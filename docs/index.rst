@@ -15,6 +15,7 @@ API Outline
 
   sbpy/activity.rst
   sbpy/photometry.rst
+  sbpy/shape.rst
   sbpy/spectroscopy.rst
   sbpy/imageanalysis.rst
   sbpy/obsutil.rst

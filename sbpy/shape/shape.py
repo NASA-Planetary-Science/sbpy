@@ -7,7 +7,7 @@ SBPy Shape Module
 created on June 26, 2017
 """
 
-__all__ = ['ROLO', 'Kaasalainen']
+__all__ = ['ModelClass', 'ROLO', 'Kaasalainen']
 
 class ModelClass():
 
