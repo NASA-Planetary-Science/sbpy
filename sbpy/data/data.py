@@ -7,29 +7,35 @@ SBPy Data Module
 created on June 22, 2017
 """
 
-from astropy.table import Table
+from astropy.table import Table, Column
 from astropy.time import Time
 import astropy.units as u
 import callhorizons
 
-__all__ = ['Orbit', 'Ephem', 'Phys', 'Misc']
+__all__ = ['Orbit', 'Ephem', 'Phys', 'Misc', 'DataClass']
 
-class Orbit():
-    """Class for querying, manipulating, integrating, and fitting orbital elements
 
-    Every function of this class returns an Astropy Table object; the
-    columns in these tables are not fixed and depend on the function
-    generating the table or the user input.
+class DataClass():
 
-    The `Orbit` class also provides interfaces to `OpenOrb`_ for orbit
-    fitting and `REBOUND`_ for orbit integrations.
+    def __init__(self, *args, **kwargs):
+        """Create Astropy.table from kwargs"""
+        self.table = Table()
+        for key, val in kwargs.items():
+            try:
+                unit = val.unit
+                val = val.value
+            except:
+                unit = None
+            # check if val is already list-like
+            try:
+                val[0]
+            except TypeError:
+                val = [val]
 
-    .. _OpenOrb: https://github.com/oorb/oorb
-    .. _REBOUND: https://github.com/hannorein/rebound
+            self.table[key] = Column(val, unit=unit)
 
-    """
-    
-    def from_dict(data):
+    @classmethod
+    def from_dict(cls, data):
         """Create orbital elements table from dictionary or list of
         dictionaries
         
@@ -49,11 +55,11 @@ class Orbit():
         >>>                        'e': .0756,
         >>>                        'i': 10.59321*u.deg})
 
-        not yet implemented
-
         """
-
-    def from_array(data, names):
+        return cls(**data)
+    
+    @classmethod
+    def from_array(cls, data, names):
         """Create orbital elements table from lists or arrays
 
         Parameters
@@ -77,11 +83,61 @@ class Orbit():
         >>>                              r(100)*180*u.deg],
         >>>                        names=['a', 'e', 'i'])
 
-        not yet implemented
-
         """
-        
-    def from_horizons(targetid, epoch=None, center='500@10',
+
+        return cls.from_dict(dict(zip(names, data)))
+    
+    def __getattr__(self, field):
+        if field in self.table.columns:
+            return self.table[field]
+        else:
+           raise AttributeError ("field '{:s}' does not exist".format(field))
+
+    def __setattr__(self, field, value):
+        """Set attribute
+
+        modify attribute in `self.table`, if available, else set it for self
+        """
+        try:
+            # if self.table exists ...
+            if field in self.table.columns:
+                # set value there...
+                self.table[field] = value
+            else:
+                super().__setattr__(field, value) 
+        except:
+            # if, not set it for self
+            super().__setattr__(field, value)
+    
+    def __getitem__(self, ident):
+        """Return column or row from data table"""
+        return self.table[ident]
+
+
+    @property
+    def data(self):
+        return self.table
+    
+            
+class Orbit(DataClass):
+    """Class for querying, manipulating, integrating, and fitting orbital elements
+
+    Every function of this class returns an Astropy Table object; the
+    columns in these tables are not fixed and depend on the function
+    generating the table or the user input.
+
+    The `Orbit` class also provides interfaces to `OpenOrb`_ for orbit
+    fitting and `REBOUND`_ for orbit integrations.
+
+    .. _OpenOrb: https://github.com/oorb/oorb
+    .. _REBOUND: https://github.com/hannorein/rebound
+
+    """
+
+
+
+    @classmethod
+    def from_horizons(cls, targetid, epoch=None, center='500@10',
                       bib=None):
         """Load orbital elements from `JPL Horizons`_
 
@@ -123,19 +179,22 @@ class Orbit():
         el = callhorizons.query(targetid)
         el.set_discreteepochs([ep.jd for ep in epoch])
         el.get_elements(center=center)
-        table = Table([el[field] for field in el.fields],
-                      names=el.fields,
-                      meta={'name': 'orbital elements from JPL Horizons'})
-        # Astropy units will be integrated in the future
+        data = [el[field] for field in el.fields]
+        names = el.fields
+        #meta = {'name': 'orbital elements from JPL Horizons'}
+        # table = Table([el[field] for field in el.fields],
+        #               names=el.fields,
+        #               meta={'name': 'orbital elements from JPL Horizons'})
+        # # Astropy units will be integrated in the future
 
         if bib is not None:
             bib['Horizons orbital elements query'] = {'implementation':
                                                       '1996DPS....28.2504G'}
             
-        return table
+        return cls.from_array(data, names)
 
 
-    def from_mpc(targetid, bib=None):
+    def from_mpc(self, targetid, bib=None):
         """Load orbital elements from the `Minor Planet Center`_
 
         Parameters
@@ -160,7 +219,7 @@ class Orbit():
 
         """
 
-    def from_astdys(targetid, bib=None):
+    def from_astdys(self, targetid, bib=None):
         """Load orbital elements from `AstDyS`_
 
         Parameters
@@ -185,7 +244,7 @@ class Orbit():
 
         """
 
-    def from_state(pos, vel):
+    def from_state(self, pos, vel):
         """Convert state vector (positions and velocities) or orbital elements
 
         Parameters
@@ -211,7 +270,7 @@ class Orbit():
 
         """
 
-    def to_state(pos, vel):
+    def to_state(self, pos, vel):
         """Convert orbital elements to state vector (positions and velocities)
 
         Parameters
@@ -236,7 +295,7 @@ class Orbit():
 
         """
 
-    def orbfit(eph):
+    def orbfit(self, eph):
         """Function that fits an orbit solution to a set of ephemerides using
         the `OpenOrb`_ software which has to be installed locally.
 
@@ -268,7 +327,7 @@ class Orbit():
 
         """
         
-    def integrate(orb, time, integrator='IAS15'):
+    def integrate(self, orb, time, integrator='IAS15'):
         """Function that integrates an orbit over a given range of time using the `REBOUND`_ package
 
         Parameters
@@ -295,7 +354,7 @@ class Orbit():
         .. _REBOUND: https://github.com/hannorein/rebound
         """
 
-    def from_rebound(sim):
+    def from_rebound(self, sim):
         """Obtain orbital elements from `REBOUND`_ simulation instance
 
         Parameters
@@ -320,7 +379,7 @@ class Orbit():
 
         """
         
-class Ephem():
+class Ephem(DataClass):
     """Class for storing and querying ephemerides
     
     The `Ephem` class provides an interface to `PyEphem`_ for
@@ -329,114 +388,69 @@ class Ephem():
     .. _PyEphem: http://rhodesmill.org/pyephem/
     
     """
-    
-    def from_dict(data):
-        """Create ephemerides table from dictionary or list of dictionaries
 
-        Parameters
-        ----------
-        data : dictionary or list of dicts, mandatory
-            data that will be rearranged in Astropy Table format
-
-        Returns
-        -------
-        Astropy Table
-
-        Examples
-        --------
-        >>> import astropy.units as u
-        >>> from astropy.time import Time
-        >>> epoch = Time('2018-05-14', scale='utc')
-        >>> eph = Ephem.from_dict({'ra': 123.456789*u.deg,
-        >>>                        'ra_sig': 0.3*u.arcsec,
-        >>>                        'dec': 1.234567*u.deg,
-        >>>                        'dec_sig': 0.25*u.arcsec,
-        >>>                        'epoch': epoch})
-
-        not yet implemented
-
-        """
-
-    def from_array(data, names):
-        """Create ephemerides table from lists or arrays
-
-        Parameters
-        ----------
-        data : list or array, mandatory
-            data that will be rearraned in Astropy Table format, one array per 
-            column
-        names : list, mandatory
-            column names, must have n names for n `data` arrays
-
-        Returns
-        -------
-        Astropy Table
-
-        Examples
-        --------
-        >>> import astropy.units as u
-        >>> from numpy.random import random as r
-        >>> orb = Orbit.from_array(data=[r(100)*2*u.au,
-        >>>                              r(100),
-        >>>                              r(100)*180*u.deg],
-        >>>                        names=['a', 'e', 'i'])
-
-        not yet implemented
-
-        """
-
-        
-    def from_horizons(targetid, epoch, observatory='500',
+    @classmethod
+    def from_horizons(cls, targetid, epoch, observatory, center='500@10',
                       bib=None):
-        """Load ephemerides from `JPL Horizons`_
+        """Load orbital elements from `JPL Horizons`_
 
         Parameters
         ----------
         targetid : str, mandatory
             target identifier
-        epochs : astropy Time instance or iterable, optional, default None
+        epoch : astropy Time instance or iterable, optional, default None
             epoch of elements; if None is provided, current date is used
-        observatory : str, optional, default '500' (geocentric)
-            location of observer
+        center : str, optional, default '500@10' (Sun)
+            center body of orbital elements
         bib : SBPy Bibliography instance, optional, default None
             Bibliography instance that will be populated
 
+        preliminary implementation
+        
         Returns
         -------
         Astropy Table
 
         Examples
         --------
-        >>> from sbpy.data import Ephem
+        >>> from sbpy.data import Orbit
         >>> from astropy.time import Time
         >>> epoch = Time('2018-05-14', scale='utc')
-        >>> eph = Ephem.from_horizons('ceres', '568', epoch)
+        >>> orb = Orbit.from_horizons('ceres', epoch)
 
         .. _JPL Horizons: https://ssd.jpl.nasa.gov/horizons.cgi
 
         """
 
-        if epoch is None:
-            epoch = [Time.now()]
-        elif isinstance(epoch, Time):
+        try:
+            dummy = epoch[0]
+        except TypeError:
             epoch = [epoch]
 
+            
         # for now, use CALLHORIZONS for the query; this will be replaced with
         # a dedicated query
-        eph = callhorizons.query(targetid)
-        eph.set_discreteepochs([ep.jd for ep in epoch])
-        eph.get_ephemerides(observatory)
+        el = callhorizons.query(targetid)
+        el.set_discreteepochs([ep.jd for ep in epoch])
+        el.get_ephemerides(observatory)
 
-        table = Table([eph[field] for field in eph.fields],
-                      names=eph.fields,
-                      meta={'name': 'ephemerides from JPL Horizons'})
-        # Astropy units will be integrated in the future
+        print(el.dates)
+
+        data = [el[field] for field in el.fields]
+        names = el.fields
+        #meta = {'name': 'orbital elements from JPL Horizons'}
+        # table = Table([el[field] for field in el.fields],
+        #               names=el.fields,
+        #               meta={'name': 'orbital elements from JPL Horizons'})
+        # # Astropy units will be integrated in the future
 
         if bib is not None:
-            bib['Horizons ephemerides query'] = {'implementation':
-                                                '1996DPS....28.2504G'}
+            bib['Horizons orbital elements query'] = {'implementation':
+                                                      '1996DPS....28.2504G'}
             
-        return table
+        return cls.from_array(data, names)
+
+        
 
 
     def from_mpc(targetid, epoch, observatory='500', bib=None):

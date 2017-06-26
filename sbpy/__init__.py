@@ -15,6 +15,7 @@ if not _ASTROPY_SETUP_:
     from .data import *
     from .activity import *
     from .photometry import *
+    from .shape import *
     from .imageanalysis import *
     from .spectroscopy import *
     from .obsutil import *
