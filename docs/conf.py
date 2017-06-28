@@ -110,12 +110,12 @@ release = package.__version__
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes. To override the custom theme, set this to the
 # name of a builtin theme or the name of a custom theme in html_theme_path.
-#html_theme = None
+#html_theme = 'sphinx_rtd_theme'
 
 # Please update these texts to match the name of your package.
 html_theme_options = {
-    'logotext1': 'package',  # white,  semi-bold
-    'logotext2': '-template',  # orange, light
+    'logotext1': 'SB',  # white,  semi-bold
+    'logotext2': 'Py',  # orange, light
     'logotext3': ':docs'   # white,  light
     }
 
