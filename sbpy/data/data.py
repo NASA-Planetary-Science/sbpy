@@ -450,10 +450,8 @@ class Ephem(DataClass):
             
         return cls.from_array(data, names)
 
-        
-
-
-    def from_mpc(targetid, epoch, observatory='500', bib=None):
+    @classmethod
+    def from_mpc(cls, targetid, epoch, observatory='500', bib=None):
         """Load ephemerides from the `Minor Planet Center`_
 
         Parameters
@@ -484,7 +482,8 @@ class Ephem(DataClass):
 
         """
 
-    def report_to_mpc(eph, bib=None):
+    @classmethod
+    def report_to_mpc(cls, eph, bib=None):
         """Format ephemerides `Astropy.table` to report to `Minor Planet Center`_ 
 
         Parameters
@@ -511,8 +510,8 @@ class Ephem(DataClass):
 
         """
 
-        
-    def from_imcce(targetid, epoch, observatory='500', bib=None):
+    @classmethod
+    def from_imcce(cls, targetid, epoch, observatory='500', bib=None):
         """Load orbital elements from `IMCCE`_
            
         Parameters
@@ -543,7 +542,8 @@ class Ephem(DataClass):
 
         """
 
-    def from_lowell(targetid, epoch, observatory='500', bib=None):
+    @classmethod
+    def from_lowell(cls, targetid, epoch, observatory='500', bib=None):
         """Load orbital elements from `Lowell Observatory`_
 
         Parameters
@@ -574,7 +574,8 @@ class Ephem(DataClass):
 
         """
 
-    def from_pyephem(orb, location, epoch):
+    @classmethod
+    def from_pyephem(cls, orb, location, epoch):
         """Function that derives ephemerides based on an `Astropy.table`
         containing orbital elements using `PyEphem`_.
         
@@ -605,56 +606,9 @@ class Ephem(DataClass):
 
 class Phys():
     """Class for storing and querying physical properties"""
-    
-    def from_dict(data):
-        """Create properties table from dictionary or list of dictionaries
 
-        Parameters
-        ----------
-        data : dictionary or list of dicts, mandatory
-            data that will be rearranged in Astropy Table format
-
-        Returns
-        -------
-        Astropy Table
-
-        Examples
-        --------
-        >>> from sbpy.data import Phys
-        >>> import astropy.units as u
-        >>> phys = Phys.from_dict({'diam':1000*u.km, 'pv': 0.1, 'G': 0.15})
-
-        not yet implemented
-
-        """
-
-    def from_array(data, names):
-        """Create properties table from lists or arrays
-
-        Parameters
-        ----------
-        data : list or array, mandatory
-            data that will be rearraned in Astropy Table format, one array per 
-            column
-        names : list, mandatory
-            column names, must have n names for n `data` arrays
-
-        Returns
-        -------
-        Astropy Table
-
-        Examples
-        --------
-        >>> phys = Phys.from_array(data=[[1.2*u.km, 123*u.m, 0.5*u.km],
-        >>>                              [0.2, 0.1, 0.3],
-        >>>                              [0.15, 0.23, 0.15]]
-        >>>                        names=['diam', 'pv', 'G'])
-
-        not yet implemented
-
-        """
-
-    def from_horizons(targetid, bib=None):
+    @classmethod
+    def from_horizons(cls, targetid, bib=None):
         """Load physical properties from `JPL Horizons`_
 
         Parameters
@@ -679,7 +633,8 @@ class Phys():
 
         """
 
-    def from_lowell(targetid, bib=None):
+    @classmethod
+    def from_lowell(cls, targetid, bib=None):
         """Load physical properties from `Lowell Observatory`_ 
 
         The Lowell database will provide a database of physical
@@ -707,6 +662,20 @@ class Phys():
 
         """
 
+    def derive_absmag(self):
+        """Derive absolute magnitude from diameter and geometric albedo"""
+
+    def derive_diam(self):
+        """Derive diameter from absolute magnitude and geometric albedo"""
+        
+    def derive_pv(self):
+        """Derive geometric albedo from diameter and absolute magnitude"""
+
+    def derive_bondalbedo(self):
+        """Derive Bond albedo from geometric albedo and photometric phase slope"""
+
+    
+        
 
 class Misc():
     """Class for obtaining miscellaneous data on small bodies"""
@@ -810,6 +779,36 @@ class Misc():
         .. _Small Bodies Data Ferret: http://sbntools.psi.edu/ferret/
 
         """
-        
 
+    def asteroid_or_comet(targetid):
+        """Checks if an object is an asteroid, or a comet, based on its targetid
+
+        Examples
+        --------
+        >>> from sbpy.data import Misc
+        >>> print(Misc.asteroid_or_comet('2P')
+            'comet'
+        
+        note yet implemented
+
+        """
+        
+    def altident(targetid, bib=None):
+        """Query Lowell database to obtain alternative target names for `targetitd`
+
+        Examples
+        --------
+        >>> from sbpy.data import Misc
+        >>> print(Misc.altident('3552'))
+            ['3552', 'Don Quixote', '1983 SA']
+
+        not yet implemented
+
+        """
+
+    def from_packed(targetid):
+        """Convert packed designation/number to unpacked"""
+
+    def to_packed(targetid):
+        """ Convert unpacked identifier to packed designation/number"""
         

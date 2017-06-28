@@ -9,9 +9,7 @@ CometEnhancement
    :show-inheritance:
 
    
-
-   
-   
+     
    
 
    
@@ -20,8 +18,29 @@ CometEnhancement
 
    
    
+
+   .. rubric:: Methods Summary
+
+   .. autosummary::
+   
+      ~CometEnhancement.azavg_norm
+      ~CometEnhancement.rho_norm
+
+   
    
 
    
+   
+   
+
+   
+   
+
+   .. rubric:: Methods Documentation
+
+   
+   .. automethod:: azavg_norm
+   .. automethod:: rho_norm
+
    
    

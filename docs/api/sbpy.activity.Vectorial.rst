@@ -1,13 +1,15 @@
 
 
-Activity
-======================
+Vectorial
+=======================
 
 .. currentmodule:: sbpy.activity
 
-.. autoclass:: Activity
+.. autoclass:: Vectorial
    :show-inheritance:
 
+   
+     
    
 
    

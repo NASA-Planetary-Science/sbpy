@@ -16,6 +16,15 @@ PSFSubtraction
 
    
    
+
+   .. rubric:: Methods Summary
+
+   .. autosummary::
+   
+      ~PSFSubtraction.create_psfmodel
+      ~PSFSubtraction.subtract_psfmodel
+
+   
    
 
    
@@ -23,5 +32,13 @@ PSFSubtraction
    
 
    
+   
+
+   .. rubric:: Methods Documentation
+
+   
+   .. automethod:: create_psfmodel
+   .. automethod:: subtract_psfmodel
+
    
    

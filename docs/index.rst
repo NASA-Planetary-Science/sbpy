@@ -13,12 +13,13 @@ API Outline
 .. toctree::
   :maxdepth: 1
 
+  sbpy/data.rst	     
   sbpy/activity.rst
   sbpy/photometry.rst
   sbpy/shape.rst
   sbpy/spectroscopy.rst
   sbpy/imageanalysis.rst
+  sbpy/thermal.rst
   sbpy/obsutil.rst
-  sbpy/data.rst
   sbpy/bib.rst
   

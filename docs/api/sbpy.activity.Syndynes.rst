@@ -1,13 +1,15 @@
 
 
-Photometry
-==========================
+Syndynes
+======================
 
-.. currentmodule:: sbpy.photometry
+.. currentmodule:: sbpy.activity
 
-.. autoclass:: Photometry
+.. autoclass:: Syndynes
    :show-inheritance:
 
+   
+     
    
 
    
@@ -21,7 +23,7 @@ Photometry
 
    .. autosummary::
    
-      ~Photometry.diam2mag
+      ~Syndynes.plot_syndynes
 
    
    
@@ -36,7 +38,7 @@ Photometry
    .. rubric:: Methods Documentation
 
    
-   .. automethod:: diam2mag
+   .. automethod:: plot_syndynes
 
    
    

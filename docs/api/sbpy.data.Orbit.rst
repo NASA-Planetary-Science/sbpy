@@ -21,9 +21,7 @@ Orbit
 
    .. autosummary::
    
-      ~Orbit.from_array
       ~Orbit.from_astdys
-      ~Orbit.from_dict
       ~Orbit.from_horizons
       ~Orbit.from_mpc
       ~Orbit.from_rebound
@@ -45,9 +43,7 @@ Orbit
    .. rubric:: Methods Documentation
 
    
-   .. automethod:: from_array
    .. automethod:: from_astdys
-   .. automethod:: from_dict
    .. automethod:: from_horizons
    .. automethod:: from_mpc
    .. automethod:: from_rebound

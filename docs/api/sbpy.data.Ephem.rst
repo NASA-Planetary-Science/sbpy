@@ -21,8 +21,6 @@ Ephem
 
    .. autosummary::
    
-      ~Ephem.from_array
-      ~Ephem.from_dict
       ~Ephem.from_horizons
       ~Ephem.from_imcce
       ~Ephem.from_lowell
@@ -43,8 +41,6 @@ Ephem
    .. rubric:: Methods Documentation
 
    
-   .. automethod:: from_array
-   .. automethod:: from_dict
    .. automethod:: from_horizons
    .. automethod:: from_imcce
    .. automethod:: from_lowell

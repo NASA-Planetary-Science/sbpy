@@ -42,7 +42,6 @@ class Species():
         """
 
         # implement list treatment
-
         data = {'OH 0-0': 2e-15 #Schleicher and A'Hearn 1988
         }
         
