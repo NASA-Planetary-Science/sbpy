@@ -7,13 +7,13 @@ SBPy Shape Module
 created on June 26, 2017
 """
 
-__all__ = ['ModelClass', 'ROLO', 'Kaasalainen', 'Lightcurve']
+__all__ = ['ModelClass', 'Kaasalainen', 'Lightcurve']
 
 class ModelClass():
 
     def __init__(self):
         self.shape = None
-    
+
     def load_obj(self, filename):
         """Load .OBJ shape model"""
 
@@ -28,13 +28,6 @@ class ModelClass():
 
     def lightcurve(self, eph, time):
         """Derive lightcurve"""
-        
-        
-class ROLO(ModelClass):
-
-    def __init__(self):
-        self.properties = None
-        # setup model properties
 
 
 
@@ -61,10 +54,10 @@ class Lightcurve():
         self.fouriercoeff = None
         self.period = None
         self.pole = (0, 90) # ecliptic coordinates
-        
+
     def axis_ratio(self):
         """Derive axis ratio from lightcurve amplitude"""
-        
+
     def derive_period(self, method='lomb-scargle'):
         """Derive lightcurve period using different methods"""
 
@@ -76,8 +69,8 @@ class Lightcurve():
 
     def fit(self):
         """Fit period, pole orientation, and Fourier coefficients at the same time"""
-        
+
     def simulate(self):
         """Simulate a lightcurve from period, Fourier coefficients, pole orientation"""
 
-        
+
