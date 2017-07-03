@@ -7,7 +7,7 @@ SBPy Imageanalysis Module
 created on June 23, 2017
 """
 
-__all__ = ['CometEnhancement', 'PSFSubtraction', 'centroid']
+__all__ = ['CometaryEnhancement', 'PSFSubtraction', 'centroid']
 
 
 
@@ -37,9 +37,8 @@ def centroid(im, gyx, method='weighted'):
     not yet implemented
 
     """
-
     
-class CometEnhancement():
+class CometaryEnhancement():
     def __init__(self, im, cyx):
         self.im = im
         self.cyx = cyx
@@ -50,11 +49,11 @@ class CometEnhancement():
         Examples
         --------
         >>> from astropy.io import fits
-        >>> from sbpy.imageanalysis import centroid, CometEnhancement
+        >>> from sbpy.imageanalysis import centroid, CometaryEnhancement
         >>> import matplotlib.pyplot as plt
         >>> hdu = fits.open('test.fits')
         >>> cyx = centroid(hdu[0].data, (21, 45))
-        >>> enhance = CometEnhancement(hdu[0].data, cyx)
+        >>> enhance = CometaryEnhancement(hdu[0].data, cyx)
         >>> plt.imshow(enhance.azavg_norm())
 
         not yet implemented
@@ -62,33 +61,43 @@ class CometEnhancement():
         """
 
     def rho_norm(self):
-        """Normalize image using 1/rho fit
+        """Normalize image by a 1/rho profile.
+
+        Returns
+        -------
+        enhanced : ndarray
+          The enhanced image.
 
         Examples
         --------
         >>> from astropy.io import fits
-        >>> from sbpy.imageanalysis import centroid, CometEnhancement
+        >>> from sbpy.imageanalysis import centroid, CometaryEnhancement
         >>> import matplotlib.pyplot as plt
         >>> hdu = fits.open('test.fits')
         >>> cyx = centroid(hdu[0].data, (21, 45))
-        >>> enhance = CometEnhancement(hdu[0].data, cyx)
+        >>> enhance = CometaryEnhancement(hdu[0].data, cyx)
         >>> plt.imshow(enhance.rho_norm())
-
-        not yet implemented
 
         """
 
-    def rho_norm(self, **parameters):
-        """Normalize image using a radially variable spatial filter
+        from .utils import rarray
+        
+        r = rarray(self.im.shape, yx=self.cyx, subsample=10)
+        
+        return self.im * r
+        
+
+    def rvsf(self, **parameters):
+        """Normalize image using a radially variable spatial filter.
 
         Examples
         --------
         >>> from astropy.io import fits
-        >>> from sbpy.imageanalysis import centroid, CometEnhancement
+        >>> from sbpy.imageanalysis import centroid, CometaryEnhancement
         >>> import matplotlib.pyplot as plt
         >>> hdu = fits.open('test.fits')
         >>> cyx = centroid(hdu[0].data, (21, 45))
-        >>> enhance = CometEnhancement(hdu[0].data, cyx)
+        >>> enhance = CometaryEnhancement(hdu[0].data, cyx)
         >>> plt.imshow(enhance.rvsf_norm(a=1, b=1, n=0.1))
 
         not yet implemented
@@ -106,7 +115,7 @@ class PSFSubtraction():
         Examples
         --------
         >>> from astropy.io import fits
-        >>> from sbpy.imageanalysis import centroid, CometEnhancement
+        >>> from sbpy.imageanalysis import centroid, PSFSubtraction
         >>> import matplotlib.pyplot as plt
         >>> hdu = fits.open('test.fits')
         >>> cyx = centroid(hdu[0].data, (21, 45))
@@ -135,7 +144,7 @@ class PSFSubtraction():
         Examples
         --------
         >>> from astropy.io import fits
-        >>> from sbpy.imageanalysis import centroid, CometEnhancement
+        >>> from sbpy.imageanalysis import centroid, PSFSubtraction
         >>> import matplotlib.pyplot as plt
         >>> hdu = fits.open('test.fits')
         >>> cyx = centroid(hdu[0].data, (21, 45))
