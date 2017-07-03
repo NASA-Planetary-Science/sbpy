@@ -10,7 +10,7 @@ from ginga import GingaPlugin
 from ginga.gw import Widgets
 
 class CometaryEnhancements(GingaPlugin.LocalPlugin):
-
+    """Ginga plugin for on-the-fly cometary image enhancements."""
     def __init__(self, fv, fitsimage):
         """
         This method is called when the plugin is loaded for the  first
@@ -25,7 +25,6 @@ class CometaryEnhancements(GingaPlugin.LocalPlugin):
 
         # your local state and initialization code goes here
         self.enhancement_options = ['1/rho']
-        self.image = None
 
     def build_gui(self, container):
         """
@@ -72,10 +71,12 @@ class CometaryEnhancements(GingaPlugin.LocalPlugin):
         hbox.add_widget(w)
 
         w, b = Widgets.build_info(
-            (('Pick center', 'button'),
+            (('Use FOV center', 'button'),
              ('Centroid', 'button'))
         )
         self.w.update(b)
+        b.use_fov_center.add_callback('activated', self.use_fov_center_cb)
+        b.centroid.add_callback('activated', self.centroid_cb)
         hbox.add_widget(w)
 
         frame.set_widget(hbox)
@@ -126,6 +127,7 @@ class CometaryEnhancements(GingaPlugin.LocalPlugin):
 
     def enhance_cb(self, w):
         import numpy as np
+        from sbpy.imageanalysis import CometaryEnhancement
         
         try:
             xc = float(self.w.x_center.get_text())
@@ -133,14 +135,11 @@ class CometaryEnhancements(GingaPlugin.LocalPlugin):
         except ValueError:
             return
 
-        if self.image is None:
-            self.image = self.fitsimage.get_image()
+        im = self.fitsimage.get_image()
+        enhanced = im.copy()
+        enhancer = CometaryEnhancement(im.get_data(), (yc, xc))
+        enhanced.set_data(enhancer.rho_norm())        
 
-        y, x = np.indices(self.image.shape, float)
-        rho = np.sqrt((x - xc)**2 + (y - yc)**2)
-        
-        enhanced = self.image.copy()
-        enhanced.set_data(enhanced.get_data() * rho)
         chname = self.fv.get_current_channel().name + '(1/rho)'
         self.fv.add_image('1/rho enhanced', enhanced, chname=chname)
         
@@ -155,6 +154,34 @@ class CometaryEnhancements(GingaPlugin.LocalPlugin):
         w, b = Widgets.build_info(captions)
         self.w.enhancementsvbox.add_widget(w)
 
+    def centroid_cb(self, w):
+        import numpy as np
+        from photutils import centroid_2dg
+        
+        try:
+            xc = int(float(self.w.x_center.get_text()))
+            yc = int(float(self.w.y_center.get_text()))
+        except ValueError:
+            return
+
+        box = 11
+        x0 = xc - box // 2
+        y0 = yc - box // 2
+
+        im = self.fitsimage.get_image().get_data()
+        subim = im[y0:y0+box+1, x0:x0+box+1]
+        cxy = centroid_2dg(subim)
+        self.w.x_center.set_text('{:.2f}'.format(cxy[0] + x0))
+        self.w.y_center.set_text('{:.2f}'.format(cxy[1] + y0))
+
+    def use_fov_center_cb(self, w):
+        """Use the field of view center for the enhancement."""
+        print(type(self.fitsimage))
+        print(type(self.fv))
+        xy = self.fv.get_viewer(self.chname).get_pan()
+        self.w.x_center.set_text('{:.2f}'.format(xy[0]))
+        self.w.y_center.set_text('{:.2f}'.format(xy[1]))
+        
     def close(self):
         """
         Example close method.  You can use this method and attach it as a
@@ -203,7 +230,7 @@ class CometaryEnhancements(GingaPlugin.LocalPlugin):
         It should perform any special clean up necessary to terminate
         the operation.  The GUI will be destroyed by the plugin manager
         so there is no need for the stop method to do that.
-        This method may be called many  times as the plugin is opened and
+        This method may be called many times as the plugin is opened and
         closed for modal operations, and may be omitted if there is no
         special cleanup required when stopping.
         """
