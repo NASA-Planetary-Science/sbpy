@@ -7,73 +7,156 @@ SBPy Activity Module
 created on June 23, 2017
 """
 
-import astropy.units as u
-
-__all__ = ['Species', 'Aperture', 'ActivityClass', 'Haser',
+__all__ = ['Species', 'Aperture', 'CircularAperture', 'RectangularAperture',
+           'GaussianAperture', 'ActivityClass', 'Haser',
            'Vectorial', 'Syndynes']
 
+from abc import ABC, abstractmethod
+import astropy.units as u
 
-class Species():
+def photo_length_scale(species, rdot=None, eph=None, source=None):
+    """Photodissociation length scale for a gas species.
 
-    def scale_length(species, eph):
-        """Return scale length of a specific species or list thereof at a
-        given heliocentric distance (provided by eph)
-        """
+    The length scale returned is scaled to 1 au.
 
-        # implement list treatment
+    Parameters
+    ----------
+    species : string
+      The species to look up.
+    rdot : astropy Quantity, optional
+      The helocentric radial velocity.  One of `rdot` or `eph` is
+      required for some species.
+    eph : sbpy Ephem, optional
+      The target ephemeris.  Must include heliocentric radial
+      velocity.  One of `rdot` or `eph` is required for some species.
+    source : string, optional
+      Use values from this source.
 
-        data = {'H2O': 2.4e4, #Cochran and Schleicher 1993
-                'OH': 1.6e5 #Cochran and Schleicher 1993
-        }
-        
-        try:
-            out = data[species]
-        except KeyError:
-            raise KeyError(("no scale length available for species "
-                            "'{:s}'").format(species))
-        return out*u.km/eph.rh**2
+    Returns
+    -------
+    length_scale : astropy Quantity
+      The length scale quoted at 1 au.
 
+    Example
+    -------
+    >>> from sbpy.activity import photo_length_scale
+    >>> gamma = photo_length_scale('OH', rdot=23 * u.km / u.s)
 
-    def fluorescence_length(species, eph):
-        """Return fluorescence band efficiencies of a specific species and
+    not yet implemented
+
+    """
+    
+    data = {'H2O': 2.4e4, #Cochran and Schleicher 1993
+            'OH': 1.6e5 #Cochran and Schleicher 1993
+    }
+   
+    try:
+        out = data[species]
+    except KeyError:
+        raise KeyError(("no scale length available for species "
+                        "'{:s}'").format(species))
+    return out*u.km/eph.rh**2
+
+def fluorescence_band_strength(species):
+    """Fluorescence band efficiencies of a specific species and
         transition or list thereof at a given heliocentric distance
         (provided by eph)
+    """
 
-        """
-
-        # implement list treatment
-
-        data = {'OH 0-0': 2e-15 #Schleicher and A'Hearn 1988
-        }
+    # implement list treatment
+    
+    data = {'OH 0-0': 2e-15 #Schleicher and A'Hearn 1988
+    }
         
-        try:
-            out = data[species]
-        except KeyError:
-            raise KeyError(("no scale length available for species "
-                            "'{:s}'").format(species))
-        return out* u.erg / u.s / u.molecule * u.au**2/eph.rh**2
+    try:
+        out = data[species]
+    except KeyError:
+        raise KeyError(("no scale length available for species "
+                        "'{:s}'").format(species))
+    return out* u.erg / u.s / u.molecule * u.au**2/eph.rh**2
 
+class Aperture(ABC):
+    """Abstract base class for photometric apertures."""
+    pass
 
+class CircularAperture(Aperture):
+    """A circular aperture projected at the distance of the target.
 
-class Aperture():
+    Parameters
+    ----------
+    radius : astropy Quantity
+      Angular or projected linear radius for the aperture.
 
-    def circular(r):
-        """Defines a circular aperture"""
+    """
 
-    def rectangular(a, b):
-        """Defines a rectangular aperture"""
+    def __init__(self, radius):
+        assert isinstance(radius, u.Quantity)
+        assert radius.unit.is_equivalent((u.radian, u.meter))
+        self.radius = radius
 
-    def gaussian(r):
-        """Defines a Gaussian aperture"""
+class RectangularAperture(Aperture):
+    """A rectangular aperture projected at the distance of the target.
+    
+    Parameters
+    ----------
+    shape : astropy Quantity
+      A two-element `Quantity` of angular or projected linear size for
+      the aperture.
 
+    """
 
-        
+    def __init__(self, shape):
+        assert isinstance(shape, u.Quantity)
+        assert shape.unit.is_equivalent((u.radian, u.meter))
+        self.shape = shape
 
-class ActivityClass():
-    """General model implementation"""
+class GaussianAperture(Aperture):
+    """A Gaussian-shaped aperture, typically used for radio observations.
+
+    Parameters
+    ----------
+    sigma : astropy Quantity, optional
+      The width of the Gaussian beam (square-root of the variance) as
+      an angular or projected size.  One of `sigma` or `fwhm` is
+      required.
+    fwhm : astropy Quantity, optional
+      The full-width at half-maximum of the Gaussian beam as an
+      angular or projected size.  One of `sigma` or `fwhm` is
+      required.
+
+    """
+
+    def __init__(self, sigma=None, fwhm=None):
+        assert (sigma is not None) or (fwhm is not None), "One of `sigma` or `fwhm` must be defined."
+        # units are tested in self.sigma
+        if sigma is not None:
+            self.sigma = sigma
+        else:
+            self.fwhm = fwhm
+
+    @property
+    def sigma(self):
+        return self._sigma
+
+    @sigma.setter
+    def sigma(self, s):
+        assert s.is_equivalent((u.radian, u.meter))
+        self._sigma = s
+
+    @property
+    def fwhm(self):
+        return self._sigma * 2.3548200450309493
+
+    @fwhm.setter
+    def fwhm(self, f):
+        self.sigma = f / 2.3548200450309493
+
+class Activity(ABC):
+    """Abstract base class for gas coma models."""
     
     def __init__(self, Q):
-        self. Q = Q
+        assert Q.unit.is_equivalent((u.s**-1, u.mol / u.s))
+        self.Q = Q
 
     def volume_density(self, aperture, eph):
         """Calculate coma volume density in aperture
