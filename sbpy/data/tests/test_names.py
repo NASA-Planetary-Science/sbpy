@@ -44,7 +44,7 @@ def test_asteroid_or_comet():
         assert asteroid_or_comet(comet) == 'comet'
 
     for asteroid in asteroids:
-        assert asteroid_or_comet(comet) == 'asteroid'
+        assert asteroid_or_comet(asteroid) == 'asteroid'
 
     for name in ['Fred', 'S/2005 P 1']:
         assert asteroid_or_comet(name) is None
