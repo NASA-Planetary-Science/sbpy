@@ -7,18 +7,14 @@ SBPy Data Module
 created on June 22, 2017
 """
 
+__all__ = ['Orbit', 'Ephem', 'Phys', 'DataClass', 'mpc_observations', 'sb_search', 'image_search', 'pds_ferret']
+
 from astropy.table import Table, Column
 from astropy.time import Time
 import astropy.units as u
 import callhorizons
 
-__all__ = ['Orbit', 'Ephem', 'Phys', 'Misc', 'DataClass', 'parse_comet', 'parse_asteroid']
-
-class TargetNameParseError(Exception):
-    pass
-
 class DataClass():
-
     def __init__(self, *args, **kwargs):
         """Create Astropy.table from kwargs"""
         self.table = Table()
@@ -141,7 +137,7 @@ class Orbit(DataClass):
     @classmethod
     def from_horizons(cls, targetid, epoch=None, center='500@10',
                       bib=None):
-        """Load orbital elements from `JPL Horizons`_
+        """Load orbital elements from `JPL Horizons`_.
 
         Parameters
         ----------
@@ -195,9 +191,9 @@ class Orbit(DataClass):
             
         return cls.from_array(data, names)
 
-
-    def from_mpc(self, targetid, bib=None):
-        """Load orbital elements from the `Minor Planet Center`_
+    @classmethod
+    def from_mpc(cls, targetid, bib=None):
+        """Load orbital elements from the `Minor Planet Center`_.
 
         Parameters
         ----------
@@ -221,8 +217,9 @@ class Orbit(DataClass):
 
         """
 
-    def from_astdys(self, targetid, bib=None):
-        """Load orbital elements from `AstDyS`_
+    @classmethod
+    def from_astdys(cls, targetid, bib=None):
+        """Load orbital elements from `AstDyS`_.
 
         Parameters
         ----------
@@ -246,8 +243,9 @@ class Orbit(DataClass):
 
         """
 
-    def from_state(self, pos, vel):
-        """Convert state vector (positions and velocities) or orbital elements
+    @classmethod
+    def from_state(cls, pos, vel):
+        """Convert state vector (positions and velocities) or orbital elements.
 
         Parameters
         ----------
@@ -272,13 +270,13 @@ class Orbit(DataClass):
 
         """
 
-    def to_state(self, pos, vel):
+    def to_state(self, epoch):
         """Convert orbital elements to state vector (positions and velocities)
 
         Parameters
         ----------
-        obs : `Astropy.table` instance, mandatory
-            orbital elements
+        epoch : `astropy.time.Time` object, mandatory
+          The epoch(s) at which to compute state vectors.
         
         Returns
         -------
@@ -289,9 +287,10 @@ class Orbit(DataClass):
 
         Examples
         --------
+        >>> from astropy.time import Time
         >>> from sbpy.data import Orbit
-        >>> orb = Orbit.from_mpc('ceres')        
-        >>> state = Orbit.to_state(orb)      
+        >>> orb = Orbit.from_mpc('ceres')
+        >>> state = orb.to_state(Time('2015-03-06')
 
         not yet implemented
 
@@ -318,9 +317,9 @@ class Orbit(DataClass):
         >>> from sbpy.data import Orbit, Ephem
         >>> eph = Ephem.from_array([ra, dec, ra_sigma, dec_sigma, 
         >>>                         epochs, epochs_sigma],
-        >>>                        names=['ra', 'dec', 'ra_sigma', 
-        >>>                               'dec_sigma', 'epochs', 
-        >>>                               'epochs_sigma'])
+        >>>                         names=['ra', 'dec', 'ra_sigma', 
+        >>>                                'dec_sigma', 'epochs', 
+        >>>                                'epochs_sigma'])
         >>> orb = Orbit.orbfit(eph)
 
         not yet implemented
@@ -329,17 +328,15 @@ class Orbit(DataClass):
 
         """
         
-    def integrate(self, orb, time, integrator='IAS15'):
+    def integrate(self, time, integrator='IAS15'):
         """Function that integrates an orbit over a given range of time using the `REBOUND`_ package
 
         Parameters
         ----------
-        orb : `Astropy.table`, mandatory
-            complete set of orbital elements
         time : `Astropy.units` quantity, mandatory
-            time range over which the orbit will be integrated 
+            Time range over which the orbit will be integrated.
         integrator : str, option, default 'IAS15'
-            integrator type to be used for the integration
+            Integrator type to be used for the integration.
 
         Returns
         -------
@@ -349,20 +346,21 @@ class Orbit(DataClass):
         --------
         >>> from sbpy.data import Orbit
         >>> orb = Orbit.from...
-        >>> sim = Orbit.integrate(orb, time=1000*u.year)
+        >>> sim = orb.integrate(1000*u.year)
 
         not yet implemented
 
         .. _REBOUND: https://github.com/hannorein/rebound
         """
 
-    def from_rebound(self, sim):
-        """Obtain orbital elements from `REBOUND`_ simulation instance
+    @classmethod
+    def from_rebound(cls, sim):
+        """Obtain orbital elements from `REBOUND`_ simulation instance.
 
         Parameters
         ----------
         sim : REBOUND simulation instance, mandatory
-            simulation from which to obtain orbital elements
+            Simulation from which to obtain orbital elements.
 
         Returns
         -------
@@ -394,18 +392,18 @@ class Ephem(DataClass):
     @classmethod
     def from_horizons(cls, targetid, epoch, observatory, center='500@10',
                       bib=None):
-        """Load orbital elements from `JPL Horizons`_
+        """Load orbital elements from `JPL Horizons`_.
 
         Parameters
         ----------
         targetid : str, mandatory
-            target identifier
+            Target identifier.
         epoch : astropy Time instance or iterable, optional, default None
-            epoch of elements; if None is provided, current date is used
+            Epoch of elements; if None is provided, current date is used.
         center : str, optional, default '500@10' (Sun)
-            center body of orbital elements
+            Center body of orbital elements.
         bib : SBPy Bibliography instance, optional, default None
-            Bibliography instance that will be populated
+            Bibliography instance that will be populated.
 
         preliminary implementation
         
@@ -484,13 +482,11 @@ class Ephem(DataClass):
 
         """
 
-    @classmethod
-    def report_to_mpc(cls, eph, bib=None):
-        """Format ephemerides `Astropy.table` to report to `Minor Planet Center`_ 
+    def report_to_mpc(bib=None):
+        """Format Ephemerides to report to `Minor Planet Center`_.
 
         Parameters
         ----------
-        eph : `Astropy.table` of ephemerides
         bib : SBPy Bibliography instance, optional, default None
             Bibliography instance that will be populated
         
@@ -676,290 +672,107 @@ class Phys():
     def derive_bondalbedo(self):
         """Derive Bond albedo from geometric albedo and photometric phase slope"""
 
-    
-        
 
-class Misc():
-    """Class for obtaining miscellaneous data on small bodies"""
 
-    def mpc_observations(targetid, bib=None):
-        """Function that obtains all available observations of a small body from the `Minor Planet Center`_ and provides them in the form of a `sbpy.data.Ephem` Astropy table
-
-        Parameters
-        ----------
-        targetid : str, mandatory
-            target identifier
-        bib : SBPy Bibliography instance, optional, default None
-            Bibliography instance that will be populated
-
-        Returns
-        -------
-        Astropy Table
-
-        Examples
-        --------
-        >>> from sbpy.data import Misc
-        >>> eph = Misc.mpc_observations('ceres')
-
-        not yet implemented
-
-        .. _Minor Planet Center: http://www.minorplanetcenter.net
-
-        """
-
-    def sb_search(filename, bib=None):
-        """Function that uses the `Skybot`_ service at IMCCE to identify moving objects potentially present in a registered FITS images 
-
-        Parameters
-        ----------
-        filename : str, mandatory
-            filename of FITS image
-        bib : SBPy Bibliography instance, optional, default None
-            Bibliography instance that will be populated
-
-        Returns
-        -------
-        Astropy Table
-
-        Examples
-        --------
-        >>> from sbpy.data import Misc
-        >>> eph = Misc.sb_search('ceres')
-
-        not yet implemented
-
-        .. _Skybot: http://vo.imcce.fr/webservices/skybot/
-
-        """
-        
-    def image_search(targetid, bib=None):
-        """Function that uses the Solar System Object Image Search function of the `Canadian Astronomy Data Centre`_ to identify images with a specific small body in them
-
-        Parameters
-        ----------
-        targetid : str, mandatory
-            target identifier
-        bib : SBPy Bibliography instance, optional, default None
-            Bibliography instance that will be populated
-
-        Returns
-        -------
-        Astropy Table
-
-        Examples
-        --------
-        >>> from sbpy.data import Misc
-        >>> eph = Misc.image_search('ceres')
-
-        not yet implemented
-
-        .. _Canadian Astronomy Data Centre: http://www.cadc-ccda.hia-iha.nrc-cnrc.gc.ca/en/ssois/
-
-        """
-        
-    def pds_ferret(targetid, bib=None):
-        """Function that uses the `Small Bodies Data Ferret`_ at the Planetary Data System's Small Bodies Node to query for all existing information on a specific small body in the PDS
-
-        Parameters
-        ----------
-        targetid : str, mandatory
-            target identifier
-        bib : SBPy Bibliography instance, optional, default None
-            Bibliography instance that will be populated
-
-        Returns
-        -------
-        Astropy Table
-
-        Examples
-        --------
-        >>> from sbpy.data import Misc
-        >>> eph = Misc.pds_ferret('ceres')
-
-        not yet implemented
-
-        .. _Small Bodies Data Ferret: http://sbntools.psi.edu/ferret/
-
-        """
-
-    def asteroid_or_comet(targetid):
-        """Checks if an object is an asteroid, or a comet, based on its targetid
-
-        Examples
-        --------
-        >>> from sbpy.data import Misc
-        >>> print(Misc.asteroid_or_comet('2P')
-            'comet'
-        
-        note yet implemented
-
-        """
-        
-    def altident(targetid, bib=None):
-        """Query Lowell database to obtain alternative target names for `targetitd`
-
-        Examples
-        --------
-        >>> from sbpy.data import Misc
-        >>> print(Misc.altident('3552'))
-            ['3552', 'Don Quixote', '1983 SA']
-
-        not yet implemented
-
-        """
-
-    def from_packed(targetid):
-        """Convert packed designation/number to unpacked"""
-
-    def to_packed(targetid):
-        """ Convert unpacked identifier to packed designation/number"""
-        
-def parse_comet(s):
-    """Parse a string as if it were a comet name.
-
-    Only considers IAU-formatted permanent and new-style designations.
-    Note that letter case is important.
+def mpc_observations(targetid, bib=None):
+    """Obtain all available observations of a small body from the `Minor Planet Center`_ and provides them in the form of an Astropy table.
 
     Parameters
     ----------
-    s : string
-      The string to parse.
+    targetid : str, mandatory
+        target identifier
+    bib : SBPy Bibliography instance, optional, default None
+        Bibliography instance that will be populated
 
     Returns
     -------
-    des : string
-      The designation of the comet, e.g., '1P', or 'C/1995 O1'.
-    name : string
-      The name of the comet, if provided in `s`, e.g., 'Halley', or
-      'Hale-Bopp'.
-
-    Raises
-    ------
-    TargetNameParseError : Exception
-      If the string does not appear to be a comet name.
+    Astropy Table
 
     Examples
     --------
-    The following table shows the result of the designation parsing:
+    >>> from sbpy.data import mpc_observations
+    >>> obs = mpc_observations('ceres')
 
-      +-------------------------------+-------------+-------------------------+
-      |targetname                     |des          |name                     |
-      +===============================+=============+=========================+
-      |1P/Halley                      |1P           |Halley                   |
-      +-------------------------------+-------------+-------------------------+
-      |3D/Biela                       |3D           |Biela                    |
-      +-------------------------------+-------------+-------------------------+
-      |9P/Tempel 1                    |9P           |Tempel 1                 |
-      +-------------------------------+-------------+-------------------------+
-      |73P/Schwassmann-Wachmann 3 C   |73P          |Schwassmann-Wachmann 3 C |
-      +-------------------------------+-------------+-------------------------+
-      |73P-C/Schwassmann-Wachmann 3 C |73P-C        |Schwassmann-Wachmann 3 C |
-      +-------------------------------+-------------+-------------------------+
-      |73P-BB                         |73P-BB       |                         |
-      +-------------------------------+-------------+-------------------------+
-      |322P                           |322P         |                         |
-      +-------------------------------+-------------+-------------------------+
-      |X/1106 C1                      |X/1106 C1    |                         |
-      +-------------------------------+-------------+-------------------------+
-      |P/1994 N2 (McNaught-Hartley)   |P/1994 N2    |McNaught-Hartley         |
-      +-------------------------------+-------------+-------------------------+
-      |P/2001 YX127 (LINEAR)          |P/2001 YX127 |LINEAR                   |
-      +-------------------------------+-------------+-------------------------+
-      |C/-146 P1                      |C/-146 P1    |                         |
-      +-------------------------------+-------------+-------------------------+
-      |C/2001 A2-A (LINEAR)           |C/2001 A2-A  |LINEAR                   |
-      +-------------------------------+-------------+-------------------------+
-      |C/2013 US10                    |C/2013 US10  |                         |
-      +-------------------------------+-------------+-------------------------+
-      |C/2015 V2 (Johnson)            |C/2015 V2    |Johnson                  |
-      +-------------------------------+-------------+-------------------------+
+    not yet implemented
+
+    .. _Minor Planet Center: http://www.minorplanetcenter.net
 
     """
 
-    import re
-
-    pat = ('((^([1-9][0-9]*[PD](-[A-Z]{1,2})?)(/(.+))?$)'
-           '|(^([CPX]/-?[0-9]{1,4} [A-Z]{1,2}[1-9][0-9]{0,2}(-[A-Z]{1,2})?)\s*(\((.+)\))?$))')
-
-    m = re.findall(pat, s.strip())
-    if len(m) > 0:
-        m = m[0]
-        if len(m[2]) > 0:  # Permament
-            return m[2], m[5]
-        elif len(m[7]) > 0:
-            return m[7], m[10]
-
-    raise TargetNameParseError('{} does not appear to be a comet name'.format(s))
-
-def parse_asteroid(s):
-    """Parse a string as if it were an asteroid name.
-
-    Only considers IAU-formatted permanent and new-style designations.
-    Note that letter case is important.
+def sb_search(field, bib=None):
+    """Use the `Skybot`_ service at IMCCE to Identify moving objects potentially present in a registered FITS images.
 
     Parameters
     ----------
-    s : string
-      The string to parse.
+    field : string, astropy.io.fits Header object, Primary HDU, or Image HDU
+      A FITS image file name, HDU data structure, or header with
+      defined WCS
+        
+    bib : SBPy Bibliography instance, optional, default None
+        Bibliography instance that will be populated
 
     Returns
     -------
-    des : string
-      The designation of the asteroid, e.g., '1', or '2014 MU69'.
-    name : string
-      The name of the asteroid, if provided in `s`, e.g., 'Ceres'.
+    Astropy Table
 
     Examples
     --------
-    The following table shows the result of the parsing:
+    >>> from sbpy.data import sb_search
+    >>> objects = sb_search('ceres')
 
-      +-----------------+-----------+----------+
-      |targetname       |des        |name      |
-      +=================+===========+==========+
-      |1                |1          |          |
-      +-----------------+-----------+----------+
-      |(2001) Einstein  |2001       |Einstein  |
-      +-----------------+-----------+----------+
-      |2001 AT1         |2001 AT1   |          |
-      +-----------------+-----------+----------+
-      |(1714) Sy        |1714       |Sy        |
-      +-----------------+-----------+----------+
-      |1714 SY          |1714 SY    |          |  # compare with previous
-      +-----------------+-----------+----------+
-      |2014 MU69        |2014 MU69  |          |
-      +-----------------+-----------+----------+
-      |2017 AA          |2017 AA    |          |
-      +-----------------+-----------+----------+
-      |(20231) 1997 YK  |20231      |1997 YK   |
-      +-----------------+-----------+----------+
-      |2040 P-L         |2040 P-L   |          |
-      +-----------------+-----------+----------+
-      |3138 T-1         |3138 T-1   |          |
-      +-----------------+-----------+----------+
-      |1010 T-2         |1010 T-2   |          |
-      +-----------------+-----------+----------+
-      |4101 T-3         |4101 T-3   |          |
-      +-----------------+-----------+----------+
+    not yet implemented
+
+    .. _Skybot: http://vo.imcce.fr/webservices/skybot/
 
     """
+        
+def image_search(targetid, bib=None):
+    """Use the Solar System Object Image Search function of the `Canadian Astronomy Data Centre`_ to identify images with a specific small body in them.
 
-    import re
+    Parameters
+    ----------
+    targetid : str, mandatory
+        target identifier
+    bib : SBPy Bibliography instance, optional, default None
+        Bibliography instance that will be populated
 
-    # Provisional, permanent, then survey-specific
-    pat = ('((^([1-9]|A)[0-9]{3,3}( [A-Z]{2,2}([1-9][0-9]{0,2})?)$)'
-           '|(^\(([1-9][0-9]*)\) (.+)?$)|(^[1-9][0-9]*$)'
-           '|(^[1-9][0-9]* ((P-L)|(T-[123]))$))')
+    Returns
+    -------
+    Astropy Table
 
-    m = re.findall(pat, s.strip())
-    if len(m) > 0:
-        m = m[0]
-        if len(m[1]) > 0:    # Provisional
-            return m[1], ''
-        elif len(m[6]) > 0:  # Permanent with name
-            return m[6], m[7]
-        elif len(m[8]) > 0:  # Permenent without name
-            return m[8], ''
-        elif len(m[9]) > 0:  # Survey-specific
-            return m[9], ''
+    Examples
+    --------
+    >>> from sbpy.data import Misc
+    >>> images = Misc.image_search('ceres')
 
-    raise TargetNameParseError('{} does not appear to be an asteroid name'.format(s))
+    not yet implemented
+
+    .. _Canadian Astronomy Data Centre: http://www.cadc-ccda.hia-iha.nrc-cnrc.gc.ca/en/ssois/
+
+    """
+        
+def pds_ferret(targetid, bib=None):
+    """Use the `Small Bodies Data Ferret`_ at the Planetary Data System's Small Bodies Node to query for information on a specific small body in the PDS.
+
+    Parameters
+    ----------
+    targetid : str, mandatory
+        target identifier
+    bib : SBPy Bibliography instance, optional, default None
+        Bibliography instance that will be populated
+
+    Returns
+    -------
+    data : dict
+      A hierarchical data object
+
+    Examples
+    --------
+    >>> from sbpy.data import pds_ferret
+    >>> data = pds_ferret('ceres')
+
+    not yet implemented
+
+    .. _Small Bodies Data Ferret: http://sbntools.psi.edu/ferret/
+
+    """
