@@ -483,7 +483,7 @@ class Ephem(DataClass):
         """
 
     def report_to_mpc(bib=None):
-        """Format Ephemerides to report to `Minor Planet Center`_.
+        """Format as a report to the `Minor Planet Center`_.
 
         Parameters
         ----------
@@ -500,7 +500,7 @@ class Ephem(DataClass):
         --------
         >>> from sbpy.data import Ephem
         >>> eph = Ephem.from_array...
-        >>> report = Ephem.report_to_mpc(eph)
+        >>> report = eph.report_to_mpc()
 
         not yet implemented
 
