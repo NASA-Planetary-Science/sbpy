@@ -7,7 +7,7 @@ SBPy Photometry Module
 created on June 23, 2017
 """
 
-__all__ = ['DiskIntegratedModelClass', 'HG', 'HG12', 'HG1G2', 'DiskFunctionModel', 'Lommel-Seeliger', 'Lambert', 'PhaseFunctionModel', 'ROLOPhase', 'ResolvedPhotometricModelClass', 'ROLO']
+__all__ = ['DiskIntegratedModelClass', 'HG', 'HG12', 'HG1G2', 'DiskFunctionModel', 'LommelSeeliger', 'Lambert', 'PhaseFunctionModel', 'ROLOPhase', 'ResolvedPhotometricModelClass', 'ROLO']
 
 class DiskIntegratedModelClass():
 
@@ -107,7 +107,7 @@ class DiskFunctionModel(object):
     pass
 
 
-class Lommel-Seeliger(DiskFunctionModel):
+class LommelSeeliger(DiskFunctionModel):
     """Lommel-Seeliger model class"""
     pass
 
@@ -124,13 +124,13 @@ class PhaseFunctionModel(object):
 
 class ROLOPhase(PhaseFunctionModel):
     """ROLO phase function model class"""
-    self.A0 = None
-    self.A1 = None
-    self.C0 = None
-    self.C1 = None
-    self.C2 = None
-    self.C3 = None
-    self.C4 = None
+    A0 = None
+    A1 = None
+    C0 = None
+    C1 = None
+    C2 = None
+    C3 = None
+    C4 = None
 
 
 class ResolvedPhotometricModelClass(object):
