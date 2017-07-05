@@ -7,16 +7,14 @@ SBPy Data Module
 created on June 22, 2017
 """
 
+__all__ = ['Orbit', 'Ephem', 'Phys', 'DataClass', 'mpc_observations', 'sb_search', 'image_search', 'pds_ferret']
+
 from astropy.table import Table, Column
 from astropy.time import Time
 import astropy.units as u
 import callhorizons
 
-__all__ = ['Orbit', 'Ephem', 'Phys', 'Misc', 'DataClass']
-
-
 class DataClass():
-
     def __init__(self, *args, **kwargs):
         """Create Astropy.table from kwargs"""
         self.table = Table()
@@ -139,7 +137,7 @@ class Orbit(DataClass):
     @classmethod
     def from_horizons(cls, targetid, epoch=None, center='500@10',
                       bib=None):
-        """Load orbital elements from `JPL Horizons`_
+        """Load orbital elements from `JPL Horizons`_.
 
         Parameters
         ----------
@@ -193,9 +191,9 @@ class Orbit(DataClass):
             
         return cls.from_array(data, names)
 
-
-    def from_mpc(self, targetid, bib=None):
-        """Load orbital elements from the `Minor Planet Center`_
+    @classmethod
+    def from_mpc(cls, targetid, bib=None):
+        """Load orbital elements from the `Minor Planet Center`_.
 
         Parameters
         ----------
@@ -219,8 +217,9 @@ class Orbit(DataClass):
 
         """
 
-    def from_astdys(self, targetid, bib=None):
-        """Load orbital elements from `AstDyS`_
+    @classmethod
+    def from_astdys(cls, targetid, bib=None):
+        """Load orbital elements from `AstDyS`_.
 
         Parameters
         ----------
@@ -244,8 +243,9 @@ class Orbit(DataClass):
 
         """
 
-    def from_state(self, pos, vel):
-        """Convert state vector (positions and velocities) or orbital elements
+    @classmethod
+    def from_state(cls, pos, vel):
+        """Convert state vector (positions and velocities) or orbital elements.
 
         Parameters
         ----------
@@ -270,13 +270,13 @@ class Orbit(DataClass):
 
         """
 
-    def to_state(self, pos, vel):
+    def to_state(self, epoch):
         """Convert orbital elements to state vector (positions and velocities)
 
         Parameters
         ----------
-        obs : `Astropy.table` instance, mandatory
-            orbital elements
+        epoch : `astropy.time.Time` object, mandatory
+          The epoch(s) at which to compute state vectors.
         
         Returns
         -------
@@ -287,9 +287,10 @@ class Orbit(DataClass):
 
         Examples
         --------
+        >>> from astropy.time import Time
         >>> from sbpy.data import Orbit
-        >>> orb = Orbit.from_mpc('ceres')        
-        >>> state = Orbit.to_state(orb)      
+        >>> orb = Orbit.from_mpc('ceres')
+        >>> state = orb.to_state(Time('2015-03-06')
 
         not yet implemented
 
@@ -316,9 +317,9 @@ class Orbit(DataClass):
         >>> from sbpy.data import Orbit, Ephem
         >>> eph = Ephem.from_array([ra, dec, ra_sigma, dec_sigma, 
         >>>                         epochs, epochs_sigma],
-        >>>                        names=['ra', 'dec', 'ra_sigma', 
-        >>>                               'dec_sigma', 'epochs', 
-        >>>                               'epochs_sigma'])
+        >>>                         names=['ra', 'dec', 'ra_sigma', 
+        >>>                                'dec_sigma', 'epochs', 
+        >>>                                'epochs_sigma'])
         >>> orb = Orbit.orbfit(eph)
 
         not yet implemented
@@ -327,17 +328,15 @@ class Orbit(DataClass):
 
         """
         
-    def integrate(self, orb, time, integrator='IAS15'):
+    def integrate(self, time, integrator='IAS15'):
         """Function that integrates an orbit over a given range of time using the `REBOUND`_ package
 
         Parameters
         ----------
-        orb : `Astropy.table`, mandatory
-            complete set of orbital elements
         time : `Astropy.units` quantity, mandatory
-            time range over which the orbit will be integrated 
+            Time range over which the orbit will be integrated.
         integrator : str, option, default 'IAS15'
-            integrator type to be used for the integration
+            Integrator type to be used for the integration.
 
         Returns
         -------
@@ -347,20 +346,21 @@ class Orbit(DataClass):
         --------
         >>> from sbpy.data import Orbit
         >>> orb = Orbit.from...
-        >>> sim = Orbit.integrate(orb, time=1000*u.year)
+        >>> sim = orb.integrate(1000*u.year)
 
         not yet implemented
 
         .. _REBOUND: https://github.com/hannorein/rebound
         """
 
-    def from_rebound(self, sim):
-        """Obtain orbital elements from `REBOUND`_ simulation instance
+    @classmethod
+    def from_rebound(cls, sim):
+        """Obtain orbital elements from `REBOUND`_ simulation instance.
 
         Parameters
         ----------
         sim : REBOUND simulation instance, mandatory
-            simulation from which to obtain orbital elements
+            Simulation from which to obtain orbital elements.
 
         Returns
         -------
@@ -392,18 +392,18 @@ class Ephem(DataClass):
     @classmethod
     def from_horizons(cls, targetid, epoch, observatory, center='500@10',
                       bib=None):
-        """Load orbital elements from `JPL Horizons`_
+        """Load orbital elements from `JPL Horizons`_.
 
         Parameters
         ----------
         targetid : str, mandatory
-            target identifier
+            Target identifier.
         epoch : astropy Time instance or iterable, optional, default None
-            epoch of elements; if None is provided, current date is used
+            Epoch of elements; if None is provided, current date is used.
         center : str, optional, default '500@10' (Sun)
-            center body of orbital elements
+            Center body of orbital elements.
         bib : SBPy Bibliography instance, optional, default None
-            Bibliography instance that will be populated
+            Bibliography instance that will be populated.
 
         preliminary implementation
         
@@ -482,13 +482,11 @@ class Ephem(DataClass):
 
         """
 
-    @classmethod
-    def report_to_mpc(cls, eph, bib=None):
-        """Format ephemerides `Astropy.table` to report to `Minor Planet Center`_ 
+    def report_to_mpc(bib=None):
+        """Format as a report to the `Minor Planet Center`_.
 
         Parameters
         ----------
-        eph : `Astropy.table` of ephemerides
         bib : SBPy Bibliography instance, optional, default None
             Bibliography instance that will be populated
         
@@ -502,7 +500,7 @@ class Ephem(DataClass):
         --------
         >>> from sbpy.data import Ephem
         >>> eph = Ephem.from_array...
-        >>> report = Ephem.report_to_mpc(eph)
+        >>> report = eph.report_to_mpc()
 
         not yet implemented
 
@@ -674,141 +672,107 @@ class Phys():
     def derive_bondalbedo(self):
         """Derive Bond albedo from geometric albedo and photometric phase slope"""
 
-    
+
+
+def mpc_observations(targetid, bib=None):
+    """Obtain all available observations of a small body from the `Minor Planet Center`_ and provides them in the form of an Astropy table.
+
+    Parameters
+    ----------
+    targetid : str, mandatory
+        target identifier
+    bib : SBPy Bibliography instance, optional, default None
+        Bibliography instance that will be populated
+
+    Returns
+    -------
+    Astropy Table
+
+    Examples
+    --------
+    >>> from sbpy.data import mpc_observations
+    >>> obs = mpc_observations('ceres')
+
+    not yet implemented
+
+    .. _Minor Planet Center: http://www.minorplanetcenter.net
+
+    """
+
+def sb_search(field, bib=None):
+    """Use the `Skybot`_ service at IMCCE to Identify moving objects potentially present in a registered FITS images.
+
+    Parameters
+    ----------
+    field : string, astropy.io.fits Header object, Primary HDU, or Image HDU
+      A FITS image file name, HDU data structure, or header with
+      defined WCS
         
+    bib : SBPy Bibliography instance, optional, default None
+        Bibliography instance that will be populated
 
-class Misc():
-    """Class for obtaining miscellaneous data on small bodies"""
+    Returns
+    -------
+    Astropy Table
 
-    def mpc_observations(targetid, bib=None):
-        """Function that obtains all available observations of a small body from the `Minor Planet Center`_ and provides them in the form of a `sbpy.data.Ephem` Astropy table
+    Examples
+    --------
+    >>> from sbpy.data import sb_search
+    >>> objects = sb_search('ceres')
 
-        Parameters
-        ----------
-        targetid : str, mandatory
-            target identifier
-        bib : SBPy Bibliography instance, optional, default None
-            Bibliography instance that will be populated
+    not yet implemented
 
-        Returns
-        -------
-        Astropy Table
+    .. _Skybot: http://vo.imcce.fr/webservices/skybot/
 
-        Examples
-        --------
-        >>> from sbpy.data import Misc
-        >>> eph = Misc.mpc_observations('ceres')
-
-        not yet implemented
-
-        .. _Minor Planet Center: http://www.minorplanetcenter.net
-
-        """
-
-    def sb_search(filename, bib=None):
-        """Function that uses the `Skybot`_ service at IMCCE to identify moving objects potentially present in a registered FITS images 
-
-        Parameters
-        ----------
-        filename : str, mandatory
-            filename of FITS image
-        bib : SBPy Bibliography instance, optional, default None
-            Bibliography instance that will be populated
-
-        Returns
-        -------
-        Astropy Table
-
-        Examples
-        --------
-        >>> from sbpy.data import Misc
-        >>> eph = Misc.sb_search('ceres')
-
-        not yet implemented
-
-        .. _Skybot: http://vo.imcce.fr/webservices/skybot/
-
-        """
+    """
         
-    def image_search(targetid, bib=None):
-        """Function that uses the Solar System Object Image Search function of the `Canadian Astronomy Data Centre`_ to identify images with a specific small body in them
+def image_search(targetid, bib=None):
+    """Use the Solar System Object Image Search function of the `Canadian Astronomy Data Centre`_ to identify images with a specific small body in them.
 
-        Parameters
-        ----------
-        targetid : str, mandatory
-            target identifier
-        bib : SBPy Bibliography instance, optional, default None
-            Bibliography instance that will be populated
+    Parameters
+    ----------
+    targetid : str, mandatory
+        target identifier
+    bib : SBPy Bibliography instance, optional, default None
+        Bibliography instance that will be populated
 
-        Returns
-        -------
-        Astropy Table
+    Returns
+    -------
+    Astropy Table
 
-        Examples
-        --------
-        >>> from sbpy.data import Misc
-        >>> eph = Misc.image_search('ceres')
+    Examples
+    --------
+    >>> from sbpy.data import Misc
+    >>> images = Misc.image_search('ceres')
 
-        not yet implemented
+    not yet implemented
 
-        .. _Canadian Astronomy Data Centre: http://www.cadc-ccda.hia-iha.nrc-cnrc.gc.ca/en/ssois/
+    .. _Canadian Astronomy Data Centre: http://www.cadc-ccda.hia-iha.nrc-cnrc.gc.ca/en/ssois/
 
-        """
+    """
         
-    def pds_ferret(targetid, bib=None):
-        """Function that uses the `Small Bodies Data Ferret`_ at the Planetary Data System's Small Bodies Node to query for all existing information on a specific small body in the PDS
+def pds_ferret(targetid, bib=None):
+    """Use the `Small Bodies Data Ferret`_ at the Planetary Data System's Small Bodies Node to query for information on a specific small body in the PDS.
 
-        Parameters
-        ----------
-        targetid : str, mandatory
-            target identifier
-        bib : SBPy Bibliography instance, optional, default None
-            Bibliography instance that will be populated
+    Parameters
+    ----------
+    targetid : str, mandatory
+        target identifier
+    bib : SBPy Bibliography instance, optional, default None
+        Bibliography instance that will be populated
 
-        Returns
-        -------
-        Astropy Table
+    Returns
+    -------
+    data : dict
+      A hierarchical data object
 
-        Examples
-        --------
-        >>> from sbpy.data import Misc
-        >>> eph = Misc.pds_ferret('ceres')
+    Examples
+    --------
+    >>> from sbpy.data import pds_ferret
+    >>> data = pds_ferret('ceres')
 
-        not yet implemented
+    not yet implemented
 
-        .. _Small Bodies Data Ferret: http://sbntools.psi.edu/ferret/
+    .. _Small Bodies Data Ferret: http://sbntools.psi.edu/ferret/
 
-        """
-
-    def asteroid_or_comet(targetid):
-        """Checks if an object is an asteroid, or a comet, based on its targetid
-
-        Examples
-        --------
-        >>> from sbpy.data import Misc
-        >>> print(Misc.asteroid_or_comet('2P')
-            'comet'
-        
-        note yet implemented
-
-        """
-        
-    def altident(targetid, bib=None):
-        """Query Lowell database to obtain alternative target names for `targetitd`
-
-        Examples
-        --------
-        >>> from sbpy.data import Misc
-        >>> print(Misc.altident('3552'))
-            ['3552', 'Don Quixote', '1983 SA']
-
-        not yet implemented
-
-        """
-
-    def from_packed(targetid):
-        """Convert packed designation/number to unpacked"""
-
-    def to_packed(targetid):
-        """ Convert unpacked identifier to packed designation/number"""
-        
+    """
