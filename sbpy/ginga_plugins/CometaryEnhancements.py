@@ -65,42 +65,49 @@ class CometaryEnhancements(GingaPlugin.LocalPlugin):
         hbox = Widgets.HBox()
         w, b = Widgets.build_info(
             (('X center:', 'label', 'X center', 'entry'),
-             ('Y center:', 'label', 'Y center', 'entry'))
+             ('Y center:', 'label', 'Y center', 'entry'),
+             ('Background:', 'label', 'background', 'entry'),)
         )
+        b.background.set_text('0.0')
         self.w.update(b)
         hbox.add_widget(w)
 
         w, b = Widgets.build_info(
             (('Use FOV center', 'button'),
-             ('Centroid', 'button'))
+             ('Centroid', 'button'),
+             ('Centroid box:', 'label', 'centroid box', 'entry'),)
         )
-        self.w.update(b)
         b.use_fov_center.add_callback('activated', self.use_fov_center_cb)
-        b.centroid.add_callback('activated', self.centroid_cb)
+        # centroiding requires photutils
+        try:
+            import photutils
+            b.centroid.add_callback('activated', self.centroid_cb)
+            b.centroid_box.set_text('11')
+        except ImportError:
+            b.centroid.set_enabled(False)
+            b.centroid_box.set_enabled(False)
+        
+        self.w.update(b)
         hbox.add_widget(w)
 
         frame.set_widget(hbox)
         vbox.add_widget(frame)
         
-        captions = (('Enhancement:', 'label', 'Enhancement', 'combobox',
-                     'Enhance', 'button'),)
-        w, b = Widgets.build_info(captions)
-        self.w.update(b)
-        b.enhance.add_callback('activated', self.enhance_cb)
+        # Enhancement tabs
+        tabw = Widgets.TabWidget()
+        self.w.tabw = tabw
 
-        for name in self.enhancement_options:
-            b.enhancement.append_text(name)
-        b.enhancement.set_tooltip('Cometary enhancement method')
-        b.enhancement.set_index(0)
-        b.enhancement.add_callback('activated', lambda w, i: self.set_enhancement_cb())
+        # 1/rho
+        rho_vbox = Widgets.VBox()
+        widgets = (('No options', 'label'),
+                   ('Enhance', 'button'))
+        w, b = Widgets.build_info(widgets)
+        b.enhance.add_callback('activated', self.rho_cb)
+        self.w.rho = b
+        rho_vbox.add_widget(w)
+        tabw.add_widget(rho_vbox, title='1/rho')
 
-        vbox.add_widget(w)
-
-        frame = Widgets.Frame('Enhancement options')
-        self.w.enhancementsvbox = Widgets.VBox()
-        frame.set_widget(self.w.enhancementsvbox, stretch=1)
-        vbox.add_widget(frame)
-        self.set_enhancement_cb()
+        vbox.add_widget(tabw)
         
         # scroll bars will allow lots of content to be accessed
         top.add_widget(sw, stretch=1)
@@ -125,50 +132,53 @@ class CometaryEnhancements(GingaPlugin.LocalPlugin):
         #cw = container.get_widget()
         #cw.addWidget(widget, stretch=1)
 
-    def enhance_cb(self, w):
+    def rho_cb(self, w):
         import numpy as np
         from sbpy.imageanalysis import CometaryEnhancement
-        
+
         try:
             xc = float(self.w.x_center.get_text())
             yc = float(self.w.y_center.get_text())
         except ValueError:
             return
 
-        im = self.fitsimage.get_image()
-        enhanced = im.copy()
-        enhancer = CometaryEnhancement(im.get_data(), (yc, xc))
-        enhanced.set_data(enhancer.rho_norm())        
+        original = self.fitsimage.get_image()
+        new_image = original.copy()
+        
+        try:
+            bg = float(self.w.background.get_text())
+        except ValueError:
+            bg = 0
+
+        enhancer = CometaryEnhancement(new_image.get_data() - bg, (yc, xc))
+        new_image.set_data(enhancer.rho_norm())
 
         chname = self.fv.get_current_channel().name + '(1/rho)'
-        self.fv.add_image('1/rho enhanced', enhanced, chname=chname)
+        self.fv.add_image('1/rho enhanced', new_image, chname=chname)
         
-    def set_enhancement_cb(self):
-        i = self.w.enhancement.get_index()
-
-        # remove old parameters
-        self.w.enhancementsvbox.remove_all()
-
-        # create new parameters
-        captions = (('None', 'label'),)
-        w, b = Widgets.build_info(captions)
-        self.w.enhancementsvbox.add_widget(w)
-
     def centroid_cb(self, w):
         import numpy as np
         from photutils import centroid_2dg
         
+        im = self.fitsimage.get_image().get_data()
+
         try:
             xc = int(float(self.w.x_center.get_text()))
             yc = int(float(self.w.y_center.get_text()))
+            box = int(float(self.w.centroid_box.get_text()))
         except ValueError:
             return
 
-        box = 11
+        if box < 3:
+            box = 3
+            self.w.centroid_box.set_text('3')
+        elif box > min(xc, yc, im.shape[0] - yc, im.shape[1] - xc):
+            box = int(min(xc, yc, im.shape[0] - yc, im.shape[1] - xc))
+            self.w.centroid_box.set_text(str(box))
+
         x0 = xc - box // 2
         y0 = yc - box // 2
 
-        im = self.fitsimage.get_image().get_data()
         subim = im[y0:y0+box+1, x0:x0+box+1]
         cxy = centroid_2dg(subim)
         self.w.x_center.set_text('{:.2f}'.format(cxy[0] + x0))
@@ -176,8 +186,6 @@ class CometaryEnhancements(GingaPlugin.LocalPlugin):
 
     def use_fov_center_cb(self, w):
         """Use the field of view center for the enhancement."""
-        print(type(self.fitsimage))
-        print(type(self.fv))
         xy = self.fv.get_viewer(self.chname).get_pan()
         self.w.x_center.set_text('{:.2f}'.format(xy[0]))
         self.w.y_center.set_text('{:.2f}'.format(xy[1]))
