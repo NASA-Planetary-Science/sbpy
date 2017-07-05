@@ -118,8 +118,9 @@ def register(task, citations):
       `{'beaming parameter': '2013Icar..226.1138F'}`.
 
     """
-    global _bibliography
-    _bibliography[task] = citations
+    global _bibliography, _track
+    if _track:
+        _bibliography[task] = citations
 
 def report():
     """Report tracked `sbpy` citations."""
