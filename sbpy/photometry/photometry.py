@@ -7,7 +7,7 @@ SBPy Photometry Module
 created on June 23, 2017
 """
 
-__all__ = ['DiskIntegratedModelClass', 'HG', 'HG12', 'HG1G2', 'DiskFunctionModel', 'LommelSeeliger', 'Lambert', 'PhaseFunctionModel', 'ROLOPhase', 'ResolvedPhotometricModelClass', 'ROLO']
+__all__ = ['DiskIntegratedModelClass', 'HG', 'HG12', 'HG1G2', 'DiskFunctionModel', 'LommelSeeliger', 'Lambert', 'LunarLambert', 'PhaseFunctionModel', 'ROLOPhase', 'ResolvedPhotometricModelClass', 'ROLO'， 'Hapke']
 
 class DiskIntegratedModelClass():
 
@@ -117,6 +117,11 @@ class Lambert(DiskFunctionModel):
     pass
 
 
+class LunarLambert(DiskFunctionModel):
+    """Lunar-Lambert model, or McEwen model class"""
+    L = None  # partition parameter between Lommel-Seeliger term and Lambert term
+
+
 class PhaseFunctionModel(object):
     """Base class for phase function model"""
     pass
@@ -138,8 +143,14 @@ class ResolvedPhotometricModelClass(object):
     # composite model as the product of a disk function and a phase function
     pass
 
+
 class ROLO(ResolvedPhotometricModelClass):
     """ROLO disk-resolved photometric model"""
+    pass
+
+
+class Hapke(ResolvedPhotometricModelClass):
+    """Hapke scattering model class"""
     pass
 
 
