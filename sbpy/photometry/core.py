@@ -124,6 +124,11 @@ class Lambert(DiskFunctionModel):
     pass
 
 
+class LunarLambert(DiskFunctionModel):
+    """Lunar-Lambert model, or McEwen model class"""
+    L = None  # partition parameter between Lommel-Seeliger term and Lambert term
+
+
 class PhaseFunctionModel(object):
     """Base class for phase function model"""
     pass
@@ -148,6 +153,11 @@ class ResolvedPhotometricModelClass(object):
 
 class ROLO(ResolvedPhotometricModelClass):
     """ROLO disk-resolved photometric model"""
+    pass
+
+
+class Hapke(ResolvedPhotometricModelClass):
+    """Hapke scattering model class"""
     pass
 
 
