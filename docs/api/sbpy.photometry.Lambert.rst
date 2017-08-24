@@ -1,7 +1,7 @@
-HG
-==
+Lambert
+=======
 
 .. currentmodule:: sbpy.photometry
 
-.. autoclass:: HG
+.. autoclass:: Lambert
    :show-inheritance:

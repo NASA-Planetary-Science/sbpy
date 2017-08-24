@@ -7,12 +7,13 @@ SBPy Data Module
 created on June 22, 2017
 """
 
-__all__ = ['Orbit', 'Ephem', 'Phys', 'DataClass', 'mpc_observations', 'sb_search', 'image_search', 'pds_ferret']
+__all__ = ['DataClass', 'mpc_observations', 'sb_search', 'image_search', 'pds_ferret']
 
 from astropy.table import Table, Column
 from astropy.time import Time
 import astropy.units as u
 import callhorizons
+
 
 class DataClass():
     def __init__(self, *args, **kwargs):
@@ -34,8 +35,7 @@ class DataClass():
 
     @classmethod
     def from_dict(cls, data):
-        """Create orbital elements table from dictionary or list of
-        dictionaries
+        """Create data table from dictionary or list of dictionaries
         
         Parameters
         ----------
@@ -58,7 +58,7 @@ class DataClass():
     
     @classmethod
     def from_array(cls, data, names):
-        """Create orbital elements table from lists or arrays
+        """Create data table from lists or arrays
 
         Parameters
         ----------
@@ -117,560 +117,560 @@ class DataClass():
         return self.table
     
             
-class Orbit(DataClass):
-    """Class for querying, manipulating, integrating, and fitting orbital elements
+# class Orbit(DataClass):
+#     """Class for querying, manipulating, integrating, and fitting orbital elements
 
-    Every function of this class returns an Astropy Table object; the
-    columns in these tables are not fixed and depend on the function
-    generating the table or the user input.
+#     Every function of this class returns an Astropy Table object; the
+#     columns in these tables are not fixed and depend on the function
+#     generating the table or the user input.
 
-    The `Orbit` class also provides interfaces to `OpenOrb`_ for orbit
-    fitting and `REBOUND`_ for orbit integrations.
+#     The `Orbit` class also provides interfaces to `OpenOrb`_ for orbit
+#     fitting and `REBOUND`_ for orbit integrations.
 
-    .. _OpenOrb: https://github.com/oorb/oorb
-    .. _REBOUND: https://github.com/hannorein/rebound
+#     .. _OpenOrb: https://github.com/oorb/oorb
+#     .. _REBOUND: https://github.com/hannorein/rebound
 
-    """
+#     """
 
 
 
-    @classmethod
-    def from_horizons(cls, targetid, epoch=None, center='500@10',
-                      bib=None):
-        """Load orbital elements from `JPL Horizons`_.
+#     @classmethod
+#     def from_horizons(cls, targetid, epoch=None, center='500@10',
+#                       bib=None):
+#         """Load orbital elements from `JPL Horizons`_.
 
-        Parameters
-        ----------
-        targetid : str, mandatory
-            target identifier
-        epoch : astropy Time instance or iterable, optional, default None
-            epoch of elements; if None is provided, current date is used
-        center : str, optional, default '500@10' (Sun)
-            center body of orbital elements
-        bib : SBPy Bibliography instance, optional, default None
-            Bibliography instance that will be populated
+#         Parameters
+#         ----------
+#         targetid : str, mandatory
+#             target identifier
+#         epoch : astropy Time instance or iterable, optional, default None
+#             epoch of elements; if None is provided, current date is used
+#         center : str, optional, default '500@10' (Sun)
+#             center body of orbital elements
+#         bib : SBPy Bibliography instance, optional, default None
+#             Bibliography instance that will be populated
 
-        preliminary implementation
+#         preliminary implementation
         
-        Returns
-        -------
-        Astropy Table
+#         Returns
+#         -------
+#         Astropy Table
 
-        Examples
-        --------
-        >>> from sbpy.data import Orbit
-        >>> from astropy.time import Time
-        >>> epoch = Time('2018-05-14', scale='utc')
-        >>> orb = Orbit.from_horizons('ceres', epoch)
+#         Examples
+#         --------
+#         >>> from sbpy.data import Orbit
+#         >>> from astropy.time import Time
+#         >>> epoch = Time('2018-05-14', scale='utc')
+#         >>> orb = Orbit.from_horizons('ceres', epoch)
 
-        .. _JPL Horizons: https://ssd.jpl.nasa.gov/horizons.cgi
+#         .. _JPL Horizons: https://ssd.jpl.nasa.gov/horizons.cgi
 
-        """
+#         """
 
-        if epoch is None:
-            epoch = [Time.now()]
-        elif isinstance(epoch, Time):
-            epoch = [epoch]
+#         if epoch is None:
+#             epoch = [Time.now()]
+#         elif isinstance(epoch, Time):
+#             epoch = [epoch]
 
-        # for now, use CALLHORIZONS for the query; this will be replaced with
-        # a dedicated query
-        el = callhorizons.query(targetid)
-        el.set_discreteepochs([ep.jd for ep in epoch])
-        el.get_elements(center=center)
-        data = [el[field] for field in el.fields]
-        names = el.fields
-        #meta = {'name': 'orbital elements from JPL Horizons'}
-        # table = Table([el[field] for field in el.fields],
-        #               names=el.fields,
-        #               meta={'name': 'orbital elements from JPL Horizons'})
-        # # Astropy units will be integrated in the future
+#         # for now, use CALLHORIZONS for the query; this will be replaced with
+#         # a dedicated query
+#         el = callhorizons.query(targetid)
+#         el.set_discreteepochs([ep.jd for ep in epoch])
+#         el.get_elements(center=center)
+#         data = [el[field] for field in el.fields]
+#         names = el.fields
+#         #meta = {'name': 'orbital elements from JPL Horizons'}
+#         # table = Table([el[field] for field in el.fields],
+#         #               names=el.fields,
+#         #               meta={'name': 'orbital elements from JPL Horizons'})
+#         # # Astropy units will be integrated in the future
 
-        if bib is not None:
-            bib['Horizons orbital elements query'] = {'implementation':
-                                                      '1996DPS....28.2504G'}
+#         if bib is not None:
+#             bib['Horizons orbital elements query'] = {'implementation':
+#                                                       '1996DPS....28.2504G'}
             
-        return cls.from_array(data, names)
+#         return cls.from_array(data, names)
 
-    @classmethod
-    def from_mpc(cls, targetid, bib=None):
-        """Load orbital elements from the `Minor Planet Center`_.
+#     @classmethod
+#     def from_mpc(cls, targetid, bib=None):
+#         """Load orbital elements from the `Minor Planet Center`_.
 
-        Parameters
-        ----------
-        targetid : str, mandatory
-            target identifier
-        bib : SBPy Bibliography instance, optional, default None
-            Bibliography instance that will be populated
+#         Parameters
+#         ----------
+#         targetid : str, mandatory
+#             target identifier
+#         bib : SBPy Bibliography instance, optional, default None
+#             Bibliography instance that will be populated
 
-        Returns
-        -------
-        Astropy Table
+#         Returns
+#         -------
+#         Astropy Table
 
-        Examples
-        --------
-        >>> from sbpy.data import Orbit
-        >>> orb = Orbit.from_mpc('ceres')
+#         Examples
+#         --------
+#         >>> from sbpy.data import Orbit
+#         >>> orb = Orbit.from_mpc('ceres')
 
-        not yet implemented
+#         not yet implemented
 
-        .. _Minor Planet Center: http://minorplanetcenter.net/
+#         .. _Minor Planet Center: http://minorplanetcenter.net/
 
-        """
+#         """
 
-    @classmethod
-    def from_astdys(cls, targetid, bib=None):
-        """Load orbital elements from `AstDyS`_.
+#     @classmethod
+#     def from_astdys(cls, targetid, bib=None):
+#         """Load orbital elements from `AstDyS`_.
 
-        Parameters
-        ----------
-        targetid : str, mandatory
-            target identifier
-        bib : SBPy Bibliography instance, optional, default None
-            Bibliography instance that will be populated
+#         Parameters
+#         ----------
+#         targetid : str, mandatory
+#             target identifier
+#         bib : SBPy Bibliography instance, optional, default None
+#             Bibliography instance that will be populated
 
-        Returns
-        -------
-        Astropy Table
+#         Returns
+#         -------
+#         Astropy Table
 
-        Examples
-        --------
-        >>> from sbpy.data import Orbit
-        >>> orb = Orbit.from_mpc('ceres')
+#         Examples
+#         --------
+#         >>> from sbpy.data import Orbit
+#         >>> orb = Orbit.from_mpc('ceres')
 
-        not yet implemented
+#         not yet implemented
 
-        .. _AstDyS: http://hamilton.dm.unipi.it/astdys/ 
+#         .. _AstDyS: http://hamilton.dm.unipi.it/astdys/ 
 
-        """
+#         """
 
-    @classmethod
-    def from_state(cls, pos, vel):
-        """Convert state vector (positions and velocities) or orbital elements.
+#     @classmethod
+#     def from_state(cls, pos, vel):
+#         """Convert state vector (positions and velocities) or orbital elements.
 
-        Parameters
-        ----------
-        pos : `Astropy.coordinates` instance, mandatory
-            positions vector
-        vel : `Astropy.coordinates` instance, mandatory
-            velocity vector
+#         Parameters
+#         ----------
+#         pos : `Astropy.coordinates` instance, mandatory
+#             positions vector
+#         vel : `Astropy.coordinates` instance, mandatory
+#             velocity vector
         
-        Returns
-        -------
-        Astropy Table
+#         Returns
+#         -------
+#         Astropy Table
 
-        Examples
-        --------
-        >>> from sbpy.data import Orbit
-        >>> import astropy.coordinates as coords
-        >>> r = coords.HeliocentricTrueEcliptic(coords.CartesianRepresentation(x=1, y=0, z=0, unit=u.au))
-        >>> v = coords.HeliocentricTrueEcliptic(coords.CartesianRepresentation(x=30, y=0, z=0, unit=u.km / u.s))
-        >>> orb = Orbit.from_state(r, v)
+#         Examples
+#         --------
+#         >>> from sbpy.data import Orbit
+#         >>> import astropy.coordinates as coords
+#         >>> r = coords.HeliocentricTrueEcliptic(coords.CartesianRepresentation(x=1, y=0, z=0, unit=u.au))
+#         >>> v = coords.HeliocentricTrueEcliptic(coords.CartesianRepresentation(x=30, y=0, z=0, unit=u.km / u.s))
+#         >>> orb = Orbit.from_state(r, v)
 
-        not yet implemented
+#         not yet implemented
 
-        """
+#         """
 
-    def to_state(self, epoch):
-        """Convert orbital elements to state vector (positions and velocities)
+#     def to_state(self, epoch):
+#         """Convert orbital elements to state vector (positions and velocities)
 
-        Parameters
-        ----------
-        epoch : `astropy.time.Time` object, mandatory
-          The epoch(s) at which to compute state vectors.
+#         Parameters
+#         ----------
+#         epoch : `astropy.time.Time` object, mandatory
+#           The epoch(s) at which to compute state vectors.
         
-        Returns
-        -------
-        pos : `Astropy.coordinates` instance
-            positions vector
-        vel : `Astropy.coordinates` instance
-            velocity vector
+#         Returns
+#         -------
+#         pos : `Astropy.coordinates` instance
+#             positions vector
+#         vel : `Astropy.coordinates` instance
+#             velocity vector
 
-        Examples
-        --------
-        >>> from astropy.time import Time
-        >>> from sbpy.data import Orbit
-        >>> orb = Orbit.from_mpc('ceres')
-        >>> state = orb.to_state(Time('2015-03-06')
+#         Examples
+#         --------
+#         >>> from astropy.time import Time
+#         >>> from sbpy.data import Orbit
+#         >>> orb = Orbit.from_mpc('ceres')
+#         >>> state = orb.to_state(Time('2015-03-06')
 
-        not yet implemented
+#         not yet implemented
 
-        """
+#         """
 
-    def orbfit(self, eph):
-        """Function that fits an orbit solution to a set of ephemerides using
-        the `OpenOrb`_ software which has to be installed locally.
+#     def orbfit(self, eph):
+#         """Function that fits an orbit solution to a set of ephemerides using
+#         the `OpenOrb`_ software which has to be installed locally.
 
-        Parameters
-        ----------
-        eph : `Astropy.table`, mandatory
-            set of ephemerides with mandatory columns `ra`, `dec`, `epoch` and 
-            optional columns `ra_sig`, `dec_sig`, `epoch_sig` 
+#         Parameters
+#         ----------
+#         eph : `Astropy.table`, mandatory
+#             set of ephemerides with mandatory columns `ra`, `dec`, `epoch` and 
+#             optional columns `ra_sig`, `dec_sig`, `epoch_sig` 
         
-        additional parameters will be identified in the future
+#         additional parameters will be identified in the future
 
-        Returns
-        -------
-        Astropy Table
+#         Returns
+#         -------
+#         Astropy Table
 
-        Examples
-        --------
-        >>> from sbpy.data import Orbit, Ephem
-        >>> eph = Ephem.from_array([ra, dec, ra_sigma, dec_sigma, 
-        >>>                         epochs, epochs_sigma],
-        >>>                         names=['ra', 'dec', 'ra_sigma', 
-        >>>                                'dec_sigma', 'epochs', 
-        >>>                                'epochs_sigma'])
-        >>> orb = Orbit.orbfit(eph)
+#         Examples
+#         --------
+#         >>> from sbpy.data import Orbit, Ephem
+#         >>> eph = Ephem.from_array([ra, dec, ra_sigma, dec_sigma, 
+#         >>>                         epochs, epochs_sigma],
+#         >>>                         names=['ra', 'dec', 'ra_sigma', 
+#         >>>                                'dec_sigma', 'epochs', 
+#         >>>                                'epochs_sigma'])
+#         >>> orb = Orbit.orbfit(eph)
 
-        not yet implemented
+#         not yet implemented
 
-        .. _OpenOrb: https://github.com/oorb/oorb
+#         .. _OpenOrb: https://github.com/oorb/oorb
 
-        """
+#         """
         
-    def integrate(self, time, integrator='IAS15'):
-        """Function that integrates an orbit over a given range of time using the `REBOUND`_ package
+#     def integrate(self, time, integrator='IAS15'):
+#         """Function that integrates an orbit over a given range of time using the `REBOUND`_ package
 
-        Parameters
-        ----------
-        time : `Astropy.units` quantity, mandatory
-            Time range over which the orbit will be integrated.
-        integrator : str, option, default 'IAS15'
-            Integrator type to be used for the integration.
+#         Parameters
+#         ----------
+#         time : `Astropy.units` quantity, mandatory
+#             Time range over which the orbit will be integrated.
+#         integrator : str, option, default 'IAS15'
+#             Integrator type to be used for the integration.
 
-        Returns
-        -------
-        REBOUND simulation object
+#         Returns
+#         -------
+#         REBOUND simulation object
 
-        Examples
-        --------
-        >>> from sbpy.data import Orbit
-        >>> orb = Orbit.from...
-        >>> sim = orb.integrate(1000*u.year)
+#         Examples
+#         --------
+#         >>> from sbpy.data import Orbit
+#         >>> orb = Orbit.from...
+#         >>> sim = orb.integrate(1000*u.year)
 
-        not yet implemented
+#         not yet implemented
 
-        .. _REBOUND: https://github.com/hannorein/rebound
-        """
+#         .. _REBOUND: https://github.com/hannorein/rebound
+#         """
 
-    @classmethod
-    def from_rebound(cls, sim):
-        """Obtain orbital elements from `REBOUND`_ simulation instance.
+#     @classmethod
+#     def from_rebound(cls, sim):
+#         """Obtain orbital elements from `REBOUND`_ simulation instance.
 
-        Parameters
-        ----------
-        sim : REBOUND simulation instance, mandatory
-            Simulation from which to obtain orbital elements.
+#         Parameters
+#         ----------
+#         sim : REBOUND simulation instance, mandatory
+#             Simulation from which to obtain orbital elements.
 
-        Returns
-        -------
-        Astropy Table
+#         Returns
+#         -------
+#         Astropy Table
 
-        Examples
-        --------
-        >>> from sbpy.data import Orbit
-        >>> orb = Orbit.from...
-        >>> sim = Orbit.integrate(orb, time=1000*u.year)
-        >>> future_orb = Orbit.from_rebound(sim)
+#         Examples
+#         --------
+#         >>> from sbpy.data import Orbit
+#         >>> orb = Orbit.from...
+#         >>> sim = Orbit.integrate(orb, time=1000*u.year)
+#         >>> future_orb = Orbit.from_rebound(sim)
 
-        not yet implemented
+#         not yet implemented
 
-        .. _REBOUND: https://github.com/hannorein/rebound
+#         .. _REBOUND: https://github.com/hannorein/rebound
 
-        """
+#         """
         
-class Ephem(DataClass):
-    """Class for storing and querying ephemerides
+# class Ephem(DataClass):
+#     """Class for storing and querying ephemerides
     
-    The `Ephem` class provides an interface to `PyEphem`_ for
-    ephemeris calculations.
+#     The `Ephem` class provides an interface to `PyEphem`_ for
+#     ephemeris calculations.
     
-    .. _PyEphem: http://rhodesmill.org/pyephem/
+#     .. _PyEphem: http://rhodesmill.org/pyephem/
     
-    """
+#     """
 
-    @classmethod
-    def from_horizons(cls, targetid, epoch, observatory, center='500@10',
-                      bib=None):
-        """Load orbital elements from `JPL Horizons`_.
+#     @classmethod
+#     def from_horizons(cls, targetid, epoch, observatory, center='500@10',
+#                       bib=None):
+#         """Load orbital elements from `JPL Horizons`_.
 
-        Parameters
-        ----------
-        targetid : str, mandatory
-            Target identifier.
-        epoch : astropy Time instance or iterable, optional, default None
-            Epoch of elements; if None is provided, current date is used.
-        center : str, optional, default '500@10' (Sun)
-            Center body of orbital elements.
-        bib : SBPy Bibliography instance, optional, default None
-            Bibliography instance that will be populated.
+#         Parameters
+#         ----------
+#         targetid : str, mandatory
+#             Target identifier.
+#         epoch : astropy Time instance or iterable, optional, default None
+#             Epoch of elements; if None is provided, current date is used.
+#         center : str, optional, default '500@10' (Sun)
+#             Center body of orbital elements.
+#         bib : SBPy Bibliography instance, optional, default None
+#             Bibliography instance that will be populated.
 
-        preliminary implementation
+#         preliminary implementation
         
-        Returns
-        -------
-        Astropy Table
+#         Returns
+#         -------
+#         Astropy Table
 
-        Examples
-        --------
-        >>> from sbpy.data import Orbit
-        >>> from astropy.time import Time
-        >>> epoch = Time('2018-05-14', scale='utc')
-        >>> orb = Orbit.from_horizons('ceres', epoch)
+#         Examples
+#         --------
+#         >>> from sbpy.data import Orbit
+#         >>> from astropy.time import Time
+#         >>> epoch = Time('2018-05-14', scale='utc')
+#         >>> orb = Orbit.from_horizons('ceres', epoch)
 
-        .. _JPL Horizons: https://ssd.jpl.nasa.gov/horizons.cgi
+#         .. _JPL Horizons: https://ssd.jpl.nasa.gov/horizons.cgi
 
-        """
+#         """
 
-        try:
-            dummy = epoch[0]
-        except TypeError:
-            epoch = [epoch]
+#         try:
+#             dummy = epoch[0]
+#         except TypeError:
+#             epoch = [epoch]
 
             
-        # for now, use CALLHORIZONS for the query; this will be replaced with
-        # a dedicated query
-        el = callhorizons.query(targetid)
-        el.set_discreteepochs([ep.jd for ep in epoch])
-        el.get_ephemerides(observatory)
+#         # for now, use CALLHORIZONS for the query; this will be replaced with
+#         # a dedicated query
+#         el = callhorizons.query(targetid)
+#         el.set_discreteepochs([ep.jd for ep in epoch])
+#         el.get_ephemerides(observatory)
 
-        print(el.dates)
+#         print(el.dates)
 
-        data = [el[field] for field in el.fields]
-        names = el.fields
-        #meta = {'name': 'orbital elements from JPL Horizons'}
-        # table = Table([el[field] for field in el.fields],
-        #               names=el.fields,
-        #               meta={'name': 'orbital elements from JPL Horizons'})
-        # # Astropy units will be integrated in the future
+#         data = [el[field] for field in el.fields]
+#         names = el.fields
+#         #meta = {'name': 'orbital elements from JPL Horizons'}
+#         # table = Table([el[field] for field in el.fields],
+#         #               names=el.fields,
+#         #               meta={'name': 'orbital elements from JPL Horizons'})
+#         # # Astropy units will be integrated in the future
 
-        if bib is not None:
-            bib['Horizons orbital elements query'] = {'implementation':
-                                                      '1996DPS....28.2504G'}
+#         if bib is not None:
+#             bib['Horizons orbital elements query'] = {'implementation':
+#                                                       '1996DPS....28.2504G'}
             
-        return cls.from_array(data, names)
+#         return cls.from_array(data, names)
 
-    @classmethod
-    def from_mpc(cls, targetid, epoch, observatory='500', bib=None):
-        """Load ephemerides from the `Minor Planet Center`_
+#     @classmethod
+#     def from_mpc(cls, targetid, epoch, observatory='500', bib=None):
+#         """Load ephemerides from the `Minor Planet Center`_
 
-        Parameters
-        ----------
-        targetid : str, mandatory
-            target identifier
-        epochs : astropy Time instance or iterable, optional, default None
-            epoch of elements; if None is provided, current date is used
-        observatory : str, optional, default '500' (geocentric)
-            location of observer
-        bib : SBPy Bibliography instance, optional, default None
-            Bibliography instance that will be populated
+#         Parameters
+#         ----------
+#         targetid : str, mandatory
+#             target identifier
+#         epochs : astropy Time instance or iterable, optional, default None
+#             epoch of elements; if None is provided, current date is used
+#         observatory : str, optional, default '500' (geocentric)
+#             location of observer
+#         bib : SBPy Bibliography instance, optional, default None
+#             Bibliography instance that will be populated
 
-        Returns
-        -------
-        Astropy Table
+#         Returns
+#         -------
+#         Astropy Table
 
-        Examples
-        --------
-        >>> from sbpy.data import Ephem
-        >>> from astropy.time import Time
-        >>> epoch = Time('2018-05-14', scale='utc')
-        >>> eph = Ephem.from_mpc('ceres', '568', epoch)
+#         Examples
+#         --------
+#         >>> from sbpy.data import Ephem
+#         >>> from astropy.time import Time
+#         >>> epoch = Time('2018-05-14', scale='utc')
+#         >>> eph = Ephem.from_mpc('ceres', '568', epoch)
 
-        not yet implemented
+#         not yet implemented
 
-        .. _Minor Planet Center: http://minorplanetcenter.net/
+#         .. _Minor Planet Center: http://minorplanetcenter.net/
 
-        """
+#         """
 
-    def report_to_mpc(bib=None):
-        """Format as a report to the `Minor Planet Center`_.
+#     def report_to_mpc(bib=None):
+#         """Format as a report to the `Minor Planet Center`_.
 
-        Parameters
-        ----------
-        bib : SBPy Bibliography instance, optional, default None
-            Bibliography instance that will be populated
+#         Parameters
+#         ----------
+#         bib : SBPy Bibliography instance, optional, default None
+#             Bibliography instance that will be populated
         
-        additional parameters will be identified in the future
+#         additional parameters will be identified in the future
         
-        Returns
-        -------
-        str
+#         Returns
+#         -------
+#         str
 
-        Examples
-        --------
-        >>> from sbpy.data import Ephem
-        >>> eph = Ephem.from_array...
-        >>> report = eph.report_to_mpc()
+#         Examples
+#         --------
+#         >>> from sbpy.data import Ephem
+#         >>> eph = Ephem.from_array...
+#         >>> report = eph.report_to_mpc()
 
-        not yet implemented
+#         not yet implemented
 
-        .. _Minor Planet Center: http://minorplanetcenter.net/
+#         .. _Minor Planet Center: http://minorplanetcenter.net/
 
-        """
+#         """
 
-    @classmethod
-    def from_imcce(cls, targetid, epoch, observatory='500', bib=None):
-        """Load orbital elements from `IMCCE`_
+#     @classmethod
+#     def from_imcce(cls, targetid, epoch, observatory='500', bib=None):
+#         """Load orbital elements from `IMCCE`_
            
-        Parameters
-        ----------
-        targetid : str, mandatory
-            target identifier
-        epochs : astropy Time instance or iterable, optional, default None
-            epoch of elements; if None is provided, current date is used
-        observatory : str, optional, default '500' (geocentric)
-            location of observer
-        bib : SBPy Bibliography instance, optional, default None
-            Bibliography instance that will be populated
+#         Parameters
+#         ----------
+#         targetid : str, mandatory
+#             target identifier
+#         epochs : astropy Time instance or iterable, optional, default None
+#             epoch of elements; if None is provided, current date is used
+#         observatory : str, optional, default '500' (geocentric)
+#             location of observer
+#         bib : SBPy Bibliography instance, optional, default None
+#             Bibliography instance that will be populated
 
-        Returns
-        -------
-        Astropy Table
+#         Returns
+#         -------
+#         Astropy Table
 
-        Examples
-        --------
-        >>> from sbpy.data import Ephem
-        >>> from astropy.time import Time
-        >>> epoch = Time('2018-05-14', scale='utc')
-        >>> eph = Ephem.from_imcce('ceres', '568', epoch)
+#         Examples
+#         --------
+#         >>> from sbpy.data import Ephem
+#         >>> from astropy.time import Time
+#         >>> epoch = Time('2018-05-14', scale='utc')
+#         >>> eph = Ephem.from_imcce('ceres', '568', epoch)
 
-        not yet implemented
+#         not yet implemented
 
-        .. _IMCCE: http://vo.imcce.fr/webservices/miriade/
+#         .. _IMCCE: http://vo.imcce.fr/webservices/miriade/
 
-        """
+#         """
 
-    @classmethod
-    def from_lowell(cls, targetid, epoch, observatory='500', bib=None):
-        """Load orbital elements from `Lowell Observatory`_
+#     @classmethod
+#     def from_lowell(cls, targetid, epoch, observatory='500', bib=None):
+#         """Load orbital elements from `Lowell Observatory`_
 
-        Parameters
-        ----------
-        targetid : str, mandatory
-            target identifier
-        epochs : astropy Time instance or iterable, optional, default None
-            epoch of elements; if None is provided, current date is used
-        observatory : str, optional, default '500' (geocentric)
-            location of observer
-        bib : SBPy Bibliography instance, optional, default None
-            Bibliography instance that will be populated
+#         Parameters
+#         ----------
+#         targetid : str, mandatory
+#             target identifier
+#         epochs : astropy Time instance or iterable, optional, default None
+#             epoch of elements; if None is provided, current date is used
+#         observatory : str, optional, default '500' (geocentric)
+#             location of observer
+#         bib : SBPy Bibliography instance, optional, default None
+#             Bibliography instance that will be populated
 
-        Returns
-        -------
-        Astropy Table
+#         Returns
+#         -------
+#         Astropy Table
 
-        Examples
-        --------
-        >>> from sbpy.data import Ephem
-        >>> from astropy.time import Time
-        >>> epoch = Time('2018-05-14', scale='utc')
-        >>> eph = Ephem.from_lowell('ceres', '568', epoch)
+#         Examples
+#         --------
+#         >>> from sbpy.data import Ephem
+#         >>> from astropy.time import Time
+#         >>> epoch = Time('2018-05-14', scale='utc')
+#         >>> eph = Ephem.from_lowell('ceres', '568', epoch)
 
-        not yet implemented
+#         not yet implemented
 
-        .. _Lowell Observatory: http://asteroid.lowell.edu/ 
+#         .. _Lowell Observatory: http://asteroid.lowell.edu/ 
 
-        """
+#         """
 
-    @classmethod
-    def from_pyephem(cls, orb, location, epoch):
-        """Function that derives ephemerides based on an `Astropy.table`
-        containing orbital elements using `PyEphem`_.
+#     @classmethod
+#     def from_pyephem(cls, orb, location, epoch):
+#         """Function that derives ephemerides based on an `Astropy.table`
+#         containing orbital elements using `PyEphem`_.
         
-        Parameters
-        ----------
-        orb : `Astropy.table`, mandatory
-            complete set of orbital elements
-        location : str or dictionary, mandatory
-            name of location or a dictionary fully describing the location
-        epoch : `Astropy.time` object
+#         Parameters
+#         ----------
+#         orb : `Astropy.table`, mandatory
+#             complete set of orbital elements
+#         location : str or dictionary, mandatory
+#             name of location or a dictionary fully describing the location
+#         epoch : `Astropy.time` object
             
-        Examples
-        --------
-        >>> from sbpy.data import Ephem, Orbit
-        >>> orb = Orbit.from_...
-        >>> eph = Ephem.from_pyephem(orb, 
-        >>>                          location={'name':'Flagstaff', 
-        >>>                                    'geolon':35.199167, 
-        >>>                                    'geolat':-111.631111, 
-        >>>                                    'altitude':'2106'},
-        >>>                          epoch=epoch)
+#         Examples
+#         --------
+#         >>> from sbpy.data import Ephem, Orbit
+#         >>> orb = Orbit.from_...
+#         >>> eph = Ephem.from_pyephem(orb, 
+#         >>>                          location={'name':'Flagstaff', 
+#         >>>                                    'geolon':35.199167, 
+#         >>>                                    'geolat':-111.631111, 
+#         >>>                                    'altitude':'2106'},
+#         >>>                          epoch=epoch)
 
-        not yet implemented
+#         not yet implemented
 
-        .. _PyEphem: http://rhodesmill.org/pyephem/
+#         .. _PyEphem: http://rhodesmill.org/pyephem/
 
-        """        
+#         """        
 
-class Phys():
-    """Class for storing and querying physical properties"""
+# class Phys():
+#     """Class for storing and querying physical properties"""
 
-    @classmethod
-    def from_horizons(cls, targetid, bib=None):
-        """Load physical properties from `JPL Horizons`_
+#     @classmethod
+#     def from_horizons(cls, targetid, bib=None):
+#         """Load physical properties from `JPL Horizons`_
 
-        Parameters
-        ----------
-        targetid : str, mandatory
-            target identifier
-        bib : SBPy Bibliography instance, optional, default None
-            Bibliography instance that will be populated
+#         Parameters
+#         ----------
+#         targetid : str, mandatory
+#             target identifier
+#         bib : SBPy Bibliography instance, optional, default None
+#             Bibliography instance that will be populated
 
-        Returns
-        -------
-        Astropy Table
+#         Returns
+#         -------
+#         Astropy Table
 
-        Examples
-        --------
-        >>> from sbpy.data import Phys
-        >>> phys = Phys.from_horizons('ceres'(
+#         Examples
+#         --------
+#         >>> from sbpy.data import Phys
+#         >>> phys = Phys.from_horizons('ceres'(
 
-        not yet implemented
+#         not yet implemented
 
-        .. _JPL Horizons: https://ssd.jpl.nasa.gov/horizons.cgi
+#         .. _JPL Horizons: https://ssd.jpl.nasa.gov/horizons.cgi
 
-        """
+#         """
 
-    @classmethod
-    def from_lowell(cls, targetid, bib=None):
-        """Load physical properties from `Lowell Observatory`_ 
+#     @classmethod
+#     def from_lowell(cls, targetid, bib=None):
+#         """Load physical properties from `Lowell Observatory`_ 
 
-        The Lowell database will provide a database of physical
-        properties which is a compilation of a number of different sources.
+#         The Lowell database will provide a database of physical
+#         properties which is a compilation of a number of different sources.
 
-        Parameters
-        ----------
-        targetid : str, mandatory
-            target identifier
-        bib : SBPy Bibliography instance, optional, default None
-            Bibliography instance that will be populated
+#         Parameters
+#         ----------
+#         targetid : str, mandatory
+#             target identifier
+#         bib : SBPy Bibliography instance, optional, default None
+#             Bibliography instance that will be populated
 
-        Returns
-        -------
-        Astropy Table
+#         Returns
+#         -------
+#         Astropy Table
 
-        Examples
-        --------
-        >>> from sbpy.data import Phys
-        >>> phys = Phys.from_astorb('ceres'(
+#         Examples
+#         --------
+#         >>> from sbpy.data import Phys
+#         >>> phys = Phys.from_astorb('ceres'(
 
-        not yet implemented
+#         not yet implemented
 
-        .. _Lowell Observatory: http://asteroid.lowell.edu/ 
+#         .. _Lowell Observatory: http://asteroid.lowell.edu/ 
 
-        """
+#         """
 
-    def derive_absmag(self):
-        """Derive absolute magnitude from diameter and geometric albedo"""
+#     def derive_absmag(self):
+#         """Derive absolute magnitude from diameter and geometric albedo"""
 
-    def derive_diam(self):
-        """Derive diameter from absolute magnitude and geometric albedo"""
+#     def derive_diam(self):
+#         """Derive diameter from absolute magnitude and geometric albedo"""
         
-    def derive_pv(self):
-        """Derive geometric albedo from diameter and absolute magnitude"""
+#     def derive_pv(self):
+#         """Derive geometric albedo from diameter and absolute magnitude"""
 
-    def derive_bondalbedo(self):
-        """Derive Bond albedo from geometric albedo and photometric phase slope"""
+#     def derive_bondalbedo(self):
+#         """Derive Bond albedo from geometric albedo and photometric phase slope"""
 
 
 
@@ -776,3 +776,9 @@ def pds_ferret(targetid, bib=None):
     .. _Small Bodies Data Ferret: http://sbntools.psi.edu/ferret/
 
     """
+
+
+from .ephem import Ephem
+from .orbit import Orbit
+from .phys import Phys
+from . import names

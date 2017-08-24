@@ -20,3 +20,4 @@ if not _ASTROPY_SETUP_:
     from .spectroscopy import *
     from .obsutil import *
     from .thermal import *
+    from .utils import *

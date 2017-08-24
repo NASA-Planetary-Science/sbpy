@@ -1,28 +1,15 @@
-
-
 Spectrum
-==========================
+========
 
 .. currentmodule:: sbpy.spectroscopy
 
 .. autoclass:: Spectrum
    :show-inheritance:
 
-   
-     
-   
-
-   
-   
-   
-
-   
-   
-
    .. rubric:: Methods Summary
 
    .. autosummary::
-   
+
       ~Spectrum.baseline
       ~Spectrum.convert_units
       ~Spectrum.fit
@@ -31,19 +18,8 @@ Spectrum
       ~Spectrum.slope
       ~Spectrum.write
 
-   
-   
-
-   
-   
-   
-
-   
-   
-
    .. rubric:: Methods Documentation
 
-   
    .. automethod:: baseline
    .. automethod:: convert_units
    .. automethod:: fit
@@ -51,6 +27,3 @@ Spectrum
    .. automethod:: read
    .. automethod:: slope
    .. automethod:: write
-
-   
-   

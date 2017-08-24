@@ -31,10 +31,10 @@ conf.read(['setup.cfg'])
 metadata = dict(conf.items('metadata'))
 
 PACKAGENAME = metadata.get('package_name', 'sbpy')
-DESCRIPTION = metadata.get('description', 'A Python Module for Planetary Astronomy')
+DESCRIPTION = metadata.get('description', 'A Python Module for Small-Body Planetary Astronomy')
 AUTHOR = metadata.get('author', 'sbpy team')
-AUTHOR_EMAIL = metadata.get('author_email', '')
-LICENSE = metadata.get('license', 'unknown')
+AUTHOR_EMAIL = metadata.get('author_email', 'michael.mommert@nau.edu')
+LICENSE = metadata.get('license', 'BSD 3-Clause')
 URL = metadata.get('url', 'http://www.github.com/mommermi/sbpy')
 
 # order of priority for long_description:

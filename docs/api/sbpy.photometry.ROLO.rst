@@ -1,7 +1,7 @@
-HG
-==
+ROLO
+====
 
 .. currentmodule:: sbpy.photometry
 
-.. autoclass:: HG
+.. autoclass:: ROLO
    :show-inheritance:

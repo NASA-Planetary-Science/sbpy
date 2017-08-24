@@ -1,46 +1,21 @@
-
-
-ModelClass
-==========================
+DiskIntegratedModelClass
+========================
 
 .. currentmodule:: sbpy.photometry
 
-.. autoclass:: ModelClass
+.. autoclass:: DiskIntegratedModelClass
    :show-inheritance:
-
-   
-
-   
-   
-   
-
-   
-   
 
    .. rubric:: Methods Summary
 
    .. autosummary::
-   
-      ~ModelClass.distance_module
-      ~ModelClass.fit
-      ~ModelClass.mag
 
-   
-   
-
-   
-   
-   
-
-   
-   
+      ~DiskIntegratedModelClass.distance_module
+      ~DiskIntegratedModelClass.fit
+      ~DiskIntegratedModelClass.mag
 
    .. rubric:: Methods Documentation
 
-   
    .. automethod:: distance_module
    .. automethod:: fit
    .. automethod:: mag
-
-   
-   
