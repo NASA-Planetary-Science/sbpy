@@ -7,6 +7,8 @@ SBPy Data Module
 created on June 22, 2017
 """
 
+#__all__ = ['Phys']
+
 from astropy.table import Table, Column
 from astropy.time import Time
 import astropy.units as u
