@@ -1,92 +1,60 @@
-# Byte-compiled / optimized / DLL files
-__pycache__/
+# Compiled files
 *.py[cod]
-*$py.class
-
-# C extensions
+*.a
+*.o
 *.so
+__pycache__
 
-# Distribution / packaging
-.Python
-env/
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-*.egg-info/
-.installed.cfg
-*.egg
+# Ignore .c files by default to avoid including generated code. If you want to
+# add a non-generated .c extension, use `git add -f filename.c`.
+*.c
 
-# PyInstaller
-#  Usually these files are written by a python script from a template
-#  before PyInstaller builds the exe, so as to inject date/other infos into it.
-*.manifest
-*.spec
-
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
-
-# Unit test / coverage reports
-htmlcov/
-.tox/
+# Other generated files
+*/version.py
+*/cython_version.py
+htmlcov
 .coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*,cover
-.hypothesis/
-
-# Translations
-*.mo
-*.pot
-
-# Django stuff:
-*.log
-local_settings.py
-
-# Flask stuff:
-instance/
-.webassets-cache
-
-# Scrapy stuff:
-.scrapy
-
-# Sphinx documentation
-docs/_build/
-
-# PyBuilder
-target/
-
-# IPython Notebook
+MANIFEST
 .ipynb_checkpoints
 
-# pyenv
-.python-version
+# Sphinx
+docs/api
+docs/_build
 
-# celery beat schedule file
-celerybeat-schedule
+# Eclipse editor project files
+.project
+.pydevproject
+.settings
 
-# dotenv
-.env
+# Pycharm editor project files
+.idea
 
-# virtualenv
-venv/
-ENV/
+# Floobits project files
+.floo
+.flooignore
 
-# Spyder project settings
-.spyderproject
+# Packages/installer info
+*.egg
+*.egg-info
+dist
+build
+eggs
+parts
+bin
+var
+sdist
+develop-eggs
+.installed.cfg
+distribute-*.tar.gz
 
-# Rope project settings
-.ropeproject
-
-# other files
+# Other
+.cache
+.tox
+.*.sw[op]
 *~
+.project
+.pydevproject
+.settings
+
+# Mac OSX
+.DS_Store

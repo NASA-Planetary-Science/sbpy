@@ -27,12 +27,15 @@ inquired from the this :ref:`status page`.
    
 
 
+
+
+
 API Outline
 -----------
 
-Note that this outline is not up-to-date. Some structures are still in
+Note that this outline is not up-to-date. All structures are still in
 development. Examples provide only a rough guideline to the intended
-structure.
+structure. 
 
 .. toctree::
    :maxdepth: 1
