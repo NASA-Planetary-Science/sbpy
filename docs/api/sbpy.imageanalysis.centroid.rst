@@ -1,5 +1,7 @@
+
+
 centroid
-========
+===========================
 
 .. currentmodule:: sbpy.imageanalysis
 
