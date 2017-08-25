@@ -1,5 +1,5 @@
 from .data import DataClass
-from .ephem import Ephem
+from .ephem import *
 from .orbit import Orbit
 from .phys import Phys
 from . import names
