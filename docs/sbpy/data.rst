@@ -20,7 +20,4 @@ Reference/API
 -------------
 .. automodapi:: sbpy.data
     :no-heading:
-
-
-.. automodapi:: sbpy.data.Ephem
 		
