@@ -2,4 +2,4 @@
 SBPy Module for small image analysis
 """
 
-from .imageanalysis import *
+from .core import *

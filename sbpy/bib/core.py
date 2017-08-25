@@ -1,8 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-================================
-SBPy Biliography Tracking Module
-================================
+=================================
+SBPy Bibliography Tracking Module
+=================================
 
 `sbpy` classes and functions can automatically report citations to the
 user through a biliography registry.  Use `track` to enable citation
