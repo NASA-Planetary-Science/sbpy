@@ -581,7 +581,7 @@ class Ephem(DataClass):
 
         """        
 
-class Phys():
+class Phys(DataClass):
     """Class for storing and querying physical properties"""
 
     @classmethod
