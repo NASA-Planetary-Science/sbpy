@@ -12,7 +12,7 @@ provide these to functions in sbpy. Each class is based on an
 `astropy.Table`, providing the same functionality and features.
 
 `sbpy.data` also provides additional interfaces to a number of
-different services. Finally, `sbpy.data.names` provides functions
+different services. Finally, `sbpy.data.Names` provides functions
 related to naming conventions for asteroids and comets.
 
 
