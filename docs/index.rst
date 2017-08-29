@@ -3,51 +3,44 @@ SBPy Documentation
 
 SBPy - A Python Module for Small-Body Planetary Astronomy
 
-**Please note that this package is under heavy development. The current documentation is only intended to provide an outline for the API to be used in SBPy.**
+`sbpy` is a community effort to build a Python package for small-body
+planetary astronomy in the form of an `astropy`_ affiliated package.
+
+The goal is to collect and implement well-tested and well-documented
+code for the scientific study of asteroids and comets, including (but
+not limited to):
+
+* observation planning tools tailored to moving objects,
+* photometry models for resolved and unresolved bodies,
+* wrappers and tools for astrometry and orbit fitting,
+* spectroscopy analysis tools and models for reflected light and emission
+  from gas,
+* cometary gas and dust coma simulation and analysis tools,
+* asteroid thermal models for flux estimation and size/albedo estimation,
+* image enhancement tools for comet comae and PSF subtraction tools,
+* lightcurve and shape analysis tools, and
+* access tools for various databases for orbital and physical data, as well as
+  ephemerides services.
 
 
-Module Structure
-----------------
+Please note that this package is under heavy development. The current
+documentation is only intended to provide an outline for the API to be
+used in SBPy.
 
-We foresee the following module structure for `sbpy`:
-
-.. figure:: static/structure.png
-   :alt: sbpy module structure	    
-
-   `sbpy` design schematic. Modules are shown as rectangular boxes,
-   important classes as rounded colored boxes. The left-hand side of
-   the schematic is mainly populated with support modules that act as
-   data containers and query functions. The right-hand side of the
-   schematic shows modules that focus on small body-related
-   functionality. Colored symbols match the colors and symbols of
-   classes and modules they are using.
-
-The current status of the individual modules and code elements can be
-inquired from the this :ref:`status page`. 
-   
+For an overview on the expected structure and functionality of `sbpy`,
+please refer to `Module Structure <module structure>`_ page; the
+`Status Page <Status Page>`_ provides an overview on the
+implementation status of all modules and functions.
 
 
-
-
-
-API Outline
------------
-
-Note that this outline is not up-to-date. All structures are still in
-development. Examples provide only a rough guideline to the intended
-structure. 
-
+Content
+-------
+ 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 1  
+	      
+   structure.rst
+   status.rst
+   sbpy/index.rst
 
 
-   sbpy/data.rst	     
-   sbpy/activity.rst
-   sbpy/photometry.rst
-   sbpy/shape.rst
-   sbpy/spectroscopy.rst
-   sbpy/imageanalysis.rst
-   sbpy/thermal.rst
-   sbpy/obsutil.rst
-   sbpy/bib.rst
-  

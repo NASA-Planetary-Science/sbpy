@@ -35,7 +35,7 @@ development of `sbpy` is currently pending.
 Documentation
 -------------
 
-Documentation is available `here`_.
+The official documentation is available `here`_.
 
 
 Contributing
@@ -69,7 +69,7 @@ functionality - please clearly state if existing functionality would
 have to be modified. Once your contribution report has been accepted,
 please fork the `sbpy` repository and work on that code. Once you are
 done, please issue a pull request, linking to your original issue
-report.
+report. Please follow the `astropy code of conduct`_.
 
 	 
 
@@ -81,3 +81,4 @@ This project is Copyright (c) sbpy team and licensed under the terms of the BSD 
 
 .. _astropy: http://www.astropy.org/
 .. _here: http://sbpy.readthedocs.io/en/latest/
+.. _astropy conde of conduct: http://docs.astropy.org/en/latest/development/codeguide.html

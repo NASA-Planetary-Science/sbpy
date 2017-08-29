@@ -1,4 +1,3 @@
-:orphan:
 .. _status page:
 
 Status Page
