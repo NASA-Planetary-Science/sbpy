@@ -65,4 +65,7 @@ class FRM(ThermalClass):
     pass
 
 class NEATM(ThermalClass):
-    pass
+    def __init__(self):
+        from .. import bib
+        bib.register('sbpy.thermal.NEATM', {'method': '1998Icar..131..291H'})
+
