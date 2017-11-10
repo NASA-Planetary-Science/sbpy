@@ -4,76 +4,236 @@
 SBPy Activity Module
 ====================
 
+Functions
+---------
+photo_lengthscale          - Photodissociation lengthscale.
+photo_timescale            - Photodissociation timescale.
+fluorescence_band_strength - Fluorescence band efficiency of a specific
+                             species and transition.
+
+Classes
+-------
+Aperture            - Abstract base class for observation apertures.
+CircularAperture    - Circular photometric aperture for observing
+                      a coma model.
+RectangularAperture - Rectangular photometric aperture for observing a
+                      coma model.
+GaussianAperture    - Gaussian photometric aperture for observing a coma
+                      model.
+
+Activity            - Abstract base class for gas coma models.
+Haser               - Haser coma model for gas (Haser 1957).
+Vectorial           - Vectorial coma model for gas (Festou 1981).
+
+Syndynes            - Dust dynamical model for zero-ejection velocities.
+
+
 created on June 23, 2017
+
 """
 
-__all__ = ['Species', 'Aperture', 'CircularAperture', 'RectangularAperture',
-           'GaussianAperture', 'ActivityClass', 'Haser',
-           'Vectorial', 'Syndynes']
+__all__ = [
+    'photo_lengthscale',
+    'photo_timescale',
+    'fluorescence_band_strength',
+
+    'CircularAperture',
+    'RectangularAperture',
+    'GaussianAperture',
+
+    'Haser',
+    'Vectorial',
+
+    'Syndynes'
+]
 
 from abc import ABC, abstractmethod
 import astropy.units as u
+from . import bib
 
-def photo_length_scale(species, rdot=None, eph=None, source=None):
-    """Photodissociation length scale for a gas species.
+def photo_lengthscale(species, source=None):
+    """Photodissociation lengthscale for a gas species.
 
-    The length scale returned is scaled to 1 au.
+    Parameters
+    ----------
+    species : string
+      The species to look up.
+    source : string, optional
+      Retrieve values from this source (case insenstive).  See
+      references for keys.
+
+    Returns
+    -------
+    gamma : astropy Quantity
+      The lengthscale at 1 au.
+
+    Example
+    -------
+    >>> from sbpy.activity import photo_lengthscale
+    >>> gamma = photo_lengthscale('OH')
+
+    References
+    ----------
+
+    [CS93] H2O and OH from Table IV of Cochran & Schleicher 1993,
+    Icarus 105, 235-253.  Quoted for intermediate solar activity.
+
+    [CE83] CO2 from Crovisier & Encrenaz 1983, A&A 126, 170-182.
+
+    """
+
+    data = {   # (value, ADS bibcode)
+        'H2O': {
+            'CS93': (2.4e4 * u.s, '1993Icar..105..235C'),
+        },
+        'OH': {
+            'CS93': (1.6e5 * u.s, '1993Icar..105..235C'),
+        },
+    }
+
+    default_sources = {
+        'H2O': 'CS93',
+        'OH': 'CS93',
+    }
+
+    assert species.upper() in data, "No timescale available for {}.  Choose from: {}".format(
+        species, ', '.join(data.keys()))
+
+    gas = data[species.upper()]
+    source = default_sources[species.upper()] if source is None else source
+
+    assert source.upper() in gas, 'Source key {} not available for {}.  Choose from: {}'.format(
+        source, species, ', '.join(gas.keys()))
+
+    gamma, bibcode = gas[source.upper()]
+    bib.register(bibcode)
+
+    return gamma
+
+def photo_timescale(species source=None):
+    """Photodissociation timescale for a gas species.
+
+    Parameters
+    ----------
+    species : string
+      The species to look up.
+    source : string, optional
+      Retrieve values from this source (case insenstive).  See
+      references for keys.
+
+    Returns
+    -------
+    tau : astropy Quantity
+      The timescale at 1 au.
+
+    Example
+    -------
+    >>> from sbpy.activity import photo_timescale
+    >>> tau = photo_timescale('OH')
+
+    References
+    ----------
+
+    [CS93] H2O and OH from Table IV of Cochran & Schleicher 1993,
+    Icarus 105, 235-253.  Quoted for intermediate solar activity.
+
+    [CE83] CO2 from Crovisier & Encrenaz 1983, A&A 126, 170-182.
+
+    """
+
+    data = {   # (value, ADS bibcode)
+        'H2O': { 'CS93': (5.2e4 * u.s, '1993Icar..105..235C'), },
+        'OH':  { 'CS93': (1.6e5 * u.s, '1993Icar..105..235C'), },
+        'CO2': { 'CE83': (5.0e5 * u.s, '1983A%26A...126..170C'), },
+        'CO':  { 'CE83': (1.5e6 * u.s, '1983A%26A...126..170C'), },
+    }
+
+    default_sources = {
+        'H2O': 'CS93',
+        'OH': 'CS93',
+        'CO2': 'CE83',
+        'CO': 'CE83',
+    }
+
+    assert species.upper() in data, "No timescale available for {}.  Choose from: {}".format(
+        species, ', '.join(data.keys()))
+
+    gas = data[species.upper()]
+    source = default_sources[species.upper()] if source is None else source
+
+    assert source.upper() in gas, 'Source key {} not available for {}.  Choose from: {}'.format(
+        source, species, ', '.join(gas.keys()))
+
+    tau, bibcode = gas[source.upper()]
+    bib.register(bibcode)
+
+    return tau
+
+def fluorescence_band_strength(species, rdot=0 * u.km / u.s,
+                               eph=None, source=None):
+    """Fluorescence band efficiency of a specific species and transition.
 
     Parameters
     ----------
     species : string
       The species to look up.
     rdot : astropy Quantity, optional
-      The helocentric radial velocity.  One of `rdot` or `eph` is
-      required for some species.
+      Heliocentric radial speed, required for some species.
     eph : sbpy Ephem, optional
       The target ephemeris.  Must include heliocentric radial
-      velocity.  One of `rdot` or `eph` is required for some species.
+      velocity.
     source : string, optional
-      Use values from this source.
+      Retrieve values from this source (case insenstive).  See
+      references for keys.
 
     Returns
     -------
-    length_scale : astropy Quantity
-      The length scale quoted at 1 au.
+    tau : astropy Quantity
+      The timescale, scaled to `rh` or `eph['rh']`.
 
-    Example
-    -------
-    >>> from sbpy.activity import photo_length_scale
-    >>> gamma = photo_length_scale('OH', rdot=23 * u.km / u.s)
+    Notes
+    -----
+    One of `rdot` or `eph` is required for some species.
 
-    not yet implemented
+    Examples
+    --------
+    >>> from sbpy.activity import fluorescence_band_strength
+    >>> LN = fluorescence_band_strength('OH')
 
-    """
-    
-    data = {'H2O': 2.4e4, #Cochran and Schleicher 1993
-            'OH': 1.6e5 #Cochran and Schleicher 1993
-    }
-   
-    try:
-        out = data[species]
-    except KeyError:
-        raise KeyError(("no scale length available for species "
-                        "'{:s}'").format(species))
-    return out*u.km/eph.rh**2
+    References
+    ----------
+    [SA88] OH from Schleicher & A'Hearn 1988, ApJ 331, 1058-1077.
+    Requires `rdot`.
 
-def fluorescence_band_strength(species):
-    """Fluorescence band efficiencies of a specific species and
-        transition or list thereof at a given heliocentric distance
-        (provided by eph)
     """
 
     # implement list treatment
     
-    data = {'OH 0-0': 2e-15 #Schleicher and A'Hearn 1988
+    data = {   # (value, bibcode)
+        'OH 0-0': { 'SA88': ('XXX', '1988ApJ...331.1058S') },
+        'OH 1-0': { 'SA88': ('XXX', '1988ApJ...331.1058S') },
+        'OH 1-1': { 'SA88': ('XXX', '1988ApJ...331.1058S') },
+        'OH 2-2': { 'SA88': ('XXX', '1988ApJ...331.1058S') },
     }
-        
-    try:
-        out = data[species]
-    except KeyError:
-        raise KeyError(("no scale length available for species "
-                        "'{:s}'").format(species))
-    return out* u.erg / u.s / u.molecule * u.au**2/eph.rh**2
+
+    default_sources = {
+        'OH 0-0': (model, 'SA88'),
+    }
+
+    assert species.upper() in data, 'No data available for {}.  Choose one of: {}'.format(
+        species, ', '.join(data.keys()))
+
+    band = data[species.upper()]
+
+    assert source.upper() in band, 'No source {} for {}.  Choose one of: {}'.format(
+        source, sepcies, ', '.join(band.keys()))
+    
+    LN, bibcode = band[source.upper()]
+    bib.register(bibcode)
+
+    something_about_rdot_here
+    
+    return LN
 
 class Aperture(ABC):
     """Abstract base class for photometric apertures."""
@@ -117,12 +277,14 @@ class GaussianAperture(Aperture):
     ----------
     sigma : astropy Quantity, optional
       The width of the Gaussian beam (square-root of the variance) as
-      an angular or projected size.  One of `sigma` or `fwhm` is
-      required.
+      an angular or projected size.
     fwhm : astropy Quantity, optional
       The full-width at half-maximum of the Gaussian beam as an
-      angular or projected size.  One of `sigma` or `fwhm` is
-      required.
+      angular or projected size.
+
+    Notes
+    -----
+    One of `sigma` or `fwhm` is required.
 
     """
 
@@ -163,7 +325,7 @@ class Activity(ABC):
 
         Parameters
         ----------
-        aperture : `sbpy.activity.Aperture` instance, mandatory
+        aperture : `sbpy.activity.aperture.Aperture` instance, mandatory
             aperture
         eph : `sbpy.data.Ephem` instance, mandatory
             ephemerides at epoch, required: heliocentric distance `rh`
@@ -179,7 +341,7 @@ class Activity(ABC):
         not yet implemented
 
         """
-
+        pass
 
 
     def column_density(self, aperture, eph):
@@ -203,6 +365,7 @@ class Activity(ABC):
         not yet implemented
 
         """
+        pass
         
     def total_number(self, aperture, eph):
         """Calculate total number of molecules in aperture 
@@ -225,6 +388,7 @@ class Activity(ABC):
         not yet implemented
 
         """
+        pass
         
 
 class Haser(ActivityClass):
@@ -250,7 +414,7 @@ class Haser(ActivityClass):
 
         """
         
-        
+        pass
         
 
 
@@ -277,6 +441,7 @@ class Vectorial(ActivityClass):
 
         """
 
+        pass
 
 
 class Syndynes():
@@ -308,3 +473,4 @@ class Syndynes():
 
         """
         
+        pass
