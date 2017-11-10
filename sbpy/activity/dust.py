@@ -257,6 +257,45 @@ class Afrho(u.SpecificTypeQuantity):
                                          S=S, **kwargs)
         return Afrho((fluxd / fluxd1cm).decompose() * u.cm)
 
+    def from_mag(self, filt, mag, aper, eph=None, S=None, **kwargs):
+        """Initialize from apparent magnitude.
+
+        Phase angle is not considered.
+
+        Parameters
+        ----------
+        filt : string
+          Name of the filter/bandpass.
+
+        mag : `~astropy.units.Quantity` ???
+          Apparent magntiude.
+
+        aper : `~astropy.units.Quantity`, `~Aperture`
+          Aperture of the observation as a circular radius (length
+          or angular units), or as an sbpy `Aperture` class.
+
+        eph : dictionary-like or `~Ephem`, optional
+          Ephemerides of the comet, describing heliocentric and
+          geocentric distances as `~astropy.units.Quantity` via
+          keywords `rh` and `delta`.
+
+        S : `~astropy.units.Quantity`, optional
+          Absolute magnitude of the Sun at `filter`.  If `None`, then
+          it will be retrieved from `~sbpy.data.solar_absmag`.
+
+        **kwargs
+          Additional keyword arguments are passed to
+          `~sbpy.data.solar_absmag`.
+
+        
+        Example
+        -------
+
+        """
+        
+        raise NotImplemented
+
+
     def fluxd(self, wave_or_freq, aper, eph=None, S=None, **kwargs):
         """Coma flux density.
 
@@ -333,7 +372,45 @@ class Afrho(u.SpecificTypeQuantity):
 
         return fluxd.to(S.unit)
 
-    def to_phase(self, to_phase, from_phase=0 * u.deg, Phi=None):
+    def mag(self, filt, aper, eph=None, S=None, **kwargs):
+        """Coma apparent magnitude.
+
+        Phase angle is not considered.
+
+        Parameters
+        ----------
+        filt : string
+          The name of the filter / bandpass.
+
+        aper : `~astropy.units.Quantity`, `~Aperture`
+          Aperture of the observation as a circular radius (length
+          or angular units), or as an sbpy `~Aperture` class.
+
+        eph : dictionary-like or `~Ephem`, optional
+          Ephemerides of the comet, describing heliocentric and
+          geocentric distances as `~astropy.units.Quantity` via
+          keywords `rh` and `delta`.
+
+        S : `~astropy.units.Quantity`, optional 
+          Absolute magnitude of the Sun at `filt`.  If `None`, then it
+          will be retrieved from `~sbpy.data.solar_absmag`.
+
+        **kwargs
+          Additional keyword arguments are passed to
+          `~sbpy.data.solar_absmag`.
+
+        Returns
+        -------
+        mag : `~astropy.units.Quantity` ???
+
+
+        Example
+        -------
+
+        """
+        raise NotImplemented
+
+    def to_phase(self, to_phase, from_phase, Phi=None):
         """Scale Afρ to another phase angle.
 
         Parameters
@@ -341,7 +418,7 @@ class Afrho(u.SpecificTypeQuantity):
         to_phase : `~astropy.units.Quantity`
           New target phase angle.
 
-        from_phase : `~astropy.units.Quantity`, optional
+        from_phase : `~astropy.units.Quantity`
           Current target phase angle.
 
         Phi : callable or `None`
@@ -360,11 +437,10 @@ class Afrho(u.SpecificTypeQuantity):
         Examples
         --------
         >>> from sbpy.activity import Afrho
-        >>> afrho = Afrho(10 * u.cm).to_phase(15 * u.deg)
+        >>> afrho = Afrho(10 * u.cm).to_phase(15 * u.deg, 0 * u.deg)
         >>> afrho.cm                                     # doctest: +FLOAT_CMP
-        5.8720
+        5.87201
         
-
         """
 
         if Phi is None:

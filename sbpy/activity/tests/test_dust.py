@@ -44,11 +44,6 @@ class TestAfrho:
         assert np.isclose(fluxd.value, 6.730018324465526e-14)
 
     def test_to_phase(self):
-        afrho = Afrho(10 * u.cm).to_phase(15 * u.deg)
+        afrho = Afrho(10 * u.cm).to_phase(15 * u.deg, 0 * u.deg)
         assert np.isclose(afrho.cm, 5.8720)
-
-    def test_to_phase_from_phase(self):
-        afrho = Afrho(5.8720 * u.cm).to_phase(0 * u.deg, from_phase=15 * u.deg)
-        assert np.isclose(afrho.cm, 10)
-
     
