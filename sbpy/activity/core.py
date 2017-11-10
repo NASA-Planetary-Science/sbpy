@@ -42,7 +42,7 @@ class Aperture(ABC):
 
     @abstractmethod
     def coma_equivalent_radius(self):
-        """Circular aperture radius that yields same integral for 1/ρ coma.
+        """Circular aperture radius that yields same flux for a 1/ρ coma.
 
         Returns
         -------
@@ -164,3 +164,6 @@ class GaussianAperture(Aperture):
     def fwhm(self, f):
         self.sigma = f / 2.3548200450309493
 
+    def coma_equivalent_aperture(self):
+        # This beam is normalized to 1.0 at the center, is that OK?
+        return np.sqrt(np.pi / 2) * self.sigma
