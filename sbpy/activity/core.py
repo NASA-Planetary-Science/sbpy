@@ -10,6 +10,7 @@ geometries.
 
 Functions
 ---------
+rho_as_angle    - Projected linear distance to angular distance.
 rho_as_distance - Angular distance to projected linear distance.
 
 Classes
@@ -26,6 +27,7 @@ created on June 23, 2017
 """
 
 __all__ = [
+    'rho_as_angle',
     'rho_as_distance',
     'CircularAperture',
     'AnnularAperture',
@@ -37,13 +39,37 @@ from abc import ABC, abstractmethod
 import numpy as np
 import astropy.units as u
 
+def rho_as_angle(rho, eph):
+    """Projected linear distance to angular distance.
+
+    Parameters
+    ----------
+    rho : `~astropy.units.Quantity`
+      Projected distance in units of length.
+
+    eph : dictionary-like or `~sbpy.data.Ephem`
+      Ephemerides; requires geocentric distance as `delta`.
+
+    Returns
+    -------
+    rho_l : `~astropy.units.Quantity`
+
+    """
+
+    if rho.unit.is_equivalent(u.m):
+        rho_a = np.arctan(rho / eph['delta'].to(u.m))
+    else:
+        rho_a = rho
+
+    return rho_a
+
 def rho_as_distance(rho, eph):
     """Angular distance to projected linear distance.
 
     Parameters
     ----------
     rho : `~astropy.units.Quantity`
-      Projected distance of the region of interest in units of angle.
+      Projected distance in units of angle.
 
     eph : dictionary-like or `~sbpy.data.Ephem`
       Ephemerides; requires geocentric distance as `delta`.
