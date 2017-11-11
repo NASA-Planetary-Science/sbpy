@@ -224,109 +224,189 @@ def fluorescence_band_strength(species, rdot=0 * u.km / u.s,
 
 
 class GasComa(ABC):
-    """Abstract base class for gas coma models."""
+    """Abstract base class for gas coma models.
     
-    def __init__(self, Q):
+    Parameters
+    ----------
+    Q : `~astropy.units.Quantity`
+      Production rate, number per time.
+
+    v : `~astropy.units.Quantity`
+      Radial outflow speed, distance per time.
+
+    """
+
+    def __init__(self, Q, v):
+        assert isinstance(Q, u.Quantity)
         assert Q.unit.is_equivalent((u.s**-1, u.mol / u.s))
         self.Q = Q
 
-    def volume_density(self, aperture, eph):
-        """Calculate coma volume density in aperture
+        assert isinstance(v, u.Quantity)
+        assert v.unit.is_equivalent(u.m / u.s)
+        self.v = v
+
+    @abstractmethod
+    def volume_density(self, r):
+        """Coma volume density.
 
         Parameters
         ----------
-        aperture : `sbpy.activity.aperture.Aperture` instance, mandatory
-            aperture
-        eph : `sbpy.data.Ephem` instance, mandatory
-            ephemerides at epoch, required: heliocentric distance `rh`
+        r : `~astropy.units.Quantity`
+          Linear distance to the nucleus.
+
 
         Returns
         -------
-        integer
-
-        Examples
-        --------
-        TBD
-
-        not yet implemented
+        n : float
 
         """
         pass
 
 
-    def column_density(self, aperture, eph):
-        """Calculate coma column density in aperture
+    @abstractmethod
+    def column_density(self, aperture, eph=None):
+        """Coma column density within an aperture.
 
         Parameters
         ----------
-        aperture : `sbpy.activity.Aperture` instance, mandatory
-            aperture
-        eph : `sbpy.data.Ephem` instance, mandatory
-            ephemerides at epoch, required: heliocentric distance `rh`
+        aperture : `~astropy.units.Quantity` or `~sbpy.activity.Aperture`
+          Observation aperture as a radius for a circular aperture
+          (projected length, or angle) or an `Aperture` instance.
+
+        eph : dictionary-like or `~sbpy.data.Ephem`
+          Ephemerides at epoch; requires geocentric distance as
+          `delta` keyword if aperture has angular units.
+
 
         Returns
         -------
-        integer
-
-        Examples
-        --------
-        TBD
-
-        not yet implemented
+        sigma : float
 
         """
         pass
         
-    def total_number(self, aperture, eph):
-        """Calculate total number of molecules in aperture 
+    @abstractmethod
+    def column_density_at(self, rho, eph=None):
+        """Coma column density at a projected distance from nucleus.
 
         Parameters
         ----------
-        aperture : `sbpy.activity.Aperture` instance, mandatory
-            aperture
-        eph : `sbpy.data.Ephem` instance, mandatory
-            ephemerides at epoch, required: heliocentric distance `rh`
+        rho : `~astropy.units.Quantity`
+          Projected distance of the region of interest in units of
+          length or angle.
+
+        eph : dictionary-like or `~sbpy.data.Ephem`
+          Ephemerides at epoch; requires geocentric distance as
+          `delta` keyword if aperture has angular units.
+
 
         Returns
         -------
-        integer
+        sigma : float
 
-        Examples
-        --------
-        TBD
+        """
+        pass
+        
+    @abstractmethod
+    def total_number(self, aperture, eph=None):
+        """Total number of molecules in aperture.
 
-        not yet implemented
+        Parameters
+        ----------
+        aperture : `~astropy.units.Quantity` or `~sbpy.activity.Aperture`
+          Observation aperture as a radius for a circular aperture
+          (projected length, or angle) or an `Aperture` instance.
+
+        eph : dictionary-like or `~sbpy.data.Ephem`, optional
+          Ephemerides at epoch; requires geocentric distance as
+          `delta` keyword if aperture has angular units.
+
+
+        Returns
+        -------
+        N : int
 
         """
         pass
         
 
 class Haser(GasComa):
-    """Haser model implementation"""
+    """Haser coma model.
+
+    Some functions require `scipy`.
     
-    def __init__(self, Q, gamma):
-        """Parameters
-        ----------
-        Q : `Astropy.units` quantity or iterable, mandatory
-            production rate usually in units of `u.molecule / u.s`
-        gamma : `Astropy.units` quantity or iterable, mandatory
-            scale length usually in units of `u.km`
+    Parameters
+    ----------
+    Q : `~astropy.units.Quantity`
+      Production rate, per time.
 
-        Returns
-        -------
-        Haser instance
+    v : `~astropy.units.Quantity`
+      Radial outflow speed, distance per time.
 
-        Examples
-        --------
-        TBD
+    parent : `~astropy.units.Quantity`
+      Coma lengthscale of the parent species.
+    
+    daughter : `~astropy.units.Quantity`, optional
+      Coma lengthscale of the daughter species.
+    
 
-        not yet implemented
+    References
+    ----------
+    Haser 1957, Bulletin de la Societe Royale des Sciences de Liege
+    43, 740.
 
-        """
+    """
+    
+    def __init__(self, Q, v, parent, daughter):
+        Activity.__init__(self, Q, v)
         
-        pass
-        
+        assert isinstance(parent, u.Quantity)
+        assert parent.unit.is_equivalent(u.m)
+        self.parent = parent
 
+        if daughter is None:
+            self.daughter = None
+        else:
+            assert isinstance(daughter, u.Quantity)
+            assert daughter.unit.is_equivalent(u.m)
+            self.daughter = daughter
+
+    def volume_density(self, r):
+        assert isinstance(r, u.Quantity)
+        assert r.unit.is_equivalent(u.m)
+
+        C = self.Q / 4 / np.pi / r**2 / self.v
+        if self.daughter is None:
+            # parent only
+            n = C * np.exp(-r / self.parent)
+        else:
+            n = (C * self.daughter / (self.parent - self.daughter)
+                 * (np.exp(-r / self.parent) - np.exp(-r / self.daughter)))
+
+        return n.decompose()
+
+    def column_density_at(self, rho, eph=None):
+        try:
+            import scipy.special
+        except ImportError as e:
+            from astropy.utils.exceptions import AstropyWarning
+            from warnings import warn
+            warn(AstropyWarning('scipy is not present, cannot continue.'))
+            return None
+                
+        from .core import rho_as_distance
+
+        _rho = rho_as_distance(rho, eph)
+        I1 = scipy.special.iti0k0(_rho / self.parent)
+        if self.daugher is None:
+            sigma = self.Q / 2 / np.pi / _rho / self.v * I1
+        else:
+            I2 = scipy.special.iti0k0(_rho / self.daughter)
+            sigma = (self.Q / 2 / np.pi / _rho / self.v
+                     * self.daughter / (self.parent - self.daughter)
+                     * (I1 - I2))
+
+        return sigma
 
 class Vectorial(GasComa):
     """Vectorial model implementation"""
