@@ -13,6 +13,7 @@ phase_HalleyMarcus - Halley-Marcus composite dust phase function.
 Classes
 -------
 Afrho     - Coma dust quantity of A'Hearn et al. (1984).
+Efrho     - Thermal emission equivalent of Afrho.
 Syndynes  - Dust dynamical model for zero-ejection velocities.
 
 
@@ -25,6 +26,7 @@ import astropy.units as u
 __all__ = [
     'phase_HalleyMarcus',
     'Afrho',
+    'Efrho',
     'Syndynes'
 ]
 
@@ -209,7 +211,8 @@ class Afrho(u.SpecificTypeQuantity):
     def from_fluxd(cls, wave_or_freq, fluxd, aper, eph=None, S=None, **kwargs):
         """Initialize from flux density.
 
-        Phase angle is not considered.
+        Phase angle is not considered.  Assumes the small angle
+        approximation.
 
         Parameters
         ----------
@@ -217,8 +220,7 @@ class Afrho(u.SpecificTypeQuantity):
           Wavelengths or frequencies of the observation.
 
         fluxd : `~astropy.units.Quantity`
-          Flux density per unit wavelength or frequency, depending on
-          the units of `wave_or_freq`.
+          Flux density per unit wavelength or frequency.
 
         aper : `~astropy.units.Quantity`, `~Aperture`
           Aperture of the observation as a circular radius (length
@@ -260,7 +262,8 @@ class Afrho(u.SpecificTypeQuantity):
     def from_mag(self, filt, mag, aper, eph=None, S=None, **kwargs):
         """Initialize from apparent magnitude.
 
-        Phase angle is not considered.
+        Phase angle is not considered.  Assumes the small angle
+        approximation.
 
         Parameters
         ----------
@@ -299,7 +302,9 @@ class Afrho(u.SpecificTypeQuantity):
     def fluxd(self, wave_or_freq, aper, eph=None, S=None, **kwargs):
         """Coma flux density.
 
-        Phase angle is not considered.
+        Phase angle is not considered.  Assumes the small angle
+        approximation.
+
 
         Parameters
         ----------
@@ -344,19 +349,19 @@ class Afrho(u.SpecificTypeQuantity):
 
         """
 
-        from . import core
+        from .core import Aperture, rho_as_distance
         #from ..data import solar_fluxd
         from .. import bib
 
-        bib.register('activity.dust.Afrho', '1984AJ.....89..579A')
+        bib.register('activity.dust.Afrho.fluxd', '1984AJ.....89..579A')
 
         # check aperture radius
-        if isinstance(aper, core.Aperture):
+        if isinstance(aper, Aperture):
             rho = aper.coma_equivalent_radius()
         else:
             rho = aper
 
-        rho = core.rho_as_distance(rho, eph)
+        rho = rho_as_distance(rho, eph)
 
         # check solar flux density
         if S is None:
@@ -373,7 +378,8 @@ class Afrho(u.SpecificTypeQuantity):
     def mag(self, filt, aper, eph=None, S=None, **kwargs):
         """Coma apparent magnitude.
 
-        Phase angle is not considered.
+        Phase angle is not considered.  Assumes the small angle
+        approximation.
 
         Parameters
         ----------
@@ -445,8 +451,189 @@ class Afrho(u.SpecificTypeQuantity):
             Phi = phase_HalleyMarcus
         
         return self * Phi(to_phase) / Phi(from_phase)
-        
 
+class Efrho(u.SpecificTypeQuantity):
+    """Coma dust quantity of Kelley et al. (2013).
+
+    `Efrho` objects behave like astropy `~astropy.units.Quantity`
+    objects with units of length.
+
+
+    Parameters
+    ----------
+    value : number, astropy `~astropy.units.Quantity`
+      The value(s).
+
+    unit : string, astropy `~Unit`
+      The unit of the input value, if `value` is a number.  If a
+      string, it must be parseable by :mod:`~astropy.units` package.
+
+    dtype : `~numpy.dtype`, optional
+        See `~astropy.units.Quantity`.
+
+    copy : bool, optional
+        See `~astropy.units.Quantity`.
+
+
+    Notes
+    -----
+    εfρ is the product of dust emissivity, dust filling factor, and
+    circular aperture radius.  It is nominally a constant for a
+    steady-state coma in free expansion, and is the thermal emission
+    equivalent for the Afρ quanitity.  See A'Hearn et al. (1984) and
+    Kelley et al. (2013) for details.
+
+
+    References
+    ----------
+    A'Hearn et al. 1984, AJ 89, 579-591.
+    Kelley et al. 2013, Icarus 225, 475-494.
+
+
+    Examples
+    --------
+    >>> from sbpy.activity import Efrho
+    >>> import astropy.units as u
+    >>> Efrho(1000 * u.cm)
+    <Efrho 1000.0 cm>
+
+    """
+
+    _equivalent_unit = u.meter
+    _include_easy_conversion_members = True
+    
+    def __new__(cls, value, unit=None, dtype=None, copy=None):
+        return super().__new__(cls, value, unit=unit, dtype=dtype, copy=copy)
+
+    @classmethod
+    def from_fluxd(cls, wave_or_freq, fluxd, aper, eph=None, Tscale=1.1,
+                   T=None):
+        """Initialize from flux density.
+
+        Assumes the small angle approximation.
+
+        Parameters
+        ----------
+        wave_or_freq : `~astropy.units.Quantity`
+          Wavelengths or frequencies of the observation.
+
+        fluxd : `~astropy.units.Quantity`
+          Flux density per unit wavelength or frequency.
+
+        aper : `~astropy.units.Quantity`, `~Aperture`
+          Aperture of the observation as a circular radius (length
+          or angular units), or as an sbpy `Aperture` class.
+
+        eph : dictionary-like or `~Ephem`, optional
+          Ephemerides of the comet, describing heliocentric and
+          geocentric distances as `~astropy.units.Quantity` via
+          keywords `rh` and `delta`.  `rh` is not required when `aper`
+          is in units of length.
+
+        Tscale : float, optional
+          Blackbody temperature scale factor.  Ignored if `T` is
+          provided.
+
+        T : `~astropy.units.Quantity`, optional
+          Use this temperature for the Planck function.
+
+        
+        Example
+        -------
+        >>> from sbpy.activity import Efrho
+        >>> import astropy.units as u
+        >>> wave = 15.8 * u.um
+        >>> fluxd = 6.52 * u.mJy
+        >>> aper =  11.1 * u.arcsec
+        >>> eph = {'rh': 4.42 * u.au, 'delta': 4.01 * u.au}
+        >>> efrho = Efrho.from_fluxd(wave, fluxd, aper, eph=eph)
+        >>> efrho.cm                              # doctest: +FLOAT_CMP
+        120.00836963059808
+
+        """
+
+        fluxd1cm = Efrho(1 * u.cm).fluxd(wave_or_freq, aper, eph=eph,
+                                         Tscale=Tscale, T=T)
+        fluxd1cm = fluxd1cm.to(fluxd.unit, u.spectral_density(wave_or_freq))
+        return Efrho((fluxd / fluxd1cm).decompose() * u.cm)
+
+    def fluxd(self, wave_or_freq, aper, eph=None, Tscale=1.1, T=None):
+        """Coma flux density.
+
+        Assumes the small angle approximation.
+
+        Parameters
+        ----------
+        wave_or_freq : `~astropy.units.Quantity`
+          Wavelengths or frequencies of the observation.
+
+        aper : `~astropy.units.Quantity`, `~Aperture`
+          Aperture of the observation as a circular radius (length
+          or angular units), or as an sbpy `~Aperture` class.
+
+        eph : dictionary-like or `~Ephem`, optional
+          Ephemerides of the comet, describing heliocentric and
+          geocentric distances as `~astropy.units.Quantity` via
+          keywords `rh` and `delta`.  `rh` is not required when `aper`
+          is in units of length.
+
+        Tscale : float, optional 
+          Blackbody temperature scale factor.  Ignored if `T` is
+          provided.
+
+        T : `~astropy.units.Quantity`, optional
+          Use this temperature for the Planck function.
+
+        Returns
+        -------
+        fluxd : `~astropy.units.Quantity`
+          Spectral flux density.  Return units depend on the units of
+          `wave_or_freq`: W/(m2 um) for wavelengths, Jy for frequency.
+
+        Example
+        -------
+        >>> from sbpy.activity import Efrho
+        >>> import astropy.units as u
+        >>> efrho = Efrho(120.0, 'cm')
+        >>> freq = 2.998e14 / 15.8 / u.s
+        >>> aper = 11.1 * u.arcsec
+        >>> eph = {'rh': 4.42 * u.au, 'delta': 4.01 * u.au}
+        >>> fluxd = efrho.fluxd(freq, aper, eph=eph)
+        >>> fluxd.value                                  # doctest: +FLOAT_CMP
+        0.006519008559539147
+        >>> fluxd.unit
+        Unit("Jy")
+
+        """
+
+        from astropy.modeling.blackbody import blackbody_lambda
+        from astropy.modeling.blackbody import blackbody_nu
+        from .core import rho_as_distance, Aperture
+        from .. import bib
+
+        bib.register('activity.dust.Efrho.fluxd', '2013Icar..225..475K')
+
+        # check aperture radius
+        if isinstance(aper, Aperture):
+            rho = aper.coma_equivalent_radius()
+        else:
+            rho = aper
+
+        rho = rho_as_distance(rho, eph)
+
+        if T is None:
+            T = Tscale * 278 / np.sqrt(eph['rh'] / u.au) * u.K
+
+        if wave_or_freq.unit.is_equivalent(u.m):
+            B = blackbody_lambda(wave_or_freq, T).to('W/(m2 um sr)')
+        else:
+            B = blackbody_nu(wave_or_freq, T).to(u.Jy / u.sr)
+
+        fluxd = self * rho / eph['delta']**2 * np.pi * B * u.sr
+
+        return fluxd.to(B.unit * u.sr)
+
+    
 class Syndynes:
     """Syndynes and Synchrones"""
 
