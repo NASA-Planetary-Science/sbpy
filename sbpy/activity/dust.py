@@ -356,16 +356,14 @@ class Afrho(u.SpecificTypeQuantity):
         else:
             rho = aper
 
-        if rho.unit.is_equivalent(u.rad):
-            rho = eph['delta'] * np.tan(rho)
-
-        assert rho.unit.is_equivalent(u.m)
+        rho = core.rho_as_distance(rho, eph)
 
         # check solar flux density
         if S is None:
-            S = solar_fluxd(wave_or_freq, unit=u.W / u.m**2 / u.um)
+            S = solar_fluxd(wave_or_freq)
         else:
-            assert S.unit.is_equivalent(u.W / u.m**2 / u.um)
+            assert (S.unit.is_equivalent(u.W / u.m**2 / u.um)
+                    or S.unit.is_equivalent(u.W / u.m**2 / u.Hz))
 
         # compute
         fluxd = self * rho * S / 4 / eph['delta']**2 * u.au**2 / eph['rh']**2
