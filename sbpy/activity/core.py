@@ -10,17 +10,15 @@ geometries.
 
 Functions
 ---------
-
+rho_as_distance - Angular distance to projected linear distance.
 
 Classes
 -------
 Aperture            - Abstract base class for observation apertures.
-CircularAperture    - Circular photometric aperture for observing
-                      a coma model.
-RectangularAperture - Rectangular photometric aperture for observing a
-                      coma model.
-GaussianAperture    - Gaussian photometric aperture for observing a coma
-                      model.
+CircularAperture    - Circular photometric aperture.
+AnnularAperture     - Annular photometric aperture.
+RectangularAperture - Rectangular photometric aperture.
+GaussianAperture    - Gaussian photometric aperture.
 
 
 created on June 23, 2017
@@ -28,7 +26,9 @@ created on June 23, 2017
 """
 
 __all__ = [
+    'rho_as_distance',
     'CircularAperture',
+    'AnnularAperture',
     'RectangularAperture',
     'GaussianAperture',
 ]
@@ -37,8 +37,38 @@ from abc import ABC, abstractmethod
 import numpy as np
 import astropy.units as u
 
+def rho_as_distance(rho, eph):
+    """Angular distance to projected linear distance.
+
+    Parameters
+    ----------
+    rho : `~astropy.units.Quantity`
+      Projected distance of the region of interest in units of angle.
+
+    eph : dictionary-like or `~sbpy.data.Ephem`
+      Ephemerides; requires geocentric distance as `delta`.
+
+    Returns
+    -------
+    rho_l : `~astropy.units.Quantity`
+
+    """
+
+    if rho.unit.is_equivalent(u.rad):
+        rho_l = eph['delta'].to(u.m) * np.tan(rho)
+    else:
+        rho_l = rho
+
+    return rho_l
+
+
 class Aperture(ABC):
     """Abstract base class for photometric apertures."""
+
+    def __init__(self, dim):
+        assert isinstance(dim, u.Quantity)
+        assert dim.unit.is_equivalent((u.radian, u.meter))
+        self.dim = dim
 
     @abstractmethod
     def coma_equivalent_radius(self):
@@ -63,29 +93,56 @@ class CircularAperture(Aperture):
     """
 
     def __init__(self, radius):
-        assert isinstance(radius, u.Quantity)
-        assert radius.unit.is_equivalent((u.radian, u.meter))
-        self.radius = radius
+        super(CircularAperture, self).__init__(radius)
 
+    @property
+    def radius(self):
+        return self.dim
+    
     def coma_equivalent_radius(self):
         return self.radius
 
+class AnnularAperture(Aperture):
+    """Annular aperture projected at the distance of the target.
+
+    Parameters
+    ----------
+    shape : `~astropy.units.Quantity`
+      A two-element `~astropy.units.Quantity` of angular or projected
+      linear size for the inner and outer radius of the aperture.
+
+    """
+
+    def __init__(self, shape):
+        assert len(shape) == 2
+        super(AnnularAperture, self).__init__(shape)
+
+    @property
+    def shape(self):
+        return self.dim
+
+    def coma_equivalent_radius(self):
+        return max(self.dim) - min(self.dim)
+
 class RectangularAperture(Aperture):
-    """A rectangular aperture projected at the distance of the target.
+    """Rectangular aperture projected at the distance of the target.
     
     Parameters
     ----------
     shape : `~astropy.units.Quantity`
       A two-element `~astropy.units.Quantity` of angular or projected
-      linear size for the aperture.
+      linear size for the width and height of the aperture.  The order
+      is not significant.
 
     """
 
     def __init__(self, shape):
-        assert isinstance(shape, u.Quantity)
-        assert shape.unit.is_equivalent((u.radian, u.meter))
         assert len(shape) == 2
-        self.shape = shape
+        super(RectangularAperture, self).__init__(shape)
+
+    @property
+    def shape(self):
+        return self.dim
 
     def coma_equivalent_radius(self):
         # Int_0^θ Int_0^r 1/r * r * dr dθ
@@ -121,7 +178,7 @@ class RectangularAperture(Aperture):
         return (I1 + I2) / np.pi
 
 class GaussianAperture(Aperture):
-    """A Gaussian-shaped aperture, typically used for radio observations.
+    """A Gaussian-shaped aperture, e.g., for radio observations.
 
     Parameters
     ----------
@@ -140,30 +197,20 @@ class GaussianAperture(Aperture):
 
     def __init__(self, sigma=None, fwhm=None):
         assert (sigma is not None) or (fwhm is not None), "One of `sigma` or `fwhm` must be defined."
-        # units are tested in self.sigma
+        
         if sigma is not None:
-            self.sigma = sigma
+            super(GaussianAperture, self).__init__(sigma)
         else:
-            self.fwhm = fwhm
+            super(GaussianAperture, self).__init__(fwhm / 2.3548200450309493)
 
     @property
     def sigma(self):
-        return self._sigma
-
-    @sigma.setter
-    def sigma(self, s):
-        assert isinstance(s, u.Quantity)
-        assert s.unit.is_equivalent((u.radian, u.meter))
-        self._sigma = s
+        return self.dim
 
     @property
     def fwhm(self):
-        return self._sigma * 2.3548200450309493
+        return self.dim * 2.3548200450309493
 
-    @fwhm.setter
-    def fwhm(self, f):
-        self.sigma = f / 2.3548200450309493
-
-    def coma_equivalent_aperture(self):
-        # This beam is normalized to 1.0 at the center, is that OK?
+    def coma_equivalent_radius(self):
+        # This beam is normalized to 1.0 at the center, is that correct?
         return np.sqrt(np.pi / 2) * self.sigma
