@@ -21,6 +21,7 @@ Vectorial           - Vectorial coma model for gas (Festou 1981).
 """
 
 from abc import ABC, abstractmethod
+import numpy as np
 import astropy.units as u
 from .. import bib
 from .core import Aperture
@@ -264,29 +265,7 @@ class GasComa(ABC):
 
 
     @abstractmethod
-    def column_density(self, aperture, eph=None):
-        """Coma column density within an aperture.
-
-        Parameters
-        ----------
-        aperture : `~astropy.units.Quantity` or `~sbpy.activity.Aperture`
-          Observation aperture as a radius for a circular aperture
-          (projected length, or angle) or an `Aperture` instance.
-
-        eph : dictionary-like or `~sbpy.data.Ephem`
-          Ephemerides at epoch; requires geocentric distance as
-          `delta` keyword if aperture has angular units.
-
-
-        Returns
-        -------
-        sigma : float
-
-        """
-        pass
-        
-    @abstractmethod
-    def column_density_at(self, rho, eph=None):
+    def column_density(self, rho, eph=None):
         """Coma column density at a projected distance from nucleus.
 
         Parameters
@@ -354,11 +333,14 @@ class Haser(GasComa):
     ----------
     Haser 1957, Bulletin de la Societe Royale des Sciences de Liege
     43, 740.
+    Newburn and Johnson 1978, Icarus 35, 360-368.
 
     """
     
-    def __init__(self, Q, v, parent, daughter):
-        Activity.__init__(self, Q, v)
+    def __init__(self, Q, v, parent, daughter=None):
+        super(Haser, self).__init__(Q, v)
+
+        bib.register('activity.gas.Haser', '1957BSRSL..43..740H')
         
         assert isinstance(parent, u.Quantity)
         assert parent.unit.is_equivalent(u.m)
@@ -385,28 +367,67 @@ class Haser(GasComa):
 
         return n.decompose()
 
-    def column_density_at(self, rho, eph=None):
+    def _iK0(self, x):
+        """Integral of the modified Bessel function of 2nd kind, 0th order."""
         try:
-            import scipy.special
+            from scipy.special import iti0k0
         except ImportError as e:
             from astropy.utils.exceptions import AstropyWarning
             from warnings import warn
             warn(AstropyWarning('scipy is not present, cannot continue.'))
             return None
-                
+
+        return iti0k0(x.decompose().value)[1]
+    
+    def _K1(self, x):
+        """Modified Bessel function of 2nd kind, 1st order."""
+        try:
+            from scipy.special import k1
+        except ImportError as e:
+            from astropy.utils.exceptions import AstropyWarning
+            from warnings import warn
+            warn(AstropyWarning('scipy is not present, cannot continue.'))
+            return None
+
+        return k1(x.decompose().value)
+    
+    def column_density(self, rho, eph=None):
         from .core import rho_as_distance
 
-        _rho = rho_as_distance(rho, eph)
-        I1 = scipy.special.iti0k0(_rho / self.parent)
-        if self.daugher is None:
-            sigma = self.Q / 2 / np.pi / _rho / self.v * I1
+        r = rho_as_distance(rho, eph=eph)
+        x = r / self.parent
+        y = r / self.daughter
+        sigma = self.Q / 2 / np.pi / r / self.v
+        if self.daughter is None or self.daughter == 0:
+            sigma *= np.pi / 2 - self._iK0(x)
+        elif self.parent is None or self.parent == 0:
+            sigma *= np.pi / 2 - self._iK0(y)
         else:
-            I2 = scipy.special.iti0k0(_rho / self.daughter)
-            sigma = (self.Q / 2 / np.pi / _rho / self.v
-                     * self.daughter / (self.parent - self.daughter)
-                     * (I1 - I2))
-
+            sigma *= (self.daughter / (self.parent - self.daughter)
+                      * (self._iK0(y) - self._iK0(x)))
+            
         return sigma
+
+    def total_number(self, rho, eph=None):
+        from .core import rho_as_distance
+
+        r = rho_as_distance(rho, eph=eph)
+        x = r / self.parent
+        y = r / self.daughter
+
+        if self.daughter is None or self.daughter == 0:
+            N = (self.Q * self.parent / self.v
+                 * (1 + x * (self._K1(x) + np.pi / 2 - self._iK0(x))))
+        elif self.parent == None or self.parent == 0:
+            N = (self.Q * self.daughter / self.v
+                 * (1 + y * (self._K1(y) + np.pi / 2 - self._iK0(y))))
+        else:
+            N = (self.Q * r / self.v
+                 * self.daughter / (self.parent - self.daughter)
+                 * (self._iK0(y) - self._iK0(x) + x**-1 - y**-1
+                    + self._K1(y) - self._K1(x)))
+        
+        return N.decompose()
 
 class Vectorial(GasComa):
     """Vectorial model implementation"""
