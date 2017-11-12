@@ -271,8 +271,8 @@ class GasComa(ABC):
         Parameters
         ----------
         rho : `~astropy.units.Quantity`
-          Projected distance of the region of interest in units of
-          length or angle.
+          Projected distance of the region of interest on the plane of
+          the sky in units of length or angle.
 
         eph : dictionary-like or `~sbpy.data.Ephem`
           Ephemerides at epoch; requires geocentric distance as
@@ -287,12 +287,12 @@ class GasComa(ABC):
         pass
         
     @abstractmethod
-    def total_number(self, aperture, eph=None):
+    def total_number(self, aper, eph=None):
         """Total number of molecules in aperture.
 
         Parameters
         ----------
-        aperture : `~astropy.units.Quantity` or `~sbpy.activity.Aperture`
+        aper : `~astropy.units.Quantity` or `~sbpy.activity.Aperture`
           Observation aperture as a radius for a circular aperture
           (projected length, or angle) or an `Aperture` instance.
 
@@ -307,7 +307,67 @@ class GasComa(ABC):
 
         """
         pass
+
+    def _integrate_column_density(self, aper):
+        """Integrate column density over an aperture.
+
+        Parameters
+        ----------
+        aper : `~sbpy.activity.Aperture`
+          Aperture, in units of length.
+
+        """
         
+        from .core import RectangularAperture, GaussianAperture, AnnularAperture, CircularAperture
+        
+        try:
+            from scipy.integrate import quad, dblquad
+        except ImportError as e:
+            from astropy.utils.exceptions import AstropyWarning
+            from warnings import warn
+            warn(AstropyWarning('scipy is not present, cannot integrate column density.'))
+            return None
+
+        if isinstance(aper, CircularAperture):
+            # integrate in polar coordinates
+            f = lambda rho: rho * self.column_density(rho * u.km).value
+            N, err = quad(f, 0, aper.radius.to(u.km).value)
+            N *= 2 * np.pi
+        elif isinstance(aper, AnnularAperture):
+            # integrate in polar coordinates
+            f = lambda rho: rho * self.column_density(rho * u.km).value
+            N, err = quad(f, aper.shape[0].to(u.km).value,
+                          aper.shape[1].to(u.km).value)
+            N *= 2 * np.pi
+        elif isinstance(aper, RectangularAperture):
+            # integrate in polar coordinates
+            f = lambda rho, th: rho * self.column_density(rho * u.km).value
+
+            shape = aper.shape.to(u.km).value
+            
+            # first "octant"; g and h are the limits of the
+            # integration of rho
+            g = lambda th: 0
+            h = lambda th: shape[0] / 2 / np.cos(th)
+            th = np.arctan(shape[0] / shape[1])
+            N1, err1 = dblquad(f, 0, th, g, h)
+            
+            # second "octant"
+            g = lambda th: 0
+            h = lambda th: shape[1] / 2 / np.cos(th)
+            th = np.arctan(shape[1] / shape[0])
+            N2, err2 = dblquad(f, 0, th, g, h)
+
+            # N1 + N2 constitute 1/4th of the rectangle
+            N = 4 * (N1 + N2)
+        elif isinstance(aper, GaussianAperture):
+            # integrate in polar coordinates
+            f = lambda rho: (rho * aper(rho * u.km).value
+                             * self.column_density(rho * u.km).value)
+            N, err = quad(f, 0, np.inf)
+            N *= 2 * np.pi
+
+        return N
 
 class Haser(GasComa):
     """Haser coma model.
@@ -392,9 +452,9 @@ class Haser(GasComa):
         return k1(x.decompose().value)
     
     def column_density(self, rho, eph=None):
-        from .core import rho_as_distance
+        from .core import rho_as_length
 
-        r = rho_as_distance(rho, eph=eph)
+        r = rho_as_length(rho, eph=eph)
         x = 0 if self.parent is None else r / self.parent
         y = 0 if self.daughter is None else r / self.daughter
         sigma = self.Q / 2 / np.pi / r / self.v
@@ -403,17 +463,36 @@ class Haser(GasComa):
         elif self.parent is None or self.parent == 0:
             sigma *= np.pi / 2 - self._iK0(y)
         else:
-            sigma *= (self.daughter / (self.parent - self.daughter)
-                      * (self._iK0(x) - self._iK0(y)))
-            
+            if self.parent < self.daughter:
+                sigma *= (self.parent / (self.daughter - self.parent)
+                          * (self._iK0(x) - self._iK0(y)))
+            else:
+                sigma *= (self.daughter / (self.parent - self.daughter)
+                          * (self._iK0(y) - self._iK0(x)))
+        
         return sigma
 
-    def total_number(self, rho, eph=None):
-        from .core import rho_as_distance
+    def total_number(self, aper, eph=None):
+        from .core import rho_as_length, Aperture
+        from .core import RectangularAperture, GaussianAperture, AnnularAperture, CircularAperture
 
-        r = rho_as_distance(rho, eph=eph)
-        x = 0 if self.parent is None else r / self.parent
-        y = 0 if self.daughter is None else r / self.daughter
+        # Inspect aper and handle as appropriate
+        if isinstance(aper, Aperture):
+            aper = aper.as_length(eph)
+            if isinstance(aper, (RectangularAperture, GaussianAperture)):
+                return self._integrate_column_density(aper)
+            elif isinstance(aper, AnnularAperture):
+                return self.total_number(aper.shape[1]) - self.total_number(aper.shape[0])
+            elif isinstance(aper, CircularAperture):
+                rho = aper.radius
+            else:
+                raise NotImplemented("Integration of {} apertures is not implemented.".format(type(aper)))
+        else:
+            rho = rho_as_length(aper, eph)
+
+        # Solution for the circular aperture of radius rho:
+        x = 0 if self.parent is None else rho / self.parent
+        y = 0 if self.daughter is None else rho / self.daughter
 
         if self.daughter is None or self.daughter == 0:
             N = (self.Q * self.parent / self.v
@@ -422,7 +501,7 @@ class Haser(GasComa):
             N = (self.Q * self.daughter / self.v
                  * (1 + y * (self._K1(y) + np.pi / 2 - self._iK0(y))))
         else:
-            N = (self.Q * r / self.v
+            N = (self.Q * rho / self.v
                  * self.daughter / (self.parent - self.daughter)
                  * (self._iK0(y) - self._iK0(x) + x**-1 - y**-1
                     + self._K1(y) - self._K1(x)))

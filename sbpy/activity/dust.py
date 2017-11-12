@@ -349,7 +349,7 @@ class Afrho(u.SpecificTypeQuantity):
 
         """
 
-        from .core import Aperture, rho_as_distance
+        from .core import Aperture, rho_as_length
         #from ..data import solar_fluxd
         from .. import bib
 
@@ -361,7 +361,7 @@ class Afrho(u.SpecificTypeQuantity):
         else:
             rho = aper
 
-        rho = rho_as_distance(rho, eph)
+        rho = rho_as_length(rho, eph)
 
         # check solar flux density
         if S is None:
@@ -608,7 +608,7 @@ class Efrho(u.SpecificTypeQuantity):
 
         from astropy.modeling.blackbody import blackbody_lambda
         from astropy.modeling.blackbody import blackbody_nu
-        from .core import rho_as_distance, Aperture
+        from .core import rho_as_length, Aperture
         from .. import bib
 
         bib.register('activity.dust.Efrho.fluxd', '2013Icar..225..475K')
@@ -619,7 +619,7 @@ class Efrho(u.SpecificTypeQuantity):
         else:
             rho = aper
 
-        rho = rho_as_distance(rho, eph)
+        rho = rho_as_length(rho, eph)
 
         if T is None:
             T = Tscale * 278 / np.sqrt(eph['rh'] / u.au) * u.K
