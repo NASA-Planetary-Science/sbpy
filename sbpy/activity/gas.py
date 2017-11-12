@@ -357,13 +357,13 @@ class Haser(GasComa):
         assert isinstance(r, u.Quantity)
         assert r.unit.is_equivalent(u.m)
 
-        C = self.Q / 4 / np.pi / r**2 / self.v
-        if self.daughter is None:
+        n = self.Q / 4 / np.pi / r**2 / self.v
+        if self.daughter is None or self.daughter == 0:
             # parent only
-            n = C * np.exp(-r / self.parent)
+            n *= np.exp(-r / self.parent)
         else:
-            n = (C * self.daughter / (self.parent - self.daughter)
-                 * (np.exp(-r / self.parent) - np.exp(-r / self.daughter)))
+            n *= (self.daughter / (self.parent - self.daughter)
+                  * (np.exp(-r / self.parent) - np.exp(-r / self.daughter)))
 
         return n.decompose()
 
@@ -395,8 +395,8 @@ class Haser(GasComa):
         from .core import rho_as_distance
 
         r = rho_as_distance(rho, eph=eph)
-        x = r / self.parent
-        y = r / self.daughter
+        x = 0 if self.parent is None else r / self.parent
+        y = 0 if self.daughter is None else r / self.daughter
         sigma = self.Q / 2 / np.pi / r / self.v
         if self.daughter is None or self.daughter == 0:
             sigma *= np.pi / 2 - self._iK0(x)
@@ -404,7 +404,7 @@ class Haser(GasComa):
             sigma *= np.pi / 2 - self._iK0(y)
         else:
             sigma *= (self.daughter / (self.parent - self.daughter)
-                      * (self._iK0(y) - self._iK0(x)))
+                      * (self._iK0(x) - self._iK0(y)))
             
         return sigma
 
@@ -412,8 +412,8 @@ class Haser(GasComa):
         from .core import rho_as_distance
 
         r = rho_as_distance(rho, eph=eph)
-        x = r / self.parent
-        y = r / self.daughter
+        x = 0 if self.parent is None else r / self.parent
+        y = 0 if self.daughter is None else r / self.daughter
 
         if self.daughter is None or self.daughter == 0:
             N = (self.Q * self.parent / self.v

@@ -24,6 +24,25 @@ class TestHaser:
 
         assert np.allclose(n, [0.5, 1.1, 6.1])
 
+    def test_column_density_small_aperture(self):
+        # Test column desnity for aperture << lengthscale
+        Q = 1e28 / u.s
+        v = 1 * u.km / u.s
+        aper = 10 * u.km
+        parent = 1e4 * u.km
+        sigma = Haser(Q, v, parent).column_density(aper)
+        ideal = Q / v / 2 / aper
+        assert np.isclose(sigma.decompose().value, ideal.decompose().value)
+
+    def test_column_density_large_aperture(self):
+        # Test column desnity for aperture >> lengthscale
+        Q = 1 / u.s
+        v = 1 * u.km / u.s
+        aper = 1000 * u.km
+        parent = 10 * u.km
+        sigma = Haser(Q, v, parent).column_density(aper)
+        ideal = 4 * Q * parent / v / np.pi / 4 / aper**2
+        assert np.isclose(sigma.decompose().value, ideal.decompose().value)
 
     def test_total_number(self):
         # reproduce Newburn and Johnson 1978
