@@ -9,15 +9,15 @@ def test_rho_as_angle():
     rho = rho_as_angle(100 * u.km, {'delta': 1 * u.au})
     assert np.isclose(rho.to(u.arcsec).value, 0.13787950659645942)
 
-def test_rho_as_distance():
+def test_rho_as_length():
     # 1 au * tan(1") = 725.2709438078363
-    rho = rho_as_distance(1 * u.arcsec, {'delta': 1 * u.au})
+    rho = rho_as_length(1 * u.arcsec, {'delta': 1 * u.au})
     assert np.isclose(rho.to(u.km).value, 725.2709438078363)
 
 def test_rho_roundtrip():
     a = 10 * u.arcsec
     eph = {'delta': 1 * u.au}
-    b = rho_as_angle(rho_as_distance(a, eph), eph)
+    b = rho_as_angle(rho_as_length(a, eph), eph)
     assert np.isclose(a.value, b.to(u.arcsec).value)
     
 class TestCircularAperture:
@@ -26,11 +26,35 @@ class TestCircularAperture:
         aper = CircularAperture(r)
         assert aper.coma_equivalent_radius() == 1 * u.arcsec
 
+    def test_as_length(self):
+        r = 1 * u.arcsec
+        aper = CircularAperture(r)
+        eph = {'delta': 1 * u.au}
+        assert aper.as_length(eph).dim == rho_as_length(r, eph)
+
+    def test_as_angle(self):
+        r = 100 * u.km
+        aper = CircularAperture(r)
+        eph = {'delta': 1 * u.au}
+        assert aper.as_angle(eph).dim == rho_as_angle(r, eph)
+
 class TestAnnularAperture:
     def test_coma_equivalent_radius(self):
         shape = [1, 2] * u.arcsec
         aper = AnnularAperture(shape)
         assert aper.coma_equivalent_radius() == 1 * u.arcsec
+
+    def test_as_length(self):
+        shape = [1, 2] * u.arcsec
+        aper = AnnularAperture(shape)
+        eph = {'delta': 1 * u.au}
+        assert all(aper.as_length(eph).dim == rho_as_length(shape, eph))
+
+    def test_as_angle(self):
+        shape = [100, 200] * u.km
+        aper = AnnularAperture(shape)
+        eph = {'delta': 1 * u.au}
+        assert all(aper.as_angle(eph).dim == rho_as_angle(shape, eph))
 
 class TestRectangularAperture:
     def test_coma_equivalent_radius(self):
@@ -39,9 +63,32 @@ class TestRectangularAperture:
         r = aper.coma_equivalent_radius()
         assert np.isclose(r.value, 0.66776816346357259)
 
+    def test_as_length(self):
+        shape = [1, 2] * u.arcsec
+        aper = RectangularAperture(shape)
+        eph = {'delta': 1 * u.au}
+        assert all(aper.as_length(eph).dim == rho_as_length(shape, eph))
+
+    def test_as_angle(self):
+        shape = [100, 200] * u.km
+        aper = RectangularAperture(shape)
+        eph = {'delta': 1 * u.au}
+        assert all(aper.as_angle(eph).dim == rho_as_angle(shape, eph))
+
 class TestGaussianAperture:
     def test_coma_equivalent_radius(self):
         sigma = 1 * u.arcsec
         aper = GaussianAperture(sigma)
         assert aper.coma_equivalent_radius() == np.sqrt(np.pi / 2) * u.arcsec
 
+    def test_as_length(self):
+        sig = 1 * u.arcsec
+        aper = GaussianAperture(sig)
+        eph = {'delta': 1 * u.au}
+        assert aper.as_length(eph).dim == rho_as_length(sig, eph)
+
+    def test_as_angle(self):
+        sig = 100 * u.km
+        aper = GaussianAperture(sig)
+        eph = {'delta': 1 * u.au}
+        assert aper.as_angle(eph).dim == rho_as_angle(sig, eph)
