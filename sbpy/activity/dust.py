@@ -208,7 +208,8 @@ class Afrho(u.SpecificTypeQuantity):
         return super().__new__(cls, value, unit=unit, dtype=dtype, copy=copy)
 
     @classmethod
-    def from_fluxd(cls, wave_or_freq, fluxd, aper, eph=None, S=None, **kwargs):
+    def from_fluxd(cls, wave_or_freq, fluxd, aper, eph, phasecor=False,
+                   Phi=None, S=None, **kwargs):
         """Initialize from flux density.
 
         Phase angle is not considered.  Assumes the small angle
@@ -226,10 +227,17 @@ class Afrho(u.SpecificTypeQuantity):
           Aperture of the observation as a circular radius (length
           or angular units), or as an sbpy `Aperture` class.
 
-        eph : dictionary-like or `~Ephem`, optional
+        eph : dictionary-like or `~Ephem`
           Ephemerides of the comet, describing heliocentric and
           geocentric distances as `~astropy.units.Quantity` via
-          keywords `rh` and `delta`.
+          keywords `rh` and `delta`.  Phase angle, `phase`, is
+          required if `phasecor` is enabled.
+
+        phasecor : bool, optional
+          Scale the result by the phase function `Phi` to 0° phase.
+
+        Phi : callable, optional
+          Phase function, see `to_phase` for details.
 
         S : `~astropy.units.Quantity`, optional
           Solar flux density per unit wavelength at 1 au and `wave`.
@@ -255,9 +263,11 @@ class Afrho(u.SpecificTypeQuantity):
 
         """
 
-        fluxd1cm = Afrho(1 * u.cm).fluxd(wave_or_freq, aper, eph=eph,
-                                         S=S, **kwargs)
-        return Afrho((fluxd / fluxd1cm).decompose() * u.cm)
+        fluxd1cm = Afrho(1 * u.cm).fluxd(wave_or_freq, aper, eph=eph, S=S,
+                                         **kwargs)
+
+        afrho = Afrho((fluxd / fluxd1cm).decompose() * u.cm)
+        return afrho.to_phase(0 * u.deg, eph['phase'])
 
     def from_mag(self, filt, mag, aper, eph=None, S=None, **kwargs):
         """Initialize from apparent magnitude.
@@ -299,11 +309,11 @@ class Afrho(u.SpecificTypeQuantity):
         raise NotImplemented
 
 
-    def fluxd(self, wave_or_freq, aper, eph=None, S=None, **kwargs):
+    def fluxd(self, wave_or_freq, aper, eph, phasecor=False, Phi=None,
+              S=None, **kwargs):
         """Coma flux density.
 
-        Phase angle is not considered.  Assumes the small angle
-        approximation.
+        Assumes the small angle approximation.
 
 
         Parameters
@@ -316,10 +326,18 @@ class Afrho(u.SpecificTypeQuantity):
           Aperture of the observation as a circular radius (length
           or angular units), or as an sbpy `~Aperture` class.
 
-        eph : dictionary-like or `~Ephem`, optional
+        eph : dictionary-like or `~Ephem`
           Ephemerides of the comet, describing heliocentric and
           geocentric distances as `~astropy.units.Quantity` via
-          keywords `rh` and `delta`.
+          keywords `rh` and `delta`.  Phase angle, `phase`,
+          is required if `phasecor` is enabled.
+
+        phasecor : bool, optional
+          Scale the result by the phase function `Phi`, assuming
+          `Afrho` is quoted for 0° phase.
+
+        Phi : callable, optional
+          Phase function, see `to_phase` for details.
 
         S : `~astropy.units.Quantity`, optional 
           Solar flux density at 1 au.  If `None`, then it will be
@@ -370,8 +388,13 @@ class Afrho(u.SpecificTypeQuantity):
             assert (S.unit.is_equivalent(u.W / u.m**2 / u.um)
                     or S.unit.is_equivalent(u.W / u.m**2 / u.Hz))
 
+        if phasecor:
+            afrho = self.to_phase(eph['phase'], 0 * u.deg)
+        else:
+            afrho = self
+            
         # compute
-        fluxd = self * rho * S / 4 / eph['delta']**2 * u.au**2 / eph['rh']**2
+        fluxd = afrho * rho * S / 4 / eph['delta']**2 * u.au**2 / eph['rh']**2
 
         return fluxd.to(S.unit)
 
@@ -506,7 +529,7 @@ class Efrho(u.SpecificTypeQuantity):
         return super().__new__(cls, value, unit=unit, dtype=dtype, copy=copy)
 
     @classmethod
-    def from_fluxd(cls, wave_or_freq, fluxd, aper, eph=None, Tscale=1.1,
+    def from_fluxd(cls, wave_or_freq, fluxd, aper, eph, Tscale=1.1,
                    T=None):
         """Initialize from flux density.
 
@@ -524,7 +547,7 @@ class Efrho(u.SpecificTypeQuantity):
           Aperture of the observation as a circular radius (length
           or angular units), or as an sbpy `Aperture` class.
 
-        eph : dictionary-like or `~Ephem`, optional
+        eph : dictionary-like or `~Ephem`
           Ephemerides of the comet, describing heliocentric and
           geocentric distances as `~astropy.units.Quantity` via
           keywords `rh` and `delta`.  `rh` is not required when `aper`
@@ -557,7 +580,7 @@ class Efrho(u.SpecificTypeQuantity):
         fluxd1cm = fluxd1cm.to(fluxd.unit, u.spectral_density(wave_or_freq))
         return Efrho((fluxd / fluxd1cm).decompose() * u.cm)
 
-    def fluxd(self, wave_or_freq, aper, eph=None, Tscale=1.1, T=None):
+    def fluxd(self, wave_or_freq, aper, eph, Tscale=1.1, T=None):
         """Coma flux density.
 
         Assumes the small angle approximation.
@@ -571,7 +594,7 @@ class Efrho(u.SpecificTypeQuantity):
           Aperture of the observation as a circular radius (length
           or angular units), or as an sbpy `~Aperture` class.
 
-        eph : dictionary-like or `~Ephem`, optional
+        eph : dictionary-like or `~Ephem`
           Ephemerides of the comet, describing heliocentric and
           geocentric distances as `~astropy.units.Quantity` via
           keywords `rh` and `delta`.  `rh` is not required when `aper`
