@@ -212,8 +212,8 @@ class Afrho(u.SpecificTypeQuantity):
                    Phi=None, S=None, **kwargs):
         """Initialize from flux density.
 
-        Phase angle is not considered.  Assumes the small angle
-        approximation.
+        Assumes the small angle approximation.
+
 
         Parameters
         ----------
@@ -267,7 +267,9 @@ class Afrho(u.SpecificTypeQuantity):
                                          **kwargs)
 
         afrho = Afrho((fluxd / fluxd1cm).decompose() * u.cm)
-        return afrho.to_phase(0 * u.deg, eph['phase'])
+        if phasecor:
+            afrho = afrho.to_phase(0 * u.deg, eph['phase'])
+        return afrho
 
     def from_mag(self, filt, mag, aper, eph=None, S=None, **kwargs):
         """Initialize from apparent magnitude.
