@@ -4,6 +4,14 @@ import numpy as np
 import astropy.units as u
 from ..gas import *
 
+def test_photo_lengthscale():
+    gamma = photo_lengthscale('OH', 'CS93')
+    assert gamma == 1.6e5 * u.km
+
+def test_photo_timescale():
+    tau = photo_timescale('CO2', 'CE83')
+    assert tau == 5.0e5 * u.s
+
 class TestHaser:
     def test_volume_density(self):
         """Reproduce Newburn and Johnson 1978.

@@ -64,17 +64,12 @@ def photo_lengthscale(species, source=None):
     [CS93] H2O and OH from Table IV of Cochran & Schleicher 1993,
     Icarus 105, 235-253.  Quoted for intermediate solar activity.
 
-    [CE83] CO2 from Crovisier & Encrenaz 1983, A&A 126, 170-182.
-
     """
 
     data = {   # (value, ADS bibcode)
-        'H2O': {
-            'CS93': (2.4e4 * u.s, '1993Icar..105..235C'),
-        },
-        'OH': {
-            'CS93': (1.6e5 * u.s, '1993Icar..105..235C'),
-        },
+        'H2O': { 'CS93': (2.4e4 * u.km, '1993Icar..105..235C'), },
+         'OH': { 'CS93': (1.6e5 * u.km, '1993Icar..105..235C'), },
+        
     }
 
     default_sources = {
