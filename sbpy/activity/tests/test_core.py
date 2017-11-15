@@ -21,6 +21,9 @@ def test_rho_roundtrip():
     assert np.isclose(a.value, b.to(u.arcsec).value)
     
 class TestCircularAperture:
+    def test_str(self):
+        assert str(CircularAperture(1 * u.arcsec)) == 'Circular aperture, radius 1.0 arcsec'
+    
     def test_coma_equivalent_radius(self):
         r = 1 * u.arcsec
         aper = CircularAperture(r)
@@ -39,6 +42,9 @@ class TestCircularAperture:
         assert aper.as_angle(eph).dim == rho_as_angle(r, eph)
 
 class TestAnnularAperture:
+    def test_str(self):
+        assert str(AnnularAperture([1, 2] * u.arcsec)) == 'Annular aperture, radii 1.0–2.0 arcsec'
+    
     def test_coma_equivalent_radius(self):
         shape = [1, 2] * u.arcsec
         aper = AnnularAperture(shape)
@@ -57,6 +63,9 @@ class TestAnnularAperture:
         assert all(aper.as_angle(eph).dim == rho_as_angle(shape, eph))
 
 class TestRectangularAperture:
+    def test_str(self):
+        assert str(RectangularAperture([1, 2] * u.arcsec)) == 'Rectangular aperture, dimensions 1.0×2.0 arcsec'
+    
     def test_coma_equivalent_radius(self):
         shape = (0.8, 2) * u.arcsec
         aper = RectangularAperture(shape)
@@ -76,6 +85,9 @@ class TestRectangularAperture:
         assert all(aper.as_angle(eph).dim == rho_as_angle(shape, eph))
 
 class TestGaussianAperture:
+    def test_str(self):
+        assert str(GaussianAperture(1 * u.arcsec)) == 'Gaussian aperture, 1-σ width 1.0 arcsec'
+    
     def test_coma_equivalent_radius(self):
         sigma = 1 * u.arcsec
         aper = GaussianAperture(sigma)
@@ -92,3 +104,7 @@ class TestGaussianAperture:
         aper = GaussianAperture(sig)
         eph = {'delta': 1 * u.au}
         assert aper.as_angle(eph).dim == rho_as_angle(sig, eph)
+
+    def test_call(self):
+        aper = GaussianAperture(1 * u.arcsec)
+        assert np.isclose(aper(1 * u.arcsec), 0.6065306597126334)

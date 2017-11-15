@@ -26,20 +26,29 @@ class TestAfrho:
         assert v == 2000 * u.cm**2
         assert not isinstance(v, Afrho)
 
-    def test_from_fluxd(self):
+    def test_from_flam(self):
         fluxd = 6.730018324465526e-14 * u.W / u.m**2 / u.um
         aper = 1 * u.arcsec
         eph = dict(rh=1.5 * u.au, delta=1.0 * u.au)
         S = 1869 * u.W / u.m**2 / u.um
-        afrho = Afrho.from_fluxd(None, fluxd, aper, eph=eph, S=S)
+        afrho = Afrho.from_fluxd(None, fluxd, aper, eph, S=S)
         assert np.isclose(afrho.cm, 1000)
 
-    def test_flux(self):
+    def test_from_fnu(self):
+        fluxd = 6.161081515869728 * u.mJy
+        nu = 2.998e14 / 11.7 * u.Hz
+        aper = 1 * u.arcsec
+        eph = dict(rh=1.5 * u.au, delta=1.0 * u.au)
+        S = 1.711e14 * u.Jy
+        afrho = Afrho.from_fluxd(nu, fluxd, aper, eph, S=S)
+        assert np.isclose(afrho.cm, 1000.0)
+
+    def test_fluxd(self):
         afrho = Afrho(1000, 'cm')
         aper = 1 * u.arcsec
         eph = dict(rh=1.5 * u.au, delta=1.0 * u.au)
         S = 1869 * u.W / u.m**2 / u.um
-        fluxd = afrho.fluxd(None, aper, eph=eph, S=S)
+        fluxd = afrho.fluxd(None, aper, eph, S=S)
         assert fluxd.unit.is_equivalent(S.unit)
         assert np.isclose(fluxd.value, 6.730018324465526e-14)
 

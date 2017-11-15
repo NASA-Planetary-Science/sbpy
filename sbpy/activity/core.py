@@ -103,6 +103,10 @@ class Aperture(ABC):
         assert dim.unit.is_equivalent((u.radian, u.meter))
         self.dim = dim
 
+    @abstractmethod
+    def __str__(self):
+        return "Abstract aperture of size {}".format(self.dim)
+
     def as_angle(self, eph):
         """This aperture in units of angle.
 
@@ -178,6 +182,9 @@ class CircularAperture(Aperture):
     def __init__(self, radius):
         super(CircularAperture, self).__init__(radius)
 
+    def __str__(self):
+        return "Circular aperture, radius {}".format(self.dim)
+
     @property
     def radius(self):
         return self.dim
@@ -199,6 +206,9 @@ class AnnularAperture(Aperture):
     def __init__(self, shape):
         assert len(shape) == 2
         super(AnnularAperture, self).__init__(shape)
+
+    def __str__(self):
+        return "Annular aperture, radii {0[0].value:}–{0[1]:}".format(self.dim)
 
     @property
     def shape(self):
@@ -222,6 +232,9 @@ class RectangularAperture(Aperture):
     def __init__(self, shape):
         assert len(shape) == 2
         super(RectangularAperture, self).__init__(shape)
+
+    def __str__(self):
+        return "Rectangular aperture, dimensions {0[0].value:}×{0[1]:}".format(self.dim)
 
     @property
     def shape(self):
@@ -286,6 +299,9 @@ class GaussianAperture(Aperture):
             super(GaussianAperture, self).__init__(sigma)
         else:
             super(GaussianAperture, self).__init__(fwhm / 2.3548200450309493)
+
+    def __str__(self):
+        return "Gaussian aperture, 1-σ width {}".format(self.dim)
 
     @property
     def sigma(self):
