@@ -68,7 +68,7 @@ The `Afrho` class can also be converted to a flux density, and the original valu
 
   >>> f = afrho.fluxd(wave, aper, eph=eph, S=Slam).to('erg/(s cm2 AA)')
   >>> print('''     F_λ = {}
-  ...   log(F_λ) = {}'''.format(f, np.log10(f.value)))
+  ... log(F_λ) = {}'''.format(f, np.log10(f.value)))
   F_λ = 1.0232929922807537e-14 erg / (Angstrom cm2 s)
   log(F_λ) = -13.99
 
@@ -100,8 +100,13 @@ Compare to 397.0 cm and 424.6 cm listed in Kelley et al. (2013).
 Phase angles and functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Note the phase angle was not used in the previous section.  The `Afrho` class does not assume any particular phase function when transforming to and from flux density or magnitude.  In order to scale a value to another phase angle, a function is provided.
+Note the phase angle was not used in the previous section.  The `Afrho` class does not assume any particular phase function when transforming to and from flux density or magnitude.  In order to scale a value to another phase angle, a function is provided.  Returning to the A'Hearn et al. data, we scale Afρ from 0° phase to 3.3° phase:
 
+  >>> wave = 5240 * u.AA
+  >>> flam = 10**-13.99 * u.Unit('erg/(s cm2 AA)')
+  >>> aper = 27200 * u.km
+  >>> eph = dict(rh=4.785 * u.au, delta=3.822 * u.au)
+  >>> Slam = 1868 * u.W / u.m**2 / u.um
   >>> print(afrho.to_phase(0 * u.deg, 3.3 * u.deg))  # to 0° from 3.3°
   6886.828824340641 cm
 
@@ -133,14 +138,15 @@ Other apertures may be used, as long as they can be converted into an equivalent
   ...   (       '2"x10" slit', RectangularAperture([2, 10] * u.arcsec)),
   ...   ('σ=5" Gaussian beam', GaussianAperture(5 * u.arcsec))
   ... )
-  >>> print('F_ν = {:.4f}'.format(fnu)')
-  >>> for name, aper in apertures:
-  ...     print('{:18s} = {:5.0f}'.format(name, aper))
+  >>> print('F_ν = {:.4f}'.format(fnu))
   F_ν = 0.0094 Jy
-   10" radius circle =  5916 cm
-      5"–10" annulus = 11833 cm
-         2"x10" slit = 28112 cm
-  σ=5" Gaussian beam =  9441 cm
+  >>> for name, aper in apertures:
+  ...     afrho = Afrho.from_fluxd(wave, flam, aper, eph, S=Slam)
+  ...     print('{:18s} = {:5.0f}'.format(name, afrho))
+   10" radius circle =  5917 cm
+      5"–10" annulus = 11834 cm
+         2"x10" slit = 28114 cm
+  σ=5" Gaussian beam =  9442 cm
 
 
 
