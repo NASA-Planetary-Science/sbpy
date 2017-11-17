@@ -96,29 +96,37 @@ def photo_timescale(species, source=None):
 
     Parameters
     ----------
-    species : string
-      The species to look up.
+    species : string or None
+      The species to look up, or `None` to summarize available
+      species.
+
     source : string, optional
       Retrieve values from this source (case insenstive).  See
       references for keys.
 
+
     Returns
     -------
     tau : astropy Quantity
-      The timescale at 1 au.
+      The timescale at 1 au.  May be a two-element array: (quiet Sun,
+      active Sun).
+
 
     Example
     -------
     >>> from sbpy.activity import photo_timescale
     >>> tau = photo_timescale('OH')
 
+
     References
     ----------
 
-    [CS93] H2O and OH from Table IV of Cochran & Schleicher 1993,
-    Icarus 105, 235-253.  Quoted for intermediate solar activity.
+    [CS93] Table IV of Cochran & Schleicher 1993, Icarus 105, 235-253.
+    Quoted for intermediate solar activity.
 
-    [CE83] CO2 from Crovisier & Encrenaz 1983, A&A 126, 170-182.
+    [CE83] Crovisier & Encrenaz 1983, A&A 126, 170-182.
+
+    [H92] Huebner et al. 1992, Astroph. & Space Sci. 195, 1-294.
 
     """
 
@@ -127,6 +135,8 @@ def photo_timescale(species, source=None):
         'OH':  { 'CS93': (1.6e5 * u.s, '1993Icar..105..235C'), },
         'CO2': { 'CE83': (5.0e5 * u.s, '1983A%26A...126..170C'), },
         'CO':  { 'CE83': (1.5e6 * u.s, '1983A%26A...126..170C'), },
+        'CN':  { 'H92': ([3.15e5, 1.35e5] * u.s, '1992Ap%26SS.195....1H'), },
+        
     }
 
     default_sources = {
@@ -134,7 +144,35 @@ def photo_timescale(species, source=None):
         'OH': 'CS93',
         'CO2': 'CE83',
         'CO': 'CE83',
+        'CN': 'H92'
     }
+
+    if species is None:
+        from astropy.table import Table
+        
+        tab = Table(
+            names=('Species', 'Source', 'Default', 'Lifetime_1 (s)',
+                   'Lifetime_2 (s)', 'Bibcode'),
+            dtype=('S6', 'S6', bool, float, float, 'S128'),
+            masked=True)
+        tab['Lifetime_2 (s)'].masked = True
+        
+        for species, sources in data.items():
+            for source, (tau, bibcode) in sources.items():
+                if np.size(tau) == 2:
+                    tau1, tau2 = tau
+                    mask = None
+                else:
+                    tau1 = tau
+                    tau2 = 0
+                    mask = [False, False, False, False, True, False]
+
+                default = True if default_sources[species] == source else False
+                tab.add_row((species, source, default, tau1, tau2, bibcode),
+                            mask=mask)
+
+        tab.pprint(max_lines=-1, max_width=-1)
+        return
 
     assert species.upper() in data, "No timescale available for {}.  Choose from: {}".format(
         species, ', '.join(data.keys()))
