@@ -349,6 +349,11 @@ class GasComa(ABC):
         aper : `~sbpy.activity.Aperture`
           Aperture, in units of length.
 
+        epsabs : float or int, optional
+          Absolute and relative error tolerance for integrals.  See
+          `scipy.integrate.quad` (circular, annular, Gaussian) and
+          `scipy.integrate.dblquad` (rectangular) for details.
+
         """
         
         from .core import RectangularAperture, GaussianAperture, AnnularAperture, CircularAperture
@@ -361,20 +366,30 @@ class GasComa(ABC):
             warn(AstropyWarning('scipy is not present, cannot integrate column density.'))
             return None
 
+        assert aper.dim.unit.is_equivalent(u.m), 'GasComa._integrate_column_density requires `aper` in units of length.'
+
         if isinstance(aper, CircularAperture):
             # integrate in polar coordinates
-            f = lambda rho: rho * self.column_density(rho * u.km).value
+            def f(rho):
+                x = rho * self.column_density(rho * u.km) * u.km**2
+                return x.decompose().value
+            
             N, err = quad(f, 0, aper.radius.to(u.km).value)
             N *= 2 * np.pi
         elif isinstance(aper, AnnularAperture):
             # integrate in polar coordinates
-            f = lambda rho: rho * self.column_density(rho * u.km).value
+            def f(rho):
+                x = rho * self.column_density(rho * u.km) * u.km**2
+                return x.decompose().value
+            
             N, err = quad(f, aper.shape[0].to(u.km).value,
                           aper.shape[1].to(u.km).value)
             N *= 2 * np.pi
         elif isinstance(aper, RectangularAperture):
             # integrate in polar coordinates
-            f = lambda rho, th: rho * self.column_density(rho * u.km).value
+            def f(rho, th):
+                x = rho * self.column_density(rho * u.km) * u.km**2
+                return x.decompose().value
 
             shape = aper.shape.to(u.km).value
             
@@ -382,13 +397,13 @@ class GasComa(ABC):
             # integration of rho
             g = lambda th: 0
             h = lambda th: shape[0] / 2 / np.cos(th)
-            th = np.arctan(shape[0] / shape[1])
+            th = np.arctan(shape[1] / shape[0])
             N1, err1 = dblquad(f, 0, th, g, h)
             
             # second "octant"
             g = lambda th: 0
             h = lambda th: shape[1] / 2 / np.cos(th)
-            th = np.arctan(shape[1] / shape[0])
+            th = np.arctan(shape[0] / shape[1])
             N2, err2 = dblquad(f, 0, th, g, h)
 
             # N1 + N2 constitute 1/4th of the rectangle
@@ -396,7 +411,7 @@ class GasComa(ABC):
         elif isinstance(aper, GaussianAperture):
             # integrate in polar coordinates
             f = lambda rho: (rho * aper(rho * u.km).value
-                             * self.column_density(rho * u.km).value)
+                             * self.column_density(rho * u.km).to(u.km**-2).value)
             N, err = quad(f, 0, np.inf)
             N *= 2 * np.pi
 
@@ -487,23 +502,21 @@ class Haser(GasComa):
     def column_density(self, rho, eph=None):
         from .core import rho_as_length
 
+        assert isinstance(rho, u.Quantity)
+
         r = rho_as_length(rho, eph=eph)
-        x = 0 if self.parent is None else r / self.parent
-        y = 0 if self.daughter is None else r / self.daughter
+        x = 0 if self.parent is None else (r / self.parent).decompose()
+        y = 0 if self.daughter is None else (r / self.daughter).decompose()
         sigma = self.Q / 2 / np.pi / r / self.v
         if self.daughter is None or self.daughter == 0:
             sigma *= np.pi / 2 - self._iK0(x)
         elif self.parent is None or self.parent == 0:
             sigma *= np.pi / 2 - self._iK0(y)
         else:
-            if self.parent < self.daughter:
-                sigma *= (self.parent / (self.daughter - self.parent)
-                          * (self._iK0(x) - self._iK0(y)))
-            else:
-                sigma *= (self.daughter / (self.parent - self.daughter)
-                          * (self._iK0(y) - self._iK0(x)))
+            sigma *= (self.daughter / (self.parent - self.daughter)
+                      * (self._iK0(y) - self._iK0(x)))
         
-        return sigma
+        return sigma.decompose()
 
     def total_number(self, aper, eph=None):
         from .core import rho_as_length, Aperture
@@ -524,22 +537,20 @@ class Haser(GasComa):
             rho = rho_as_length(aper, eph)
 
         # Solution for the circular aperture of radius rho:
-        x = 0 if self.parent is None else rho / self.parent
-        y = 0 if self.daughter is None else rho / self.daughter
+        x = 0 if self.parent is None else (rho / self.parent).decompose()
+        y = 0 if self.daughter is None else (rho / self.daughter).decompose()
 
+        N = self.Q * rho / self.v
         if self.daughter is None or self.daughter == 0:
-            N = (self.Q * self.parent / self.v
-                 * (1 + x * (self._K1(x) + np.pi / 2 - self._iK0(x))))
+            N *= 1 / x - self._K1(x) + np.pi / 2 - self._iK0(x)
         elif self.parent == None or self.parent == 0:
-            N = (self.Q * self.daughter / self.v
-                 * (1 + y * (self._K1(y) + np.pi / 2 - self._iK0(y))))
+            N *= 1 / y - self._K1(y) + np.pi / 2 - self._iK0(y)
         else:
-            N = (self.Q * rho / self.v
-                 * self.daughter / (self.parent - self.daughter)
-                 * (self._iK0(y) - self._iK0(x) + x**-1 - y**-1
-                    + self._K1(y) - self._K1(x)))
+            N *= (self.daughter / (self.parent - self.daughter)
+                  * (self._iK0(y) - self._iK0(x) + x**-1 - y**-1
+                     + self._K1(y) - self._K1(x)))
         
-        return N.decompose()
+        return N.decompose().value
 
 class Vectorial(GasComa):
     """Vectorial model implementation"""
