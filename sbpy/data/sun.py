@@ -17,8 +17,9 @@ solar_fluxd   - Solar spectrum in flux density.
 """
 
 import os
-from astropy.utils.exceptions import AstropyWarning
 from warnings import warn
+import numpy as np
+from astropy.utils.exceptions import AstropyWarning
 from .. import bib
 
 
@@ -70,8 +71,9 @@ def solar_fluxd(wave, unit='W / (m2 um)', source='K93'):
 
     Parameters
     ----------
-    wave : `~astropy.units.Quantity`
-      The wavelengths of the returned spectrum.
+    wave : `~astropy.units.Quantity` or `None`
+      The wavelengths of the returned spectrum.  Set to `None` to
+      return the original wavelengths of the source spectrum.
 
     unit : string, `~astropy.units.Unit`, optional
       Spectral units.
@@ -83,8 +85,14 @@ def solar_fluxd(wave, unit='W / (m2 um)', source='K93'):
 
     Returns
     -------
+    wave : `~astropy.units.Unit`, optional
+      Returned if the original wavelengths of the spectrum were
+      requested (see `wave` input parameter).
+
     fluxd : `~astropy.units.Quantity`
-      Spectrum of the Sun, binned to match `wave`.
+      Spectrum of the Sun.  If multiple wavelengths are requested, the
+      solar spectrum will be binned to match `wave`.  Otherwise, the
+      spectrum at that wavelength will be returned.
 
 
     References
@@ -108,8 +116,17 @@ def solar_fluxd(wave, unit='W / (m2 um)', source='K93'):
         raise KeyError('Solar spectrum key {} not found.  {} spectra loaded: {}'.format(source, len(_sun), ', '.join(_sun.keys())))
 
     bib.register('data.sun.solar_fluxd', bibcode)
+    bib.register('data.sun.solar_fluxd', 'synphot')
 
-    # Method adapted from http://www.astrobetter.com/blog/2013/08/12/python-tip-re-sampling-spectra-with-pysynphot/
-    specele = S.SpectralElement(S.ConstFlux1D(1))
-    obs = S.Observation(sun, specele, binset=wave, force='extrap')
-    return obs.sample_binned(wave, unit)
+    if wave is None:
+        return sun.waveset, sun(sun.waveset, unit)
+    
+    if np.size(wave) > 1:
+        # Method adapted from http://www.astrobetter.com/blog/2013/08/12/python-tip-re-sampling-spectra-with-pysynphot/
+        specele = S.SpectralElement(S.ConstFlux1D(1))
+        obs = S.Observation(sun, specele, binset=wave, force='extrap')
+        fluxd = obs.sample_binned(wave, unit)
+    else:
+        fluxd = sun(wave, unit)
+
+    return fluxd
