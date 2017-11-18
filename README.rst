@@ -81,4 +81,4 @@ This project is Copyright (c) sbpy team and licensed under the terms of the BSD 
 
 .. _astropy: http://www.astropy.org/
 .. _here: http://sbpy.readthedocs.io/en/latest/
-.. _astropy conde of conduct: http://docs.astropy.org/en/latest/development/codeguide.html
+.. _astropy code of conduct: http://docs.astropy.org/en/latest/development/codeguide.html
