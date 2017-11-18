@@ -101,13 +101,13 @@ def solar_fluxd(wave, unit='W / (m2 um)', source='K93'):
     spectrum from UV to mid-IR at low resolution, scaled by Colina,
     Bohlin & Castelli (1996, AJ 112, 307).
 
-    [C94] Colina et al. (1996, AJ 112, 307) solar spectrum at 1-Å
+    [C96] Colina et al. (1996, AJ 112, 307) solar spectrum at 1-Å
     resolution from UV to near-IR (0.12 to 2.5 μm).
 
     """
-    
+
     if not (_synphot and _cdbs and len(_sun)):
-        warn(AstropyWarning('Requirements for `sbpy.activty.sun` not met.'))
+        warn(AstropyWarning('Requirements for `sbpy.data.sun` not met.'))
         return None
 
     try:
@@ -120,7 +120,7 @@ def solar_fluxd(wave, unit='W / (m2 um)', source='K93'):
 
     if wave is None:
         return sun.waveset, sun(sun.waveset, unit)
-    
+
     if np.size(wave) > 1:
         # Method adapted from http://www.astrobetter.com/blog/2013/08/12/python-tip-re-sampling-spectra-with-pysynphot/
         specele = S.SpectralElement(S.ConstFlux1D(1))
