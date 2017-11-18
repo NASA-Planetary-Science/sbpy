@@ -124,6 +124,8 @@ def photo_timescale(species, source=None):
     [CS93] Table IV of Cochran & Schleicher 1993, Icarus 105, 235-253.
     Quoted for intermediate solar activity.
 
+    [C94] Crovisier 1994, JGR 99, 3777-3781.
+
     [CE83] Crovisier & Encrenaz 1983, A&A 126, 170-182.
 
     [H92] Huebner et al. 1992, Astroph. & Space Sci. 195, 1-294.
@@ -131,17 +133,22 @@ def photo_timescale(species, source=None):
     """
 
     data = {   # (value, ADS bibcode)
-        'H2O': { 'CS93': (5.2e4 * u.s, '1993Icar..105..235C'), },
-        'OH':  { 'CS93': (1.6e5 * u.s, '1993Icar..105..235C'), },
-        'CO2': { 'CE83': (5.0e5 * u.s, '1983A%26A...126..170C'), },
-        'CO':  { 'CE83': (1.5e6 * u.s, '1983A%26A...126..170C'), },
-        'CN':  { 'H92': ([3.15e5, 1.35e5] * u.s, '1992Ap%26SS.195....1H'), },
+        'H2O':   { 'CS93': (5.2e4 * u.s, '1993Icar..105..235C'), },
+        'OH':    { 'CS93': (1.6e5 * u.s, '1993Icar..105..235C'), },
+        'HCN':   { 'C94': (6.7e4 * u.s, '1994JGR....99.3777C'), },
+        'CH3OH': { 'C94': (7.7e4 * u.s, '1994JGR....99.3777C'), },
+        'H2CO':  { 'C94': (5.0e3 * u.s, '1994JGR....99.3777C'), },
+        'CO':    { 'CE83': (1.5e6 * u.s, '1983A%26A...126..170C'), },
+        'CN':    { 'H92': ([3.15e5, 1.35e5] * u.s, '1992Ap%26SS.195....1H'), },
         
     }
 
     default_sources = {
         'H2O': 'CS93',
         'OH': 'CS93',
+        'HCN': 'C94',
+        'CH3OH': 'C94',
+        'H2CO': 'C94',
         'CO2': 'CE83',
         'CO': 'CE83',
         'CN': 'H92'
@@ -560,7 +567,7 @@ class Vectorial(GasComa):
         ----------
         Q : `Astropy.units` quantity or iterable, mandatory
             production rate usually in units of `u.molecule / u.s`
-        species : dictionary or list of dictionares, mandatory
+        species : dictionary or list of dictionaries, mandatory
             defines gas velocity, lifetimes, disassociative lifetimes 
 
         Returns
