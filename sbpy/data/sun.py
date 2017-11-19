@@ -10,8 +10,8 @@ Telescope Science Institute's `Calibration Reference Data System
 `synphot`'s installation instructions for details.
 
 
-Classes
--------
+Functions
+---------
 solar_filt    - Observe a solar spectrum through a filter.
 solar_fluxd   - Solar spectrum in flux density.
 
