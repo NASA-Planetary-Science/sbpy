@@ -7,9 +7,15 @@ SBPy Photometry Module
 created on June 23, 2017
 """
 
-__all__ = ['DiskIntegratedModelClass', 'HG', 'HG12', 'HG1G2', 'DiskFunctionModel', 'LommelSeeliger', 'Lambert', 'LunarLambert', 'PhaseFunctionModel', 'ROLOPhase', 'ResolvedPhotometricModelClass', 'ROLO'， 'Hapke']
+from astropy.modeling import Fittable1DModel, Fittable2DModel, Parameter
+import numpy as np
 
-class DiskIntegratedModelClass():
+
+__all__ = ['DiskIntegratedModelClass', 'HG', 'HG12', 'HG1G2', 'DiskFunctionModel', 'LommelSeeliger', 'Lambert', 'LunarLambert', 'PhaseFunctionModel', 'ROLOPhase', 'ResolvedPhotometricModelClass', 'ROLO']
+
+
+class DiskIntegratedModelClass(Fittable1DModel):
+    """Base class for disk-integrated phase function model"""
 
     def fit(self, eph):
         """Fit photometric model to photometric data stored in sbpy.data.Ephem
@@ -37,29 +43,6 @@ class DiskIntegratedModelClass():
 
         """
 
-    def mag(self, phase):
-        """Derive magnitude for a given photometric model as a function of
-        phase angle
-
-        Parameters
-        ----------
-        phase : list or array, mandatory
-            phase angles
-
-        Returns
-        -------
-        sbpy.data.Ephem instance
-
-        Examples
-        --------
-        >>> from sbpy.photometry import HG1G2
-        >>> hg1g2 = HG1G2(12, 0.1, -0.2)
-        >>> mag = hg1g2.mag([0, 5, 15, 30 ,60, 90])
-
-        not yet implemented
-
-        """
-
     def distance_module(self, eph):
         """Account magnitudes for distance module (distance from observer,
         distance to the Sun); return modified magnitudes
@@ -82,60 +65,79 @@ class DiskIntegratedModelClass():
         """
 
 
-class HG(DiskIntegratedModelClass):
-    """HG photometric phase model (Bowell XXX)"""
-    def __init__(self, **kwargs):
-        self.H = None
-        self.G = None
-
-class HG12(DiskIntegratedModelClass):
-    """HG12 photometric phase model (Muinonen et al. 2010)"""
-    def __init__(self, **kwargs):
-        self.H = None
-        self.G12 = None
-
-class HG1G2(DiskIntegratedModelClass):
-    """HG1G2 photometric phase model (Muinonen et al. 2010)"""
-    def __init__(self, **kwargs):
-        self.H = None
-        self.G1 = None
-        self.G2 = None
-
-
-class DiskFunctionModel(object):
+class DiskFunctionModel(Fittable2DModel):
     """Base class for disk-function model"""
     pass
 
 
-class LommelSeeliger(DiskFunctionModel):
-    """Lommel-Seeliger model class"""
-    pass
-
-
-class Lambert(DiskFunctionModel):
-    """Lambert model class"""
-    pass
-
-
-class LunarLambert(DiskFunctionModel):
-    """Lunar-Lambert model, or McEwen model class"""
-    L = None  # partition parameter between Lommel-Seeliger term and Lambert term
-
-
-class PhaseFunctionModel(object):
+class PhaseFunctionModel(Fittable1DModel):
     """Base class for phase function model"""
     pass
 
 
+
+class HG(DiskIntegratedModelClass):
+    """IAU HG photometric phase model (Bowell XXX)"""
+    H = Parameter(default=3.2, description='H parameter')
+    G = Parameter(default=0.28, description='G parameter')
+
+
+class HG12(DiskIntegratedModelClass):
+    """IAU HG12 photometric phase model (Muinonen et al. 2010)"""
+    H = Parameter(default=3.2, description='H parameter')
+    G = Parameter(default=0.2, description='G12 parameter')
+
+
+class HG1G2(DiskIntegratedModelClass):
+    """IAU HG1G2 photometric phase model (Muinonen et al. 2010)"""
+    H = Parameter(default=3.2, description='H parameter')
+    G1 = Parameter(default=0.2, description='G1 parameter')
+    G2 = Parameter(default=0.2, description='G2 parameter')
+
+
+
+class LommelSeeliger(DiskFunctionModel):
+    """Lommel-Seeliger model class"""
+
+    @staticmethod
+    def evaluate(i, e):
+        mu0 = np.cos(i)
+        mu = np.cos(e)
+        return mu0/(mu0+mu)
+
+
+class Lambert(DiskFunctionModel):
+    """Lambert model class"""
+
+    @staticmethod
+    def evaluate(i, e):
+        return np.cos(i)
+
+
+class LunarLambert(DiskFunctionModel):
+    """Lunar-Lambert model, or McEwen model class"""
+    L = Parameter(default=0.2, description='Partition parameter')
+
+    @staticmethod
+    def evaluate(i, e, L):
+        mu0 = np.cos(i)
+        mu = np.cos(e)
+        return (1-L)*mu0/(mu0+mu) + L*mu0
+
+    @staticmethod
+    def fit_deriv(i, e, L):
+        return -mu0/(mu0+mu) + mu0
+
+
 class ROLOPhase(PhaseFunctionModel):
     """ROLO phase function model class"""
-    A0 = None
-    A1 = None
-    C0 = None
-    C1 = None
-    C2 = None
-    C3 = None
-    C4 = None
+    A0 = Parameter(default=0.1, description='ROLO A0 parameter')
+    A1 = Parameter(default=0.1, description='ROLO A1 parameter')
+    C0 = Parameter(default=0.1, description='ROLO C0 parameter')
+    C1 = Parameter(default=0.1, description='ROLO C1 parameter')
+    C2 = Parameter(default=0.1, description='ROLO C2 parameter')
+    C3 = Parameter(default=0.1, description='ROLO C3 parameter')
+    C4 = Parameter(default=0.1, description='ROLO C4 parameter')
 
 
 class ResolvedPhotometricModelClass(object):
@@ -146,11 +148,6 @@ class ResolvedPhotometricModelClass(object):
 
 class ROLO(ResolvedPhotometricModelClass):
     """ROLO disk-resolved photometric model"""
-    pass
-
-
-class Hapke(ResolvedPhotometricModelClass):
-    """Hapke scattering model class"""
     pass
 
 
