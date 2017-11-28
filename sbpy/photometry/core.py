@@ -1,6 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-sbpy Photometry Module
+======================
+SBPy Photometry Module
+======================
 
 created on June 23, 2017
 """
@@ -8,10 +10,8 @@ created on June 23, 2017
 from astropy.modeling import Fittable1DModel, Fittable2DModel, Parameter
 import numpy as np
 
-__all__ = ['DiskIntegratedModelClass', 'HG', 'HG12', 'HG1G2',
-           'DiskFunctionModel', 'LommelSeeliger', 'Lambert',
-           'LunarLambert', 'PhaseFunctionModel', 'ROLOPhase',
-           'ResolvedPhotometricModelClass', 'ROLO']
+
+__all__ = ['DiskIntegratedModelClass', 'HG', 'HG12', 'HG1G2', 'DiskFunctionModel', 'LommelSeeliger', 'Lambert', 'LunarLambert', 'PhaseFunctionModel', 'ROLOPhase', 'ResolvedPhotometricModelClass', 'ROLO']
 
 
 class DiskIntegratedModelClass(Fittable1DModel):
@@ -33,11 +33,11 @@ class DiskIntegratedModelClass(Fittable1DModel):
 
         Examples
         --------
-        >>> from sbpy.photometry import HG # doctest: +SKIP
-        >>> from sbpy.data import Misc # doctest: +SKIP
-        >>> eph = Misc.mpc_observations('Bennu') # doctest: +SKIP
-        >>> hg = HG() # doctest: +SKIP
-        >>> chi2 = hg.fit(eph) # doctest: +SKIP
+        >>> from sbpy.photometry import HG
+        >>> from sbpy.data import Misc
+        >>> eph = Misc.mpc_observations('Bennu')
+        >>> hg = HG()
+        >>> chi2 = hg.fit(eph)
 
         not yet implemented
 
@@ -75,12 +75,14 @@ class PhaseFunctionModel(Fittable1DModel):
     pass
 
 
+
 class HG(DiskIntegratedModelClass):
     """IAU HG photometric phase model (Bowell XXX)"""
     H = Parameter(default=3.2, description='H parameter')
     G = Parameter(default=0.28, description='G parameter')
 
- HG12(DiskIntegratedModelClass):
+
+class HG12(DiskIntegratedModelClass):
     """IAU HG12 photometric phase model (Muinonen et al. 2010)"""
     H = Parameter(default=3.2, description='H parameter')
     G = Parameter(default=0.2, description='G12 parameter')
@@ -91,6 +93,7 @@ class HG1G2(DiskIntegratedModelClass):
     H = Parameter(default=3.2, description='H parameter')
     G1 = Parameter(default=0.2, description='G1 parameter')
     G2 = Parameter(default=0.2, description='G2 parameter')
+
 
 
 class LommelSeeliger(DiskFunctionModel):
