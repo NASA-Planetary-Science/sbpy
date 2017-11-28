@@ -1,25 +1,46 @@
 SBPy Documentation
 ==================
 
+SBPy - A Python Module for Small-Body Planetary Astronomy
 
-SBPy - A Python Module for Small-Body Research
+`sbpy` is a community effort to build a Python package for small-body
+planetary astronomy in the form of an `astropy`_ affiliated package.
 
-**Please note that this package is under heavy development. The current documentation is only intended to provide an outline for the API to be used in SBPy.**
+The goal is to collect and implement well-tested and well-documented
+code for the scientific study of asteroids and comets, including (but
+not limited to):
+
+* observation planning tools tailored to moving objects,
+* photometry models for resolved and unresolved bodies,
+* wrappers and tools for astrometry and orbit fitting,
+* spectroscopy analysis tools and models for reflected light and emission
+  from gas,
+* cometary gas and dust coma simulation and analysis tools,
+* asteroid thermal models for flux estimation and size/albedo estimation,
+* image enhancement tools for comet comae and PSF subtraction tools,
+* lightcurve and shape analysis tools, and
+* access tools for various databases for orbital and physical data, as well as
+  ephemerides services.
 
 
-API Outline
------------
+Please note that this package is under heavy development. The current
+documentation is only intended to provide an outline for the API to be
+used in SBPy.
+
+For an overview on the expected structure and functionality of `sbpy`,
+please refer to `Module Structure <module structure>`_ page; the
+`Status Page <Status Page>`_ provides an overview on the
+implementation status of all modules and functions.
+
+
+Content
+-------
  
 .. toctree::
-  :maxdepth: 1
+   :maxdepth: 1  
+	      
+   structure.rst
+   status.rst
+   sbpy/index.rst
 
-  sbpy/data.rst	     
-  sbpy/activity.rst
-  sbpy/photometry.rst
-  sbpy/shape.rst
-  sbpy/spectroscopy.rst
-  sbpy/imageanalysis.rst
-  sbpy/thermal.rst
-  sbpy/obsutil.rst
-  sbpy/bib.rst
-  
+

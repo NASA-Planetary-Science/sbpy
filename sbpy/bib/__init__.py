@@ -1,1 +1,1 @@
-from .bib import *
+from .core import *

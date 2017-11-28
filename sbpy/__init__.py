@@ -10,13 +10,7 @@ This is an Astropy affiliated package.
 from ._astropy_init import *
 # ----------------------------------------------------------------------------
 
-if not _ASTROPY_SETUP_:
-    from .bib import *
-    from .data import *
-    from .activity import *
-    from .photometry import *
-    from .shape import *
-    from .imageanalysis import *
-    from .spectroscopy import *
-    from .obsutil import *
-    from .thermal import *
+
+# For egg_info test builds to pass, put package imports here.
+# if not _ASTROPY_SETUP_:
+#     from sbpy import *
