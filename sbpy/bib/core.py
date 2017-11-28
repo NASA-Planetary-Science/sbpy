@@ -5,14 +5,14 @@ SBPy Bibliography Tracking Module
 =================================
 
 `sbpy` classes and functions can automatically report citations to the
-user through a biliography registry.  Use `track` to enable citation
+user through a bibliography registry.  Use `track` to enable citation
 tracking, and `citations` to report the references used.
 
 Example
 -------
 >>> from sbpy import bib, data
 >>> bib.track()
->>> eph = data.Ephem.from_horizons('encke')
+>>> eph = data.Ephem.from_horizons('encke', epoch=None, observatory='500')
 >>> bib.to_text()
 JPL Horizons:
   implementation: 1996DPS....28.2504G
@@ -62,7 +62,7 @@ def stop():
     """Disable `sbpy` bibliography tracking."""
     global _track
     _track = False
-    
+
 def status():
     """Report `sbpy` bibliography tracking status.
 
@@ -82,7 +82,7 @@ def track():
 
 def to_text():
     """convert bibcodes to human readable text
-    
+
     not yet implemented
     """
     output = ''
@@ -94,12 +94,12 @@ def to_text():
                 output += '  {:s}: {:s}\n'.format(key, val)
         except:
             pass
-        
+
     return output
 
 def to_bibtex():
-    """ convert bibcodes to LATeX bibtex
-    
+    """ convert bibcodes to LaTeX bibtex
+
         not yet implemented
     """
     output = ''
@@ -113,6 +113,6 @@ def to_bibtex():
 
     return output
 
-    
+
 _track = False  # default is no bibliography tracking
 _bibliography = OrderedDict()
