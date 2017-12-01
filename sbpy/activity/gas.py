@@ -67,8 +67,8 @@ def photo_lengthscale(species, source=None):
     """
 
     data = {   # (value, ADS bibcode)
-        'H2O': { 'CS93': (2.4e4 * u.km, ('H2O photodissociation lengthscale', '1993Icar..105..235C')), },
-         'OH': { 'CS93': (1.6e5 * u.km, ('OH photodissociation lengthscale', '1993Icar..105..235C')), },
+        'H2O': { 'CS93': (2.4e4 * u.km, {'H2O photodissociation lengthscale': '1993Icar..105..235C'})},
+         'OH': { 'CS93': (1.6e5 * u.km, {'OH photodissociation lengthscale', '1993Icar..105..235C'})},
         
     }
 
@@ -133,14 +133,14 @@ def photo_timescale(species, source=None):
     """
 
     data = {   # (value, ADS bibcode)
-        'H2O':   { 'CS93': (5.2e4 * u.s, ('H2O photodissociation timescale', '1993Icar..105..235C')), },
-        'OH':    { 'CS93': (1.6e5 * u.s, ('OH photodissociation timescale', '1993Icar..105..235C')), },
-        'HCN':   { 'C94': (6.7e4 * u.s, ('HCN photodissociation timescale', '1994JGR....99.3777C')), },
-        'CH3OH': { 'C94': (7.7e4 * u.s, ('CH3OH photodissociation timescale', '1994JGR....99.3777C')), },
-        'H2CO':  { 'C94': (5.0e3 * u.s, ('H2CO photodissociation timescale', '1994JGR....99.3777C')), },
-        'CO':    { 'CE83': (1.5e6 * u.s, ('CO photodissociation timescale', '1983A%26A...126..170C')), },
-        'CO2':   { 'CE83': (5.0e5 * u.s, ('CO2 photodissociation timescale', '1983A%26A...126..170C')), },
-        'CN':    { 'H92': ([3.15e5, 1.35e5] * u.s, ('CN photodissociation timescale', '1992Ap%26SS.195....1H')), },
+        'H2O':   { 'CS93': (5.2e4 * u.s, {'H2O photodissociation timescale': '1993Icar..105..235C'}) },
+        'OH':    { 'CS93': (1.6e5 * u.s, {'OH photodissociation timescale': '1993Icar..105..235C'}) },
+        'HCN':   { 'C94': (6.7e4 * u.s, {'HCN photodissociation timescale': '1994JGR....99.3777C'}) },
+        'CH3OH': { 'C94': (7.7e4 * u.s, {'CH3OH photodissociation timescale': '1994JGR....99.3777C'}) },
+        'H2CO':  { 'C94': (5.0e3 * u.s, {'H2CO photodissociation timescale': '1994JGR....99.3777C'}) },
+        'CO':    { 'CE83': (1.5e6 * u.s, {'CO photodissociation timescale': '1983A%26A...126..170C'}) },
+        'CO2':   { 'CE83': (5.0e5 * u.s, {'CO2 photodissociation timescale': '1983A%26A...126..170C'}) },
+        'CN':    { 'H92': ([3.15e5, 1.35e5] * u.s, {'CN photodissociation timescale': '1992Ap%26SS.195....1H'}) },
     }
 
     default_sources = {
@@ -238,10 +238,10 @@ def fluorescence_band_strength(species, rdot=0 * u.km / u.s,
     # implement list treatment
     
     data = {   # (value, bibcode)
-        'OH 0-0': { 'SA88': ('XXX', ('OH 0-0 fluorescence band efficiency', '1988ApJ...331.1058S')) },
-        'OH 1-0': { 'SA88': ('XXX', ('OH 1-0 fluorescence band efficiency', '1988ApJ...331.1058S')) },
-        'OH 1-1': { 'SA88': ('XXX', ('OH 1-1 fluorescence band efficiency', '1988ApJ...331.1058S')) },
-        'OH 2-2': { 'SA88': ('XXX', ('OH 2-2 fluorescence band efficiency', '1988ApJ...331.1058S')) },
+        'OH 0-0': { 'SA88': ('XXX', {'OH 0-0 fluorescence band efficiency': '1988ApJ...331.1058S'})},
+        'OH 1-0': { 'SA88': ('XXX', {'OH 1-0 fluorescence band efficiency': '1988ApJ...331.1058S'})},
+        'OH 1-1': { 'SA88': ('XXX', {'OH 1-1 fluorescence band efficiency': '1988ApJ...331.1058S'})},
+        'OH 2-2': { 'SA88': ('XXX', {'OH 2-2 fluorescence band efficiency': '1988ApJ...331.1058S'})},
     }
 
     default_sources = {
@@ -455,7 +455,7 @@ class Haser(GasComa):
     def __init__(self, Q, v, parent, daughter=None):
         super(Haser, self).__init__(Q, v)
 
-        bib.register('activity.gas.Haser', ('model', '1957BSRSL..43..740H'))
+        bib.register('activity.gas.Haser', {'model': '1957BSRSL..43..740H'})
         
         assert isinstance(parent, u.Quantity)
         assert parent.unit.is_equivalent(u.m)

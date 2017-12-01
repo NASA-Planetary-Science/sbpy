@@ -87,8 +87,13 @@ def phase_HalleyMarcus(phase):
     """
 
     from .. import bib
-    bib.register('activity.dust.phase_HalleyMarcus',
-                 ('Phase function sources', ('1998Icar..132..397S', '2007ICQ....29...39M')))
+    bib.register(
+        'activity.dust.phase_HalleyMarcus',
+        {
+            'Halley phase function': '1998Icar..132..397S',
+            'Marcus phase function': '2007ICQ....29...39M'
+        }
+    )
 
     th = np.arange(181)
     ph = np.array(
@@ -373,7 +378,7 @@ class Afrho(u.SpecificTypeQuantity):
         #from ..data import solar_fluxd
         from .. import bib
 
-        bib.register('activity.dust.Afrho.fluxd', ('Model', '1984AJ.....89..579A'))
+        bib.register('activity.dust.Afrho.fluxd', {'model': '1984AJ.....89..579A'})
 
         # check aperture radius
         if isinstance(aper, Aperture):
@@ -636,7 +641,7 @@ class Efrho(u.SpecificTypeQuantity):
         from .core import rho_as_length, Aperture
         from .. import bib
 
-        bib.register('activity.dust.Efrho.fluxd', ('Model', '2013Icar..225..475K'))
+        bib.register('activity.dust.Efrho.fluxd', {'model', '2013Icar..225..475K'})
 
         # check aperture radius
         if isinstance(aper, Aperture):
