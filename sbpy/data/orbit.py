@@ -54,10 +54,10 @@ class Orbit(DataClass):
 
         Examples
         --------
-        >>> from sbpy.data import Orbit
-        >>> from astropy.time import Time
-        >>> epoch = Time('2018-05-14', scale='utc')
-        >>> orb = Orbit.from_horizons('ceres', epoch)
+        #>>> from sbpy.data import Orbit
+        #>>> from astropy.time import Time
+        #>>> epoch = Time('2018-05-14', scale='utc')
+        #>>> orb = Orbit.from_horizons('Ceres', epoch)
         """
 
         if epoch is None:
@@ -102,8 +102,8 @@ class Orbit(DataClass):
 
         Examples
         --------
-        >>> from sbpy.data import Orbit
-        >>> orb = Orbit.from_mpc('ceres')
+        #>>> from sbpy.data import Orbit
+        #>>> orb = Orbit.from_mpc('ceres')
 
         not yet implemented
 
@@ -127,8 +127,8 @@ class Orbit(DataClass):
 
         Examples
         --------
-        >>> from sbpy.data import Orbit
-        >>> orb = Orbit.from_mpc('ceres')
+        #>>> from sbpy.data import Orbit
+        #>>> orb = Orbit.from_mpc('ceres')
 
         not yet implemented
 
@@ -151,11 +151,11 @@ class Orbit(DataClass):
 
         Examples
         --------
-        >>> from sbpy.data import Orbit
-        >>> import astropy.coordinates as coords
-        >>> r = coords.HeliocentricTrueEcliptic(coords.CartesianRepresentation(x=1, y=0, z=0, unit=u.au))
-        >>> v = coords.HeliocentricTrueEcliptic(coords.CartesianRepresentation(x=30, y=0, z=0, unit=u.km / u.s))
-        >>> orb = Orbit.from_state(r, v)
+        #>>> from sbpy.data import Orbit
+        #>>> import astropy.coordinates as coords
+        #>>> r = coords.HeliocentricTrueEcliptic(coords.CartesianRepresentation(x=1, y=0, z=0, unit=u.au))
+        #>>> v = coords.HeliocentricTrueEcliptic(coords.CartesianRepresentation(x=30, y=0, z=0, unit=u.km / u.s))
+        #>>> orb = Orbit.from_state(r, v)
 
         not yet implemented
 
@@ -178,10 +178,10 @@ class Orbit(DataClass):
 
         Examples
         --------
-        >>> from astropy.time import Time
-        >>> from sbpy.data import Orbit
-        >>> orb = Orbit.from_mpc('ceres')
-        >>> state = orb.to_state(Time('2015-03-06')
+        #>>> from astropy.time import Time
+        #>>> from sbpy.data import Orbit
+        #>>> orb = Orbit.from_mpc('ceres')
+        #>>> state = orb.to_state(Time('2015-03-06')
 
         not yet implemented
 
@@ -206,13 +206,13 @@ class Orbit(DataClass):
 
         Examples
         --------
-        >>> from sbpy.data import Orbit, Ephem
-        >>> eph = Ephem.from_array([ra, dec, ra_sigma, dec_sigma, 
-        >>>                         epochs, epochs_sigma],
-        >>>                         names=['ra', 'dec', 'ra_sigma', 
-        >>>                                'dec_sigma', 'epochs', 
-        >>>                                'epochs_sigma'])
-        >>> orb = Orbit.orbfit(eph)
+        #>>> from pimmel sbpy.data import Orbit, Ephem
+        #>>> eph = Ephem.from_array([ra, dec, ra_sigma, dec_sigma, 
+        #>>>                         epochs, epochs_sigma],
+        #>>>                         names=['ra', 'dec', 'ra_sigma', 
+        #>>>                                'dec_sigma', 'epochs', 
+        #>>>                                'epochs_sigma'])
+        #>>> orb = Orbit.orbfit(eph)
 
         not yet implemented
 
@@ -235,9 +235,9 @@ class Orbit(DataClass):
 
         Examples
         --------
-        >>> from sbpy.data import Orbit
-        >>> orb = Orbit.from...
-        >>> sim = orb.integrate(1000*u.year)
+        #>>> from sbpy.data import Orbit
+        #>>> orb = Orbit.from...
+        #>>> sim = orb.integrate(1000*u.year)
 
         not yet implemented
 
@@ -259,10 +259,10 @@ class Orbit(DataClass):
 
         Examples
         --------
-        >>> from sbpy.data import Orbit
-        >>> orb = Orbit.from...
-        >>> sim = Orbit.integrate(orb, time=1000*u.year)
-        >>> future_orb = Orbit.from_rebound(sim)
+        #>>> from sbpy.data import Orbit
+        #>>> orb = Orbit.from...
+        #>>> sim = Orbit.integrate(orb, time=1000*u.year)
+        #>>> future_orb = Orbit.from_rebound(sim)
 
         not yet implemented
 

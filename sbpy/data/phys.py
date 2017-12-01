@@ -36,8 +36,8 @@ class Phys(DataClass):
 
         Examples
         --------
-        >>> from sbpy.data import Phys
-        >>> phys = Phys.from_horizons('ceres'(
+        #>>> from sbpy.data import Phys
+        #>>> phys = Phys.from_horizons('Ceres')
 
         not yet implemented
 
@@ -64,8 +64,8 @@ class Phys(DataClass):
 
         Examples
         --------
-        >>> from sbpy.data import Phys
-        >>> phys = Phys.from_astorb('ceres'(
+        #>>> from sbpy.data import Phys
+        #>>> phys = Phys.from_astorb('Ceres')
 
         not yet implemented
 

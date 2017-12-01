@@ -46,10 +46,10 @@ class Ephem(DataClass):
 
         Examples
         --------
-        >>> from sbpy.data import Orbit
-        >>> from astropy.time import Time
-        >>> epoch = Time('2018-05-14', scale='utc')
-        >>> orb = Orbit.from_horizons('ceres', epoch)
+        #>>> from sbpy.data import Orbit
+        #>>> from astropy.time import Time
+        #>>> epoch = Time('2018-05-14', scale='utc')
+        #>>> orb = Orbit.from_horizons('ceres', epoch)
 
         """
 
@@ -102,10 +102,10 @@ class Ephem(DataClass):
 
         Examples
         --------
-        >>> from sbpy.data import Ephem
-        >>> from astropy.time import Time
-        >>> epoch = Time('2018-05-14', scale='utc')
-        >>> eph = Ephem.from_mpc('ceres', '568', epoch)
+        #>>> from sbpy.data import Ephem
+        #>>> from astropy.time import Time
+        #>>> epoch = Time('2018-05-14', scale='utc')
+        #>>> eph = Ephem.from_mpc('ceres', '568', epoch)
 
         not yet implemented
 
@@ -128,9 +128,9 @@ class Ephem(DataClass):
 
         Examples
         --------
-        >>> from sbpy.data import Ephem
-        >>> eph = Ephem.from_array...
-        >>> report = eph.report_to_mpc()
+        #>>> from sbpy.data import Ephem
+        #>>> eph = Ephem.from_array...
+        #>>> report = eph.report_to_mpc()
 
         not yet implemented
 
@@ -157,10 +157,10 @@ class Ephem(DataClass):
 
         Examples
         --------
-        >>> from sbpy.data import Ephem
-        >>> from astropy.time import Time
-        >>> epoch = Time('2018-05-14', scale='utc')
-        >>> eph = Ephem.from_imcce('ceres', '568', epoch)
+        #>>> from sbpy.data import Ephem
+        #>>> from astropy.time import Time
+        #>>> epoch = Time('2018-05-14', scale='utc')
+        #>>> eph = Ephem.from_imcce('ceres', '568', epoch)
 
         not yet implemented
 
@@ -187,10 +187,10 @@ class Ephem(DataClass):
 
         Examples
         --------
-        >>> from sbpy.data import Ephem
-        >>> from astropy.time import Time
-        >>> epoch = Time('2018-05-14', scale='utc')
-        >>> eph = Ephem.from_lowell('ceres', '568', epoch)
+        #>>> from sbpy.data import Ephem
+        #>>> from astropy.time import Time
+        #>>> epoch = Time('2018-05-14', scale='utc')
+        #>>> eph = Ephem.from_lowell('ceres', '568', epoch)
 
         not yet implemented
 
@@ -211,14 +211,14 @@ class Ephem(DataClass):
             
         Examples
         --------
-        >>> from sbpy.data import Ephem, Orbit
-        >>> orb = Orbit.from_...
-        >>> eph = Ephem.from_pyephem(orb, 
-        >>>                          location={'name':'Flagstaff', 
-        >>>                                    'geolon':35.199167, 
-        >>>                                    'geolat':-111.631111, 
-        >>>                                    'altitude':'2106'},
-        >>>                          epoch=epoch)
+        #>>> from sbpy.data import Ephem, Orbit
+        #>>> orb = Orbit.from_...
+        #>>> eph = Ephem.from_pyephem(orb, 
+        #>>>                          location={'name':'Flagstaff', 
+        #>>>                                    'geolon':35.199167, 
+        #>>>                                    'geolat':-111.631111, 
+        #>>>                                    'altitude':'2106'},
+        #>>>                          epoch=epoch)
 
         not yet implemented
 
