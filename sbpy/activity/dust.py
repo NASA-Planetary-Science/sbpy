@@ -154,7 +154,7 @@ def phase_HalleyMarcus(phase):
         Phi = np.interp(np.abs(phase), th, ph)
 
     if np.iterable(phase):
-        Phi = np.array(Phi).reshape(phase)
+        Phi = np.array(Phi).reshape(np.shape(phase))
     else:
         Phi = float(Phi)
 
