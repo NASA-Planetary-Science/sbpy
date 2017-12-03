@@ -5,6 +5,18 @@ A Python Module for Small-Body Planetary Astronomy
     :target: http://www.astropy.org
     :alt: Powered by Astropy Badge
 
+.. image:: https://travis-ci.org/mommermi/sbpy.svg?branch=master
+    :target: https://travis-ci.org/mommermi/sbpy
+    :alt: Travis-CI status
+
+.. image:: https://coveralls.io/repos/github/mommermi/sbpy/badge.svg?branch=master
+    :target: https://coveralls.io/github/mommermi/sbpy?branch=master
+    :alt: Coverage
+	 
+.. image:: https://readthedocs.org/projects/sbpy/badge/?version=latest
+    :target: http://sbpy.readthedocs.io/en/latest/?badge=latest
+    :alt: Documentation Status
+	  
 	  
 `sbpy` is a community effort to build a Python package for small-body
 planetary astronomy in the form of an `astropy`_ affiliated package.
@@ -30,22 +42,6 @@ This package is under heavy development and currently provides only
 very limited functionality. A funding proposal to support the
 development of `sbpy` is currently pending.
 
-
-Current Status
---------------
-
-.. image:: https://travis-ci.org/mommermi/sbpy.svg?branch=master
-:target: https://travis-ci.org/mommermi/sbpy
-:alt: Travis-CI status
-
-.. image:: https://coveralls.io/repos/github/mommermi/sbpy/badge.svg?branch=master
-:target: https://coveralls.io/github/mommermi/sbpy?branch=master
-:coverage:
-	 
-.. image:: https://readthedocs.org/projects/sbpy/badge/?version=latest
-:target: http://sbpy.readthedocs.io/en/latest/?badge=latest
-:alt: Documentation Status
-      
 
 Documentation
 -------------
