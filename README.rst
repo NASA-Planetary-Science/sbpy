@@ -5,6 +5,18 @@ A Python Module for Small-Body Planetary Astronomy
     :target: http://www.astropy.org
     :alt: Powered by Astropy Badge
 
+.. image:: https://travis-ci.org/mommermi/sbpy.svg?branch=master
+    :target: https://travis-ci.org/mommermi/sbpy
+    :alt: Travis-CI status
+
+.. image:: https://coveralls.io/repos/github/mommermi/sbpy/badge.svg?branch=master
+    :target: https://coveralls.io/github/mommermi/sbpy?branch=master
+    :alt: Coverage
+	 
+.. image:: https://readthedocs.org/projects/sbpy/badge/?version=latest
+    :target: http://sbpy.readthedocs.io/en/latest/?badge=latest
+    :alt: Documentation Status
+	  
 	  
 `sbpy` is a community effort to build a Python package for small-body
 planetary astronomy in the form of an `astropy`_ affiliated package.
@@ -29,7 +41,6 @@ not limited to):
 This package is under heavy development and currently provides only
 very limited functionality. A funding proposal to support the
 development of `sbpy` is currently pending.
-
 
 
 Documentation
@@ -81,4 +92,4 @@ This project is Copyright (c) sbpy team and licensed under the terms of the BSD 
 
 .. _astropy: http://www.astropy.org/
 .. _here: http://sbpy.readthedocs.io/en/latest/
-.. _astropy conde of conduct: http://docs.astropy.org/en/latest/development/codeguide.html
+.. _astropy code of conduct: http://docs.astropy.org/en/latest/development/codeguide.html

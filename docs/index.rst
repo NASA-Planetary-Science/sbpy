@@ -44,3 +44,17 @@ Content
    sbpy/index.rst
 
 
+Current Status
+--------------
+
+.. image:: https://travis-ci.org/mommermi/sbpy.svg?branch=master
+    :target: https://travis-ci.org/mommermi/sbpy
+    :alt: Travis-CI status
+
+.. image:: https://coveralls.io/repos/github/mommermi/sbpy/badge.svg?branch=master
+    :target: https://coveralls.io/github/mommermi/sbpy?branch=master
+    :alt: coverage
+	 
+.. image:: https://readthedocs.org/projects/sbpy/badge/?version=latest
+    :target: http://sbpy.readthedocs.io/en/latest/?badge=latest
+    :alt: Documentation Status
