@@ -348,7 +348,7 @@ class GasComa(ABC):
         """
         pass
 
-    def _integrate_column_density(self, aper):
+    def _integrate_column_density(self, aper, epsabs=1.49e-8):
         """Integrate column density over an aperture.
 
         Parameters
@@ -381,7 +381,7 @@ class GasComa(ABC):
                 x = rho * self.column_density(rho * u.km) * u.km**2
                 return x.decompose().value
 
-            N, err = quad(f, 0, aper.radius.to(u.km).value)
+            N, err = quad(f, 0, aper.radius.to(u.km).value, epsabs=epsabs)
             N *= 2 * np.pi
         elif isinstance(aper, AnnularAperture):
             # integrate in polar coordinates
@@ -390,7 +390,7 @@ class GasComa(ABC):
                 return x.decompose().value
 
             N, err = quad(f, aper.shape[0].to(u.km).value,
-                          aper.shape[1].to(u.km).value)
+                          aper.shape[1].to(u.km).value, epsabs=epsabs)
             N *= 2 * np.pi
         elif isinstance(aper, RectangularAperture):
             # integrate in polar coordinates
@@ -405,13 +405,13 @@ class GasComa(ABC):
             g = lambda th: 0
             h = lambda th: shape[0] / 2 / np.cos(th)
             th = np.arctan(shape[1] / shape[0])
-            N1, err1 = dblquad(f, 0, th, g, h)
+            N1, err1 = dblquad(f, 0, th, g, h, epsabs=epsabs)
 
             # second "octant"
             g = lambda th: 0
             h = lambda th: shape[1] / 2 / np.cos(th)
             th = np.arctan(shape[0] / shape[1])
-            N2, err2 = dblquad(f, 0, th, g, h)
+            N2, err2 = dblquad(f, 0, th, g, h, epsabs=epsabs)
 
             # N1 + N2 constitute 1/4th of the rectangle
             N = 4 * (N1 + N2)
@@ -419,7 +419,7 @@ class GasComa(ABC):
             # integrate in polar coordinates
             f = lambda rho: (rho * aper(rho * u.km).value
                              * self.column_density(rho * u.km).to(u.km**-2).value)
-            N, err = quad(f, 0, np.inf)
+            N, err = quad(f, 0, np.inf, epsabs=epsabs)
             N *= 2 * np.pi
 
         return N
