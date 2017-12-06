@@ -13,9 +13,9 @@ Example
 >>> from sbpy import bib, data
 >>> bib.track()
 >>> eph = data.Ephem.from_horizons('433', epoch=None, observatory='500')
->>> bib.to_text()  # doctest: +REMOTE_DATA
-JPL Horizons:
-  implementation: 1996DPS....28.2504G
+>>> print(bib.to_text())  # doctest: +REMOTE_DATA
+sbpy.data.Ephem:
+  implementation: Giorgini et al. 1996, 1996DPS....28.2504G
 
 
 Functions

@@ -13,6 +13,7 @@ def data_path(filename):
 
 @pytest.mark.remote_data
 def test_text():
+    reset()
     track()
     neatm = NEATM()
     assert ['sbpy.thermal.NEATM:', 'method:', 'Harris', '1998,',
@@ -23,6 +24,7 @@ def test_text():
 
 @pytest.mark.remote_data
 def test_bibtex():
+    reset()
     track()
     neatm = NEATM()
     with open(data_path('neatm.bib')) as bib_file:
