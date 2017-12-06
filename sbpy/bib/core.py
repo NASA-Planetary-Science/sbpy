@@ -12,7 +12,7 @@ Example
 -------
 >>> from sbpy import bib, data
 >>> bib.track()
->>> eph = data.Ephem.from_horizons('encke', epoch=None, observatory='500')
+>>> eph = data.Ephem.from_horizons('433', epoch=None, observatory='500')
 >>> bib.to_text()
 JPL Horizons:
   implementation: 1996DPS....28.2504G
@@ -90,18 +90,29 @@ def to_text():
       bibcodes.
     """
     import ads
-
+    import warnings
+    
     output = ''
     for task, ref in _bibliography.items():
         output += '{:s}:\n'.format(task)
         try:
             for key, val in ref.items():
-                # request needed fields to avoid lazy loading
-                paper = list(ads.SearchQuery(bibcode=val, fl=['first_author',
-                                                              'author',
-                                                              'year']))[0]
+                with warnings.catch_warnings():
+                    warnings.filterwarnings('error')
+                    try:
+                        # request needed fields to avoid lazy loading
+                        paper = list(ads.SearchQuery(bibcode=val,
+                                                     fl=['first_author',
+                                                         'author',
+                                                         'year']))[0]
+                    except Warning as e:
+                        # if query failed, 
+                        output += '  {:s}: {:s}\n'.format(key, val)
+                        continue
+                        
                 if len(paper.author) > 4:
-                    author = '{:s} et al.'.format(paper.first_author.split(',')[0])
+                    author = '{:s} et al.'.format(paper.first_author.\
+                                                  split(',')[0])
                 elif len(paper.author) > 1:
                     author = ','.join([au.split(',')[0] for au in
                                        paper.author[:-1]])
