@@ -43,9 +43,9 @@ asteroids = {
 }
 
 def test_asteroid_or_comet():
-    """Test target name idenfication."""
-    from ..names import Names, TargetNameParseError
-    print(dir()) 
+    """Test target name identification."""
+    from ..names import Names
+    print(dir())
     for comet in comets:
         assert Names.asteroid_or_comet(comet) == 'comet', \
             'failed for {}'.format(comet)
@@ -54,6 +54,7 @@ def test_asteroid_or_comet():
         if asteroid != '2017 U1':
             assert Names.asteroid_or_comet(asteroid) == 'asteroid', \
                 'failed for {}'.format(asteroid)
+
 def test_parse_comet():
     """Test comet name parsing."""
 
@@ -67,7 +68,7 @@ def test_parse_comet():
     # bad names
     with pytest.raises(TargetNameParseError):
         Names.parse_comet('73p')
-        
+
     with pytest.raises(TargetNameParseError):
         Names.parse_comet('c/2001 A2')
 
@@ -81,7 +82,7 @@ def test_parse_asteroid():
     import pytest
 
     for asteroid, result in asteroids.items():
-        r = Names.parse_asteroid(asteroid) 
+        r = Names.parse_asteroid(asteroid)
         assert r == result, 'Parsed {}: {} != {}'.format(asteroid, r, result)
 
     # bad names

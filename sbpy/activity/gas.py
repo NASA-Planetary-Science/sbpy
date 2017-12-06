@@ -45,7 +45,7 @@ def photo_lengthscale(species, source=None):
     species : string
       The species to look up.
     source : string, optional
-      Retrieve values from this source (case insenstive).  See
+      Retrieve values from this source (case insensitive).  See
       references for keys.
 
     Returns
@@ -66,10 +66,10 @@ def photo_lengthscale(species, source=None):
 
     """
 
-    data = {   # (value, ADS bibcode)
+    data = {   # (value, {key feature: ADS bibcode})
         'H2O': { 'CS93': (2.4e4 * u.km, {'H2O photodissociation lengthscale': '1993Icar..105..235C'})},
-         'OH': { 'CS93': (1.6e5 * u.km, {'OH photodissociation lengthscale', '1993Icar..105..235C'})},
-        
+         'OH': { 'CS93': (1.6e5 * u.km, {'OH photodissociation lengthscale': '1993Icar..105..235C'})},
+
     }
 
     default_sources = {
@@ -101,7 +101,7 @@ def photo_timescale(species, source=None):
       species.
 
     source : string, optional
-      Retrieve values from this source (case insenstive).  See
+      Retrieve values from this source (case insensitive).  See
       references for keys.
 
 
@@ -132,7 +132,7 @@ def photo_timescale(species, source=None):
 
     """
 
-    data = {   # (value, ADS bibcode)
+    data = {   # (value, {key feature: ADS bibcode})
         'H2O':   { 'CS93': (5.2e4 * u.s, {'H2O photodissociation timescale': '1993Icar..105..235C'}) },
         'OH':    { 'CS93': (1.6e5 * u.s, {'OH photodissociation timescale': '1993Icar..105..235C'}) },
         'HCN':   { 'C94': (6.7e4 * u.s, {'HCN photodissociation timescale': '1994JGR....99.3777C'}) },
@@ -156,14 +156,14 @@ def photo_timescale(species, source=None):
 
     if species is None:
         from astropy.table import Table
-        
+
         tab = Table(
             names=('Species', 'Source', 'Default', 'Lifetime_1 (s)',
                    'Lifetime_2 (s)', 'Bibcode'),
             dtype=('S6', 'S6', bool, float, float, 'S128'),
             masked=True)
         tab['Lifetime_2 (s)'].masked = True
-        
+
         for species, sources in data.items():
             for source, (tau, bibcode) in sources.items():
                 if np.size(tau) == 2:
@@ -209,7 +209,7 @@ def fluorescence_band_strength(species, rdot=0 * u.km / u.s,
       The target ephemeris.  Must include heliocentric radial
       velocity.
     source : string, optional
-      Retrieve values from this source (case insenstive).  See
+      Retrieve values from this source (case insensitive).  See
       references for keys.
 
     Returns
@@ -236,8 +236,8 @@ def fluorescence_band_strength(species, rdot=0 * u.km / u.s,
     raise NotImplemented
 
     # implement list treatment
-    
-    data = {   # (value, bibcode)
+
+    data = {   # (value, {key feature: bibcode})
         'OH 0-0': { 'SA88': ('XXX', {'OH 0-0 fluorescence band efficiency': '1988ApJ...331.1058S'})},
         'OH 1-0': { 'SA88': ('XXX', {'OH 1-0 fluorescence band efficiency': '1988ApJ...331.1058S'})},
         'OH 1-1': { 'SA88': ('XXX', {'OH 1-1 fluorescence band efficiency': '1988ApJ...331.1058S'})},
@@ -245,7 +245,7 @@ def fluorescence_band_strength(species, rdot=0 * u.km / u.s,
     }
 
     default_sources = {
-        'OH 0-0': (model, 'SA88'),
+        'OH 0-0': ('model', 'SA88'),
     }
 
     assert species.upper() in data, 'No data available for {}.  Choose one of: {}'.format(
@@ -254,19 +254,19 @@ def fluorescence_band_strength(species, rdot=0 * u.km / u.s,
     band = data[species.upper()]
 
     assert source.upper() in band, 'No source {} for {}.  Choose one of: {}'.format(
-        source, sepcies, ', '.join(band.keys()))
-    
+        source, species, ', '.join(band.keys()))
+
     LN, bibcode = band[source.upper()]
     bib.register('activity.gas.fluorescence_band_strength', bibcode)
 
     something_about_rdot_here
-    
+
     return LN
 
 
 class GasComa(ABC):
     """Abstract base class for gas coma models.
-    
+
     Parameters
     ----------
     Q : `~astropy.units.Quantity`
@@ -325,7 +325,7 @@ class GasComa(ABC):
 
         """
         pass
-        
+
     @abstractmethod
     def total_number(self, aper, eph=None):
         """Total number of molecules in aperture.
@@ -348,7 +348,7 @@ class GasComa(ABC):
         """
         pass
 
-    def _integrate_column_density(self, aper):
+    def _integrate_column_density(self, aper, epsabs=1.49e-8):
         """Integrate column density over an aperture.
 
         Parameters
@@ -362,9 +362,9 @@ class GasComa(ABC):
           `scipy.integrate.dblquad` (rectangular) for details.
 
         """
-        
+
         from .core import RectangularAperture, GaussianAperture, AnnularAperture, CircularAperture
-        
+
         try:
             from scipy.integrate import quad, dblquad
         except ImportError as e:
@@ -380,17 +380,17 @@ class GasComa(ABC):
             def f(rho):
                 x = rho * self.column_density(rho * u.km) * u.km**2
                 return x.decompose().value
-            
-            N, err = quad(f, 0, aper.radius.to(u.km).value)
+
+            N, err = quad(f, 0, aper.radius.to(u.km).value, epsabs=epsabs)
             N *= 2 * np.pi
         elif isinstance(aper, AnnularAperture):
             # integrate in polar coordinates
             def f(rho):
                 x = rho * self.column_density(rho * u.km) * u.km**2
                 return x.decompose().value
-            
+
             N, err = quad(f, aper.shape[0].to(u.km).value,
-                          aper.shape[1].to(u.km).value)
+                          aper.shape[1].to(u.km).value, epsabs=epsabs)
             N *= 2 * np.pi
         elif isinstance(aper, RectangularAperture):
             # integrate in polar coordinates
@@ -399,19 +399,19 @@ class GasComa(ABC):
                 return x.decompose().value
 
             shape = aper.shape.to(u.km).value
-            
+
             # first "octant"; g and h are the limits of the
             # integration of rho
             g = lambda th: 0
             h = lambda th: shape[0] / 2 / np.cos(th)
             th = np.arctan(shape[1] / shape[0])
-            N1, err1 = dblquad(f, 0, th, g, h)
-            
+            N1, err1 = dblquad(f, 0, th, g, h, epsabs=epsabs)
+
             # second "octant"
             g = lambda th: 0
             h = lambda th: shape[1] / 2 / np.cos(th)
             th = np.arctan(shape[0] / shape[1])
-            N2, err2 = dblquad(f, 0, th, g, h)
+            N2, err2 = dblquad(f, 0, th, g, h, epsabs=epsabs)
 
             # N1 + N2 constitute 1/4th of the rectangle
             N = 4 * (N1 + N2)
@@ -419,7 +419,7 @@ class GasComa(ABC):
             # integrate in polar coordinates
             f = lambda rho: (rho * aper(rho * u.km).value
                              * self.column_density(rho * u.km).to(u.km**-2).value)
-            N, err = quad(f, 0, np.inf)
+            N, err = quad(f, 0, np.inf, epsabs=epsabs)
             N *= 2 * np.pi
 
         return N
@@ -428,7 +428,7 @@ class Haser(GasComa):
     """Haser coma model.
 
     Some functions require `scipy`.
-    
+
     Parameters
     ----------
     Q : `~astropy.units.Quantity`
@@ -439,10 +439,10 @@ class Haser(GasComa):
 
     parent : `~astropy.units.Quantity`
       Coma lengthscale of the parent species.
-    
+
     daughter : `~astropy.units.Quantity`, optional
       Coma lengthscale of the daughter species.
-    
+
 
     References
     ----------
@@ -451,12 +451,12 @@ class Haser(GasComa):
     Newburn and Johnson 1978, Icarus 35, 360-368.
 
     """
-    
+
     def __init__(self, Q, v, parent, daughter=None):
         super(Haser, self).__init__(Q, v)
 
         bib.register('activity.gas.Haser', {'model': '1957BSRSL..43..740H'})
-        
+
         assert isinstance(parent, u.Quantity)
         assert parent.unit.is_equivalent(u.m)
         self.parent = parent
@@ -493,7 +493,7 @@ class Haser(GasComa):
             return None
 
         return iti0k0(x.decompose().value)[1]
-    
+
     def _K1(self, x):
         """Modified Bessel function of 2nd kind, 1st order."""
         try:
@@ -505,7 +505,7 @@ class Haser(GasComa):
             return None
 
         return k1(x.decompose().value)
-    
+
     def column_density(self, rho, eph=None):
         from .core import rho_as_length
 
@@ -522,7 +522,7 @@ class Haser(GasComa):
         else:
             sigma *= (self.daughter / (self.parent - self.daughter)
                       * (self._iK0(y) - self._iK0(x)))
-        
+
         return sigma.decompose()
 
     def total_number(self, aper, eph=None):
@@ -550,25 +550,25 @@ class Haser(GasComa):
         N = self.Q * rho / self.v
         if self.daughter is None or self.daughter == 0:
             N *= 1 / x - self._K1(x) + np.pi / 2 - self._iK0(x)
-        elif self.parent == None or self.parent == 0:
+        elif self.parent is None or self.parent == 0:
             N *= 1 / y - self._K1(y) + np.pi / 2 - self._iK0(y)
         else:
             N *= (self.daughter / (self.parent - self.daughter)
                   * (self._iK0(y) - self._iK0(x) + x**-1 - y**-1
                      + self._K1(y) - self._K1(x)))
-        
+
         return N.decompose().value
 
 class Vectorial(GasComa):
     """Vectorial model implementation"""
-    
+
     def __init__(self, Q, species):
         """Parameters
         ----------
         Q : `Astropy.units` quantity or iterable, mandatory
             production rate usually in units of `u.molecule / u.s`
         species : dictionary or list of dictionaries, mandatory
-            defines gas velocity, lifetimes, disassociative lifetimes 
+            defines gas velocity, lifetimes, disassociative lifetimes
 
         Returns
         -------
