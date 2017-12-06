@@ -13,7 +13,7 @@ Example
 >>> from sbpy import bib, data
 >>> bib.track()
 >>> eph = data.Ephem.from_horizons('433', epoch=None, observatory='500')
->>> bib.to_text()
+>>> bib.to_text()  # doctest: +REMOTE_DATA
 JPL Horizons:
   implementation: 1996DPS....28.2504G
 
@@ -91,7 +91,7 @@ def to_text():
     """
     import ads
     import warnings
-    
+
     output = ''
     for task, ref in _bibliography.items():
         output += '{:s}:\n'.format(task)
@@ -106,10 +106,10 @@ def to_text():
                                                          'author',
                                                          'year']))[0]
                     except Warning as e:
-                        # if query failed, 
+                        # if query failed,
                         output += '  {:s}: {:s}\n'.format(key, val)
                         continue
-                        
+
                 if len(paper.author) > 4:
                     author = '{:s} et al.'.format(paper.first_author.\
                                                   split(',')[0])
@@ -123,7 +123,7 @@ def to_text():
 
                 output += '  {:s}: {:s} {:s}, {:s}\n'.format(key, author,
                                                              paper.year, val)
-        except:
+        except AttributeError:
             pass
 
     return output
