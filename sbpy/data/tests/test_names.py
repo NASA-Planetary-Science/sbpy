@@ -4,6 +4,7 @@
 comets = {
     '1P/Halley': {'type': 'P', 'number': 1, 'name': 'Halley'},
     '3D/Biela': {'type': 'D', 'number': 3, 'name': 'Biela'},
+    '6P/d\'Arrest': {'type': 'P', 'number': 6, 'name': 'd\'Arrest'},
     '9P/Tempel 1': {'type': 'P', 'number': 9, 'name': 'Tempel 1'},
     '73P/Schwassmann Wachmann 3 C': {'type': 'P', 'number': 73,
                                      'name': 'Schwassmann Wachmann 3 C'},
@@ -11,6 +12,7 @@ comets = {
                                        'fragment': 'C',
                                        'name': 'Schwassmann Wachmann 3 C'},
     '73P-BB': {'type': 'P', 'number': 73, 'fragment': 'BB'},
+    '122P/de Vico': {'type': 'P', 'number': 122, 'name': 'de Vico'},
     '322P': {'type': 'P', 'number': 322},
     'X/1106 C1': {'type': 'X', 'desig': '1106 C1'},
     'P/1994 N2 (McNaught-Hartley)': {'type': 'P', 'desig': '1994 N2',
