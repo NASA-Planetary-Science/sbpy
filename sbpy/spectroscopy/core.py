@@ -54,7 +54,7 @@ class Spectrum():
 
         Examples
         --------
-        >>> spec = Spectrum.read('2012_XY.dat')
+        >>> spec = Spectrum.read('2012_XY.dat') # doctest: +SKIP
 
         not yet implemented
 
@@ -73,8 +73,8 @@ class Spectrum():
 
         Examples
         --------
-        >>> spec = Spectrum.read('2012_XY.dat')
-        >>> spec.write('2012_XY.dat.bak')
+        >>> spec = Spectrum.read('2012_XY.dat') # doctest: +SKIP
+        >>> spec.write('2012_XY.dat.bak') # doctest: +SKIP
 
         not yet implemented
 
@@ -85,8 +85,8 @@ class Spectrum():
 
         Examples
         --------
-        >>> spec.convert_units(flux_unit=u.K)
-        >>> spec.convert_units(dispersion_unit=u.km/u.s)
+        >>> spec.convert_units(flux_unit=u.K) # doctest: +SKIP
+        >>> spec.convert_units(dispersion_unit=u.km/u.s) # doctest: +SKIP
         
         not yet implemented
 
@@ -107,8 +107,8 @@ class Spectrum():
 
         Examples
         --------
-        >>> baseline = spec.baseline()
-        >>> spec.baseline(subtract=True)
+        >>> baseline = spec.baseline() # doctest: +SKIP
+        >>> spec.baseline(subtract=True) # doctest: +SKIP
 
         not yet implemented
 
@@ -128,8 +128,8 @@ class Spectrum():
 
         Examples
         --------
-        >>> slope = spec.slope()
-        >>> spec.slope(subtract=True)
+        >>> slope = spec.slope() # doctest: +SKIP
+        >>> spec.slope(subtract=True) # doctest: +SKIP
 
         not yet implemented
 
@@ -145,9 +145,9 @@ class Spectrum():
 
         Examples
         --------
-        >>> spec_model = SpectralModel(type='Haser', molecule='H2O')
-        >>> spec.fit(spec_model)
-        >>> print(spec.fit_info)
+        >>> spec_model = SpectralModel(type='Haser', molecule='H2O') # doctest: +SKIP
+        >>> spec.fit(spec_model) # doctest: +SKIP
+        >>> print(spec.fit_info) # doctest: +SKIP
 
         not yet implemented 
         

@@ -27,11 +27,11 @@ class DiskIntegratedModelClass():
 
         Examples
         --------
-        >>> from sbpy.photometry import HG
-        >>> from sbpy.data import Misc
-        >>> eph = Misc.mpc_observations('Bennu')
-        >>> hg = HG()
-        >>> chi2 = hg.fit(eph)
+        >>> from sbpy.photometry import HG # doctest: +SKIP
+        >>> from sbpy.data import Misc # doctest: +SKIP
+        >>> eph = Misc.mpc_observations('Bennu') # doctest: +SKIP
+        >>> hg = HG() # doctest: +SKIP
+        >>> chi2 = hg.fit(eph) # doctest: +SKIP
 
         not yet implemented
 
@@ -53,8 +53,8 @@ class DiskIntegratedModelClass():
         Examples
         --------
         >>> from sbpy.photometry import HG1G2
-        >>> hg1g2 = HG1G2(12, 0.1, -0.2)
-        >>> mag = hg1g2.mag([0, 5, 15, 30 ,60, 90])
+        >>> hg1g2 = HG1G2(12, 0.1, -0.2) # doctest: +SKIP
+        >>> mag = hg1g2.mag([0, 5, 15, 30 ,60, 90]) # doctest: +SKIP
 
         not yet implemented
 
