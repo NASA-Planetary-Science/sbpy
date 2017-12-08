@@ -17,6 +17,14 @@ Example
 sbpy.data.Ephem:
   implementation: Giorgini et al. 1996, 1996DPS....28.2504G
 
+Bibliography tracking can be used in a context manager::
+
+  >>> from sbpy import bib, data
+  >>> with bib.Tracking():
+  >>>     eph = data.Ephem.from_horizons('encke', epoch=None, observatory='500')
+  >>> bib.to_text()
+  JPL Horizons:
+    implementation: 1996DPS....28.2504G
 
 Functions
 ---------
@@ -28,9 +36,13 @@ reset    : clear bibliography.
 to_text  : output bibliography in clear text
 to_bibtex: output bibliography in bibtex format
 
+Context managers
+----------------
+Tracking : Bibliography tracking context manager.
+
 """
 
-__all__ = ['register', 'reset', 'status', 'stop', 'track',
+__all__ = ['register', 'reset', 'status', 'stop', 'track', 'Tracking',
            'to_text', 'to_bibtex']
 
 from collections import OrderedDict
@@ -79,7 +91,13 @@ def track():
     global _track
     _track = True
 
+class Tracking:
+    def __enter__(self):
+        track()
 
+    def __exit__(self, type, value, tb):
+        stop()
+    
 def to_text():
     """convert bibcodes to human readable text
 
