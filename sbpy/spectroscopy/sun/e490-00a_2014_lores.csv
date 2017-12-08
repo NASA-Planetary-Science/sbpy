@@ -1,0 +1,92 @@
+# %ECSV 0.9
+# ---
+# datatype:
+# - {name: wavelength, unit: um, datatype: float64}
+# - {name: spectral irradiance, unit: W / (m2 um), datatype: float64, description: Averaged
+#     over a small bandwidth centered at wavelength.}
+# meta: !!omap
+# - {Source: 'ASTM 2000, Standard Solar Constant and Air Mass Zero Solar Spectral Irradiance
+#     Tables, Standard E490-00, American Society for Testing and Materials, West Conshohocken,
+#     PA.'}
+# - solar constant: !astropy.units.Quantity
+#     unit: !astropy.units.Unit {unit: W / m2}
+#     value: 1366.1
+# schema: astropy-2.0
+wavelength "spectral irradiance"
+0.14 0.09833
+0.16 0.3195
+0.18 2.042
+0.2 10.83
+0.22 44.93
+0.23 49.64
+0.24 51.83
+0.25 59.81
+0.26 129.1
+0.27 222.1
+0.28 212.9
+0.29 441.0
+0.3 526.0
+0.31 634.5
+0.32 746.5
+0.33 948.7
+0.34 947.3
+0.35 969.5
+0.36 985.2
+0.37 1129.0
+0.38 1091.0
+0.39 1093.0
+0.4 1518.0
+0.41 1712.0
+0.42 1740.0
+0.43 1625.0
+0.44 1826.0
+0.45 2030.0
+0.46 2077.0
+0.47 2049.0
+0.48 2057.0
+0.49 1955.0
+0.5 1948.0
+0.51 1911.0
+0.52 1806.0
+0.53 1861.0
+0.54 1861.0
+0.55 1867.0
+0.56 1808.0
+0.57 1797.0
+0.58 1801.0
+0.59 1758.0
+0.6 1745.0
+0.62 1663.0
+0.64 1610.0
+0.66 1527.0
+0.68 1485.0
+0.7 1438.0
+0.72 1360.0
+0.75 1272.0
+0.8 1132.0
+0.9 882.6
+1.0 719.7
+1.2 487.1
+1.4 342.5
+1.6 243.5
+1.8 167.1
+2.0 115.0
+2.2 81.73
+2.4 58.78
+2.6 43.86
+2.8 33.43
+3.0 25.93
+3.2 20.45
+3.4 16.36
+3.6 13.26
+3.8 10.87
+4.0 8.977
+4.5 5.674
+5.0 3.691
+6.0 1.879
+7.0 1.022
+8.0 0.6041
+10.0 0.2663
+15.0 0.06106
+20.0 0.01755
+50.0 0.001769

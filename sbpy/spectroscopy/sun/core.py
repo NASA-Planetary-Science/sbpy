@@ -1,23 +1,17 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-"""=================
+"""
+====================
 SBPy Sun Core Module
 ====================
 """
 
 import numpy as np
 from astropy.utils.state import ScienceState
-import synphot    # required
+from astropy.utils.data import _is_url
+import synphot
 from ... import bib
 
-available_spectra = [
-#    'Castelli1996',
-    'E490_2014',
-    'E490_2014LR',
-#    'Kurucz1993',
-#    'UserSun'
-]
-
-__all__ = available_spectra + ['Sun', 'default_sun']
+__all__ = ['Sun', 'default_sun']
 
 class Sun:
     """Solar spectrum class.
@@ -30,6 +24,8 @@ class Sun:
     description : string, optional
       A description of the source spectrum.
 
+    bibcode : string, optional
+      Bibliography code for `sbpy.bib.register`.
 
     Attributes
     ----------
@@ -43,12 +39,11 @@ class Sun:
     >>> import numpy as np
     >>> import astropy.units as u
     >>> import astropy.constants as const
-    >>> from astropy.modeling.blackbody import blackbody_lambda
+    >>> from synphot import SourceSpectrum, BlackBody1D
     >>> from sbpy.spectroscopy.sun import Sun
-    >>> wave = np.linspace(0.3, 2.5) * u.um
-    >>> B = blackbody_lambda(wave, 5770 * u.K)
-    >>> fluxd = np.pi * B * const.R_sun**2 / const.au**2 * u.sr
-    >>> sun = Sun(wave, fluxd)
+    >>> scale = (np.pi * const.R_sun**2 / const.au**2).decompose().value
+    >>> source = SourceSpectrum(BlackBody1D, temperature=5770 * u.K) * scale
+    >>> sun = Sun(source)
 
     """
     
@@ -58,26 +53,74 @@ class Sun:
         self._bibcode = bibcode
 
     @classmethod
-    def from_file(cls, filename, wave_unit='um', flux_unit='W/(m2 um)',
-                  **kwargs):
-        """Load the source spectrum from a file.
+    def from_array(cls, wave, fluxd, meta=None, **kwargs):
+        """Load the source spectrum from an array.
 
         Parameters
         ----------
-        filename : string
-          The name of the file.  The file must be compatible with
-          `~synphot.SourceSpectrum.from_file`.
+        wave : `~astropy.units.Quantity`
+          The spectral wavelengths.
 
-        wave_unit, flux_unit : str or `~astropy.units.core.Unit`
-          Wavelength and flux units.
+        fluxd : `~astropy.units.Quantity`
+          The solar flux densities, at 1 au.
+
+        meta : dict, optional
+          `synphot.SourceSpectrum` meta data.
 
         **kwargs
           Passed to `Sun` initialization.
 
         """
         
-        source = synphot.SourceSpectrum.from_file(
-            filename, wave_unit=wave_unit, flux_unit=flux_unit)
+        source = synphot.SourceSpectrum(
+            synphot.Empirical1D, points=wave, lookup_table=spec[2],
+            meta=meta)
+        
+        return cls(source, **kwargs)
+
+    @classmethod
+    def from_file(cls, filename, wave_unit='um', flux_unit='W/(m2 um)',
+                  cache=True, **kwargs):
+        """Load the source spectrum from a file.
+
+        Parameters
+        ----------
+        filename : string
+          The name of the file.  The file must be compatible with
+          `~synphot.SourceSpectrum.from_file`.  If it ends with
+          '.fits' or '.fit', it is read as a FITS file, otherwise,
+          text is assumed.
+
+        wave_unit, flux_unit : str or `~astropy.units.core.Unit`
+          Wavelength and flux units.
+
+        cache : bool, optional
+          If `True`, cache the contents of URLs.
+
+        **kwargs
+          Passed to `Sun` initialization.
+
+        """
+
+        from astropy.utils.data import download_file
+        from synphot.specio import read_fits_spec, read_ascii_spec
+        
+        # URL cache because synphot.SourceSpectrum.from_file does not
+        if _is_url(filename):
+            if filename.lower().endswith(('.fits', '.fit')):
+                read_spec = read_fits_spec
+            else:
+                read_spec = read_ascii_spec
+
+            fn = download_file(filename, cache=True)
+            spec = read_spec(fn, wave_unit=wave_unit, flux_unit=flux_unit)
+            source = synphot.SourceSpectrum(
+                synphot.Empirical1D, points=spec[1], lookup_table=spec[2],
+                meta={'header': spec[0]})
+        else:
+            source = synphot.SourceSpectrum.from_file(
+                filename, wave_unit=wave_unit, flux_unit=flux_unit)
+
         return cls(source, **kwargs)
         
     @property
@@ -201,24 +244,17 @@ class Sun:
 
         return wave, fluxd
 
-E490_2014 = Sun.from_file(
-    '/home/msk/Projects/sbpy/sbpy/spectroscopy/sun/e490-00a_2014_hires.csv',
-    description='E490-00a (2014) reference solar spectrum (Table 3)',
-    bibcode='doi:10.1520/E0490'
-)
-
-E490_2014LR = Sun.from_file(
-    '/home/msk/Projects/sbpy/sbpy/spectroscopy/sun/e490-00a_2014_lores.csv',
-    description='E490-00a (2014) low resolution reference solar spectrum (Table 4)',
-    bibcode='doi:10.1520/E0490')
-
 class default_sun(ScienceState):
     """The default solar spectrum to use.
 
+    To retrieve the current default::
+
+      >>> sun = default_sun.get()
+
     To change it::
 
-      >>> from sbpy.spectroscopy.sun import default_sun, E490_2014
-      >>> with default_sun.set(E490_2014):
+      >>> from sbpy.spectroscopy.sun import default_sun
+      >>> with default_sun.set('E490_2014'):
       ...     # E490_2014 in effect
       ...     pass
 
@@ -234,11 +270,19 @@ class default_sun(ScienceState):
     @staticmethod
     def get_sun_from_string(arg):
         """Return a Sun instance from a string."""
-        
+        import os
         import sys
+        from . import sources
         
         try:
-            sun = getattr(sys.modules[__name__], arg)
+            parameters = getattr(sources, arg).copy()
+            filename = parameters.pop('file')
+
+            if not _is_url(filename):
+                path = os.path.dirname(__file__)
+                filename = os.sep.join((path, filename))
+                
+            sun = Sun.from_file(filename, **parameters)
         except AttributeError:
             msg = 'Unknown solar spectrum "{}".  Valid spectra:\n{}'.format(arg, available_spectra)
             raise ValueError(msg)
@@ -253,3 +297,4 @@ class default_sun(ScienceState):
             return value
         else:
             raise TypeError("default_sun must be a string or Sun instance.")
+
