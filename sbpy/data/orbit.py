@@ -54,12 +54,14 @@ class Orbit(DataClass):
 
         Examples
         --------
-        #>>> from sbpy.data import Orbit
-        #>>> from astropy.time import Time
-        #>>> epoch = Time('2018-05-14', scale='utc')
-        #>>> orb = Orbit.from_horizons('Ceres', epoch)
+        >>> from sbpy.data import Orbit # doctest: +SKIP
+        >>> from astropy.time import Time # doctest: +SKIP
+        >>> epoch = Time('2018-05-14', scale='utc') # doctest: +SKIP
+        >>> orb = Orbit.from_horizons('Ceres', epoch) # doctest: +SKIP
         """
 
+        from astropy.time import Time
+        
         if epoch is None:
             epoch = [Time.now()]
         elif isinstance(epoch, Time):
@@ -67,6 +69,7 @@ class Orbit(DataClass):
 
         # for now, use CALLHORIZONS for the query; this will be replaced with
         # a dedicated query
+        import callhorizons
         el = callhorizons.query(targetid)
         el.set_discreteepochs([ep.jd for ep in epoch])
         el.get_elements(center=center)
@@ -102,8 +105,8 @@ class Orbit(DataClass):
 
         Examples
         --------
-        #>>> from sbpy.data import Orbit
-        #>>> orb = Orbit.from_mpc('ceres')
+        >>> from sbpy.data import Orbit # doctest: +SKIP
+        >>> orb = Orbit.from_mpc('ceres') # doctest: +SKIP
 
         not yet implemented
 
@@ -127,8 +130,8 @@ class Orbit(DataClass):
 
         Examples
         --------
-        #>>> from sbpy.data import Orbit
-        #>>> orb = Orbit.from_mpc('ceres')
+        >>> from sbpy.data import Orbit # doctest: +SKIP
+        >>> orb = Orbit.from_mpc('ceres') # doctest: +SKIP
 
         not yet implemented
 
@@ -151,11 +154,11 @@ class Orbit(DataClass):
 
         Examples
         --------
-        #>>> from sbpy.data import Orbit
-        #>>> import astropy.coordinates as coords
-        #>>> r = coords.HeliocentricTrueEcliptic(coords.CartesianRepresentation(x=1, y=0, z=0, unit=u.au))
-        #>>> v = coords.HeliocentricTrueEcliptic(coords.CartesianRepresentation(x=30, y=0, z=0, unit=u.km / u.s))
-        #>>> orb = Orbit.from_state(r, v)
+        >>> from sbpy.data import Orbit # doctest: +SKIP
+        >>> import astropy.coordinates as coords # doctest: +SKIP
+        >>> r = coords.HeliocentricTrueEcliptic(coords.CartesianRepresentation(x=1, y=0, z=0, unit=u.au)) # doctest: +SKIP
+        >>> v = coords.HeliocentricTrueEcliptic(coords.CartesianRepresentation(x=30, y=0, z=0, unit=u.km / u.s)) # doctest: +SKIP
+        >>> orb = Orbit.from_state(r, v) # doctest: +SKIP
 
         not yet implemented
 
@@ -178,10 +181,10 @@ class Orbit(DataClass):
 
         Examples
         --------
-        #>>> from astropy.time import Time
-        #>>> from sbpy.data import Orbit
-        #>>> orb = Orbit.from_mpc('ceres')
-        #>>> state = orb.to_state(Time('2015-03-06')
+        >>> from astropy.time import Time # doctest: +SKIP
+        >>> from sbpy.data import Orbit # doctest: +SKIP
+        >>> orb = Orbit.from_mpc('ceres') # doctest: +SKIP
+        >>> state = orb.to_state(Time('2015-03-06') # doctest: +SKIP
 
         not yet implemented
 
@@ -206,13 +209,13 @@ class Orbit(DataClass):
 
         Examples
         --------
-        #>>> from pimmel sbpy.data import Orbit, Ephem
-        #>>> eph = Ephem.from_array([ra, dec, ra_sigma, dec_sigma, 
-        #>>>                         epochs, epochs_sigma],
-        #>>>                         names=['ra', 'dec', 'ra_sigma', 
-        #>>>                                'dec_sigma', 'epochs', 
-        #>>>                                'epochs_sigma'])
-        #>>> orb = Orbit.orbfit(eph)
+        >>> from sbpy.data import Orbit, Ephem # doctest: +SKIP
+        >>> eph = Ephem.from_array([ra, dec, ra_sigma, dec_sigma, # doctest: +SKIP 
+        >>>                         epochs, epochs_sigma], # doctest: +SKIP
+        >>>                         names=['ra', 'dec', 'ra_sigma', # doctest: +SKIP
+        >>>                                'dec_sigma', 'epochs',  # doctest: +SKIP
+        >>>                                'epochs_sigma']) # doctest: +SKIP
+        >>> orb = Orbit.orbfit(eph) # doctest: +SKIP
 
         not yet implemented
 
@@ -235,9 +238,9 @@ class Orbit(DataClass):
 
         Examples
         --------
-        #>>> from sbpy.data import Orbit
-        #>>> orb = Orbit.from...
-        #>>> sim = orb.integrate(1000*u.year)
+        >>> from sbpy.data import Orbit # doctest: +SKIP
+        >>> orb = Orbit.from... # doctest: +SKIP
+        >>> sim = orb.integrate(1000*u.year) # doctest: +SKIP
 
         not yet implemented
 
@@ -259,10 +262,10 @@ class Orbit(DataClass):
 
         Examples
         --------
-        #>>> from sbpy.data import Orbit
-        #>>> orb = Orbit.from...
-        #>>> sim = Orbit.integrate(orb, time=1000*u.year)
-        #>>> future_orb = Orbit.from_rebound(sim)
+        >>> from sbpy.data import Orbit # doctest: +SKIP
+        >>> orb = Orbit.from... # doctest: +SKIP
+        >>> sim = Orbit.integrate(orb, time=1000*u.year) # doctest: +SKIP
+        >>> future_orb = Orbit.from_rebound(sim) # doctest: +SKIP
 
         not yet implemented
 

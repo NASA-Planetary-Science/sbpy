@@ -26,15 +26,15 @@ class ThermalClass():
 
         Examples
         --------
-        >>> from astropy import Time
+        >>> from astropy.time import Time 
         >>> from astropy import units as u
         >>> from sbpy.thermal import STM
-        >>> from sbpy.Data import Ephem, Phys
-        >>> epoch = Time('2019-03-12 12:30:00', scale='utc')
-        >>> eph = Ephem.from_horizons('2015 HW', '568', epoch)
-        >>> phys = PhysProp('diam'=0.3*u.km, 'pv'=0.3)
-        >>> lam = np.arange(1, 20, 5)*u.micron
-        >>> flux = STM.flux(phys, eph, lam)
+        >>> from sbpy.data import Ephem, Phys
+        >>> epoch = Time('2019-03-12 12:30:00', scale='utc') # doctest: +SKIP
+        >>> eph = Ephem.from_horizons('2015 HW', '568', epoch) # doctest: +SKIP
+        >>> phys = PhysProp('diam'=0.3*u.km, 'pv'=0.3) # doctest: +SKIP
+        >>> lam = np.arange(1, 20, 5)*u.micron # doctest: +SKIP
+        >>> flux = STM.flux(phys, eph, lam) # doctest: +SKIP
 
         not yet implemented
 
@@ -51,7 +51,7 @@ class ThermalClass():
         Examples
         --------
         >>> from sbpy.thermal import STM
-        >>> stmfit = STM.fit(eph)
+        >>> stmfit = STM.fit(eph) # doctest: +SKIP
  
         not yet implemented
 

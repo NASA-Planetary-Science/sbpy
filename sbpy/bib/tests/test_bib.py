@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import os
-from astropy.tests.helper import remote_data
+import pytest
 from ...thermal import NEATM
 from .. import track, stop, reset, to_text, to_bibtex
 
@@ -11,8 +11,9 @@ def data_path(filename):
     return os.path.join(data_dir, filename)
 
 
-@remote_data
+@pytest.mark.remote_data
 def test_text():
+    reset()
     track()
     neatm = NEATM()
     assert ['sbpy.thermal.NEATM:', 'method:', 'Harris', '1998,',
@@ -21,11 +22,12 @@ def test_text():
     stop()
 
 
-@remote_data
+@pytest.mark.remote_data
 def test_bibtex():
+    reset()
     track()
     neatm = NEATM()
     with open(data_path('neatm.bib')) as bib_file:
-        assert bibtex == bib_file.read()
+        assert to_bibtex() == bib_file.read()
     reset()
     stop()

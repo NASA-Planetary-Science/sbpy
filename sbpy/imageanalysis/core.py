@@ -30,9 +30,9 @@ def centroid(im, gyx, method='weighted'):
     Examples
     --------
     >>> from astropy.io import fits
-    >>> from sbpy.imageanalysis import centroid
-    >>> hdu = fits.open('test.fits')
-    >>> cyx = centroid(hdu[0].data, (21, 45))
+    >>> from sbpy.imageanalysis import centroid # doctest: +SKIP
+    >>> hdu = fits.open('test.fits') # doctest: +SKIP
+    >>> cyx = centroid(hdu[0].data, (21, 45)) # doctest: +SKIP
     
     not yet implemented
 
@@ -49,12 +49,12 @@ class CometaryEnhancement():
         Examples
         --------
         >>> from astropy.io import fits
-        >>> from sbpy.imageanalysis import centroid, CometaryEnhancement
-        >>> import matplotlib.pyplot as plt
-        >>> hdu = fits.open('test.fits')
-        >>> cyx = centroid(hdu[0].data, (21, 45))
-        >>> enhance = CometaryEnhancement(hdu[0].data, cyx)
-        >>> plt.imshow(enhance.azavg_norm())
+        >>> from sbpy.imageanalysis import centroid, CometaryEnhancement # doctest: +SKIP
+        >>> import matplotlib.pyplot as plt # doctest: +SKIP
+        >>> hdu = fits.open('test.fits') # doctest: +SKIP
+        >>> cyx = centroid(hdu[0].data, (21, 45)) # doctest: +SKIP
+        >>> enhance = CometaryEnhancement(hdu[0].data, cyx) # doctest: +SKIP
+        >>> plt.imshow(enhance.azavg_norm()) # doctest: +SKIP
 
         not yet implemented
 
@@ -71,12 +71,12 @@ class CometaryEnhancement():
         Examples
         --------
         >>> from astropy.io import fits
-        >>> from sbpy.imageanalysis import centroid, CometaryEnhancement
-        >>> import matplotlib.pyplot as plt
-        >>> hdu = fits.open('test.fits')
-        >>> cyx = centroid(hdu[0].data, (21, 45))
-        >>> enhance = CometaryEnhancement(hdu[0].data, cyx)
-        >>> plt.imshow(enhance.rho_norm())
+        >>> from sbpy.imageanalysis import centroid, CometaryEnhancement # doctest: +SKIP
+        >>> import matplotlib.pyplot as plt # doctest: +SKIP
+        >>> hdu = fits.open('test.fits') # doctest: +SKIP
+        >>> cyx = centroid(hdu[0].data, (21, 45)) # doctest: +SKIP
+        >>> enhance = CometaryEnhancement(hdu[0].data, cyx) # doctest: +SKIP
+        >>> plt.imshow(enhance.rho_norm()) # doctest: +SKIP
 
         """
 
@@ -93,12 +93,12 @@ class CometaryEnhancement():
         Examples
         --------
         >>> from astropy.io import fits
-        >>> from sbpy.imageanalysis import centroid, CometaryEnhancement
-        >>> import matplotlib.pyplot as plt
-        >>> hdu = fits.open('test.fits')
-        >>> cyx = centroid(hdu[0].data, (21, 45))
-        >>> enhance = CometaryEnhancement(hdu[0].data, cyx)
-        >>> plt.imshow(enhance.rvsf_norm(a=1, b=1, n=0.1))
+        >>> from sbpy.imageanalysis import centroid, CometaryEnhancement # doctest: +SKIP
+        >>> import matplotlib.pyplot as plt # doctest: +SKIP
+        >>> hdu = fits.open('test.fits') # doctest: +SKIP
+        >>> cyx = centroid(hdu[0].data, (21, 45)) # doctest: +SKIP
+        >>> enhance = CometaryEnhancement(hdu[0].data, cyx) # doctest: +SKIP
+        >>> plt.imshow(enhance.rvsf_norm(a=1, b=1, n=0.1)) # doctest: +SKIP
 
         not yet implemented
 
@@ -115,12 +115,12 @@ class PSFSubtraction():
         Examples
         --------
         >>> from astropy.io import fits
-        >>> from sbpy.imageanalysis import centroid, PSFSubtraction
-        >>> import matplotlib.pyplot as plt
-        >>> hdu = fits.open('test.fits')
-        >>> cyx = centroid(hdu[0].data, (21, 45))
-        >>> psfmodel = PSFSubtraction(hdu[0].data, cyx)
-        >>> plt.imshow(psfmodel)
+        >>> from sbpy.imageanalysis import centroid, PSFSubtraction # doctest: +SKIP
+        >>> import matplotlib.pyplot as plt # doctest: +SKIP
+        >>> hdu = fits.open('test.fits') # doctest: +SKIP
+        >>> cyx = centroid(hdu[0].data, (21, 45)) # doctest: +SKIP
+        >>> psfmodel = PSFSubtraction(hdu[0].data, cyx) # doctest: +SKIP
+        >>> plt.imshow(psfmodel) # doctest: +SKIP
 
         not yet implemented 
 
@@ -144,13 +144,13 @@ class PSFSubtraction():
         Examples
         --------
         >>> from astropy.io import fits
-        >>> from sbpy.imageanalysis import centroid, PSFSubtraction
-        >>> import matplotlib.pyplot as plt
-        >>> hdu = fits.open('test.fits')
-        >>> cyx = centroid(hdu[0].data, (21, 45))
-        >>> psfmodel = PSFSubtraction.create_psfmodel(hdu[0].data, cyx)
-        >>> diff = PSFSubtraction.subtract_psfmodel(hdu[0].data, psfmodel, cyx) 
-        >>> plt.imshow(diff)
+        >>> from sbpy.imageanalysis import centroid, PSFSubtraction # doctest: +SKIP
+        >>> import matplotlib.pyplot as plt # doctest: +SKIP
+        >>> hdu = fits.open('test.fits') # doctest: +SKIP
+        >>> cyx = centroid(hdu[0].data, (21, 45)) # doctest: +SKIP
+        >>> psfmodel = PSFSubtraction.create_psfmodel(hdu[0].data, cyx) # doctest: +SKIP
+        >>> diff = PSFSubtraction.subtract_psfmodel(hdu[0].data, psfmodel, cyx) # doctest: +SKIP 
+        >>> plt.imshow(diff) # doctest: +SKIP
 
         not yet implemented 
 

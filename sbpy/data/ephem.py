@@ -46,26 +46,26 @@ class Ephem(DataClass):
 
         Examples
         --------
-        #>>> from sbpy.data import Orbit
-        #>>> from astropy.time import Time
-        #>>> epoch = Time('2018-05-14', scale='utc')
-        #>>> orb = Orbit.from_horizons('ceres', epoch)
+        >>> from sbpy.data import Orbit
+        >>> from astropy.time import Time
+        >>> epoch = Time('2018-05-14', scale='utc')
+        >>> orb = Orbit.from_horizons('ceres', epoch)
 
         """
 
-        try:
-            dummy = epoch[0]
-        except TypeError:
+        from astropy.time import Time
+        
+        if epoch is None:
+            epoch = [Time.now()]
+        elif isinstance(epoch, Time):
             epoch = [epoch]
-
             
         # for now, use CALLHORIZONS for the query; this will be replaced with
         # a dedicated query
+        import callhorizons
         el = callhorizons.query(targetid)
         el.set_discreteepochs([ep.jd for ep in epoch])
         el.get_ephemerides(observatory)
-
-        print(el.dates)
 
         data = [el[field] for field in el.fields]
         names = el.fields
@@ -75,10 +75,11 @@ class Ephem(DataClass):
         #               meta={'name': 'orbital elements from JPL Horizons'})
         # # Astropy units will be integrated in the future
 
-        if bib is not None:
-            bib['Horizons orbital elements query'] = {'implementation':
-                                                      '1996DPS....28.2504G'}
-            
+        from .. import bib        
+        if bib.status() is None or bib.status():
+            bib.register('sbpy.data.Ephem', {'implementation':
+                                             '1996DPS....28.2504G'})
+        
         return cls.from_array(data, names)
 
     @classmethod
@@ -102,10 +103,10 @@ class Ephem(DataClass):
 
         Examples
         --------
-        #>>> from sbpy.data import Ephem
-        #>>> from astropy.time import Time
-        #>>> epoch = Time('2018-05-14', scale='utc')
-        #>>> eph = Ephem.from_mpc('ceres', '568', epoch)
+        >>> from sbpy.data import Ephem # doctest: +SKIP
+        >>> from astropy.time import Time # doctest: +SKIP
+        >>> epoch = Time('2018-05-14', scale='utc') # doctest: +SKIP
+        >>> eph = Ephem.from_mpc('ceres', '568', epoch) # doctest: +SKIP
 
         not yet implemented
 
@@ -128,9 +129,9 @@ class Ephem(DataClass):
 
         Examples
         --------
-        #>>> from sbpy.data import Ephem
-        #>>> eph = Ephem.from_array...
-        #>>> report = eph.report_to_mpc()
+        >>> from sbpy.data import Ephem # doctest: +SKIP
+        >>> eph = Ephem.from_array... # doctest: +SKIP
+        >>> report = eph.report_to_mpc() # doctest: +SKIP
 
         not yet implemented
 
@@ -157,10 +158,10 @@ class Ephem(DataClass):
 
         Examples
         --------
-        #>>> from sbpy.data import Ephem
-        #>>> from astropy.time import Time
-        #>>> epoch = Time('2018-05-14', scale='utc')
-        #>>> eph = Ephem.from_imcce('ceres', '568', epoch)
+        >>> from sbpy.data import Ephem # doctest: +SKIP
+        >>> from astropy.time import Time # doctest: +SKIP
+        >>> epoch = Time('2018-05-14', scale='utc') # doctest: +SKIP
+        >>> eph = Ephem.from_imcce('ceres', '568', epoch) # doctest: +SKIP
 
         not yet implemented
 
@@ -187,10 +188,10 @@ class Ephem(DataClass):
 
         Examples
         --------
-        #>>> from sbpy.data import Ephem
-        #>>> from astropy.time import Time
-        #>>> epoch = Time('2018-05-14', scale='utc')
-        #>>> eph = Ephem.from_lowell('ceres', '568', epoch)
+        >>> from sbpy.data import Ephem # doctest: +SKIP
+        >>> from astropy.time import Time # doctest: +SKIP
+        >>> epoch = Time('2018-05-14', scale='utc') # doctest: +SKIP
+        >>> eph = Ephem.from_lowell('ceres', '568', epoch) # doctest: +SKIP
 
         not yet implemented
 
@@ -211,14 +212,14 @@ class Ephem(DataClass):
             
         Examples
         --------
-        #>>> from sbpy.data import Ephem, Orbit
-        #>>> orb = Orbit.from_...
-        #>>> eph = Ephem.from_pyephem(orb, 
-        #>>>                          location={'name':'Flagstaff', 
-        #>>>                                    'geolon':35.199167, 
-        #>>>                                    'geolat':-111.631111, 
-        #>>>                                    'altitude':'2106'},
-        #>>>                          epoch=epoch)
+        >>> from sbpy.data import Ephem, Orbit # doctest: +SKIP
+        >>> orb = Orbit.from_... # doctest: +SKIP
+        >>> eph = Ephem.from_pyephem(orb,  # doctest: +SKIP
+        >>>                          location={'name':'Flagstaff', # doctest: +SKIP
+        >>>                                    'geolon':35.199167, # doctest: +SKIP
+        >>>                                    'geolat':-111.631111, # doctest: +SKIP
+        >>>                                    'altitude':'2106'},# doctest: +SKIP
+        >>>                          epoch=epoch) # doctest: +SKIP
 
         not yet implemented
 

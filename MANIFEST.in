@@ -5,6 +5,7 @@ include ez_setup.py
 include ah_bootstrap.py
 include setup.cfg
 include sbpy/tests/coveragerc
+include sbpy/bib/tests/data/neatm.bib
 
 recursive-include sbpy *.pyx *.c *.pxd
 recursive-include docs *
