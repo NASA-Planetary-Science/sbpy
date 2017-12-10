@@ -10,7 +10,8 @@ Descriptions of source solar spectra.
 
 # Parameters passed to Sun.from_file; 'file' is a URL or name of a
 # file distributed with sbpy and located in sbpy/spectroscopy/sun (see
-# also spectrscopy/sun/setup_package.py).
+# also spectrscopy/sun/setup_package.py).  After adding spectra here,
+# update __init__.py docstring.
 
 available = [
     'E490_2014',

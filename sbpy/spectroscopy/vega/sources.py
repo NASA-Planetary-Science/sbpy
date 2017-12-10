@@ -8,7 +8,7 @@ Descriptions of source Vega spectra.
 
 """
 
-# Parameters passed to Vega.from_file, and 'file' is a URL.
+# Parameters passed to Vega.from_file, and 'file' is a URL.  After adding spectra here, update __init__.py docstring.
 
 available = [
     'Bohlin2014'
