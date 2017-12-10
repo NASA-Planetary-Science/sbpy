@@ -106,13 +106,14 @@ class default_sun(ScienceState):
         
         try:
             parameters = getattr(sources, arg).copy()
-            filename = parameters.pop('file')
 
-            if not _is_url(filename):
+            if not _is_url(parameters['filename']):
+                # find in the module's location
                 path = os.path.dirname(__file__)
-                filename = os.sep.join((path, filename))
+                parameters['filename'] = os.sep.join(
+                    (path, parameters['filename']))
                 
-            sun = Sun.from_file(filename, **parameters)
+            sun = Sun.from_file(**parameters)
         except AttributeError:
             msg = 'Unknown solar spectrum "{}".  Valid spectra:\n{}'.format(arg, sources.available)
             raise ValueError(msg)

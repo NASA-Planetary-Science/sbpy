@@ -77,8 +77,7 @@ class default_vega(ScienceState):
         
         try:
             parameters = getattr(sources, arg).copy()
-            filename = parameters.pop('file')
-            vega = Vega.from_file(filename, **parameters)
+            vega = Vega.from_file(**parameters)
         except AttributeError:
             msg = 'Unknown Vega spectrum "{}".  Valid spectra:\n{}'.format(arg, sources.keys())
             raise ValueError(msg)
