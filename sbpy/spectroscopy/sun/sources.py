@@ -8,6 +8,17 @@ Descriptions of source solar spectra.
 
 """
 
+# Parameters passed to Sun.from_file; 'file' is a URL or name of a
+# file distributed with sbpy and located in sbpy/spectroscopy/sun (see
+# also spectrscopy/sun/setup_package.py).
+
+available = [
+    'E490_2014',
+    'E490_2014LR',
+    'Kurucz1993',
+    'Castelli1996'
+]
+
 E490_2014 = {
     'file': 'e490-00a_2014_hires.csv',
     'wave_unit': 'um',
