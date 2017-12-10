@@ -54,7 +54,37 @@ class Vega(SpectralStandard):
       >>> print(vega(1 * u.um))                   # doctest: +SKIP
 
     """
-    pass
+
+    def __repr__(self):
+        if self.description is None:
+            return '<Vega>'
+        else:
+            return '<Vega: {}>'.format(self.description)
+
+    @classmethod
+    def from_builtin(cls, name):
+        """Vega spectrum from a built-in `sbpy` source.
+
+        Parameters
+        ----------
+        name : string
+          The name of a Vega spectrum parameter set in
+          `sbpy.spectroscopy.vega.sources`.
+
+        """
+
+        import os
+        from . import sources
+        
+        try:
+            parameters = getattr(sources, name)
+            vega = Vega.from_file(**parameters)
+        except AttributeError:
+            msg = 'Unknown Vega spectrum "{}".  Valid spectra:\n{}'.format(name, sources.keys())
+            raise ValueError(msg)
+
+        return vega
+
 
 class default_vega(ScienceState):
     """The default Vega spectrum to use.
@@ -68,26 +98,10 @@ class default_vega(ScienceState):
     """
     _value = 'Bohlin2014'
 
-    @staticmethod
-    def get_vega_from_string(arg):
-        """Return a Vega instance from a string."""
-
-        import sys
-        from . import sources
-        
-        try:
-            parameters = getattr(sources, arg).copy()
-            vega = Vega.from_file(**parameters)
-        except AttributeError:
-            msg = 'Unknown Vega spectrum "{}".  Valid spectra:\n{}'.format(arg, sources.keys())
-            raise ValueError(msg)
-
-        return vega
-
     @classmethod
     def validate(cls, value):
         if isinstance(value, str):
-            return cls.get_vega_from_string(value)
+            return Vega.from_builtin(value)
         elif isinstance(value, Vega):
             return value
         else:

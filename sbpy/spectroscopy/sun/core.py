@@ -71,7 +71,43 @@ class Sun(SpectralStandard):
       >>> print(sun(1 * u.um))                   # doctest: +SKIP
 
     """
-    pass
+
+    def __repr__(self):
+        if self.description is None:
+            return '<Sun>'
+        else:
+            return '<Sun: {}>'.format(self.description)
+
+    @classmethod
+    def from_builtin(cls, name):
+        """Solar spectrum from a built-in `sbpy` source.
+
+        Parameters
+        ----------
+        name : string
+          The name of a solar spectrum parameter set in
+          `sbpy.spectroscopy.sun.sources`.
+
+        """
+
+        import os
+        from astropy.utils.data import _is_url
+        from . import sources
+        
+        try:
+            parameters = getattr(sources, name).copy()
+
+            if not _is_url(parameters['filename']):
+                # find in the module's location
+                path = os.path.dirname(__file__)
+                parameters['filename'] = os.sep.join(
+                    (path, parameters['filename']))
+                
+            return Sun.from_file(**parameters)
+        except AttributeError:
+            msg = 'Unknown solar spectrum "{}".  Valid spectra:\n{}'.format(name, sources.available)
+            raise ValueError(msg)
+            
 
 class default_sun(ScienceState):
     """The default solar spectrum to use.
@@ -96,34 +132,10 @@ class default_sun(ScienceState):
     """
     _value = 'E490_2014'
 
-    @staticmethod
-    def get_sun_from_string(arg):
-        """Return a Sun instance from a string."""
-        import os
-        import sys
-        from astropy.utils.data import _is_url
-        from . import sources
-        
-        try:
-            parameters = getattr(sources, arg).copy()
-
-            if not _is_url(parameters['filename']):
-                # find in the module's location
-                path = os.path.dirname(__file__)
-                parameters['filename'] = os.sep.join(
-                    (path, parameters['filename']))
-                
-            sun = Sun.from_file(**parameters)
-        except AttributeError:
-            msg = 'Unknown solar spectrum "{}".  Valid spectra:\n{}'.format(arg, sources.available)
-            raise ValueError(msg)
-
-        return sun
-
     @classmethod
     def validate(cls, value):
         if isinstance(value, str):
-            return cls.get_sun_from_string(value)
+            return Sun.from_builtin(value)
         elif isinstance(value, Sun):
             return value
         else:
