@@ -215,7 +215,7 @@ class SpectralStandard(ABC):
         """
 
         import synphot
-        
+
         source = synphot.SourceSpectrum(
             synphot.Empirical1D, points=wave, lookup_table=fluxd,
             meta=meta)
@@ -250,7 +250,7 @@ class SpectralStandard(ABC):
         from synphot.specio import read_fits_spec, read_ascii_spec
 
         assert filename is not None, "File name requried."
-        
+
         # URL cache because synphot.SourceSpectrum.from_file does not
         if _is_url(filename):
             if filename.lower().endswith(('.fits', '.fit')):
@@ -268,7 +268,7 @@ class SpectralStandard(ABC):
                 filename, wave_unit=wave_unit, flux_unit=flux_unit)
 
         return cls(source, **kwargs)
-        
+
     @property
     def description(self):
         """Description of the source spectrum."""
@@ -296,12 +296,13 @@ class SpectralStandard(ABC):
         self._source.meta
             
     def __call__(self, wave, unit='W / (m2 um)'):
-        """Regrid the source spectrum.
+        """Bin the source spectrum.
 
         Parameters
         ----------
         wave : `~astropy.units.Quantity`
-          Regrid to these wavelengths.
+          If an array, `wave` specifies bin centers.  If a single
+          value, fluxd will be interpolated to this wavelength.
 
         unit : string, `~astropy.units.Unit`, optional
           Spectral units of the output: flux density, 'vegamag',
@@ -317,19 +318,22 @@ class SpectralStandard(ABC):
 
         import numpy as np
         import synphot
-        
+
         if np.size(wave) > 1:
             # Method adapted from http://www.astrobetter.com/blog/2013/08/12/python-tip-re-sampling-spectra-with-pysynphot/
             specele = synphot.SpectralElement(synphot.ConstFlux1D(1))
             obs = synphot.Observation(self.source, specele, binset=wave,
-                                      force='extrap')
-            fluxd = obs.sample_binned(wave, unit)
+                                      force='taper')
+
+            # The following is the same as obs.binflux, except sample_binned
+            # will do the unit coversions.
+            fluxd = obs.sample_binned(flux_unit=unit)
         else:
             fluxd = self.source(wave, unit)
 
         return fluxd
 
-    def filt(self, bp, unit='W / (m2 um)', **kwargs):
+    def filt(self, bp, unit='W / (m2 um)', vegaspec=None, **kwargs):
         """Spectrum observed through a filter.
 
         Parameters
@@ -382,8 +386,8 @@ class SpectralStandard(ABC):
         """
 
         import synphot
-        from ..vega import default_vega
-        
+        from .vega import default_vega
+
         assert isinstance(bp, (str, synphot.SpectralElement))
 
         if isinstance(bp, str):
