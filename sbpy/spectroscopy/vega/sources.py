@@ -8,7 +8,9 @@ Descriptions of source Vega spectra.
 
 """
 
-# Parameters passed to Vega.from_file. 'filename' is a URL.  After adding spectra here, update __init__.py docstring.
+# Parameters passed to Vega.from_file. 'filename' is a URL.  After
+# adding spectra here update __init__.py docstring and
+# docs/sbpy/spectroscopy.rst.
 
 available = [
     'Bohlin2014'
@@ -16,6 +18,6 @@ available = [
 
 Bohlin2014 = {
     'filename': 'ftp://ftp.stsci.edu/cdbs/calspec/alpha_lyr_stis_008.fits',
-    'description': 'Vega spectrum.',
+    'description': 'Vega spectrum of Bohlin 2014.',
     'bibcode': '2014AJ....147..127B'
 }

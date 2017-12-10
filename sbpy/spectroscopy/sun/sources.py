@@ -11,7 +11,7 @@ Descriptions of source solar spectra.
 # Parameters passed to Sun.from_file; 'filename' is a URL or name of a
 # file distributed with sbpy and located in sbpy/spectroscopy/sun (see
 # also spectrscopy/sun/setup_package.py).  After adding spectra here,
-# update __init__.py docstring.
+# update __init__.py docstring and docs/sbpy/spectroscopy.rst
 
 available = [
     'E490_2014',
@@ -24,7 +24,7 @@ E490_2014 = {
     'filename': 'e490-00a_2014_hires.csv',
     'wave_unit': 'um',
     'flux_unit': 'W/(m2 um)',
-    'description': 'E490-00a (2014) reference solar spectrum (Table 3)',
+    'description': 'E490-00a (2014) reference solar spectrum (Table 3).',
     'bibcode': 'doi:10.1520/E0490'
 }
 
@@ -32,7 +32,7 @@ E490_2014LR = {
     'filename': 'e490-00a_2014_hires.csv',
     'wave_unit': 'um',
     'flux_unit': 'W/(m2 um)',
-    'description': 'E490-00a (2014) low resolution reference solar spectrum (Table 4)',
+    'description': 'E490-00a (2014) low resolution reference solar spectrum (Table 4).',
     'bibcode': 'doi:10.1520/E0490'
 }
 
