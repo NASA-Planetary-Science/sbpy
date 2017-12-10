@@ -223,8 +223,8 @@ class SpectralStandard(ABC):
         return cls(source, **kwargs)
 
     @classmethod
-    def from_file(cls, filename, wave_unit='um', flux_unit='W/(m2 um)',
-                  cache=True, **kwargs):
+    def from_file(cls, filename=None, wave_unit='um',
+                  flux_unit='W/(m2 um)', cache=True, **kwargs):
         """Load the source spectrum from a file.
 
         Parameters
@@ -248,6 +248,8 @@ class SpectralStandard(ABC):
         from astropy.utils.data import _is_url
         import synphot
         from synphot.specio import read_fits_spec, read_ascii_spec
+
+        assert filename is not None, "File name requried."
         
         # URL cache because synphot.SourceSpectrum.from_file does not
         if _is_url(filename):

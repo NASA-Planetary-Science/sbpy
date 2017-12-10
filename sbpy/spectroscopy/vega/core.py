@@ -5,15 +5,10 @@ SBPy Vega Core Module
 =====================
 """
 
-try:
-    import synphot
-except ImportError as e:
-    from warnings import warn
-    from astropy.utils.exceptions import AstropyWarning
-    warn(AstropyWarning('synphot is required for the vega module.'))
-
 from astropy.utils.state import ScienceState
 from ..core import SpectralStandard
+
+__doctest_requires__ = {'Sun': 'synphot'}
 
 __all__ = [
     'Vega',

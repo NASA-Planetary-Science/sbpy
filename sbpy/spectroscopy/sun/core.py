@@ -5,13 +5,6 @@ SBPy Sun Core Module
 ====================
 """
 
-try:
-    import synphot
-except ImportError as e:
-    from warnings import warn
-    from astropy.utils.exceptions import AstropyWarning
-    warn(AstropyWarning('synphot is required for the sun module.'))
-
 from astropy.utils.state import ScienceState
 from ..core import SpectralStandard
 
@@ -19,6 +12,8 @@ __all__ = [
     'Sun',
     'default_sun'
 ]
+
+__doctest_requires__ = {'Sun': 'synphot'}
 
 class Sun(SpectralStandard):
     """Solar spectrum.
