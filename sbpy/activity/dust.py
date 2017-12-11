@@ -214,7 +214,7 @@ class Afrho(u.SpecificTypeQuantity):
 
     @classmethod
     def from_fluxd(cls, wave_or_freq, fluxd, aper, eph, phasecor=False,
-                   Phi=None, S=None, unit='W/(m2 um)'):
+                   Phi=None, S=None, unit=None):
         """Initialize from flux density.
 
         Assumes the small angle approximation.
@@ -245,8 +245,8 @@ class Afrho(u.SpecificTypeQuantity):
           Phase function, see `to_phase` for details.
 
         S : `~astropy.units.Quantity`, optional
-          Solar flux density per unit wavelength at 1 au and `wave`.
-          If `None`, then the default solar spectrum will be used via
+          Solar flux density at 1 au and `wave`.  If `None`, then the
+          default solar spectrum will be used via
           `~sbpy.spectroscopy.sun.default_sun`.
 
         unit : `~astropy.units.Unit`, optional
@@ -269,7 +269,7 @@ class Afrho(u.SpecificTypeQuantity):
         """
 
         fluxd1cm = Afrho(1 * u.cm).fluxd(wave_or_freq, aper, eph=eph, S=S,
-                                         **kwargs)
+                                         unit=unit)
 
         afrho = Afrho((fluxd / fluxd1cm).decompose() * u.cm)
         if phasecor:
@@ -317,7 +317,7 @@ class Afrho(u.SpecificTypeQuantity):
 
 
     def fluxd(self, wave_or_freq, aper, eph, phasecor=False, Phi=None,
-              S=None, **kwargs):
+              S=None, unit=None):
         """Coma flux density.
 
         Assumes the small angle approximation.
@@ -346,19 +346,22 @@ class Afrho(u.SpecificTypeQuantity):
         Phi : callable, optional
           Phase function, see `to_phase` for details.
 
-        S : `~astropy.units.Quantity`, optional 
-          Solar flux density at 1 au.  If `None`, then it will be
-          retrieved from `~sbpy.data.solar_fluxd`.
+        S : `~astropy.units.Quantity`, optional
+          Solar flux density at 1 au and `wave`.  If `None`, then the
+          default solar spectrum will be used via
+          `~sbpy.spectroscopy.sun.default_sun`.
 
-        **kwargs
-          Additional keyword arguments are passed to
-          `~sbpy.data.solar_fluxd`.
+        unit : `~astropy.units.Unit`, optional
+          The spectral unit for the output, ignored if `S` is
+          provided.
+
 
         Returns
         -------
         fluxd : `~astropy.units.Quantity`
           Flux density per unit wavelength or frequency, depending on
-          the units of `wave_or_freq` or `S`.
+          the units of `wave_or_freq`, `S`, or `unit`.
+
 
         Example
         -------
@@ -375,7 +378,7 @@ class Afrho(u.SpecificTypeQuantity):
         """
 
         from .core import Aperture, rho_as_length
-        #from ..data import solar_fluxd
+        from ..spectroscopy.sun import default_sun
         from .. import bib
 
         bib.register('activity.dust.Afrho.fluxd', {'model': '1984AJ.....89..579A'})
@@ -390,7 +393,8 @@ class Afrho(u.SpecificTypeQuantity):
 
         # check solar flux density
         if S is None:
-            S = solar_fluxd(wave_or_freq)
+            sun = default_sun.get()
+            S = sun(wave_or_freq, unit=unit)
         else:
             assert (S.unit.is_equivalent(u.W / u.m**2 / u.um)
                     or S.unit.is_equivalent(u.W / u.m**2 / u.Hz))

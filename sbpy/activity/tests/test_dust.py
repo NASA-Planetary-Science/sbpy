@@ -52,6 +52,24 @@ class TestAfrho:
         assert fluxd.unit.is_equivalent(S.unit)
         assert np.isclose(fluxd.value, 6.730018324465526e-14)
 
+    def test_fluxd_with_wave(self):
+        afrho = Afrho(1000, 'cm')
+        wave = 1 * u.um
+        aper = 1 * u.arcsec
+        eph = dict(rh=1.5 * u.au, delta=1.0 * u.au)
+        unit = u.W / u.m**2 / u.um
+        fluxd = afrho.fluxd(wave, aper, eph, unit=unit)
+        assert np.isclose(fluxd.value, 2.6930875895493665e-14)
+
+    def test_fluxd_with_freq(self):
+        afrho = Afrho(1000, 'cm')
+        freq = 299792.458 * u.GHz
+        aper = 1 * u.arcsec
+        eph = dict(rh=1.5 * u.au, delta=1.0 * u.au)
+        unit = u.W / u.m**2 / u.um
+        fluxd = afrho.fluxd(freq, aper, eph, unit=unit)
+        assert np.isclose(fluxd.value, 2.6930875895493665e-14)
+
     def test_to_phase(self):
         afrho = Afrho(10 * u.cm).to_phase(15 * u.deg, 0 * u.deg)
         assert np.isclose(afrho.cm, 5.8720)
