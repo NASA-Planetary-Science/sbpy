@@ -223,8 +223,8 @@ class SpectralStandard(ABC):
         return cls(source, **kwargs)
 
     @classmethod
-    def from_file(cls, filename=None, wave_unit='um',
-                  flux_unit='W/(m2 um)', cache=True, **kwargs):
+    def from_file(cls, filename=None, wave_unit=None, flux_unit=None,
+                  cache=True, **kwargs):
         """Load the source spectrum from a file.
 
         Parameters

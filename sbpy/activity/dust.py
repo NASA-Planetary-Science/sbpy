@@ -214,7 +214,7 @@ class Afrho(u.SpecificTypeQuantity):
 
     @classmethod
     def from_fluxd(cls, wave_or_freq, fluxd, aper, eph, phasecor=False,
-                   Phi=None, S=None, **kwargs):
+                   Phi=None, S=None, unit='W/(m2 um)'):
         """Initialize from flux density.
 
         Assumes the small angle approximation.
@@ -246,12 +246,12 @@ class Afrho(u.SpecificTypeQuantity):
 
         S : `~astropy.units.Quantity`, optional
           Solar flux density per unit wavelength at 1 au and `wave`.
-          If `None`, then it will be retrieved from
-          `~sbpy.data.solar_fluxd`.
+          If `None`, then the default solar spectrum will be used via
+          `~sbpy.spectroscopy.sun.default_sun`.
 
-        **kwargs
-          Additional keyword arguments are passed to
-          `~sbpy.data.solar_fluxd`.
+        unit : `~astropy.units.Unit`, optional
+          The spectral unit for the output, ignored if `S` is
+          provided.
 
         
         Example
