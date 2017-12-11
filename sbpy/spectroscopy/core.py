@@ -295,14 +295,16 @@ class SpectralStandard(ABC):
     def meta(self):
         self._source.meta
             
-    def __call__(self, wave, unit='W / (m2 um)'):
+    def __call__(self, wave_or_freq, unit='W / (m2 um)'):
         """Bin the source spectrum.
 
         Parameters
         ----------
-        wave : `~astropy.units.Quantity`
-          If an array, `wave` specifies bin centers.  If a single
-          value, fluxd will be interpolated to this wavelength.
+        wave_or_freq : `~astropy.units.Quantity`
+          Requested wavelength or frequencies of the resulting
+          spectrum.  If an array, `wave_or_freq` specifies bin
+          centers.  If a single value, fluxd will be interpolated to
+          this wavelength/frequency.
 
         unit : string, `~astropy.units.Unit`, optional
           Spectral units of the output: flux density, 'vegamag',
@@ -311,25 +313,26 @@ class SpectralStandard(ABC):
         Returns
         -------
         fluxd : `~astropy.units.Quantity`
-          The spectrum binned to match `wave`.  If a single wavelength
-          is requested, the original spectrum is interpolated to it.
+          The spectrum binned to match `wave_or_freq`.  If a single
+          point is requested, the original spectrum is interpolated to
+          it.
 
         """
 
         import numpy as np
         import synphot
 
-        if np.size(wave) > 1:
+        if np.size(wave_or_freq) > 1:
             # Method adapted from http://www.astrobetter.com/blog/2013/08/12/python-tip-re-sampling-spectra-with-pysynphot/
             specele = synphot.SpectralElement(synphot.ConstFlux1D(1))
-            obs = synphot.Observation(self.source, specele, binset=wave,
+            obs = synphot.Observation(self.source, specele, binset=wave_or_freq,
                                       force='taper')
 
             # The following is the same as obs.binflux, except sample_binned
             # will do the unit coversions.
             fluxd = obs.sample_binned(flux_unit=unit)
         else:
-            fluxd = self.source(wave, unit)
+            fluxd = self.source(wave_or_freq, unit)
 
         return fluxd
 
