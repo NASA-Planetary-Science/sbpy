@@ -4,14 +4,14 @@ Activity Module (`sbpy.activity`)
 Introduction
 ------------
 
-`sbpy.activity` provides routines for the simulation and modeling of cometary dust and gas activity.
+`sbpy.activity` models cometary dust and gas activity.
 
 Afρ and εfρ
 -----------
 
 `sbpy` has two classes to assist with observations and modeling of coma continuum: `Afrho` and `Efrho`.
 
-The Afρ parameter of A'Hearn et al (1984) is designed for observations of ideal cometary dust comae, and is proportional to the observed flux density within a circular aperture.  The quantity is the product of dust albedo, dust filling factor, and the radius of the aperture at the distance of the comet.  It carries the units of ρ (length), and under certain assumptions is proportional to the dust production rate of the comet.  See A'Hearn et al. (1984) and Fink & Rubin (2012) for more details.  The εfρ parameter is the thermal emission counterpart to Afρ, replacing albedo with IR emissivity, defined by Kelley et al. (2013).
+The Afρ parameter of A'Hearn et al (1984) is based on observations of idealized cometary dust comae.  It is proportional to the observed flux density within a circular aperture.  The quantity is the product of dust albedo, dust filling factor, and the radius of the aperture at the distance of the comet.  It carries the units of ρ (length), and under certain assumptions is proportional to the dust production rate of the comet.  See A'Hearn et al. (1984) and Fink & Rubin (2012) for more details.  The εfρ parameter is the thermal emission counterpart to Afρ, replacing albedo with IR emissivity, defined by Kelley et al. (2013).
 
 Afρ and εfρ are quantities
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -43,7 +43,7 @@ They may be converted to any unit of length, and have convenience attributes tha
 Flux density
 ^^^^^^^^^^^^
 	
-They may be initialized from flux densities.  Here, we reproduce one of the calculations from the original A'Hearn et al. (1984) work:
+The quantities may be initialized from flux densities.  Here, we reproduce one of the calculations from the original A'Hearn et al. (1984) work:
 
 * $r_h=4.785$ au
 * $\Delta=3.822$ au
@@ -64,7 +64,7 @@ The solar flux density at 1 au is also needed.  We use 1868 W/(m2 μm).
 
 Which is within a few percent of 6160 cm computed by A'Hearn et al.. The difference is likely due to the assumed solar flux density in the bandpass.
 
-The `Afrho` class can also be converted to a flux density, and the original value is recovered.
+The `Afrho` class may be converted to a flux density, and the original value is recovered.
 
   >>> f = afrho.fluxd(wave, aper, eph=eph, S=Slam).to('erg/(s cm2 AA)')
   >>> print('''     F_λ = {}
@@ -72,7 +72,7 @@ The `Afrho` class can also be converted to a flux density, and the original valu
   F_λ = 1.0232929922807537e-14 erg / (Angstrom cm2 s)
   log(F_λ) = -13.99
 
-The fluxd and from_fluxd methods also work with units of flux density per frequency, and mag and from_mag methods are provided for working with apparent magnitudes.
+The fluxd and from_fluxd methods work with units of flux density per wavelength or frequency, and mag and from_mag methods are provided for working with apparent magnitudes.
 
   >>> fnu = flam.to('Jy', u.spectral_density(wave))
   >>> print(fnu)
@@ -81,7 +81,22 @@ The fluxd and from_fluxd methods also work with units of flux density per freque
   >>> print(Afrho.from_fluxd(wave, fnu, aper, eph=eph, S=Snu))
   6029.468388208903 cm
 
-The `Efrho` class has the same functionality as the `Afrho` class.  The most important difference is that εfρ is calculated using a Planck function and temperature.  `sbpy` follows common practice and parameterizes the temperature as a constant scale factor and $T_{BB} = 278\,r_h^{1/2}$ K, the equilibrium temperature of a large blackbody sphere at a distance $r_h$ from the Sun.
+`Afrho` works seamlessly with `sbpy`'s calibration framework when the astropy affiliated package `synphot` is installed.  To convert to flux density using the default solar spectrum omit the `S` parameter:
+
+.. doctest-requires:: synphot
+  >>> wave = [0.4, 0.5, 0.6] * u.um
+  >>> print(afrho.fluxd(wave, aper, eph))
+  [  7.76770018e-14   1.05571410e-13   9.57978939e-14] W / (m2 um)
+
+To use the Kurucz (1993) model:
+.. doctest-requires:: synphot
+   >>> from sbpy.spectroscopy.sun import default_sun
+   >>> with default_sun.set('Kurucz1993'):            # doctest: +REMOTE_DATA
+   ...     print(afrho.fluxd(wave, aper, eph))
+   Downloading ftp://ftp.stsci.edu/cdbs/grid/k93models/standards/sun_kurucz93.fits [Done]
+   [  7.62582935e-14   1.06322888e-13   9.55650074e-14] W / (m2 um)
+
+The `Efrho` class has the same functionality as the `Afrho` class.  The most important difference is that εfρ is calculated using a Planck function and temperature.  `sbpy` follows common practice and parameterizes the temperature as a constant scale factor of $T_{BB} = 278\,r_h^{1/2}$ K, the equilibrium temperature of a large blackbody sphere at a distance $r_h$ from the Sun.
 
 Reproduce the εfρ of 246P/NEAT from Kelley et al. (2013).
 

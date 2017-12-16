@@ -317,7 +317,7 @@ class Afrho(u.SpecificTypeQuantity):
 
 
     def fluxd(self, wave_or_freq, aper, eph, phasecor=False, Phi=None,
-              S=None, unit=None):
+              S=None, unit='W/(m2 um)'):
         """Coma flux density.
 
         Assumes the small angle approximation.
