@@ -116,3 +116,12 @@ class TestEfrho:
         fluxd = efrho.fluxd(wave, aper, eph)
         assert np.isclose(fluxd.value, 1e-16)
     
+    def test_fluxd_unit(self):
+        efrho = Efrho(100, 'cm')
+        wave = 5 * u.um
+        aper = 1 * u.arcsec
+        eph = dict(rh=1.5 * u.au, delta=1.0 * u.au)
+        Tscale = 1.1
+        fluxd = efrho.fluxd(wave, aper, eph, Tscale=Tscale, unit='mJy')
+        assert np.isclose(fluxd.value, 0.3197891693353106)
+    
