@@ -591,7 +591,7 @@ class Efrho(u.SpecificTypeQuantity):
         fluxd1cm = fluxd1cm.to(fluxd.unit, u.spectral_density(wave_or_freq))
         return Efrho((fluxd / fluxd1cm).decompose() * u.cm)
 
-    def fluxd(self, wave_or_freq, aper, eph, Tscale=1.1, T=None):
+    def fluxd(self, wave_or_freq, aper, eph, Tscale=1.1, T=None, unit=None):
         """Coma flux density.
 
         Assumes the small angle approximation.
@@ -618,11 +618,15 @@ class Efrho(u.SpecificTypeQuantity):
         T : `~astropy.units.Quantity`, optional
           Use this temperature for the Planck function.
 
+        unit : `~astropy.units.Unit` or string, optional
+          Return quantity with this unit.  The default behavior is to
+          inspect `wave_or_freq` and return W/(m2 um) for wavelengths,
+          Jy for frequency.
+
         Returns
         -------
         fluxd : `~astropy.units.Quantity`
-          Spectral flux density.  Return units depend on the units of
-          `wave_or_freq`: W/(m2 um) for wavelengths, Jy for frequency.
+          Spectral flux density.  Return units depend on `unit`.
 
         Example
         -------
@@ -640,12 +644,12 @@ class Efrho(u.SpecificTypeQuantity):
 
         """
 
-        from astropy.modeling.blackbody import blackbody_lambda
-        from astropy.modeling.blackbody import blackbody_nu
+        from astropy.modeling.blackbody import blackbody_lambda, blackbody_nu
         from .core import rho_as_length, Aperture
         from .. import bib
 
-        bib.register('activity.dust.Efrho.fluxd', {'model', '2013Icar..225..475K'})
+        bib.register('activity.dust.Efrho.fluxd',
+                     {'model', '2013Icar..225..475K'})
 
         # check aperture radius
         if isinstance(aper, Aperture):
@@ -658,14 +662,25 @@ class Efrho(u.SpecificTypeQuantity):
         if T is None:
             T = Tscale * 278 / np.sqrt(eph['rh'] / u.au) * u.K
 
-        if wave_or_freq.unit.is_equivalent(u.m):
-            B = blackbody_lambda(wave_or_freq, T).to('W/(m2 um sr)')
+        if unit is None:
+            # choose unit based on spectral unit
+            if wave_or_freq.unit.is_equivalent(u.m):
+                unit = u.Unit('W/(m2 um)')
+            else:
+                unit = u.Unit('Jy')
         else:
-            B = blackbody_nu(wave_or_freq, T).to(u.Jy / u.sr)
+            # user's requested unit
+            unit = u.Unit(unit)
 
+        if unit.is_equivalent('W/(m2 um)'):
+            planck = blackbody_lambda
+        else:
+            planck = blackbody_nu
+
+        B = planck(wave_or_freq, T).to(unit / u.sr)
         fluxd = self * rho / eph['delta']**2 * np.pi * B * u.sr
 
-        return fluxd.to(B.unit * u.sr)
+        return fluxd.to(unit)
 
     
 class Syndynes:
