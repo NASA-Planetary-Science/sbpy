@@ -72,7 +72,7 @@ The `Afrho` class may be converted to a flux density, and the original value is 
   F_λ = 1.0232929922807537e-14 erg / (Angstrom cm2 s)
   log(F_λ) = -13.99
 
-The fluxd and from_fluxd methods work with units of flux density per wavelength or frequency, and mag and from_mag methods are provided for working with apparent magnitudes.
+The `fluxd` and `from_fluxd` methods work with units of flux density per wavelength or frequency, and mag and from_mag methods are provided for working with apparent magnitudes.
 
   >>> fnu = flam.to('Jy', u.spectral_density(wave))
   >>> print(fnu)
@@ -115,7 +115,7 @@ Compare to 397.0 cm and 424.6 cm listed in Kelley et al. (2013).
 Phase angles and functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Note the phase angle was not used in the previous section.  The `Afrho` class does not assume any particular phase function when transforming to and from flux density or magnitude.  In order to scale a value to another phase angle, a function is provided.  Returning to the A'Hearn et al. data, we scale Afρ from 0° phase to 3.3° phase:
+Note the phase angle was not used in the previous section.  The `Afrho` class does not assume any particular phase function when transforming to and from flux density or magnitude.  In order to scale a value to another phase angle, a function is provided.  Returning to the A'Hearn et al. data, we scale Afρ to 0° from to 3.3° phase:
 
   >>> wave = 5240 * u.AA
   >>> flam = 10**-13.99 * u.Unit('erg/(s cm2 AA)')
@@ -131,7 +131,7 @@ The call used the module default phase function.  At the time of writing it is t
   >>> print(afrho.to_phase(0 * u.deg, 3.3 * u.deg, Phi=Phi))
   6809.422621373015 cm
 
-An optional parameter, `phasecor`, in, e.g., the `fluxd` and `from_fluxd` methods indicates if a phase function should be considered.
+An optional parameter, `phasecor`, in the `fluxd` and `from_fluxd` methods indicates if a phase function should be considered.
 
   >>> eph['phase'] = 3.3 * u.deg       # add phase angle to the ephemeris
   >>> afrho = Afrho.from_fluxd(wave, flam, aper, eph=eph, S=Slam, phasecor=True)
