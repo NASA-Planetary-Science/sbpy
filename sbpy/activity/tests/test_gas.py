@@ -4,13 +4,16 @@ import numpy as np
 import astropy.units as u
 from ..gas import *
 
+
 def test_photo_lengthscale():
     gamma = photo_lengthscale('OH', 'CS93')
     assert gamma == 1.6e5 * u.km
 
+
 def test_photo_timescale():
     tau = photo_timescale('CO2', 'CE83')
     assert tau == 5.0e5 * u.s
+
 
 class TestHaser:
     def test_volume_density(self):
@@ -83,9 +86,12 @@ class TestHaser:
         0.893, 1.383, 4.592,   -9.061,  -9.85, -8.948, 27.12, 26.54, 27.0
         ''')
 
-        NC2 = 10**(12.9300 + log10(4 * pi * (tab['delta'] * 1.49e13)**2 * 10**tab['logC2']) + 2 * log10(tab['rh']))
-        NCN = 10**(12.3718 + log10(4 * pi * (tab['delta'] * 1.49e13)**2 * 10**tab['logCN']) + 2 * log10(tab['rh']))
-        NC3 = 10**(13.6 + log10(4 * pi * (tab['delta'] * 1.49e13)**2 * 10**tab['logC3']) + 2 * log10(tab['rh']))
+        NC2 = 10**(12.9300 + log10(4 * pi * (tab['delta'] * 1.49e13)**2 *
+                   10**tab['logC2']) + 2 * log10(tab['rh']))
+        NCN = 10**(12.3718 + log10(4 * pi * (tab['delta'] * 1.49e13)**2 *
+                   10**tab['logCN']) + 2 * log10(tab['rh']))
+        NC3 = 10**(13.6 + log10(4 * pi * (tab['delta'] * 1.49e13)**2 *
+                   10**tab['logC3']) + 2 * log10(tab['rh']))
         NC2.name = 'NC2'
         NCN.name = 'NCN'
         NC3.name = 'NC3'
@@ -96,18 +102,19 @@ class TestHaser:
         """
 
         # A'Hearn and Cowan 1975:
-        # rh      rho     NC2       NCN        NC3      QC2     QCN     QC3  
+        # rh      rho     NC2       NCN        NC3      QC2     QCN     QC3
         tabAC = [
-            [1.773, 40272, 4.738e30,        0,        0,   26.16,     0.0,     0.0],
-            [1.053, 43451, 3.189e31, 1.558e31, 1.054e31,   26.98,   26.52,    26.5],
-            [0.893, 39084, 3.147e31, 1.129e31, 2.393e31,   27.12,   26.54,    27.0]
+            [1.773, 40272, 4.738e30,        0,        0, 26.16,   0.0,     0.0],
+            [1.053, 43451, 3.189e31, 1.558e31, 1.054e31, 26.98, 26.52,    26.5],
+            [0.893, 39084, 3.147e31, 1.129e31, 2.393e31, 27.12, 26.54,    27.0]
         ]
 
-        # Computed by sbpy.  0.893 C2 and C3 matches are not great, the rest are OK:
+        # Computed by sbpy.  0.893 C2 and C3 matches are not great,
+        # the rest are OK:
         tab = [
-            [1.773, 40272, 4.603e30,        0,        0,   26.16,     0.0,     0.0],
-            [1.053, 43451, 3.229e31, 1.354e31, 9.527e30,   26.98,   26.52,    26.5],
-            [0.893, 39084, 4.097e31, 1.273e31, 2.875e31,   27.12,   26.54,    27.0]
+            [1.773, 40272, 4.603e30,        0,        0, 26.16,   0.0,   0.0],
+            [1.053, 43451, 3.229e31, 1.354e31, 9.527e30, 26.98, 26.52,  26.5],
+            [0.893, 39084, 4.097e31, 1.273e31, 2.875e31, 27.12, 26.54,  27.0]
         ]
 
         for rh, rho, NC2, NCN, NC3, QC2, QCN, QC3 in tab:
@@ -180,7 +187,7 @@ class TestHaser:
         """
 
         compare with:
-        
+
         import astropy.units as u
         from sbpy.imageanalysis.utils import rarray
         from sbpy.activity import Haser
@@ -194,13 +201,13 @@ class TestHaser:
         sigma = coma.column_density(r)
         print((sigma * 1 * u.km**2).decompose())
         --> <Quantity 3.449607967230623e+26>
-        
+
         This differs from the test value below by XXX
 
         """
-        
+
         from ..core import RectangularAperture
-        
+
         parent = 1.4e4 * u.km
         daughter = 1.7e5 * u.km
         Q = 5.8e23 / u.s
@@ -216,7 +223,7 @@ class TestHaser:
         """
 
         Compare with:
-        
+
         import astropy.units as u
         from sbpy.imageanalysis.utils import rarray
         from sbpy.activity import Haser, GaussianAperture
@@ -227,15 +234,15 @@ class TestHaser:
         r = rarray((1000, 1000)) * 100 * u.km
         x = coma.column_density(r) * aper(r)
         print(x.value.sum() * 100**2)
-        
+
         --> 5.146824269306973e+27
 
         which is within 0.5% of the test value below
 
         """
-        
+
         from ..core import GaussianAperture
-        
+
         parent = 1.4e4 * u.km
         Q = 5.8e23 / u.s
         aper = GaussianAperture(1e4 * u.km)
@@ -244,4 +251,3 @@ class TestHaser:
         N = coma.total_number(aper)
 
         assert np.isclose(N, 5.17022685108891e+27)
-
