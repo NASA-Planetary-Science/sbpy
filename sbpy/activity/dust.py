@@ -362,6 +362,7 @@ class Afrho(u.SpecificTypeQuantity):
 
         Examples
         --------
+        # Approximates Woodward et al. 2011 values.
         >>> import astropy.units as u
         >>> from sbpy.activity import Afrho
         >>> m = 8.49
@@ -369,10 +370,10 @@ class Afrho(u.SpecificTypeQuantity):
         >>> eph = {'rh': 1.45 * u.au,
         ...        'delta': 0.49 * u.au,
         ...        'phase': 17.8 * u.deg}
-        >>> afrho = Afrho.from_mag('cousins_i', 8.49, 'vegamag', aper, eph
-        ...         ) # doctest: +REMOTE_DATA +IGNORE_OUTPUT
-        >>> afrho.value   # doctest: +REMOTE_DATA +FLOAT_CMP
-
+        >>> afrho = Afrho.from_mag('cousins_i', 8.49, 'vegamag', aper, eph,
+        ...         phasecor=True)        # doctest: +REMOTE_DATA +IGNORE_OUTPUT
+        >>> afrho.value                   # doctest: +REMOTE_DATA +FLOAT_CMP
+        3387.92
 
         Notes
         -----
@@ -584,6 +585,17 @@ class Afrho(u.SpecificTypeQuantity):
 
         Examples
         --------
+        # Reverse of Afrho.from_mag test
+        >>> import astropy.units as u
+        >>> from sbpy.activity import Afrho
+        >>> afrho = Afrho(3387.92, u.cm)
+        >>> aper = 10000 * u.km
+        >>> eph = {'rh': 1.45 * u.au,
+        ...        'delta': 0.49 * u.au,
+        ...        'phase': 17.8 * u.deg}
+        >>> afrho.mag('cousins_i', 'vegamag', aper, eph,
+        ...           phasecor=True)       # doctest: +REMOTE_DATA +IGNORE_OUTPUT
+        8.49                               # doctest: +REMOTE_DATA +FLOAT_CMP
 
 
         Notes
