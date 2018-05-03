@@ -19,9 +19,10 @@ sbpy.data.Ephem:
 
 Bibliography tracking can be used in a context manager::
 
-  >>> from sbpy import bib, data
+  >>> from sbpy import bib
+  >>> from sbpy.data import Ephem
   >>> with bib.Tracking():
-  >>>     eph = data.Ephem.from_horizons('encke', epoch=None, observatory='500')
+  >>>     eph = Ephem.from_horizons('encke', epoch=None, observatory='500')
   >>> bib.to_text()
   JPL Horizons:
     implementation: 1996DPS....28.2504G
@@ -47,6 +48,7 @@ __all__ = ['register', 'reset', 'status', 'stop', 'track', 'Tracking',
 
 from collections import OrderedDict
 
+
 def register(task, citations):
     """Register a citation with the `sbpy` bibliography.
 
@@ -65,15 +67,18 @@ def register(task, citations):
     if _track:
         _bibliography[task] = citations
 
+
 def reset():
     """Reset `sbpy` bibliography tracking."""
     global _bibliography
     _bibliography = OrderedDict()
 
+
 def stop():
     """Disable `sbpy` bibliography tracking."""
     global _track
     _track = False
+
 
 def status():
     """Report `sbpy` bibliography tracking status.
@@ -86,18 +91,22 @@ def status():
     """
     return _track
 
+
 def track():
     """Enable `sbpy` bibliography tracking."""
     global _track
     _track = True
 
+
 class Tracking:
+
     def __enter__(self):
         track()
 
     def __exit__(self, type, value, tb):
         stop()
-    
+
+
 def to_text():
     """convert bibcodes to human readable text
 
@@ -119,18 +128,19 @@ def to_text():
                     warnings.filterwarnings('error')
                     try:
                         # request needed fields to avoid lazy loading
-                        paper = list(ads.SearchQuery(bibcode=val,
-                                                     fl=['first_author',
-                                                         'author',
-                                                         'year']))[0]
+                        paper = list(
+                            ads.SearchQuery(
+                                bibcode=val,
+                                fl=['first_author', 'author', 'year']
+                            ))[0]
                     except Warning as e:
                         # if query failed,
                         output += '  {:s}: {:s}\n'.format(key, val)
                         continue
 
                 if len(paper.author) > 4:
-                    author = '{:s} et al.'.format(paper.first_author.\
-                                                  split(',')[0])
+                    author = '{:s} et al.'.format(
+                        paper.first_author.split(',')[0])
                 elif len(paper.author) > 1:
                     author = ','.join([au.split(',')[0] for au in
                                        paper.author[:-1]])
@@ -146,14 +156,17 @@ def to_text():
 
     return output
 
+
 def to_bibtex():
-    """ convert bibcodes to LaTeX BibTeX
+    """Convert bibcodes to LaTeX BibTeX
 
     Returns
     -------
     text : string
-      ADS BibTex entries for all the bibliographic items.  Uses a query to the
-      export service to get the BibTeX for each reference.
+      ADS BibTex entries for all the bibliographic items.  Uses a
+      query to the export service to get the BibTeX for each
+      reference.
+
     """
     import ads
 
@@ -161,13 +174,14 @@ def to_bibtex():
     for task, ref in _bibliography.items():
         try:
             for key, val in ref.items():
-                # This method to get bibtex records avoids using multiple calls
-                # to the API that may impact rate limits
+                # This method to get bibtex records avoids using
+                # multiple calls to the API that may impact rate
+                # limits
                 # https://github.com/adsabs/adsabs-dev-api/blob/master/export.md
                 query = ads.ExportQuery(val, format='bibtex')
                 bibtex = query.execute()
                 output += '% {:s}/{:s}:\n{:s}\n'.format(task, key, bibtex)
-        except:
+        except ads.exceptions.APIResponseError:
             pass
 
     return output
