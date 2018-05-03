@@ -219,9 +219,6 @@ class Afrho(u.SpecificTypeQuantity):
                    Phi=None, S=None, unit=None):
         """Initialize from flux density.
 
-        Assumes the small angle approximation.
-
-
         Parameters
         ----------
         wave_or_freq : `~astropy.units.Quantity`
@@ -328,7 +325,8 @@ class Afrho(u.SpecificTypeQuantity):
         return cls.from_fluxd(None, fluxd, aper, eph, S=S, **kwargs)
 
     @classmethod
-    def from_mag(cls, bp, fluxd, aper, eph, **kwargs):
+    def from_mag(cls, bandpass, mag, unit, aper, eph, vegaspec=None,
+                 **kwargs):
         """Initialize from filter and magnitude.
 
         Parameters
@@ -353,17 +351,28 @@ class Afrho(u.SpecificTypeQuantity):
           keywords `rh` and `delta`.  Phase angle, `phase`, is
           required if `phasecor` is enabled.
 
-        vegaspec : `~synphot.SourceSpectrum`
+        vegaspec : `~synphot.SourceSpectrum`, optional
           Use this spectrum for Vega when `unit == 'vegamag'`,
           otherwise the default `sbpy` spectrum will be used.
 
         **kwargs
-          Additional keyword arguments are passed to
-          `~sbpy.dust.Afrho.from_fluxd`.
+          Additional keyword arguments for `~Afrho.from_fluxd`, except
+          `S`.
 
 
         Examples
         --------
+        >>> import astropy.units as u
+        >>> from sbpy.activity import Afrho
+        >>> m = 8.49
+        >>> aper = 10000 * u.km
+        >>> eph = {'rh': 1.45 * u.au,
+        ...        'delta': 0.49 * u.au,
+        ...        'phase': 17.8 * u.deg}
+        >>> afrho = Afrho.from_mag('cousins_i', 8.49, 'vegamag', aper, eph
+        ...         ) # doctest: +REMOTE_DATA +IGNORE_OUTPUT
+        >>> afrho.value   # doctest: +REMOTE_DATA +FLOAT_CMP
+
 
         Notes
         -----
@@ -381,15 +390,16 @@ class Afrho(u.SpecificTypeQuantity):
         from ..spectroscopy.sun import default_sun
 
         sun = default_sun.get()
-        Msun = sun.filt(bp, unit=unit, vegaspec=vegaspec)
-        afrho = 4 * eph['rh']**2 * eph['delta']**2 / aper
+        wave, Msun = sun.filt(bandpass, unit=unit, vegaspec=vegaspec)
+
+        # fluxd is relative to the Sun
+        fluxd = u.Quantity(10**(-0.4 * (mag - Msun.value)), 'W/(m2 um)')
+        S = u.Quantity(1, fluxd.unit)
+        return cls.from_fluxd(None, fluxd, aper, eph, S=S, **kwargs)
 
     def fluxd(self, wave_or_freq, aper, eph, phasecor=False, Phi=None,
               S=None, unit='W/(m2 um)'):
         """Coma flux density.
-
-        Assumes the small angle approximation.
-
 
         Parameters
         ----------
@@ -524,6 +534,13 @@ class Afrho(u.SpecificTypeQuantity):
           Flux density per unit wavelength or frequency, depending on
           `unit`.
 
+
+        Notes
+        -----
+
+        Filter names can be found in the `synphot` `documentation
+        <http://synphot.readthedocs.io/en/stable/synphot/bandpass.html#synphot-predefined-filter>`_.
+
         """
 
         from ..spectroscopy.sun import default_sun
@@ -532,48 +549,58 @@ class Afrho(u.SpecificTypeQuantity):
         wave, S = sun.filt(bandpass, unit=unit)
         return self.fluxd(None, aper, eph, S=S, unit=unit, **kwargs)
 
-    def mag(self, filt, aper, eph=None, S=None, **kwargs):
+    def mag(self, bandpass, unit, aper, eph, vegaspec=None, **kwargs):
         """Coma apparent magnitude.
-
-        Phase angle is not considered.  Assumes the small angle
-        approximation.
 
         Parameters
         ----------
-        filt:
-            string
-          The name of the filter / bandpass.
+        bandpass : string or `~synphot.SpectralElement`
+          The name of a filter, or a transmission spectrum as a
+          `~synphot.SpectralElement`.
 
-        aper :
-            `~astropy.units.Quantity`, `~Aperture`
+        unit : string
+          Name of magnitude system: 'vegamag', 'ABmag', or 'STmag'.
+
+        aper : `~astropy.units.Quantity` or `~Aperture`
           Aperture of the observation as a circular radius(length
           or angular units), or as an sbpy `~Aperture` class.
 
-        eph :
-            dictionary-like or `~Ephem`, optional
+        eph : dictionary-like or `~Ephem`, optional
           Ephemerides of the comet, describing heliocentric and
           geocentric distances as `~astropy.units.Quantity` via
           keywords `rh` and `delta`.
 
-        S :
-            `~astropy.units.Quantity`, optional
-          Absolute magnitude of the Sun at `filt`.  If `None`, then it
-          will be retrieved from `~sbpy.data.solar_absmag`.
+        vegaspec : `~synphot.SourceSpectrum`, optional
+          Use this spectrum for Vega when `unit == 'vegamag'`,
+          otherwise the default `sbpy` spectrum will be used.
 
-        **kwargs
-          Additional keyword arguments are passed to
-          `~sbpy.data.solar_absmag`.
+        **kwargs :
+          Any other `Afrho.fluxd` keyword argument except `S`.
 
         Returns
         -------
-        mag :
-            `~astropy.units.Quantity` ???
+        mag : float
+
 
         Examples
         --------
 
+
+        Notes
+        -----
+
+        Filter names can be found in the `synphot` `documentation
+        <http://synphot.readthedocs.io/en/stable/synphot/bandpass.html#synphot-predefined-filter>`_.
+
+        A discussion of magnitude zero points can be found in the
+        `synphot` `documentation
+        <http://synphot.readthedocs.io/en/latest/synphot/units.html#counts-and-magnitudes>`_.
+
         """
-        raise NotImplemented
+
+        afrho0 = Afrho.from_mag(
+            bandpass, 0, unit, aper, eph, vegaspec=vegaspec, **kwargs)
+        return -2.5 * np.log10(self / afrho0).value
 
     def to_phase(self, to_phase, from_phase, Phi=None):
         """Scale Afρ to another phase angle.
@@ -677,7 +704,6 @@ class Efrho(u.SpecificTypeQuantity):
                    T=None):
         """Initialize from flux density.
 
-        Assumes the small angle approximation.
 
         Parameters
         ----------
@@ -733,7 +759,6 @@ class Efrho(u.SpecificTypeQuantity):
     def fluxd(self, wave_or_freq, aper, eph, Tscale=1.1, T=None, unit=None):
         """Coma flux density.
 
-        Assumes the small angle approximation.
 
         Parameters
         ----------

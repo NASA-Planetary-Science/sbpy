@@ -440,12 +440,12 @@ class SpectralStandard(ABC):
 
         return fluxd
 
-    def filt(self, bp, unit='W / (m2 um)', vegaspec=None, **kwargs):
+    def filt(self, bandpass, unit='W / (m2 um)', vegaspec=None, **kwargs):
         """Spectrum observed through a filter.
 
         Parameters
         ----------
-        bp : string or `~synphot.SpectralElement`
+        bandpass : string or `~synphot.SpectralElement`
           The name of a filter, or a transmission spectrum as a
           `~synphot.SpectralElement`.
 
@@ -481,12 +481,12 @@ class SpectralStandard(ABC):
         import synphot
         from .vega import default_vega
 
-        assert isinstance(bp, (str, synphot.SpectralElement))
+        assert isinstance(bandpass, (str, synphot.SpectralElement))
 
-        if isinstance(bp, str):
-            bp = synphot.SpectralElement.from_filter(bp)
+        if isinstance(bandpass, str):
+            bandpass = synphot.SpectralElement.from_filter(bandpass)
 
-        obs = synphot.Observation(self.source, bp, **kwargs)
+        obs = synphot.Observation(self.source, bandpass, **kwargs)
 
         if unit == 'vegamag' and vegaspec is None:
             vegaspec = default_vega.get().source
