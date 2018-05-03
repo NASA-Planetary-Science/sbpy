@@ -2,7 +2,7 @@
 import os
 import pytest
 from ...thermal import NEATM
-from .. import track, stop, reset, to_text, to_bibtex
+from .. import track, stop, register, reset, to_text, to_bibtex, Tracking
 
 
 # get file path of a static data file for testing
@@ -31,3 +31,14 @@ def test_bibtex():
         assert to_bibtex() == bib_file.read()
     reset()
     stop()
+
+
+def test_Tracking():
+    reset()
+    
+    with Tracking():
+        register('test', {'track this': 'bibcode'})
+
+    register('test', {'do not track this': 'bibcode'})
+
+    assert ['test:', 'track this:', 'bibcode'] == to_text().split()
