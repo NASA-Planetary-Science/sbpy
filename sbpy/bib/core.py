@@ -19,9 +19,10 @@ sbpy.data.Ephem:
 
 Bibliography tracking can be used in a context manager::
 
-  >>> from sbpy import bib, data
+  >>> from sbpy import bib
+  >>> from sbpy.data import Ephem
   >>> with bib.Tracking():
-  >>>     eph = data.Ephem.from_horizons('encke', epoch=None, observatory='500')
+  >>>     eph = Ephem.from_horizons('encke', epoch=None, observatory='500')
   >>> bib.to_text()
   JPL Horizons:
     implementation: 1996DPS....28.2504G
@@ -127,18 +128,19 @@ def to_text():
                     warnings.filterwarnings('error')
                     try:
                         # request needed fields to avoid lazy loading
-                        paper = list(ads.SearchQuery(bibcode=val,
-                                                     fl=['first_author',
-                                                         'author',
-                                                         'year']))[0]
+                        paper = list(
+                            ads.SearchQuery(
+                                bibcode=val,
+                                fl=['first_author', 'author', 'year']
+                            ))[0]
                     except Warning as e:
                         # if query failed,
                         output += '  {:s}: {:s}\n'.format(key, val)
                         continue
 
                 if len(paper.author) > 4:
-                    author = '{:s} et al.'.format(paper.first_author.
-                                                  split(',')[0])
+                    author = '{:s} et al.'.format(
+                        paper.first_author.split(',')[0])
                 elif len(paper.author) > 1:
                     author = ','.join([au.split(',')[0] for au in
                                        paper.author[:-1]])
@@ -179,7 +181,7 @@ def to_bibtex():
                 query = ads.ExportQuery(val, format='bibtex')
                 bibtex = query.execute()
                 output += '% {:s}/{:s}:\n{:s}\n'.format(task, key, bibtex)
-        except:
+        except ads.exceptions.APIResponseError:
             pass
 
     return output
