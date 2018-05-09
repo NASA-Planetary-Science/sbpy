@@ -22,11 +22,8 @@ class Sun(SpectralStandard):
 
     Parameters
     ----------
-    wave : `~astropy.units.Quantity`
-      The spectral wavelengths.
-
-    fluxd : `~astropy.units.Quantity`
-      The solar flux densities, at 1 au.
+    source : `~synphot.SourceSpectrum`
+      The source spectrum.
 
     description : string, optional
       A brief description of the source spectrum.

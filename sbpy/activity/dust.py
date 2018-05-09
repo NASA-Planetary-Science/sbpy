@@ -188,10 +188,19 @@ class Afrho(u.SpecificTypeQuantity):
 
     Notes
     -----
-    Afρ is the product of dust albedo, dust filling factor, and
-    circular aperture radius.  It is nominally a constant for a
+    Afρ is the product of dust albedo, A, dust filling factor, f, and
+    circular aperture radius, ρ, projected to the distance of the
+    comet in units of length.  It is nominally a constant for a
     steady-state coma in free expansion.  See A'Hearn et al. (1984)
-    for details.
+    for details, including the definition of albedo used in this case.
+
+    .. math::
+        Af\rho = 4 \Delta^2 r_h^2 F / (\rho S)
+
+    where :math:`\Delta` is the observer-comet distance, :math:`r_h`
+    is the heliocentric distance of the comet, :math:`F` is the
+    observed spectral flux density of the comet in the aperture, and
+    :math:`S` is the spectral flux density of the Sun at 1 au.
 
 
     References
