@@ -11,10 +11,10 @@ code for the scientific study of asteroids and comets, including (but
 not limited to):
 
 * observation planning tools tailored to moving objects,
-* photometry models for resolved and unresolved bodies,
+* photometry models for resolved and unresolved observations,
 * wrappers and tools for astrometry and orbit fitting,
-* spectroscopy analysis tools and models for reflected light and emission
-  from gas,
+* spectroscopy analysis tools and models for reflected solar light and
+  emission from gas,
 * cometary gas and dust coma simulation and analysis tools,
 * asteroid thermal models for flux estimation and size/albedo estimation,
 * image enhancement tools for comet comae and PSF subtraction tools,

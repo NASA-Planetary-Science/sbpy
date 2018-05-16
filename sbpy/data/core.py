@@ -17,8 +17,21 @@ import callhorizons
 
 
 class DataClass():
-    def __init__(self, *args, **kwargs):
-        """Create Astropy.table from kwargs"""
+    """`DataClass` serves as a base class for all data container classes
+    in `sbpy` in order to provide consistent functionality for all
+    these classes.
+
+    The core of `DataClass` is an `astropy.Table` object, which
+    already provides most of the required functionality. `DataClass`
+    objects can be manually generated from `dict`
+    (DataClass.from_dict) or `array`-like (DataClass.from_array)
+    objects.
+
+    """
+
+  def __init__(self, *args, **kwargs):
+
+    """Create Astropy.table from kwargs"""
         self.table = Table()
         for key, val in kwargs.items():
             try:

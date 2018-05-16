@@ -17,7 +17,8 @@ shown in the following sketch.
    functionality. Colored symbols match the colors and symbols of
    classes and modules they are using.
 
-The expected functionality of the individual package modules is detailed below.
+The expected functionality of the individual package modules is
+detailed below.
 
    
 `sbpy.data`

@@ -26,10 +26,10 @@ code for the scientific study of asteroids and comets, including (but
 not limited to):
 
 * observation planning tools tailored to moving objects,
-* photometry models for resolved and unresolved bodies,
+* photometry models for resolved and unresolved observations,
 * wrappers and tools for astrometry and orbit fitting,
-* spectroscopy analysis tools and models for reflected light and emission
-  from gas,
+* spectroscopy analysis tools and models for reflected solar light and
+  emission from gas,
 * cometary gas and dust coma simulation and analysis tools,
 * asteroid thermal models for flux estimation and size/albedo estimation,
 * image enhancement tools for comet comae and PSF subtraction tools,
@@ -39,34 +39,35 @@ not limited to):
 
 
 This package is under heavy development and currently provides only
-very limited functionality. A funding proposal to support the
-development of `sbpy` is currently pending.
-
+very limited functionality. The full functionality is planned to be established by mid-2021. `sbpy` is supported by NASA PDART Grant No. XXX.
 
 Documentation
 -------------
 
-The official documentation is available `here`_.
+The official documentation is available at `docs`_.
 
 
 Contributing
 ------------
 
 If you are interested in contributing to `sbpy`, you can do that
-through testing existing code (somewhat easy) or by contributing
-Python code (somewhat hard). We appreciate every contribution and
-acknowledge them by adding you to the list of `sbpy` authors.
+through testing existing code (somewhat easy), contributing Python
+code (somewhat hard), or simply by letting us know what you think. We
+are also interested in code donations: if you have code written in
+Python or a different programming language and you think this code
+might be useful to others, please create an issue report describing
+your donation.
 
 Testing
 ~~~~~~~
 
-We are looking for people to test our routines. In order to make this
-task worthwhile for you, we only ask you to test routines that are
-stable and which you can already use for your research. We will
-indicate which functions are ready to be tested on this dedicated
-status page (TBD). Keep in mind that there might be issues, so feel free
-to compare the function results with your own results. If you find a
-problem, please issue an issue report on this github page.
+We are looking for volunteers to test `sbpy` functionality. In order
+to make this task worthwhile for you, we only ask you to test routines
+that are stable and which you can already use for your research. We
+will indicate which functions are ready to be tested on this dedicated
+status page (TBD). Keep in mind that there might be issues, so feel
+free to compare the function results with your own results. If you
+find a problem, please issue an issue report on this github page.
 
 Coding
 ~~~~~~
@@ -91,5 +92,5 @@ This project is Copyright (c) sbpy team and licensed under the terms of the BSD 
 
 
 .. _astropy: http://www.astropy.org/
-.. _here: http://sbpy.readthedocs.io/en/latest/
+.. _docs: http://sbpy.readthedocs.io/en/latest/
 .. _astropy code of conduct: http://docs.astropy.org/en/latest/development/codeguide.html
