@@ -29,9 +29,8 @@ class DataClass():
 
     """
 
-  def __init__(self, *args, **kwargs):
-
-    """Create Astropy.table from kwargs"""
+    def __init__(self, *args, **kwargs):
+        """Create Astropy.table from kwargs"""
         self.table = Table()
         for key, val in kwargs.items():
             try:
