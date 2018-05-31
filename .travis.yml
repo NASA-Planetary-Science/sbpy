@@ -148,4 +148,4 @@ script:
 after_success:
     # If coveralls.io is set up for this package, uncomment the line below.
     # The coveragerc file may be customized as needed for your package.
-    # - if [[ $SETUP_CMD == *coverage* ]]; then coveralls --rcfile='sbpy/tests/coveragerc'; fi
+    - if [[ $SETUP_CMD == *coverage* ]]; then coveralls --rcfile='sbpy/tests/coveragerc'; fi
