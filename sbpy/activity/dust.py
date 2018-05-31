@@ -201,8 +201,8 @@ class Afrho(u.SpecificTypeQuantity):
     --------
     >>> from sbpy.activity import Afrho
     >>> import astropy.units as u
-    >>> Afrho(1000 * u.cm)
-    <Afrho 1000. cm>
+    >>> print(Afrho(1000 * u.cm))
+    1000.0 cm
 
     """
 
@@ -529,8 +529,8 @@ class Efrho(u.SpecificTypeQuantity):
     --------
     >>> from sbpy.activity import Efrho
     >>> import astropy.units as u
-    >>> Efrho(1000 * u.cm)
-    <Efrho 1000. cm>
+    >>> print(Efrho(1000 * u.cm))
+    1000.0 cm
 
     """
 

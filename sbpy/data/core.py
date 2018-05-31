@@ -71,7 +71,11 @@ class DataClass():
         >>> orb = Orbit.from_dict({'a': 2.7674*u.au,
         ...                        'e': .0756,
         ...                        'i': 10.59321*u.deg})
-        >>> print(orb.data)
+        >>> print(orb)
+        <sbpy.data.orbit.Orbit object at 0x...>
+        >>> print(orb.column_names) # doctest: +SKIP
+        <TableColumns names=('a','e','i')>
+        >>> print(orb.data['a', 'e', 'i'])
           a      e       i
           AU            deg
         ------ ------ --------

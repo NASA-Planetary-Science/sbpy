@@ -95,8 +95,7 @@ class Names():
             return (yr + let[0] + num + let[1])
         else:
             raise TargetNameParseError(('{} cannot be turned into a '
-                                'packed number or designation').format(s))
-
+                                        'packed number or designation').format(s))
 
     @staticmethod
     def parse_comet(s):
@@ -126,10 +125,12 @@ class Names():
         Examples
         --------
         >>> from sbpy.data import Names
-        >>> Names.parse_comet('9P/Tempel 1')
-        {'type': 'P', 'number': 9, 'name': 'Tempel 1'}
-        >>> Names.parse_comet('C/2001 A2-A (LINEAR)')
-        {'type': 'C', 'desig': '2001 A2', 'fragm': 'A', 'name': 'LINEAR'}
+        >>> tempel = Names.parse_comet('9P/Tempel 1')
+        >>> tempel['type'], tempel['name']
+        ('P', 'Tempel 1')
+        >>> linear = Names.parse_comet('C/2001 A2-A (LINEAR)')
+        >>> linear['desig'], linear['fragm'], linear['name']
+        ('2001 A2', 'A', 'LINEAR')
 
         The following table shows results of the parsing:
 
@@ -171,11 +172,11 @@ class Names():
 
         # define comet matching pattern
         pat = ('^(([1-9][0-9]*[PDCXAI]'
-               '(-[A-Z]{1,2})?)|[PDCXAI]/)' # typ/number/fragm [0,1,2]
+               '(-[A-Z]{1,2})?)|[PDCXAI]/)'  # typ/number/fragm [0,1,2]
                '|([-]?[0-9]{3,4}[ _][A-Z]{1,2}[0-9]{1,3}(-[1-9A-Z]{0,2})?)'
                # designation [3,4]
                '|(([dvA-Z][a-z\']? ?[A-Z]*[a-z]*[ -]?[A-Z]?[1-9]*[a-z]*)'
-               '( [1-9A-Z]{1,2})*)' # name [5,6]
+               '( [1-9A-Z]{1,2})*)'  # name [5,6]
                )
 
         # regex patterns that will be rejected
@@ -255,10 +256,12 @@ class Names():
         components are identfied, a `TargetNameParseError` is raised
 
         >>> from sbpy.data import Names
-        >>> Names.parse_asteroid('(1) Ceres')
-        {'number': 1, 'name': 'Ceres'}
-        >>> Names.parse_asteroid('2014 MU69')
-        {'desig': '2014 MU69'}
+        >>> ceres = Names.parse_asteroid('(1) Ceres')
+        >>> ceres['number'], ceres['name']
+        (1, 'Ceres')
+        >>> mu = Names.parse_asteroid('2014 MU69')
+        >>> mu['desig']
+        '2014 MU69'
 
         Examples
         --------
@@ -296,20 +299,21 @@ class Names():
         # packed numbers translation string
         pkd = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghifklmnopqrstuvwxyz'
 
-        pat = ('(([1-2][0-9]{0,3}[ _][A-Z]{2}[0-9]{0,3})' # designation [0,1]
-               '|([1-9][0-9]{3}[ _](P-L|T-[1-3])))' # Palomar-Leiden  [0,2,3]
-               '|([IJKL][0-9]{2}[A-Z][0-9a-z][0-9][A-Z])' # packed desig [4]
-               '|([A-Za-z][0-9]{4})' # packed number [5]
+        pat = ('(([1-2][0-9]{0,3}[ _][A-Z]{2}[0-9]{0,3})'  # designation [0,1]
+               '|([1-9][0-9]{3}[ _](P-L|T-[1-3])))'  # Palomar-Leiden  [0,2,3]
+               '|([IJKL][0-9]{2}[A-Z][0-9a-z][0-9][A-Z])'  # packed desig [4]
+               '|([A-Za-z][0-9]{4})'  # packed number [5]
                '|([A-Z][A-Z]*[a-z][a-z]*[^0-9]*'
                '[ -]?[A-Z]?[a-z]*[^0-9]*)'  # name [6]
                '|([1-9][0-9]*(\b|$| |_))')  # number [7,8]
 
         # regex patterns that will be rejected
-        rej_pat = ('([1-2][0-9]{0,3}[ _][A-Z][0-9]*(\b|$))' # comet desig
-                   '|([1-9][0-9]*[PDCXAI]\b)' # comet number
-                   '|([PDCXAI]/)' # comet type
-                   '|([1-2][0-9]{0,3}[ _][a-z]{2}[0-9]{0,3})' # small-caps desig
-        )
+        rej_pat = ('([1-2][0-9]{0,3}[ _][A-Z][0-9]*(\b|$))'  # comet desig
+                   '|([1-9][0-9]*[PDCXAI]\b)'  # comet number
+                   '|([PDCXAI]/)'  # comet type
+                   # small-caps desig
+                   '|([1-2][0-9]{0,3}[ _][a-z]{2}[0-9]{0,3})'
+                   )
 
         raw = s.translate(str.maketrans('()_', '   ')).strip()
 
