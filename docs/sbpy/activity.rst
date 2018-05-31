@@ -84,12 +84,15 @@ The `fluxd` and `from_fluxd` methods work with units of flux density per wavelen
 `Afrho` works seamlessly with `sbpy`'s calibration framework when the astropy affiliated package `synphot` is installed.  To convert to flux density using the default solar spectrum omit the `S` parameter:
 
 .. doctest-requires:: synphot
-  >>> wave = [0.4, 0.5, 0.6] * u.um
-  >>> print(afrho.fluxd(wave, aper, eph)) # doctest: +NORMALIZE_WHITESPACE
-  [7.76770018e-14 1.05571410e-13 9.57978939e-14] W / (m2 um)
+
+   >>> wave = [0.4, 0.5, 0.6] * u.um
+   >>> print(afrho.fluxd(wave, aper, eph)) # doctest: +NORMALIZE_WHITESPACE
+  [ 7.76770018e-14 1.05571410e-13 9.57978939e-14] W / (m2 um)
 
 To use the Kurucz (1993) model:
+
 .. doctest-requires:: synphot
+
    >>> from sbpy.spectroscopy.sun import default_sun
    >>> with default_sun.set('Kurucz1993'):            # doctest: +REMOTE_DATA
    ...     print(afrho.fluxd(wave, aper, eph))
