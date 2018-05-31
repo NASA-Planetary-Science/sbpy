@@ -11,9 +11,6 @@ __all__ = ['DataClass', 'mpc_observations', 'sb_search', 'image_search',
            'pds_ferret']
 
 from astropy.table import Table, Column
-from astropy.time import Time
-import astropy.units as u
-import callhorizons
 
 
 class DataClass():
@@ -21,24 +18,26 @@ class DataClass():
     in `sbpy` in order to provide consistent functionality for all
     these classes.
 
-    The core of `DataClass` is an `astropy.Table` object, which
-    already provides most of the required functionality. `DataClass`
-    objects can be manually generated from `dict`
-    (DataClass.from_dict) or `array`-like (DataClass.from_array)
-    objects.
-
+    The core of `DataClass` is an `astropy.Table` object
+    (`DataClass.table`), which already provides most of the required
+    functionality. `DataClass` objects can be manually generated from
+    `dict` (DataClass.from_dict) or `array`-like
+    (DataClass.from_array) objects. A few high-level functions for
+    table modification are provided; other modifications can be
+    applied to the table object (`DataClass.table`) directly.
     """
 
-  def __init__(self, *args, **kwargs):
-
-    """Create Astropy.table from kwargs"""
+    def __init__(self, **kwargs):
+        """Build data table from `**kwargs`."""
         self.table = Table()
+        # self.altkeys = {}  # dictionary for alternative column names
         for key, val in kwargs.items():
             try:
                 unit = val.unit
                 val = val.value
-            except:
+            except AttributeError:
                 unit = None
+
             # check if val is already list-like
             try:
                 val[0]
@@ -49,37 +48,63 @@ class DataClass():
 
     @classmethod
     def from_dict(cls, data):
-        """Create data table from dictionary or list of dictionaries
-        
+        """Create `DataClass` object from dictionary or list of 
+        dictionaries.
+
         Parameters
         ----------
-        data : dictionary or list of dicts, mandatory
-            data that will be rearranged in Astropy Table format
+        data : dictionary or list of dictionaries
+             Data that will be ingested in `DataClass` object. Each
+             dictionary creates a row in the data table. Dictionary
+             keys are used as column names. If a list of dicitionaries
+             is provided, all dictionaries have to provide them same
+             set of keys (and units, if used at all).
 
         Returns
         -------
-        Astropy Table
+        tab : `~DataClass` object
 
         Examples
         --------
-        >>> import astropy.units as u   # doctest: +SKIP
-        >>> from sbpy.data import Orbit  # doctest: +SKIP
-        >>> orb = Orbit.from_dict({'a': 2.7674*u.au,   # doctest: +SKIP
-        >>>                        'e': .0756,  # doctest: +SKIP
-        >>>                        'i': 10.59321*u.deg})  # doctest: +SKIP
+        >>> import astropy.units as u
+        >>> from sbpy.data import Orbit
+        >>> orb = Orbit.from_dict({'a': 2.7674*u.au,
+        ...                        'e': .0756,
+        ...                        'i': 10.59321*u.deg})
+        >>> print(orb.data)
+          a      e       i
+          AU            deg
+        ------ ------ --------
+        2.7674 0.0756 10.59321
 
         """
-        return cls(**data)
-    
+        if isinstance(data, dict):
+            return cls(**data)
+        elif isinstance(data, list):
+            # build table from first dict and append remaining rows
+            tab = cls(**data[0])
+            for row in data[1:]:
+                tab.add_row(row)
+            return tab
+        else:
+            raise TypeError('this function requires a dictionary or a '
+                            'list of dictionaries')
+
     @classmethod
     def from_array(cls, data, names):
-        """Create data table from lists or arrays
+        """Create `DataClass` object from list or array.
 
         Parameters
         ----------
+        data : list of lists or array 
+             Data that will be ingested in `DataClass` object. Each
+             of the sub-list or sub-array on the 0-axis is interpreted becomesdictionary creates a row in the data table. Dictionary
+             keys are used as column names. If a list of dicitionaries
+             is provided, all dictionaries have to provide them same
+             set of keys (and units, if used at all).
         data : list or array, mandatory
-            data that will be rearraned in Astropy Table format, one array per 
-            column
+            data that will be rearranged in Astropy Table format, one array 
+            per column
         names : list, mandatory
             column names, must have n names for n `data` arrays
 
@@ -89,22 +114,22 @@ class DataClass():
 
         Examples
         --------
-        #>>> import astropy.units as u  # doctest: +SKIP
-        #>>> from sbpy.data import Orbit  # doctest: +SKIP
-        #>>> from numpy.random import random as r  # doctest: +SKIP
-        #>>> orb = Orbit.from_array(data=[r(100)*2*u.au,  # doctest: +SKIP
-        #>>>                              r(100), # doctest: +SKIP
-        #>>>                              r(100)*180*u.deg], # doctest: +SKIP
-        #>>>                        names=['a', 'e', 'i']) # doctest: +SKIP
+        #>>> import astropy.units as u  
+        #>>> from sbpy.data import Orbit  
+        #>>> from numpy.random import random as r  
+        #>>> orb = Orbit.from_array(data=[r(100)*2*u.au,  
+        #>>>                              r(100), 
+        #>>>                              r(100)*180*u.deg], 
+        #>>>                        names=['a', 'e', 'i']) 
         """
 
         return cls.from_dict(dict(zip(names, data)))
-    
+
     def __getattr__(self, field):
         if field in self.table.columns:
             return self.table[field]
         else:
-           raise AttributeError ("field '{:s}' does not exist".format(field))
+            raise AttributeError("field '{:s}' does not exist".format(field))
 
     def __setattr__(self, field, value):
         """Set attribute
@@ -117,23 +142,73 @@ class DataClass():
                 # set value there...
                 self.table[field] = value
             else:
-                super().__setattr__(field, value) 
+                super().__setattr__(field, value)
         except:
             # if, not set it for self
             super().__setattr__(field, value)
-    
+
     def __getitem__(self, ident):
         """Return column or row from data table"""
         return self.table[ident]
 
-
     @property
     def data(self):
+        """returns the Astropy Table containing all data."""
         return self.table
-    
-            
+
+    @property
+    def column_names(self):
+        """Returns a list of column names in Table"""
+        return self.table.columns
+
+    def add_row(self, row):
+        """Append a single row to the current table. The new data can be
+        provided in the form of a dictionary or a list. In case of a
+        dictionary, all table column names must be provided in row;
+        additional keys that are not yet column names in the table
+        will be discarded. In case of a list, the list elements must
+        be in the same order as the table columns.
+
+        Returns
+        -------
+
+        n : int, the total number of rows in the table
+
+        """
+        if isinstance(row, dict):
+            newrow = [row[colname] for colname in self.table.columns]
+            self.add_row(newrow)
+        if isinstance(row, list):
+            self.table.add_row(row)
+        return len(self.data)
+
+    def add_column(self, data, name):
+        """Append a single column to the current table. 
+
+        Parameters
+        ----------
+        data : list or array-like, data to be filled into the table; required
+        to have the same length as the existing table
+        name : string, column name
+
+        Returns
+        -------
+        None
+
+        """
+        self.table.add_column(Column(data, name=name))
+
+    def _check_columns(self, colnames):
+        """Checks whether all of the elements in colnames exist as 
+        column names in `self.table`."""
+
+        return all([col in self.column_names for col in colnames])
+
+
 # class Orbit(DataClass):
-#     """Class for querying, manipulating, integrating, and fitting orbital elements
+#
+
+        """Class for querying, manipulating, integrating, and fitting orbital elements
 
 #     Every function of this class returns an Astropy Table object; the
 #     columns in these tables are not fixed and depend on the function
@@ -144,7 +219,6 @@ class DataClass():
 #     (https://github.com/hannorein/rebound) for orbit integrations.
 
 #     """
-
 
 
 #     @classmethod
@@ -165,7 +239,7 @@ class DataClass():
 #             Bibliography instance that will be populated
 
 #         preliminary implementation
-        
+
 #         Returns
 #         -------
 #         Astropy Table
@@ -199,7 +273,7 @@ class DataClass():
 #         if bib is not None:
 #             bib['Horizons orbital elements query'] = {'implementation':
 #                                                       '1996DPS....28.2504G'}
-            
+
 #         return cls.from_array(data, names)
 
 #     @classmethod
@@ -262,7 +336,7 @@ class DataClass():
 #             positions vector
 #         vel : `Astropy.coordinates` instance, mandatory
 #             velocity vector
-        
+
 #         Returns
 #         -------
 #         Astropy Table
@@ -286,7 +360,7 @@ class DataClass():
 #         ----------
 #         epoch : `astropy.time.Time` object, mandatory
 #           The epoch(s) at which to compute state vectors.
-        
+
 #         Returns
 #         -------
 #         pos : `Astropy.coordinates` instance
@@ -313,9 +387,9 @@ class DataClass():
 #         Parameters
 #         ----------
 #         eph : `Astropy.table`, mandatory
-#             set of ephemerides with mandatory columns `ra`, `dec`, `epoch` and 
-#             optional columns `ra_sig`, `dec_sig`, `epoch_sig` 
-        
+#             set of ephemerides with mandatory columns `ra`, `dec`, `epoch` and
+#             optional columns `ra_sig`, `dec_sig`, `epoch_sig`
+
 #         additional parameters will be identified in the future
 
 #         Returns
@@ -325,17 +399,17 @@ class DataClass():
 #         Examples
 #         --------
 #         >>> from sbpy.data import Orbit, Ephem
-#         >>> eph = Ephem.from_array([ra, dec, ra_sigma, dec_sigma, 
+#         >>> eph = Ephem.from_array([ra, dec, ra_sigma, dec_sigma,
 #         >>>                         epochs, epochs_sigma],
-#         >>>                         names=['ra', 'dec', 'ra_sigma', 
-#         >>>                                'dec_sigma', 'epochs', 
+#         >>>                         names=['ra', 'dec', 'ra_sigma',
+#         >>>                                'dec_sigma', 'epochs',
 #         >>>                                'epochs_sigma'])
 #         >>> orb = Orbit.orbfit(eph)
 
 #         not yet implemented
 
 #         """
-        
+
 #     def integrate(self, time, integrator='IAS15'):
 #         """Function that integrates an orbit over a given range of time using
 #         the REBOUND (https://github.com/hannorein/rebound) package
@@ -385,13 +459,13 @@ class DataClass():
 #         not yet implemented
 
 #         """
-        
+
 # # class Ephem(DataClass):
 # #     """Class for storing and querying ephemerides
-    
+
 # #     The `Ephem` class provides an interface to PyEphem
 # #     (http://rhodesmill.org/pyephem/) for ephemeris calculations.
-    
+
 # #     """
 
 # #     @classmethod
@@ -411,7 +485,7 @@ class DataClass():
 # #             Bibliography instance that will be populated.
 
 # #         preliminary implementation
-        
+
 # #         Returns
 # #         -------
 # #         Astropy Table
@@ -430,7 +504,7 @@ class DataClass():
 # #         except TypeError:
 # #             epoch = [epoch]
 
-            
+
 # #         # for now, use CALLHORIZONS for the query; this will be replaced with
 # #         # a dedicated query
 # #         el = callhorizons.query(targetid)
@@ -450,7 +524,7 @@ class DataClass():
 # #         if bib is not None:
 # #             bib['Horizons orbital elements query'] = {'implementation':
 # #                                                       '1996DPS....28.2504G'}
-            
+
 # #         return cls.from_array(data, names)
 
 # #     @classmethod
@@ -491,9 +565,9 @@ class DataClass():
 # #         ----------
 # #         bib : SBPy Bibliography instance, optional, default None
 # #             Bibliography instance that will be populated
-        
+
 # #         additional parameters will be identified in the future
-        
+
 # #         Returns
 # #         -------
 # #         str
@@ -511,7 +585,7 @@ class DataClass():
 # #     @classmethod
 # #     def from_imcce(cls, targetid, epoch, observatory='500', bib=None):
 # #         """Load orbital elements from IMCCE (http://vo.imcce.fr/webservices/miriade/).
-           
+
 # #         Parameters
 # #         ----------
 # #         targetid : str, mandatory
@@ -572,7 +646,7 @@ class DataClass():
 # #     def from_pyephem(cls, orb, location, epoch):
 # #         """Function that derives ephemerides based on an `Astropy.table`
 # #         containing orbital elements using PyEphem (http://rhodesmill.org/pyephem/).
-        
+
 # #         Parameters
 # #         ----------
 # #         orb : `Astropy.table`, mandatory
@@ -580,21 +654,21 @@ class DataClass():
 # #         location : str or dictionary, mandatory
 # #             name of location or a dictionary fully describing the location
 # #         epoch : `Astropy.time` object
-            
+
 # #         Examples
 # #         --------
 # #         >>> from sbpy.data import Ephem, Orbit
 # #         >>> orb = Orbit.from_...
-# #         >>> eph = Ephem.from_pyephem(orb, 
-# #         >>>                          location={'name':'Flagstaff', 
-# #         >>>                                    'geolon':35.199167, 
-# #         >>>                                    'geolat':-111.631111, 
+# #         >>> eph = Ephem.from_pyephem(orb,
+# #         >>>                          location={'name':'Flagstaff',
+# #         >>>                                    'geolon':35.199167,
+# #         >>>                                    'geolat':-111.631111,
 # #         >>>                                    'altitude':'2106'},
 # #         >>>                          epoch=epoch)
 
 # #         not yet implemented
 
-# #         """        
+# #         """
 
 # # class Phys(DataClass):
 # #     """Class for storing and querying physical properties"""
@@ -657,13 +731,12 @@ class DataClass():
 
 # #     def derive_diam(self):
 # #         """Derive diameter from absolute magnitude and geometric albedo"""
-        
+
 # #     def derive_pv(self):
 # #         """Derive geometric albedo from diameter and absolute magnitude"""
 
 # #     def derive_bondalbedo(self):
 # #         """Derive Bond albedo from geometric albedo and photometric phase slope"""
-
 
 
 def mpc_observations(targetid, bib=None):
@@ -684,12 +757,13 @@ def mpc_observations(targetid, bib=None):
 
     Examples
     --------
-    >>> from sbpy.data import mpc_observations 
+    >>> from sbpy.data import mpc_observations
     >>> obs = mpc_observations('ceres')  # doctest: +SKIP
 
     not yet implemented
 
     """
+
 
 def sb_search(field, bib=None):
     """Use the Skybot service (http://vo.imcce.fr/webservices/skybot/) at
@@ -701,7 +775,7 @@ def sb_search(field, bib=None):
     field : string, astropy.io.fits Header object, Primary HDU, or Image HDU
       A FITS image file name, HDU data structure, or header with
       defined WCS
-        
+
     bib : SBPy Bibliography instance, optional, default None
         Bibliography instance that will be populated
 
@@ -717,7 +791,8 @@ def sb_search(field, bib=None):
     not yet implemented
 
     """
-        
+
+
 def image_search(targetid, bib=None):
     """Use the Solar System Object Image Search function of the Canadian
     Astronomy Data Centre
@@ -743,7 +818,8 @@ def image_search(targetid, bib=None):
     not yet implemented
 
     """
-        
+
+
 def pds_ferret(targetid, bib=None):
     """Use the Small Bodies Data Ferret (http://sbntools.psi.edu/ferret/)
     at the Planetary Data System's Small Bodies Node to query for
@@ -769,8 +845,3 @@ def pds_ferret(targetid, bib=None):
     not yet implemented
 
     """
-
-
-
-
-    
