@@ -35,10 +35,10 @@ def test_bibtex():
 
 def test_Tracking():
     reset()
-    
+
     with Tracking():
-        register('test', {'track this': 'bibcode'})
+        register('test', {'track_this': 'bibcode'})
 
     register('test', {'do not track this': 'bibcode'})
 
-    assert ['test:', 'track this:', 'bibcode'] == to_text().split()
+    assert ['test:', 'track_this:', 'bibcode'] == to_text().split()

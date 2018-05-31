@@ -19,13 +19,12 @@ sbpy.data.Ephem:
 
 Bibliography tracking can be used in a context manager::
 
-  >>> from sbpy import bib
-  >>> from sbpy.data import Ephem
-  >>> with bib.Tracking():
-  ...     eph = Ephem.from_horizons('encke', epoch=None, observatory='500')
-  >>> bib.to_text()
-  JPL Horizons:
-    implementation: 1996DPS....28.2504G
+>>> from sbpy import bib
+>>> from sbpy.data import Ephem
+>>> with bib.Tracking():
+...     eph = Ephem.from_horizons('Ceres', epoch=None, observatory='500')
+>>> bib.to_text() # doctest: +SKIP
+sbpy.data.Ephem:\n  implementation: 1996DPS....28.2504G\n
 
 Functions
 ---------
