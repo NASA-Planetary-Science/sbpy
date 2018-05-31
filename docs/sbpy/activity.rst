@@ -86,7 +86,7 @@ The `fluxd` and `from_fluxd` methods work with units of flux density per wavelen
 .. doctest-requires:: synphot
   >>> wave = [0.4, 0.5, 0.6] * u.um
   >>> print(afrho.fluxd(wave, aper, eph))
-  [  7.76770018e-14   1.05571410e-13   9.57978939e-14] W / (m2 um)
+  [7.76770018e-14 1.05571410e-13 9.57978939e-14] W / (m2 um)
 
 To use the Kurucz (1993) model:
 .. doctest-requires:: synphot
@@ -94,7 +94,7 @@ To use the Kurucz (1993) model:
    >>> with default_sun.set('Kurucz1993'):            # doctest: +REMOTE_DATA
    ...     print(afrho.fluxd(wave, aper, eph))
    Downloading ftp://ftp.stsci.edu/cdbs/grid/k93models/standards/sun_kurucz93.fits [Done]
-   [  7.62582935e-14   1.06322888e-13   9.55650074e-14] W / (m2 um)
+   [7.62582935e-14 1.06322888e-13 9.55650074e-14] W / (m2 um)
 
 The `Efrho` class has the same functionality as the `Afrho` class.  The most important difference is that εfρ is calculated using a Planck function and temperature.  `sbpy` follows common practice and parameterizes the temperature as a constant scale factor of $T_{BB} = 278\,r_h^{1/2}$ K, the equilibrium temperature of a large blackbody sphere at a distance $r_h$ from the Sun.
 
