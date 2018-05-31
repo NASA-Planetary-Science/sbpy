@@ -42,7 +42,7 @@ env:
         
         # List other runtime dependencies for the package that are available as
         # pip packages here.
-        - PIP_DEPENDENCIES='callhorizons matplotlib ads'
+        - PIP_DEPENDENCIES='callhorizons matplotlib ads scipy synphot'
 
         # Conda packages for affiliated packages are hosted in channel
         # "astropy" while builds for astropy LTS with recent numpy versions
@@ -87,7 +87,7 @@ matrix:
         - os: linux
           env: ASTROPY_VERSION=lts
                EVENT_TYPE='pull_request push cron'
-	       
+
         # Try all python versions and Numpy versions. Since we can assume that
         # the Numpy developers have taken care of testing Numpy with different
         # versions of Python, we can vary Python and Numpy versions at the same
