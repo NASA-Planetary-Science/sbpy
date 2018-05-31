@@ -164,33 +164,31 @@ Solar spectra in Sun objects can be plotted at the native resolution of the data
    plt.legend()
 
 
-..
-   MM: following code blocks do not work. Please check.
+.. MM: following code blocks do not work. Please check.
    
-..
-   Compare Castelli 1996, Kurucz 1993, and E490_2014 spectra in the optical at a spectral resolution of ~25:
+.. Compare Castelli 1996, Kurucz 1993, and E490_2014 spectra in the optical at a spectral resolution of ~25:
 
-   .. doctest-skip::
+..   .. doctest-skip::
 
-      >>> import matplotlib.pyplot as plt
-      >>> from sbpy.spectroscopy.sun import Sun
-      >>> for source in ['Castelli1996', 'Kurucz1993', 'E490_2014']:
-      ...     sun = Sun.from_builtin(source)
-      ...     fluxd_binned = sun(wave_binned, unit='W / (m2 um)')
-      ...     plt.plot(wave_binned, fluxd_binned, ls='steps-mid', label=source)
-      >>> plt.xlim(0.3, 0.8)
-      >>> plt.legend()
+..      >>> import matplotlib.pyplot as plt
+..      >>> from sbpy.spectroscopy.sun import Sun
+..      >>> for source in ['Castelli1996', 'Kurucz1993', 'E490_2014']:
+..      ...     sun = Sun.from_builtin(source)
+..      ...     fluxd_binned = sun(wave_binned, unit='W / (m2 um)')
+..      ...     plt.plot(wave_binned, fluxd_binned, ls='steps-mid', label=source)
+..      >>> plt.xlim(0.3, 0.8)
+..      >>> plt.legend()
 
-   .. plot::
+..   .. plot::
 
-      import matplotlib.pyplot as plt
-      from sbpy.spectroscopy.sun import Sun
-      for source in ['Castelli1996', 'Kurucz1993', 'E490_2014']:
-	  sun = Sun.from_builtin(source)
-	  fluxd_binned = sun(wave_binned, unit='W / (m2 um)')
-	  plt.plot(wave_binned, fluxd_binned, ls='steps-mid', label=source)
-      plt.xlim(0.3, 0.8)
-      plt.legend()
+..      import matplotlib.pyplot as plt
+..      from sbpy.spectroscopy.sun import Sun
+..      for source in ['Castelli1996', 'Kurucz1993', 'E490_2014']:
+..	  sun = Sun.from_builtin(source)
+..	  fluxd_binned = sun(wave_binned, unit='W / (m2 um)')
+..	  plt.plot(wave_binned, fluxd_binned, ls='steps-mid', label=source)
+..      plt.xlim(0.3, 0.8)
+..      plt.legend()
 
 
 Reference/API
