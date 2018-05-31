@@ -75,11 +75,6 @@ matrix:
         - os: linux
           env: SETUP_CMD='test --coverage'
 
-        # Check for sphinx doc build warnings - we do this first because it
-        # may run for a long time
-        - os: linux
-          env: SETUP_CMD='build_docs -w'
-
         # Now try Astropy dev and LTS vesions with the latest 3.x and 2.7.
         - os: linux
           env: ASTROPY_VERSION=development
@@ -112,6 +107,11 @@ matrix:
         # (allow to fail unless your code completely compliant)
         - os: linux
           env: MAIN_CMD='pycodestyle sbpy --count' SETUP_CMD=''
+
+        # Check for sphinx doc build warnings - allow this to fail
+        - os: linux
+          env: SETUP_CMD='build_docs -w'
+
 
 install:
 
