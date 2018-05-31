@@ -86,8 +86,12 @@ The `fluxd` and `from_fluxd` methods work with units of flux density per wavelen
 .. doctest-requires:: synphot
 
    >>> wave = [0.4, 0.5, 0.6] * u.um
-   >>> print(afrho.fluxd(wave, aper, eph)) # doctest: +NORMALIZE_WHITESPACE
-   [ 7.76770018e-14 1.05571410e-13 9.57978939e-14] W / (m2 um)
+   >>> for i in range(len(wave)):
+   ...     print('{:5.3e} at {:3.1f}'.format(afrho.fluxd(wave[i], aper, eph),
+   ...                                       wave[i]))
+   9.162e-14 W / (m2 um) at 0.4 um
+   1.048e-13 W / (m2 um) at 0.5 um
+   9.641e-14 W / (m2 um) at 0.6 um
 
 To use the Kurucz (1993) model:
 
