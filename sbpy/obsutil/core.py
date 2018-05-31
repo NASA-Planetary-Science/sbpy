@@ -16,8 +16,7 @@ class Obsutil():
         self.targetid = targetid
         self.eph = eph
         self.observatory = observatory
-    
-    
+
     @classmethod
     def check_observability(cls, targetid, epochs, observatory):
         """Check observability for specific target, given epochs, and
@@ -43,14 +42,14 @@ class Obsutil():
         >>> epochs = [Time('2018-05-23 23:00', scale='utc'), # doctest: +SKIP 
                       Time('2018-05-25 04:30', scale='utc'] # doctest: +SKIP
         >>> obs = Obsutil.check_observability('3552', epochs, '568') # doctest: +SKIP
-        
+
         not yet implemented
 
         """
 
     def primetime(self, condition):
         """Find best time to observe target based on some conditions
-        
+
         Parameters
         ----------
         condition : str, mandatory ['airmass', 'Vmag', 'slowest', 'fastest', 
@@ -87,7 +86,7 @@ class Obsutil():
         not yet implemented
 
         """
-        
+
     def finderchart(self):
         """Create finder chart
 
@@ -95,7 +94,7 @@ class Obsutil():
         --------
         >>> from sbpy.obsutil import Obsutil
         >>> from astropy.time import Time
-        >>> import matplotlib.pyplot as plt 
+        >>> import matplotlib.pyplot as plt # doctest: +SKIP
         >>> epochs = [Time('2018-05-23 23:00', scale='utc'), # doctest: +SKIP
                       Time('2018-05-25 04:30', scale='utc'] # doctest: +SKIP
         >>> obs = Obsutil.check_observability('3552', epochs, '568') # doctest: +SKIP
