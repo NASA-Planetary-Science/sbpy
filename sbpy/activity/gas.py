@@ -53,8 +53,8 @@ def photo_lengthscale(species, source=None):
     gamma : astropy Quantity
       The lengthscale at 1 au.
 
-    Example
-    -------
+    Examples
+    --------
     >>> from sbpy.activity import photo_lengthscale
     >>> gamma = photo_lengthscale('OH')
 
@@ -67,8 +67,8 @@ def photo_lengthscale(species, source=None):
     """
 
     data = {   # (value, {key feature: ADS bibcode})
-        'H2O': { 'CS93': (2.4e4 * u.km, {'H2O photodissociation lengthscale': '1993Icar..105..235C'})},
-         'OH': { 'CS93': (1.6e5 * u.km, {'OH photodissociation lengthscale': '1993Icar..105..235C'})},
+        'H2O': {'CS93': (2.4e4 * u.km, {'H2O photodissociation lengthscale': '1993Icar..105..235C'})},
+        'OH': {'CS93': (1.6e5 * u.km, {'OH photodissociation lengthscale': '1993Icar..105..235C'})},
 
     }
 
@@ -91,6 +91,7 @@ def photo_lengthscale(species, source=None):
 
     return gamma
 
+
 def photo_timescale(species, source=None):
     """Photodissociation timescale for a gas species.
 
@@ -112,8 +113,8 @@ def photo_timescale(species, source=None):
       active Sun).
 
 
-    Example
-    -------
+    Examples
+    --------
     >>> from sbpy.activity import photo_timescale
     >>> tau = photo_timescale('OH')
 
@@ -133,14 +134,14 @@ def photo_timescale(species, source=None):
     """
 
     data = {   # (value, {key feature: ADS bibcode})
-        'H2O':   { 'CS93': (5.2e4 * u.s, {'H2O photodissociation timescale': '1993Icar..105..235C'}) },
-        'OH':    { 'CS93': (1.6e5 * u.s, {'OH photodissociation timescale': '1993Icar..105..235C'}) },
-        'HCN':   { 'C94': (6.7e4 * u.s, {'HCN photodissociation timescale': '1994JGR....99.3777C'}) },
-        'CH3OH': { 'C94': (7.7e4 * u.s, {'CH3OH photodissociation timescale': '1994JGR....99.3777C'}) },
-        'H2CO':  { 'C94': (5.0e3 * u.s, {'H2CO photodissociation timescale': '1994JGR....99.3777C'}) },
-        'CO':    { 'CE83': (1.5e6 * u.s, {'CO photodissociation timescale': '1983A%26A...126..170C'}) },
-        'CO2':   { 'CE83': (5.0e5 * u.s, {'CO2 photodissociation timescale': '1983A%26A...126..170C'}) },
-        'CN':    { 'H92': ([3.15e5, 1.35e5] * u.s, {'CN photodissociation timescale': '1992Ap%26SS.195....1H'}) },
+        'H2O':   {'CS93': (5.2e4 * u.s, {'H2O photodissociation timescale': '1993Icar..105..235C'})},
+        'OH':    {'CS93': (1.6e5 * u.s, {'OH photodissociation timescale': '1993Icar..105..235C'})},
+        'HCN':   {'C94': (6.7e4 * u.s, {'HCN photodissociation timescale': '1994JGR....99.3777C'})},
+        'CH3OH': {'C94': (7.7e4 * u.s, {'CH3OH photodissociation timescale': '1994JGR....99.3777C'})},
+        'H2CO':  {'C94': (5.0e3 * u.s, {'H2CO photodissociation timescale': '1994JGR....99.3777C'})},
+        'CO':    {'CE83': (1.5e6 * u.s, {'CO photodissociation timescale': '1983A%26A...126..170C'})},
+        'CO2':   {'CE83': (5.0e5 * u.s, {'CO2 photodissociation timescale': '1983A%26A...126..170C'})},
+        'CN':    {'H92': ([3.15e5, 1.35e5] * u.s, {'CN photodissociation timescale': '1992Ap%26SS.195....1H'})},
     }
 
     default_sources = {
@@ -195,6 +196,7 @@ def photo_timescale(species, source=None):
 
     return tau
 
+
 def fluorescence_band_strength(species, rdot=0 * u.km / u.s,
                                eph=None, source=None):
     """Fluorescence band efficiency of a specific species and transition.
@@ -238,10 +240,10 @@ def fluorescence_band_strength(species, rdot=0 * u.km / u.s,
     # implement list treatment
 
     data = {   # (value, {key feature: bibcode})
-        'OH 0-0': { 'SA88': ('XXX', {'OH 0-0 fluorescence band efficiency': '1988ApJ...331.1058S'})},
-        'OH 1-0': { 'SA88': ('XXX', {'OH 1-0 fluorescence band efficiency': '1988ApJ...331.1058S'})},
-        'OH 1-1': { 'SA88': ('XXX', {'OH 1-1 fluorescence band efficiency': '1988ApJ...331.1058S'})},
-        'OH 2-2': { 'SA88': ('XXX', {'OH 2-2 fluorescence band efficiency': '1988ApJ...331.1058S'})},
+        'OH 0-0': {'SA88': ('XXX', {'OH 0-0 fluorescence band efficiency': '1988ApJ...331.1058S'})},
+        'OH 1-0': {'SA88': ('XXX', {'OH 1-0 fluorescence band efficiency': '1988ApJ...331.1058S'})},
+        'OH 1-1': {'SA88': ('XXX', {'OH 1-1 fluorescence band efficiency': '1988ApJ...331.1058S'})},
+        'OH 2-2': {'SA88': ('XXX', {'OH 2-2 fluorescence band efficiency': '1988ApJ...331.1058S'})},
     }
 
     default_sources = {
@@ -302,7 +304,6 @@ class GasComa(ABC):
 
         """
         pass
-
 
     @abstractmethod
     def column_density(self, rho, eph=None):
@@ -370,10 +371,12 @@ class GasComa(ABC):
         except ImportError as e:
             from astropy.utils.exceptions import AstropyWarning
             from warnings import warn
-            warn(AstropyWarning('scipy is not present, cannot integrate column density.'))
+            warn(AstropyWarning(
+                'scipy is not present, cannot integrate column density.'))
             return None
 
-        assert aper.dim.unit.is_equivalent(u.m), 'GasComa._integrate_column_density requires `aper` in units of length.'
+        assert aper.dim.unit.is_equivalent(
+            u.m), 'GasComa._integrate_column_density requires `aper` in units of length.'
 
         if isinstance(aper, CircularAperture):
             # integrate in polar coordinates
@@ -402,14 +405,16 @@ class GasComa(ABC):
 
             # first "octant"; g and h are the limits of the
             # integration of rho
-            g = lambda th: 0
-            h = lambda th: shape[0] / 2 / np.cos(th)
+            def g(th): return 0
+
+            def h(th): return shape[0] / 2 / np.cos(th)
             th = np.arctan(shape[1] / shape[0])
             N1, err1 = dblquad(f, 0, th, g, h, epsabs=epsabs)
 
             # second "octant"
-            g = lambda th: 0
-            h = lambda th: shape[1] / 2 / np.cos(th)
+            def g(th): return 0
+
+            def h(th): return shape[1] / 2 / np.cos(th)
             th = np.arctan(shape[0] / shape[1])
             N2, err2 = dblquad(f, 0, th, g, h, epsabs=epsabs)
 
@@ -417,12 +422,13 @@ class GasComa(ABC):
             N = 4 * (N1 + N2)
         elif isinstance(aper, GaussianAperture):
             # integrate in polar coordinates
-            f = lambda rho: (rho * aper(rho * u.km).value
-                             * self.column_density(rho * u.km).to(u.km**-2).value)
+            def f(rho): return (rho * aper(rho * u.km).value
+                                * self.column_density(rho * u.km).to(u.km**-2).value)
             N, err = quad(f, 0, np.inf, epsabs=epsabs)
             N *= 2 * np.pi
 
         return N
+
 
 class Haser(GasComa):
     """Haser coma model.
@@ -539,7 +545,8 @@ class Haser(GasComa):
             elif isinstance(aper, CircularAperture):
                 rho = aper.radius
             else:
-                raise NotImplemented("Integration of {} apertures is not implemented.".format(type(aper)))
+                raise NotImplemented(
+                    "Integration of {} apertures is not implemented.".format(type(aper)))
         else:
             rho = rho_as_length(aper, eph)
 
@@ -558,6 +565,7 @@ class Haser(GasComa):
                      + self._K1(y) - self._K1(x)))
 
         return N.decompose().value
+
 
 class Vectorial(GasComa):
     """Vectorial model implementation"""

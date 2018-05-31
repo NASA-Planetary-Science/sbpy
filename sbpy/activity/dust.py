@@ -254,8 +254,8 @@ class Afrho(u.SpecificTypeQuantity):
           provided.
 
 
-        Example
-        -------
+        Examples
+        --------
         >>> from sbpy.activity import Afrho
         >>> import astropy.units as u
         >>> fluxd = 6.730018324465526e-14 * u.W / u.m**2 / u.um
@@ -308,8 +308,8 @@ class Afrho(u.SpecificTypeQuantity):
           `~sbpy.data.solar_absmag`.
 
 
-        Example
-        -------
+        Examples
+        --------
 
         """
 
@@ -362,8 +362,8 @@ class Afrho(u.SpecificTypeQuantity):
           the units of `wave_or_freq`, `S`, or `unit`.
 
 
-        Example
-        -------
+        Examples
+        --------
         >>> from sbpy.activity import Afrho
         >>> import astropy.units as u
         >>> afrho = Afrho(1000, 'cm')
@@ -442,8 +442,8 @@ class Afrho(u.SpecificTypeQuantity):
         mag : `~astropy.units.Quantity` ???
 
 
-        Example
-        -------
+        Examples
+        --------
 
         """
         raise NotImplemented
@@ -573,8 +573,8 @@ class Efrho(u.SpecificTypeQuantity):
           Use this temperature for the Planck function.
 
 
-        Example
-        -------
+        Examples
+        --------
         >>> from sbpy.activity import Efrho
         >>> import astropy.units as u
         >>> wave = 15.8 * u.um
@@ -629,8 +629,8 @@ class Efrho(u.SpecificTypeQuantity):
         fluxd : `~astropy.units.Quantity`
           Spectral flux density.  Return units depend on `unit`.
 
-        Example
-        -------
+        Examples
+        --------
         >>> from sbpy.activity import Efrho
         >>> import astropy.units as u
         >>> efrho = Efrho(120.0, 'cm')
