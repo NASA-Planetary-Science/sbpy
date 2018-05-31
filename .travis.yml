@@ -71,6 +71,10 @@ matrix:
         - os: osx
           env: SETUP_CMD='test'
 
+        # Check for sphinx doc build warnings - allow this to fail
+        - os: linux
+          env: SETUP_CMD='build_docs -w'
+
         # Do a coverage test.
         - os: linux
           env: SETUP_CMD='test --coverage'
