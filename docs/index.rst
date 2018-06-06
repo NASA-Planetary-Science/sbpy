@@ -28,9 +28,8 @@ documentation is only intended to provide an outline for the API to be
 used in SBPy.
 
 For an overview on the expected structure and functionality of `sbpy`,
-please refer to `Module Structure <module structure>`_ page; the
-`Status Page <Status Page>`_ provides an overview on the
-implementation status of all modules and functions.
+please refer to :doc:`structure` page; the :doc:`status` provides an overview
+on the implementation status of all modules and functions.
 
 
 Content

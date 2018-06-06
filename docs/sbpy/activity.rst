@@ -49,7 +49,7 @@ The quantities may be initialized from flux densities.  Here, we reproduce one o
 * $\Delta=3.822$ au
 * phase angle = 3.3°
 * aperture radius = 9.8", 27200 km
-* $\log{F_\lambda}=-13.99$ erg/(cm2 s Å) at $\lambda=5240$ Å
+* $\log{F\_\lambda}=-13.99$ erg/(cm2 s Å) at $\lambda=5240$ Å
 
 The solar flux density at 1 au is also needed.  We use 1868 W/(m2 μm).
 
