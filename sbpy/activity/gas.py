@@ -327,6 +327,47 @@ class GasComa(ABC):
         """
         pass
 
+    def _integrate_volume_density(self, rho, epsabs=1.49e-8):
+        """
+        Integrate volume density along the line of sight.
+
+        Parameters
+        ----------
+        rho : `~astropy.units.Quantity`
+            Projected distance of the region of interest on the plane of
+            the sky in units of length.
+        epsabs : float or int, optional
+            Absolute and relative error tolerance for integrals.  See
+            `scipy.integrate.quad`.
+
+        """
+
+        try:
+            from scipy.integrate import quad
+        except ImportError:
+            from astropy.utils.exceptions import AstropyWarning
+            from warnings import warn
+            warn(AstropyWarning(
+                'scipy is not present, cannot integrate volume density.'))
+            return None
+
+        assert rho.unit.is_equivalent(u.m)
+
+        def f(s):
+            r = np.sqrt(rho.to(u.km).value**2 + s**2)
+            n = self.volume_density(r*u.km) * u.km
+            return n.decompose().value
+
+        # Using an upper limit of integration than 1e9 m makes the
+        # integral divergent
+        # N, err = quad(f, 0, np.inf, epsabs=epsabs)
+        N, err = quad(f, 0, np.max((1.e6, 10*rho.to(u.km).value)), epsabs=epsabs)
+
+        # spherically symmetric coma
+        N *= 2
+
+        return N
+
     @abstractmethod
     def total_number(self, aper, eph=None):
         """Total number of molecules in aperture.

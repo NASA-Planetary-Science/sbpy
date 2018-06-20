@@ -53,6 +53,20 @@ class TestHaser:
         assert np.isclose(N_avg.decompose().value, ideal.decompose().value,
                           rtol=0.01)
 
+    def test_column_density(self):
+        """
+        Test column density for aperture = lengthscale.
+
+        """
+        Q = 1e28 / u.s
+        v = 1 * u.km / u.s
+        rho = 1000 * u.km
+        parent = 1000 * u.km
+        coma = Haser(Q, v, parent)
+        N_avg = coma.column_density(rho)
+        integral = coma._integrate_volume_density(rho)
+        assert np.isclose(N_avg.decompose().value, integral, rtol=1e-4)
+
     def test_total_number_large_aperture(self):
         """Test column density for aperture >> lengthscale."""
         Q = 1 / u.s
