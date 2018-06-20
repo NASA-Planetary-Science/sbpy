@@ -165,7 +165,7 @@ class TestHaser:
 
         from ..core import CircularAperture
 
-        Nobs = 6.41756750e26
+        Nobs = 2.314348613550494e+27
         parent = 1.4e4 * u.km
         Q = 5.8e23 / u.s
         v = 1 * u.km / u.s
@@ -213,7 +213,7 @@ class TestHaser:
         v = 1 * u.km / u.s
         coma = Haser(Q, v, parent, daughter)
         sigma = coma.column_density(r)
-        print((sigma * 1 * u.km**2).decompose())
+        print((sigma * 1 * u.km**2).decompose().sum())
         --> <Quantity 3.449607967230623e+26>
 
         This differs from the test value below by XXX

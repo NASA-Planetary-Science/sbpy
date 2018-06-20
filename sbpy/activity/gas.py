@@ -24,7 +24,6 @@ from abc import ABC, abstractmethod
 import numpy as np
 import astropy.units as u
 from .. import bib
-from .core import Aperture
 
 
 __all__ = [
