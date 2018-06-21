@@ -39,6 +39,7 @@ from abc import ABC, abstractmethod
 import numpy as np
 import astropy.units as u
 
+
 def rho_as_angle(rho, eph):
     """Projected linear distance to angular distance.
 
@@ -63,6 +64,7 @@ def rho_as_angle(rho, eph):
         rho_a = rho
 
     return rho_a
+
 
 def rho_as_length(rho, eph):
     """Angular distance to projected linear distance.
@@ -125,7 +127,7 @@ class Aperture(ABC):
 
         dim = rho_as_angle(self.dim, eph)
         return type(self)(dim)
-        
+
     def as_length(self, eph):
         """This aperture in units of length.
 
@@ -156,7 +158,7 @@ class Aperture(ABC):
             x = rho
 
         return x
-        
+
     @abstractmethod
     def coma_equivalent_radius(self):
         """Circular aperture radius that yields same flux for a 1/ρ coma.
@@ -168,6 +170,7 @@ class Aperture(ABC):
         """
 
         pass
+
 
 class CircularAperture(Aperture):
     """A circular aperture projected at the distance of the target.
@@ -188,9 +191,10 @@ class CircularAperture(Aperture):
     @property
     def radius(self):
         return self.dim
-    
+
     def coma_equivalent_radius(self):
         return self.radius
+
 
 class AnnularAperture(Aperture):
     """Annular aperture projected at the distance of the target.
@@ -217,9 +221,10 @@ class AnnularAperture(Aperture):
     def coma_equivalent_radius(self):
         return max(self.dim) - min(self.dim)
 
+
 class RectangularAperture(Aperture):
     """Rectangular aperture projected at the distance of the target.
-    
+
     Parameters
     ----------
     shape : `~astropy.units.Quantity`
@@ -274,6 +279,7 @@ class RectangularAperture(Aperture):
         I2 = y * np.log(x / y + np.sqrt(1 + (x / y)**2))
         return (I1 + I2) / np.pi
 
+
 class GaussianAperture(Aperture):
     """A Gaussian-shaped aperture, e.g., for radio observations.
 
@@ -294,7 +300,7 @@ class GaussianAperture(Aperture):
 
     def __init__(self, sigma=None, fwhm=None):
         assert (sigma is not None) or (fwhm is not None), "One of `sigma` or `fwhm` must be defined."
-        
+
         if sigma is not None:
             super(GaussianAperture, self).__init__(sigma)
         else:
@@ -326,7 +332,7 @@ class GaussianAperture(Aperture):
         """
 
         x = self._convert_unit(rho, eph)
-        
+
         # normalize to 1.0 at the center?
         return np.exp(-x**2 / self.sigma**2 / 2)
 
