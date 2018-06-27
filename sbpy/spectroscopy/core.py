@@ -7,17 +7,16 @@ SBPy Spectroscopy Module
 created on June 23, 2017
 """
 
-from abc import ABC, abstractmethod
+from abc import ABC
 
 __all__ = ['Spectrum', 'SpectralModel']
-
 
 
 class SpectralModel():
     """Range of spectral models"""
     def haser():
         """Haser model
-        
+
         should allow direct creation of a `sbpy.actvity.Haser` instance"""
         pass
 
@@ -29,7 +28,6 @@ class SpectralModel():
         """Reflectance spectrum (asteroids)"""
 
 
-
 class Spectrum():
 
     def __init__(self, flux, dispersionaxis, unit):
@@ -37,17 +35,16 @@ class Spectrum():
         self.axis = dispersionaxis
         self.unit = unit
 
-
     @classmethod
     def read(cls, filename, columns='auto'):
         """Read spectrum from file
-        
+
         Parameters
         ----------
         filename : str, mandatory
             data file name
         columns : str or list-like, optional, default: 'auto'
-            file format, `auto` will try to recognize the format 
+            file format, `auto` will try to recognize the format
             automatically
 
         Returns
@@ -62,7 +59,6 @@ class Spectrum():
 
         """
 
-        
     def write(self, filename, columns='all'):
         """Write spectrum to file
 
@@ -81,7 +77,7 @@ class Spectrum():
         not yet implemented
 
         """
-            
+
     def convert_units(self, **kwargs):
         """Convert Spectrum units as provided by user
 
@@ -89,11 +85,10 @@ class Spectrum():
         --------
         >>> spec.convert_units(flux_unit=u.K) # doctest: +SKIP
         >>> spec.convert_units(dispersion_unit=u.km/u.s) # doctest: +SKIP
-        
+
         not yet implemented
 
         """
-
 
     def baseline(self, subtract=False):
         """fit baseline to `Spectrum` instance
@@ -151,13 +146,13 @@ class Spectrum():
         >>> spec.fit(spec_model) # doctest: +SKIP
         >>> print(spec.fit_info) # doctest: +SKIP
 
-        not yet implemented 
-        
+        not yet implemented
+
         """
 
     def plot(self):
-        """Plot spectrum 
-       
+        """Plot spectrum
+
         Returns
         -------
         `matplotlib.pyplot` instance
@@ -188,7 +183,7 @@ class SpectralStandard(ABC):
     meta        - Meta data from `source`.
 
     """
-    
+
     def __init__(self, source, description=None, bibcode=None):
         self._source = source
         self._description = description
@@ -249,7 +244,7 @@ class SpectralStandard(ABC):
         import synphot
         from synphot.specio import read_fits_spec, read_ascii_spec
 
-        assert filename is not None, "File name requried."
+        assert filename is not None, "File name required."
 
         # URL cache because synphot.SourceSpectrum.from_file does not
         if _is_url(filename):
@@ -294,7 +289,7 @@ class SpectralStandard(ABC):
     @property
     def meta(self):
         self._source.meta
-            
+
     def __call__(self, wave_or_freq, unit='W / (m2 um)'):
         """Bin the source spectrum.
 
@@ -394,8 +389,8 @@ class SpectralStandard(ABC):
         assert isinstance(bp, (str, synphot.SpectralElement))
 
         if isinstance(bp, str):
-            #bp = get_bandpass(bp)
-            raise NotImplemented
+            # bp = get_bandpass(bp)
+            raise NotImplementedError
 
         obs = synphot.Observation(self.source, bp, **kwargs)
 
@@ -406,6 +401,3 @@ class SpectralStandard(ABC):
         fluxd = obs.effstim(unit, vegaspec=vegaspec)
 
         return wave, fluxd
-
-
-    
