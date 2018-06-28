@@ -39,7 +39,9 @@ not limited to):
 
 
 This package is under heavy development and currently provides only
-very limited functionality. The full functionality is planned to be established by mid-2021. `sbpy` is supported by NASA PDART Grant No. XXX.
+very limited functionality. The full functionality is planned to be
+established by mid-2021. `sbpy` is supported by NASA PDART Grant
+No. 80NSSC18K0987.
 
 Documentation
 -------------

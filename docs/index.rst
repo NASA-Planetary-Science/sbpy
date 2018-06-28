@@ -1,7 +1,7 @@
-SBPy Documentation
+sbpy Documentation
 ==================
 
-SBPy - A Python Module for Small-Body Planetary Astronomy
+sbpy - A Python Module for Small-Body Planetary Astronomy
 
 `sbpy` is a community effort to build a Python package for small-body
 planetary astronomy in the form of an `astropy`_ affiliated package.
@@ -25,7 +25,7 @@ not limited to):
 
 Please note that this package is under heavy development. The current
 documentation is only intended to provide an outline for the API to be
-used in SBPy.
+used in sbpy.
 
 For an overview on the expected structure and functionality of `sbpy`,
 please refer to :doc:`structure` page; the :doc:`status` provides an overview

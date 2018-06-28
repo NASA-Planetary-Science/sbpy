@@ -11,8 +11,8 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="1200"
-   height="220"
+   width="1050"
+   height="330"
    id="svg2"
    version="1.1"
    inkscape:version="0.91 r13725"
@@ -70,7 +70,7 @@
        inkscape:label="Diffuse light"
        inkscape:menu="ABCs"
        inkscape:menu-tooltip="Basic diffuse bevel to use for building textures"
-       color-interpolation-filters="sRGB">
+       style="color-interpolation-filters:sRGB">
       <feGaussianBlur
          id="feGaussianBlur3016"
          stdDeviation="6"
@@ -94,14 +94,15 @@
          result="result4"
          operator="arithmetic"
          k2="0"
-         k3="0.6" />
+         k3="0.6"
+         k4="0" />
     </filter>
     <filter
        id="filter3844"
        inkscape:label="Diffuse light"
        inkscape:menu="ABCs"
        inkscape:menu-tooltip="Basic diffuse bevel to use for building textures"
-       color-interpolation-filters="sRGB">
+       style="color-interpolation-filters:sRGB">
       <feGaussianBlur
          id="feGaussianBlur3846"
          stdDeviation="6"
@@ -125,7 +126,8 @@
          result="result4"
          operator="arithmetic"
          k2="0"
-         k3="0.6" />
+         k3="0.6"
+         k4="0" />
     </filter>
     <linearGradient
        inkscape:collect="always"
@@ -145,12 +147,12 @@
        x2="-433.98331"
        y2="-351.9097"
        gradientUnits="userSpaceOnUse"
-       gradientTransform="matrix(1.3979032,0,0,1.3991906,650.56038,164.02509)" />
+       gradientTransform="matrix(1.3979032,0,0,1.3991906,587.79059,206.98505)" />
     <filter
        inkscape:label="Age"
        inkscape:menu="Image Effects"
        inkscape:menu-tooltip="Imitate aged photograph"
-       style="color-interpolation-filters:sRGB;"
+       style="color-interpolation-filters:sRGB"
        id="filter4292">
       <feColorMatrix
          type="saturate"
@@ -186,15 +188,15 @@
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
      inkscape:zoom="1.73"
-     inkscape:cx="477.01331"
-     inkscape:cy="66.825766"
+     inkscape:cx="810.04305"
+     inkscape:cy="97.397413"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
      inkscape:snap-global="true"
      inkscape:snap-grids="true"
      inkscape:window-width="1920"
-     inkscape:window-height="1028"
+     inkscape:window-height="1027"
      inkscape:window-x="0"
      inkscape:window-y="24"
      inkscape:window-maximized="1"
@@ -210,7 +212,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -218,38 +220,38 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(2.5547457,54.766869)">
+     transform="translate(2.5547457,164.76687)">
     <text
        xml:space="preserve"
-       x="219.73097"
-       y="39.804565"
+       x="216.08936"
+       y="-34.484451"
        id="text3084"
        sodipodi:linespacing="125%"
        style="line-height:125%"><tspan
          sodipodi:role="line"
          id="tspan3086"
-         x="219.73097"
-         y="39.804565"
+         x="216.08936"
+         y="-34.484451"
          style="font-style:normal;font-variant:normal;font-weight:600;font-stretch:normal;font-size:170px;line-height:125%;font-family:'Source Sans Pro';-inkscape-font-specification:'Source Sans Pro Semi-Bold';text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#4d4d4d;fill-opacity:1">sb<tspan
    style="font-style:normal;font-variant:normal;font-weight:300;font-stretch:normal;font-size:170px;line-height:125%;font-family:'Source Sans Pro';-inkscape-font-specification:'Source Sans Pro Light';text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#ff5000;fill-opacity:1"
    id="tspan3088">py</tspan></tspan></text>
     <text
        xml:space="preserve"
-       x="230.3024"
-       y="115.80457"
+       x="226.66078"
+       y="41.515556"
        id="text3858"
        sodipodi:linespacing="125%"
        style="line-height:125%"><tspan
          sodipodi:role="line"
          id="tspan3860"
-         x="230.3024"
-         y="115.80457"
+         x="226.66078"
+         y="41.515556"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:48px;font-family:'Source Sans Pro';-inkscape-font-specification:'Source Sans Pro';fill:#4d4d4d;fill-opacity:1">An Astro<tspan
    style="fill:#ff5000;fill-opacity:1"
    id="tspan4312">py</tspan> Affiliated Package for </tspan><tspan
          sodipodi:role="line"
-         x="230.3024"
-         y="175.80457"
+         x="226.66078"
+         y="101.51556"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:48px;font-family:'Source Sans Pro';-inkscape-font-specification:'Source Sans Pro';fill:#4d4d4d;fill-opacity:1"
          id="tspan4183">Small-Body Planetary Astronomy</tspan></text>
     <text
@@ -266,7 +268,7 @@
     <ellipse
        clip-path="none"
        mask="none"
-       transform="matrix(0.76238217,-0.64712706,0.63841864,0.76968931,352.35391,-252.17284)"
+       transform="matrix(0.76238217,-0.64712706,0.63841864,0.76968931,348.71229,-326.46186)"
        id="path4185"
        style="fill:url(#linearGradient4268);fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-opacity:1;filter:url(#filter4292)"
        cx="-382.68448"
@@ -285,16 +287,16 @@
        sodipodi:argument="-6.0698166"
        sodipodi:t0="0"
        d="m 238.396,198.78328 c 32.61949,7.06756 15.40308,37.20961 -8.24653,38.06088 -26.00022,0.93589 -44.08994,-24.61831 -41.97511,-48.94224 2.67817,-30.80329 32.53302,-51.80129 62.38812,-48.26147"
-       transform="matrix(0.9567208,0.76221217,0.74158876,-0.96791166,-244.81723,49.327681)" />
+       transform="matrix(0.9567208,0.76221217,0.74158876,-0.96791166,-248.45885,-24.961336)" />
     <path
        style="fill:#e6e6e6;fill-opacity:1;stroke:none;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M 122.34655,108.78207 103.68304,91.008261 89.765333,115.77641 117.28983,119.0732 Z"
+       d="M 118.70493,34.493053 100.04142,16.719244 86.123715,41.487393 113.64821,44.784183 Z"
        id="path3853-1"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="ccccc" />
     <g
        id="g3804-2"
-       transform="matrix(-0.91424673,0.25961061,-0.25485923,-0.89751423,250.52142,57.27)"
+       transform="matrix(-0.91424673,0.25961061,-0.25485923,-0.89751423,246.8798,-17.019017)"
        style="fill:none;fill-opacity:0.5098038;stroke:#e6e6e6;stroke-opacity:1">
       <path
          inkscape:connector-curvature="0"
@@ -316,13 +318,13 @@
        style="opacity:0.5;fill:url(#linearGradient4290);fill-opacity:1;stroke:none;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:0.38983053"
        id="path4280"
        sodipodi:type="arc"
-       sodipodi:cx="37.902508"
-       sodipodi:cy="-174.45273"
+       sodipodi:cx="-24.867279"
+       sodipodi:cy="-131.49266"
        sodipodi:rx="195.70645"
        sodipodi:ry="151.91212"
        sodipodi:start="4.3681018"
        sodipodi:end="5.0610825"
-       d="m -28.153464,-317.45009 a 195.70645,151.91212 0 0 1 132.923044,0.22732 l -66.867072,142.77004 z"
+       d="m -90.923251,-274.49002 a 195.70645,151.91212 0 0 1 132.923043,0.22732 l -66.867071,142.77004 z"
        transform="matrix(-0.53626814,0.84404768,-0.86832046,-0.49600361,0,0)"
        inkscape:transform-center-x="-79.281021"
        inkscape:transform-center-y="64.201818" />

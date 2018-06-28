@@ -228,7 +228,7 @@ acknowledgment of methods and code utilized by the user. After
 activating the bibliography tracker in `sbpy.bib`, references and
 citations of all functions used by the user are tracked in the
 background. The user can request a list of references that should be
-cited based on SBPy functionality that was used at any time as clear
+cited based on sbpy functionality that was used at any time as clear
 text or in the LATeX BibTex format.
 
 
