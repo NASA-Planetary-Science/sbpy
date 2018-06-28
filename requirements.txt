@@ -4,3 +4,4 @@ callhorizons
 matplotlib
 ads
 synphot
+astroquery
