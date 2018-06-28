@@ -8,9 +8,54 @@ created on June 23, 2017
 """
 
 from abc import ABC
+import numpy as np
+import astropy.units as u
+import astropy.constants as const
 
 __all__ = ['Spectrum', 'SpectralModel']
 
+
+def einstein_coeff(frequency):
+    """
+    Einstein coefficient from molecular data
+
+    Parameters
+    ----------
+    frequency : `~astropy.units.Quantity`
+        Transition frequency
+
+    Returns
+    -------
+    einstein_coeff : float
+        Spontaneous emission coefficient
+
+    not implemented
+    """
+
+def total_number(integrated_flux, frequency):
+    """
+    Basic equation relating number of molecules with observed integrated flux.
+    This is given by equation 10 in
+    https://ui.adsabs.harvard.edu/#abs/2004come.book..523C
+
+    Parameters
+    ----------
+    integrated_flux : `~astropy.units.Quantity`
+        Integrated flux of emission line.
+    frequency : `~astropy.units.Quantity`
+        Transition frequency
+
+    Returns
+    -------
+    total_number : float
+        Total number of molecules within the aperture
+
+    not implemented
+    """
+    total_number = integrated_flux
+    total_number *= 8*np.pi*u.k_B*frequency**2/(const.h*const.c**3*
+                                                einstein_coeff(frequency))
+    return total_number
 
 class SpectralModel():
     """Range of spectral models"""
@@ -132,6 +177,26 @@ class Spectrum():
 
         """
 
+    def integrated_flux(self, frequency, interval=1*u.km/u.s):
+        """
+        Calculate integrated flux of emission line.
+
+        Parameters
+        ----------
+        frequency : `~astropy.units.Quantity`
+            Transition frequency
+        interval : `~astropy.units.Quantity`
+            line width
+
+        Examples
+        --------
+        >>> flux = spec.integrated_flux(frequency=556.9*u.GHz,
+                                        interval=1.7*u.km/u.s) # doctest: +SKIP
+
+        not yet implemented
+
+        """
+
     def fit(self, spec):
         """Fit `SpectralModel` to different model types
 
@@ -149,6 +214,44 @@ class Spectrum():
         not yet implemented
 
         """
+
+    def production_rate(self, coma, molecule, frequency, aper):
+        """
+        Calculate production rate for `GasComa`
+
+        Parameters
+        ----------
+        coma : `sbpy.activity.gas.GasComa`
+            Gas coma model
+
+        Returns
+        -------
+        Q : `~astropy.units.Quantity`
+            production rate
+
+        Examples
+        --------
+        >>> from sbpy.activity.gas import Haser
+        >>> coma = Haser(Q, v, parent) # doctest: +SKIP
+        >>> Q = spec.production_rate(coma, molecule='H2O') # doctest: +SKIP
+
+        not yet implemented
+
+        """
+
+        from ..activity.gas import GasComa
+
+        assert isinstance(coma, GasComa)
+
+        integrated_line = self.integrated_flux(frequency)
+
+        molecules = total_number(integrated_line, frequency)
+
+        model_molecules = coma.total_number(aper)
+
+        Q = coma.q * molecules/model_molecules
+
+        return Q
 
     def plot(self):
         """Plot spectrum
