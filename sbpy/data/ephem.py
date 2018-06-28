@@ -14,73 +14,78 @@ from .core import DataClass
 
 __all__ = ['Ephem']
 
+
 class Ephem(DataClass):
     """Class for storing and querying ephemerides
-    
-    The `Ephem` class provides an interface to PyEphem
-    (http://rhodesmill.org/pyephem/) for ephemeris calculations.
-    
+
+    The `Ephem` class provides an interface to
+    `PyEphem <http://rhodesmill.org/pyephem/>`_ for ephemeris calculations.
+
     """
 
     @classmethod
-    def from_horizons(cls, targetid, epoch, observatory, center='500@10',
-                      bib=None):
-        """Load orbital elements from JPL Horizons (https://ssd.jpl.nasa.gov/horizons.cgi).
+    def from_horizons(cls, targetid, id_type='smallbody',
+                      epochs=None, observatory='500', **kwargs):
+        """Load target ephemerides from
+        `JPL Horizons <https://ssd.jpl.nasa.gov/horizons.cgi>`_ using
+        `astroquery.jplhorizons <http://astroquery.readthedocs.io/en/latest/jplhorizons/jplhorizons.html>`_.
 
         Parameters
         ----------
         targetid : str, mandatory
             Target identifier.
-        epoch : astropy Time instance or iterable, optional, default None
-            Epoch of elements; if None is provided, current date is used.
-        center : str, optional, default '500@10' (Sun)
-            Center body of orbital elements.
-        bib : SBPy Bibliography instance, optional, default None
-            Bibliography instance that will be populated.
+        id_type : str, optional, default: `'smallbody'`
+            the nature of the `targetid` provided; possible values are
+            `'smallbody'` (asteroid or comet), `'majorbody'` (planet or
+            satellite), `'designation'` (asteroid or comet designation),
+            `'name'` (asteroid or comet name), `'asteroid_name'`,
+            `'comet_name'`, `'id'` (Horizons id)
+        epochs : `astropy.Time` instance or iterable or dictionary, optional, default: None
+            Epoch of elements; a list or array of `astropy.Time` objects
+            should be used for a number of discrete epochs; a dictionary
+            including keywords `start`, `step`, and `stop` can be used to
+            generate a range of epochs (see the
+            `astroquery.jplhorizons <http://astroquery.readthedocs.io/en/latest/jplhorizons/jplhorizons.html#overview>`
+            documentation for details); if None is provided, current date
+            and time are used.
+        observatory : str, optional, default '500' (geocentric)
+            location of observer
+        **kwargs : optional arguments that will be provided to `~astroquery.jplhorizons.Horizons.ephemerides`
 
         preliminary implementation
-        
+
         Returns
         -------
-        Astropy Table
+        `~DataClass` object
 
         Examples
         --------
-        >>> from sbpy.data import Orbit
+        >>> from sbpy.data import Ephem
         >>> from astropy.time import Time
         >>> epoch = Time('2018-05-14', scale='utc')
-        >>> orb = Orbit.from_horizons('ceres', epoch)
+        >>> eph = Ephem.from_horizons('ceres', epochs=epoch)
 
         """
 
         from astropy.time import Time
-        
-        if epoch is None:
-            epoch = [Time.now()]
-        elif isinstance(epoch, Time):
-            epoch = [epoch]
-            
-        # for now, use CALLHORIZONS for the query; this will be replaced with
-        # a dedicated query
-        import callhorizons
-        el = callhorizons.query(targetid)
-        el.set_discreteepochs([ep.jd for ep in epoch])
-        el.get_ephemerides(observatory)
+        from astroquery.jplhorizons import Horizons
+        from .. import bib
 
-        data = [el[field] for field in el.fields]
-        names = el.fields
-        #meta = {'name': 'orbital elements from JPL Horizons'}
-        # table = Table([el[field] for field in el.fields],
-        #               names=el.fields,
-        #               meta={'name': 'orbital elements from JPL Horizons'})
-        # # Astropy units will be integrated in the future
+        if epochs is None:
+            epochs = [Time.now().jd]
+        elif isinstance(epochs, Time):
+            epochs = [Time(epochs).jd]
 
-        from .. import bib        
+        # load ephemerides using astroquery.jplhorizons
+        obj = Horizons(id=targetid, id_type=id_type, location=observatory,
+                       epochs=epochs)
+        eph = obj.ephemerides(**kwargs)
+
         if bib.status() is None or bib.status():
             bib.register('sbpy.data.Ephem', {'implementation':
                                              '1996DPS....28.2504G'})
-        
-        return cls.from_array(data, names)
+
+        return cls.from_table(eph)
 
     @classmethod
     def from_mpc(cls, targetid, epoch, observatory='500', bib=None):
@@ -120,9 +125,9 @@ class Ephem(DataClass):
         ----------
         bib : SBPy Bibliography instance, optional, default None
             Bibliography instance that will be populated
-        
+
         additional parameters will be identified in the future
-        
+
         Returns
         -------
         str
@@ -140,7 +145,7 @@ class Ephem(DataClass):
     @classmethod
     def from_imcce(cls, targetid, epoch, observatory='500', bib=None):
         """Load orbital elements from IMCCE (http://vo.imcce.fr/webservices/miriade/).
-           
+
         Parameters
         ----------
         targetid : str, mandatory
@@ -201,7 +206,7 @@ class Ephem(DataClass):
     def from_pyephem(cls, orb, location, epoch):
         """Function that derives ephemerides based on an `Astropy.table`
         containing orbital elements using PyEphem (http://rhodesmill.org/pyephem/).
-        
+
         Parameters
         ----------
         orb : `Astropy.table`, mandatory
@@ -209,7 +214,7 @@ class Ephem(DataClass):
         location : str or dictionary, mandatory
             name of location or a dictionary fully describing the location
         epoch : `Astropy.time` object
-            
+
         Examples
         --------
         >>> from sbpy.data import Ephem, Orbit # doctest: +SKIP
@@ -223,4 +228,4 @@ class Ephem(DataClass):
 
         not yet implemented
 
-        """        
+        """
