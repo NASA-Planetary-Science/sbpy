@@ -18,41 +18,45 @@ __all__ = ['Ephem']
 class Ephem(DataClass):
     """Class for storing and querying ephemerides
 
+<<<<<<< HEAD
     The `Ephem` class provides an interface to
     `PyEphem <http://rhodesmill.org/pyephem/>`_ for ephemeris calculations.
+=======
+    The `Ephem` class provides an interface to PyEphem
+    (http://rhodesmill.org/pyephem/) for ephemeris calculations.
+>>>>>>> adef0b2e12cb7086bace482c594d4bfd07a9d514
 
     """
 
     @classmethod
     def from_horizons(cls, targetid, id_type='smallbody',
                       epochs=None, observatory='500', **kwargs):
-        """Load target ephemerides from
+        """
+        Load target ephemerides from
         `JPL Horizons <https://ssd.jpl.nasa.gov/horizons.cgi>`_ using
         `astroquery.jplhorizons <http://astroquery.readthedocs.io/en/latest/jplhorizons/jplhorizons.html>`_.
 
         Parameters
         ----------
-        targetid : str, mandatory
+        targetid: str, mandatory
             Target identifier.
-        id_type : str, optional, default: `'smallbody'`
+        id_type: str, optional, default: `'smallbody'`
             the nature of the `targetid` provided; possible values are
             `'smallbody'` (asteroid or comet), `'majorbody'` (planet or
             satellite), `'designation'` (asteroid or comet designation),
             `'name'` (asteroid or comet name), `'asteroid_name'`,
             `'comet_name'`, `'id'` (Horizons id)
-        epochs : `astropy.Time` instance or iterable or dictionary, optional, default: None
+        epochs: `astropy.Time` instance or iterable or dictionary, optional, default: None
             Epoch of elements; a list or array of `astropy.Time` objects
             should be used for a number of discrete epochs; a dictionary
             including keywords `start`, `step`, and `stop` can be used to
-            generate a range of epochs (see the
-            `astroquery.jplhorizons <http://astroquery.readthedocs.io/en/latest/jplhorizons/jplhorizons.html#overview>`
+            generate a range of epochs(see the
+            `astroquery.jplhorizons < http: // astroquery.readthedocs.io/en/latest/jplhorizons/jplhorizons.html  # overview>`
             documentation for details); if None is provided, current date
             and time are used.
-        observatory : str, optional, default '500' (geocentric)
+        observatory: str, optional, default '500' (geocentric)
             location of observer
-        **kwargs : optional arguments that will be provided to `~astroquery.jplhorizons.Horizons.ephemerides`
-
-        preliminary implementation
+        **kwargs: optional arguments that will be provided to `~astroquery.jplhorizons.Horizons.ephemerides`
 
         Returns
         -------
@@ -60,14 +64,15 @@ class Ephem(DataClass):
 
         Examples
         --------
-        >>> from sbpy.data import Ephem
-        >>> from astropy.time import Time
-        >>> epoch = Time('2018-05-14', scale='utc')
-        >>> eph = Ephem.from_horizons('ceres', epochs=epoch)
+        >> > from sbpy.data import Ephem
+        >> > from astropy.time import Time
+        >> > epoch = Time('2018-05-14', scale='utc')
+        >> > eph = Ephem.from_horizons('ceres', epochs=epoch)
 
         """
 
         from astropy.time import Time
+
         from astroquery.jplhorizons import Horizons
         from .. import bib
 
@@ -81,25 +86,21 @@ class Ephem(DataClass):
                        epochs=epochs)
         eph = obj.ephemerides(**kwargs)
 
-        if bib.status() is None or bib.status():
-            bib.register('sbpy.data.Ephem', {'implementation':
-                                             '1996DPS....28.2504G'})
-
         return cls.from_table(eph)
 
     @classmethod
     def from_mpc(cls, targetid, epoch, observatory='500', bib=None):
-        """Load ephemerides from the Minor Planet Center (http://minorplanetcenter.net/).
+        """Load ephemerides from the Minor Planet Center(http: // minorplanetcenter.net/).
 
         Parameters
         ----------
-        targetid : str, mandatory
+        targetid: str, mandatory
             target identifier
-        epochs : astropy Time instance or iterable, optional, default None
+        epochs: astropy Time instance or iterable, optional, default None
             epoch of elements; if None is provided, current date is used
-        observatory : str, optional, default '500' (geocentric)
+        observatory: str, optional, default '500' (geocentric)
             location of observer
-        bib : SBPy Bibliography instance, optional, default None
+        bib: SBPy Bibliography instance, optional, default None
             Bibliography instance that will be populated
 
         Returns
@@ -108,10 +109,10 @@ class Ephem(DataClass):
 
         Examples
         --------
-        >>> from sbpy.data import Ephem # doctest: +SKIP
-        >>> from astropy.time import Time # doctest: +SKIP
-        >>> epoch = Time('2018-05-14', scale='utc') # doctest: +SKIP
-        >>> eph = Ephem.from_mpc('ceres', '568', epoch) # doctest: +SKIP
+        >> > from sbpy.data import Ephem  # doctest: +SKIP
+        >> > from astropy.time import Time  # doctest: +SKIP
+        >> > epoch = Time('2018-05-14', scale='utc')  # doctest: +SKIP
+        >> > eph = Ephem.from_mpc('ceres', '568', epoch)  # doctest: +SKIP
 
         not yet implemented
 
@@ -119,11 +120,11 @@ class Ephem(DataClass):
 
     def report_to_mpc(bib=None):
         """Format as a report to the Minor Planet Center
-        (http://minorplanetcenter.net/).
+        (http: // minorplanetcenter.net/).
 
         Parameters
         ----------
-        bib : SBPy Bibliography instance, optional, default None
+        bib: SBPy Bibliography instance, optional, default None
             Bibliography instance that will be populated
 
         additional parameters will be identified in the future
@@ -134,9 +135,9 @@ class Ephem(DataClass):
 
         Examples
         --------
-        >>> from sbpy.data import Ephem # doctest: +SKIP
-        >>> eph = Ephem.from_array... # doctest: +SKIP
-        >>> report = eph.report_to_mpc() # doctest: +SKIP
+        >> > from sbpy.data import Ephem  # doctest: +SKIP
+        >> > eph = Ephem.from_array...  # doctest: +SKIP
+        >> > report = eph.report_to_mpc()  # doctest: +SKIP
 
         not yet implemented
 
@@ -144,17 +145,17 @@ class Ephem(DataClass):
 
     @classmethod
     def from_imcce(cls, targetid, epoch, observatory='500', bib=None):
-        """Load orbital elements from IMCCE (http://vo.imcce.fr/webservices/miriade/).
+        """Load orbital elements from IMCCE(http: // vo.imcce.fr/webservices/miriade/).
 
         Parameters
         ----------
-        targetid : str, mandatory
+        targetid: str, mandatory
             target identifier
-        epochs : astropy Time instance or iterable, optional, default None
+        epochs: astropy Time instance or iterable, optional, default None
             epoch of elements; if None is provided, current date is used
-        observatory : str, optional, default '500' (geocentric)
+        observatory: str, optional, default '500' (geocentric)
             location of observer
-        bib : SBPy Bibliography instance, optional, default None
+        bib: SBPy Bibliography instance, optional, default None
             Bibliography instance that will be populated
 
         Returns
@@ -163,10 +164,10 @@ class Ephem(DataClass):
 
         Examples
         --------
-        >>> from sbpy.data import Ephem # doctest: +SKIP
-        >>> from astropy.time import Time # doctest: +SKIP
-        >>> epoch = Time('2018-05-14', scale='utc') # doctest: +SKIP
-        >>> eph = Ephem.from_imcce('ceres', '568', epoch) # doctest: +SKIP
+        >> > from sbpy.data import Ephem  # doctest: +SKIP
+        >> > from astropy.time import Time  # doctest: +SKIP
+        >> > epoch = Time('2018-05-14', scale='utc')  # doctest: +SKIP
+        >> > eph = Ephem.from_imcce('ceres', '568', epoch)  # doctest: +SKIP
 
         not yet implemented
 
@@ -174,17 +175,17 @@ class Ephem(DataClass):
 
     @classmethod
     def from_lowell(cls, targetid, epoch, observatory='500', bib=None):
-        """Load orbital elements from Lowell Observatory (http://asteroid.lowell.edu/).
+        """Load orbital elements from Lowell Observatory(http: // asteroid.lowell.edu/).
 
         Parameters
         ----------
-        targetid : str, mandatory
+        targetid: str, mandatory
             target identifier
-        epochs : astropy Time instance or iterable, optional, default None
+        epochs: astropy Time instance or iterable, optional, default None
             epoch of elements; if None is provided, current date is used
-        observatory : str, optional, default '500' (geocentric)
+        observatory: str, optional, default '500' (geocentric)
             location of observer
-        bib : SBPy Bibliography instance, optional, default None
+        bib: SBPy Bibliography instance, optional, default None
             Bibliography instance that will be populated
 
         Returns
@@ -193,10 +194,10 @@ class Ephem(DataClass):
 
         Examples
         --------
-        >>> from sbpy.data import Ephem # doctest: +SKIP
-        >>> from astropy.time import Time # doctest: +SKIP
-        >>> epoch = Time('2018-05-14', scale='utc') # doctest: +SKIP
-        >>> eph = Ephem.from_lowell('ceres', '568', epoch) # doctest: +SKIP
+        >> > from sbpy.data import Ephem  # doctest: +SKIP
+        >> > from astropy.time import Time  # doctest: +SKIP
+        >> > epoch = Time('2018-05-14', scale='utc')  # doctest: +SKIP
+        >> > eph = Ephem.from_lowell('ceres', '568', epoch)  # doctest: +SKIP
 
         not yet implemented
 
@@ -205,26 +206,26 @@ class Ephem(DataClass):
     @classmethod
     def from_pyephem(cls, orb, location, epoch):
         """Function that derives ephemerides based on an `Astropy.table`
-        containing orbital elements using PyEphem (http://rhodesmill.org/pyephem/).
+        containing orbital elements using PyEphem(http: // rhodesmill.org/pyephem/).
 
         Parameters
         ----------
-        orb : `Astropy.table`, mandatory
+        orb: `Astropy.table`, mandatory
             complete set of orbital elements
-        location : str or dictionary, mandatory
+        location: str or dictionary, mandatory
             name of location or a dictionary fully describing the location
-        epoch : `Astropy.time` object
+        epoch: `Astropy.time` object
 
         Examples
         --------
-        >>> from sbpy.data import Ephem, Orbit # doctest: +SKIP
-        >>> orb = Orbit.from_... # doctest: +SKIP
-        >>> eph = Ephem.from_pyephem(orb,  # doctest: +SKIP
-        >>>                          location={'name':'Flagstaff', # doctest: +SKIP
-        >>>                                    'geolon':35.199167, # doctest: +SKIP
-        >>>                                    'geolat':-111.631111, # doctest: +SKIP
-        >>>                                    'altitude':'2106'},# doctest: +SKIP
-        >>>                          epoch=epoch) # doctest: +SKIP
+        >> > from sbpy.data import Ephem, Orbit  # doctest: +SKIP
+        >> > orb = Orbit.from_...  # doctest: +SKIP
+        >> > eph = Ephem.from_pyephem(orb,  # doctest: +SKIP
+        >> >                          location={'name': 'Flagstaff',  # doctest: +SKIP
+        >> >                                    'geolon': 35.199167,  # doctest: +SKIP
+        >> >                                    'geolat': -111.631111,  # doctest: +SKIP
+        >> >                                    'altitude': '2106'},  # doctest: +SKIP
+        >> >                          epoch=epoch)  # doctest: +SKIP
 
         not yet implemented
 
