@@ -14,16 +14,17 @@ from .core import DataClass
 
 __all__ = ['Ephem']
 
+
 class Ephem(DataClass):
     """Class for storing and querying ephemerides
-    
+
     The `Ephem` class provides an interface to PyEphem
     (http://rhodesmill.org/pyephem/) for ephemeris calculations.
-    
+
     """
 
     @classmethod
-    def from_horizons(cls, targetid, epoch, observatory, center='500@10',
+    def from_horizons(cls, targetid, epoch, observatory='500',
                       bib=None):
         """Load orbital elements from JPL Horizons (https://ssd.jpl.nasa.gov/horizons.cgi).
 
@@ -33,33 +34,33 @@ class Ephem(DataClass):
             Target identifier.
         epoch : astropy Time instance or iterable, optional, default None
             Epoch of elements; if None is provided, current date is used.
-        center : str, optional, default '500@10' (Sun)
-            Center body of orbital elements.
+        observatory : str, optional, default '500' (geocentric)
+            location of observer
         bib : SBPy Bibliography instance, optional, default None
             Bibliography instance that will be populated.
 
         preliminary implementation
-        
+
         Returns
         -------
         Astropy Table
 
         Examples
         --------
-        >>> from sbpy.data import Orbit
+        >>> from sbpy.data import Ephem
         >>> from astropy.time import Time
         >>> epoch = Time('2018-05-14', scale='utc')
-        >>> orb = Orbit.from_horizons('ceres', epoch)
+        >>> eph = Ephem.from_horizons('ceres', epoch)
 
         """
 
         from astropy.time import Time
-        
+
         if epoch is None:
             epoch = [Time.now()]
         elif isinstance(epoch, Time):
             epoch = [epoch]
-            
+
         # for now, use CALLHORIZONS for the query; this will be replaced with
         # a dedicated query
         import callhorizons
@@ -69,17 +70,17 @@ class Ephem(DataClass):
 
         data = [el[field] for field in el.fields]
         names = el.fields
-        #meta = {'name': 'orbital elements from JPL Horizons'}
+        # meta = {'name': 'orbital elements from JPL Horizons'}
         # table = Table([el[field] for field in el.fields],
         #               names=el.fields,
         #               meta={'name': 'orbital elements from JPL Horizons'})
         # # Astropy units will be integrated in the future
 
-        from .. import bib        
+        from .. import bib
         if bib.status() is None or bib.status():
             bib.register('sbpy.data.Ephem', {'implementation':
                                              '1996DPS....28.2504G'})
-        
+
         return cls.from_array(data, names)
 
     @classmethod
@@ -120,9 +121,9 @@ class Ephem(DataClass):
         ----------
         bib : SBPy Bibliography instance, optional, default None
             Bibliography instance that will be populated
-        
+
         additional parameters will be identified in the future
-        
+
         Returns
         -------
         str
@@ -140,7 +141,7 @@ class Ephem(DataClass):
     @classmethod
     def from_imcce(cls, targetid, epoch, observatory='500', bib=None):
         """Load orbital elements from IMCCE (http://vo.imcce.fr/webservices/miriade/).
-           
+
         Parameters
         ----------
         targetid : str, mandatory
@@ -201,7 +202,7 @@ class Ephem(DataClass):
     def from_pyephem(cls, orb, location, epoch):
         """Function that derives ephemerides based on an `Astropy.table`
         containing orbital elements using PyEphem (http://rhodesmill.org/pyephem/).
-        
+
         Parameters
         ----------
         orb : `Astropy.table`, mandatory
@@ -209,7 +210,7 @@ class Ephem(DataClass):
         location : str or dictionary, mandatory
             name of location or a dictionary fully describing the location
         epoch : `Astropy.time` object
-            
+
         Examples
         --------
         >>> from sbpy.data import Ephem, Orbit # doctest: +SKIP
@@ -223,4 +224,4 @@ class Ephem(DataClass):
 
         not yet implemented
 
-        """        
+        """
