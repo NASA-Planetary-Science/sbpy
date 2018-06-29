@@ -7,17 +7,61 @@ SBPy Spectroscopy Module
 created on June 23, 2017
 """
 
-from abc import ABC, abstractmethod
+from abc import ABC
+import numpy as np
+import astropy.units as u
+import astropy.constants as const
 
 __all__ = ['Spectrum', 'SpectralModel']
 
 
+def einstein_coeff(frequency):
+    """
+    Einstein coefficient from molecular data
+
+    Parameters
+    ----------
+    frequency : `~astropy.units.Quantity`
+        Transition frequency
+
+    Returns
+    -------
+    einstein_coeff : float
+        Spontaneous emission coefficient
+
+    not implemented
+    """
+
+def total_number(integrated_flux, frequency):
+    """
+    Basic equation relating number of molecules with observed integrated flux.
+    This is given by equation 10 in
+    https://ui.adsabs.harvard.edu/#abs/2004come.book..523C
+
+    Parameters
+    ----------
+    integrated_flux : `~astropy.units.Quantity`
+        Integrated flux of emission line.
+    frequency : `~astropy.units.Quantity`
+        Transition frequency
+
+    Returns
+    -------
+    total_number : float
+        Total number of molecules within the aperture
+
+    not implemented
+    """
+    total_number = integrated_flux
+    total_number *= 8*np.pi*u.k_B*frequency**2/(const.h*const.c**3*
+                                                einstein_coeff(frequency))
+    return total_number
 
 class SpectralModel():
     """Range of spectral models"""
     def haser():
         """Haser model
-        
+
         should allow direct creation of a `sbpy.actvity.Haser` instance"""
         pass
 
@@ -29,7 +73,6 @@ class SpectralModel():
         """Reflectance spectrum (asteroids)"""
 
 
-
 class Spectrum():
 
     def __init__(self, flux, dispersionaxis, unit):
@@ -37,17 +80,16 @@ class Spectrum():
         self.axis = dispersionaxis
         self.unit = unit
 
-
     @classmethod
     def read(cls, filename, columns='auto'):
         """Read spectrum from file
-        
+
         Parameters
         ----------
         filename : str, mandatory
             data file name
         columns : str or list-like, optional, default: 'auto'
-            file format, `auto` will try to recognize the format 
+            file format, `auto` will try to recognize the format
             automatically
 
         Returns
@@ -62,7 +104,6 @@ class Spectrum():
 
         """
 
-        
     def write(self, filename, columns='all'):
         """Write spectrum to file
 
@@ -81,7 +122,7 @@ class Spectrum():
         not yet implemented
 
         """
-            
+
     def convert_units(self, **kwargs):
         """Convert Spectrum units as provided by user
 
@@ -89,11 +130,10 @@ class Spectrum():
         --------
         >>> spec.convert_units(flux_unit=u.K) # doctest: +SKIP
         >>> spec.convert_units(dispersion_unit=u.km/u.s) # doctest: +SKIP
-        
+
         not yet implemented
 
         """
-
 
     def baseline(self, subtract=False):
         """fit baseline to `Spectrum` instance
@@ -137,6 +177,26 @@ class Spectrum():
 
         """
 
+    def integrated_flux(self, frequency, interval=1*u.km/u.s):
+        """
+        Calculate integrated flux of emission line.
+
+        Parameters
+        ----------
+        frequency : `~astropy.units.Quantity`
+            Transition frequency
+        interval : `~astropy.units.Quantity`
+            line width
+
+        Examples
+        --------
+        >>> flux = spec.integrated_flux(frequency=556.9*u.GHz,
+                                        interval=1.7*u.km/u.s) # doctest: +SKIP
+
+        not yet implemented
+
+        """
+
     def fit(self, spec):
         """Fit `SpectralModel` to different model types
 
@@ -151,13 +211,51 @@ class Spectrum():
         >>> spec.fit(spec_model) # doctest: +SKIP
         >>> print(spec.fit_info) # doctest: +SKIP
 
-        not yet implemented 
-        
+        not yet implemented
+
         """
 
+    def production_rate(self, coma, molecule, frequency, aper):
+        """
+        Calculate production rate for `GasComa`
+
+        Parameters
+        ----------
+        coma : `sbpy.activity.gas.GasComa`
+            Gas coma model
+
+        Returns
+        -------
+        Q : `~astropy.units.Quantity`
+            production rate
+
+        Examples
+        --------
+        >>> from sbpy.activity.gas import Haser
+        >>> coma = Haser(Q, v, parent) # doctest: +SKIP
+        >>> Q = spec.production_rate(coma, molecule='H2O') # doctest: +SKIP
+
+        not yet implemented
+
+        """
+
+        from ..activity.gas import GasComa
+
+        assert isinstance(coma, GasComa)
+
+        integrated_line = self.integrated_flux(frequency)
+
+        molecules = total_number(integrated_line, frequency)
+
+        model_molecules = coma.total_number(aper)
+
+        Q = coma.q * molecules/model_molecules
+
+        return Q
+
     def plot(self):
-        """Plot spectrum 
-       
+        """Plot spectrum
+
         Returns
         -------
         `matplotlib.pyplot` instance
@@ -188,7 +286,7 @@ class SpectralStandard(ABC):
     meta        - Meta data from `source`.
 
     """
-    
+
     def __init__(self, source, description=None, bibcode=None):
         self._source = source
         self._description = description
@@ -249,7 +347,7 @@ class SpectralStandard(ABC):
         import synphot
         from synphot.specio import read_fits_spec, read_ascii_spec
 
-        assert filename is not None, "File name requried."
+        assert filename is not None, "File name required."
 
         # URL cache because synphot.SourceSpectrum.from_file does not
         if _is_url(filename):
@@ -294,7 +392,7 @@ class SpectralStandard(ABC):
     @property
     def meta(self):
         self._source.meta
-            
+
     def __call__(self, wave_or_freq, unit='W / (m2 um)'):
         """Bin the source spectrum.
 
@@ -394,8 +492,8 @@ class SpectralStandard(ABC):
         assert isinstance(bp, (str, synphot.SpectralElement))
 
         if isinstance(bp, str):
-            #bp = get_bandpass(bp)
-            raise NotImplemented
+            # bp = get_bandpass(bp)
+            raise NotImplementedError
 
         obs = synphot.Observation(self.source, bp, **kwargs)
 
@@ -406,6 +504,3 @@ class SpectralStandard(ABC):
         fluxd = obs.effstim(unit, vegaspec=vegaspec)
 
         return wave, fluxd
-
-
-    
