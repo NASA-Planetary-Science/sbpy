@@ -32,6 +32,7 @@ def einstein_coeff(frequency):
     not implemented
     """
 
+
 def total_number(integrated_flux, frequency):
     """
     Basic equation relating number of molecules with observed integrated flux.
@@ -53,9 +54,10 @@ def total_number(integrated_flux, frequency):
     not implemented
     """
     total_number = integrated_flux
-    total_number *= 8*np.pi*u.k_B*frequency**2/(const.h*const.c**3*
+    total_number *= 8*np.pi*u.k_B*frequency**2/(const.h*const.c**3 *
                                                 einstein_coeff(frequency))
     return total_number
+
 
 class SpectralModel():
     """Range of spectral models"""
@@ -190,8 +192,8 @@ class Spectrum():
 
         Examples
         --------
-        >>> flux = spec.integrated_flux(frequency=556.9*u.GHz,
-                                        interval=1.7*u.km/u.s) # doctest: +SKIP
+        >>> flux = spec.integrated_flux(frequency=556.9*u.GHz, # doctest: +SKIP
+        >>>                             interval=1.7*u.km/u.s) # doctest: +SKIP
 
         not yet implemented
 
