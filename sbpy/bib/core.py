@@ -1,45 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-=================================
-SBPy Bibliography Tracking Module
-=================================
+sbpy Bibliography Tracking Module
 
-`sbpy` classes and functions can automatically report citations to the
-user through a bibliography registry.  Use `track` to enable citation
-tracking, and `citations` to report the references used.
-
-Example
--------
->>> from sbpy import bib, data
->>> bib.track()
->>> eph = data.Ephem.from_horizons('433', epochs=None, observatory='500')
->>> print(bib.to_text())  # doctest: +REMOTE_DATA
-sbpy.data.Ephem:
-  implementation: Giorgini et al. 1996, 1996DPS....28.2504G
-
-Bibliography tracking can be used in a context manager::
-
->>> from sbpy import bib
->>> from sbpy.data import Ephem
->>> with bib.Tracking():
-...     eph = Ephem.from_horizons('Ceres', epochs=None, observatory='500')
->>> bib.to_text() # doctest: +SKIP
-sbpy.data.Ephem:\n  implementation: 1996DPS....28.2504G\n
-
-Functions
----------
-register : Register a citation.
-status   : Bibliography tracking status.
-stop     : Stop bibliography tracking.
-track    : Start bibliography tracking.
-reset    : clear bibliography.
-to_text  : output bibliography in clear text
-to_bibtex: output bibliography in bibtex format
-
-Context managers
-----------------
-Tracking : Bibliography tracking context manager.
-
+sbpy classes and functions can automatically report citations to the
+user through a bibliography registry.  
 """
 
 __all__ = ['register', 'reset', 'status', 'stop', 'track', 'Tracking',
@@ -49,7 +13,8 @@ from collections import OrderedDict
 
 
 def register(task, citations):
-    """Register a citation with the `sbpy` bibliography.
+    """Register a citation with the `sbpy` bibliography when running a
+    function
 
     Parameters
     ----------

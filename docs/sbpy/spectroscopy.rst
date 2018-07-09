@@ -4,7 +4,7 @@ Spectroscopy Module (`sbpy.spectroscopy`)
 Introduction
 ------------
 
-`sbpy.spectroscopy` provides routines for the modeling and analysis of emission spectra of gas in comets and reflection spectra of asteroid surfaces.  Sub-modules `sun` and `vega` control `sbpy`'s photometric calibration.
+`~sbpy.spectroscopy` provides routines for the modeling and analysis of emission spectra of gas in comets and reflection spectra of asteroid surfaces.  Sub-modules `sun` and `vega` control `sbpy`'s photometric calibration.
 
 Spectral standards and photometric calibration
 ----------------------------------------------

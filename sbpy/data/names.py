@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 ======================
-SBPy data.Names Module
+sbpy data.Names Module
 ======================
 
 Class for dealing with object naming conventions.

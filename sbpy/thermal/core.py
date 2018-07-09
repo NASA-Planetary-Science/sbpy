@@ -1,8 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-===================
-SBPy Thermal Module
-===================
+sbpy Thermal Module
 
 created on June 27, 2017
 """
@@ -39,7 +37,7 @@ class ThermalClass():
         not yet implemented
 
         """
-        
+
     def fit(self, eph):
         """Fit thermal model to observations stored in `sbpy.data.Ephem` instance
 
@@ -52,20 +50,21 @@ class ThermalClass():
         --------
         >>> from sbpy.thermal import STM
         >>> stmfit = STM.fit(eph) # doctest: +SKIP
- 
+
         not yet implemented
 
         """
 
-        
+
 class STM(ThermalClass):
     pass
 
+
 class FRM(ThermalClass):
     pass
+
 
 class NEATM(ThermalClass):
     def __init__(self):
         from .. import bib
         bib.register('sbpy.thermal.NEATM', {'method': '1998Icar..131..291H'})
-

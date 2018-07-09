@@ -1,13 +1,15 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-======================
-SBPy Photometry Module
-======================
+sbpy Photometry Module
 
 created on June 23, 2017
 """
 
-__all__ = ['DiskIntegratedModelClass', 'HG', 'HG12', 'HG1G2', 'DiskFunctionModel', 'LommelSeeliger', 'Lambert', 'PhaseFunctionModel', 'ROLOPhase', 'ResolvedPhotometricModelClass', 'ROLO']
+__all__ = ['DiskIntegratedModelClass', 'HG', 'HG12', 'HG1G2',
+           'DiskFunctionModel', 'LommelSeeliger', 'Lambert',
+           'PhaseFunctionModel', 'ROLOPhase',
+           'ResolvedPhotometricModelClass', 'ROLO']
+
 
 class DiskIntegratedModelClass():
 
@@ -84,18 +86,23 @@ class DiskIntegratedModelClass():
 
 class HG(DiskIntegratedModelClass):
     """HG photometric phase model (Bowell XXX)"""
+
     def __init__(self, **kwargs):
         self.H = None
         self.G = None
 
+
 class HG12(DiskIntegratedModelClass):
     """HG12 photometric phase model (Muinonen et al. 2010)"""
+
     def __init__(self, **kwargs):
         self.H = None
         self.G12 = None
 
+
 class HG1G2(DiskIntegratedModelClass):
     """HG1G2 photometric phase model (Muinonen et al. 2010)"""
+
     def __init__(self, **kwargs):
         self.H = None
         self.G1 = None
@@ -137,6 +144,7 @@ class ResolvedPhotometricModelClass(object):
     """Base class for disk-resolved photometric model"""
     # composite model as the product of a disk function and a phase function
     pass
+
 
 class ROLO(ResolvedPhotometricModelClass):
     """ROLO disk-resolved photometric model"""
