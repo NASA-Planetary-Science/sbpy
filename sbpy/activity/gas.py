@@ -322,6 +322,7 @@ class GasComa(ABC):
         Returns
         -------
         sigma : float
+          Coma column density along the line of sight at a distance rho.
 
         """
         pass
@@ -338,6 +339,11 @@ class GasComa(ABC):
         epsabs : float or int, optional
             Absolute and relative error tolerance for integrals.  See
             `scipy.integrate.quad`.
+
+        Returns
+        -------
+        sigma : float
+          Coma column density along the line of sight at a distance rho.
 
         """
 
@@ -359,13 +365,13 @@ class GasComa(ABC):
 
         # Using an upper limit of integration than 1e9 m makes the
         # integral divergent
-        # N, err = quad(f, 0, np.inf, epsabs=epsabs)
-        N, err = quad(f, 0, np.max((1.e6, 10*rho.to(u.km).value)), epsabs=epsabs)
+        # sigma, err = quad(f, 0, np.inf, epsabs=epsabs)
+        sigma, err = quad(f, 0, np.max((1.e6, 10*rho.to(u.km).value)), epsabs=epsabs)
 
         # spherically symmetric coma
-        N *= 2
+        sigma *= 2
 
-        return N
+        return sigma
 
     @abstractmethod
     def total_number(self, aper, eph=None):
@@ -384,7 +390,8 @@ class GasComa(ABC):
 
         Returns
         -------
-        N : int
+        N : float
+          Total number of molecules within the aperture.
 
         """
         pass
@@ -555,6 +562,9 @@ class Haser(GasComa):
     def column_density(self, rho, eph=None):
         from .core import rho_as_length
 
+        bib.register('activity.gas.Haser.column_density',
+                     {'model': '1978Icar...35..360N'})
+
         assert isinstance(rho, u.Quantity)
 
         r = rho_as_length(rho, eph=eph)
@@ -574,6 +584,9 @@ class Haser(GasComa):
     def total_number(self, aper, eph=None):
         from .core import rho_as_length, Aperture
         from .core import RectangularAperture, GaussianAperture, AnnularAperture, CircularAperture
+
+        bib.register('activity.gas.Haser.total_number',
+                     {'model': '1978Icar...35..360N'})
 
         # Inspect aper and handle as appropriate
         if isinstance(aper, Aperture):
