@@ -81,7 +81,8 @@ More information on `sbpy`
 
 .. toctree::
    :maxdepth: 1  
-	      
+
+   contributing.rst
    structure.rst
    status.rst
 
@@ -107,12 +108,11 @@ Reference/API
 Acknowledgments
 ---------------
 
-`sbpy` is supported by NASA PDART Grant No. XXX.
+`sbpy` is supported by NASA PDART Grant No. 80NSSC18K0987.
 
 If you use `sbpy` in your work, please acknowledge it using the following line:
    
-   "*The sbpy package (http://sbpy.org) has been used in the production
-   of this work.*"
+   "*This work made use of sbpy (http://sbpy.org), a community-driven Python package for small-body planetary astronomy supported by NASA PDART Grant No. 80NSSC18K0987.*"
 
 and also please consider using the `~sbpy.bib` reference tracking
 system to properly acknowledge and reference the methods you used in
