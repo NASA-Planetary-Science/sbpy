@@ -9,4 +9,4 @@ def get_package_data():
     paths_test = [os.path.join('data', 'HCN.data'),
                   os.path.join('data', 'HCN.csv')]
 
-    return {'astroquery.jplspec.tests': paths_test,}
+    return {'astroquery.jplspec.tests': paths_test, }

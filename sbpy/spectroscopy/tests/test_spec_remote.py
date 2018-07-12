@@ -16,9 +16,9 @@ def test_remote_prodrate_simple():
 
     vgas = 0.8 * u.km / u.s
 
-    diameter = 30 * u.m # The diameter for telescope used (Drahus et al. 2012)
+    diameter = 30 * u.m  # The diameter for telescope used (Drahus et al. 2012)
 
-    b = 1.13 # Value taken from (Drahus et al. 2012)
+    b = 1.13  # Value taken from (Drahus et al. 2012)
 
     mol_tag = 27001
 
@@ -33,7 +33,7 @@ def test_remote_prodrate_simple():
         spectra = hcn['T_B'][i] * u.K * u.km / u.s
 
         q = nophotod_prodrate(spectra, temp_estimate, transition_freq, mol_tag,
-                             time, target, vgas, diameter, b=b, id_type='id')
+                              time, target, vgas, diameter, b=b, id_type='id')
 
         q = np.log10(q.value)
 
