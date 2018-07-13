@@ -6,6 +6,116 @@ Introduction
 
 `~sbpy.spectroscopy` provides routines for the modeling and analysis of emission spectra of gas in comets and reflection spectra of asteroid surfaces.  Sub-modules `sun` and `vega` control `sbpy`'s photometric calibration.
 
+JPLSpec Constants and Line Intensity Integral Conversion
+--------------------------------------------------------
+
+`sbpy.spectroscopy` has a function called ``molecular_data`` which takes care of
+querying the JPL Molecular Spectral Catalog through the use of
+`astroquery.jplspec` and calculates all the necessary constants needed for both
+production rate and Einstein coefficient calculations. The function
+``intensity_conversion`` takes care of converting the intensity line integral at
+300 K found in JPL Spec catalog and convert it closer to the temperature given
+by the user.
+
+.. code-block:: python
+
+   >>> from sbpy.spectrosocpy import molecular_data, intensity_conversion
+   >>> import astropy.units as u
+
+   >>> temp_estimate = 33. * u.K
+
+   >>> vgas = 0.8 * u.km / u.s
+
+   >>> mol_tag = 27001
+
+   >>> transition_freq = 265.886434 * u.MHz
+
+   >>> mol_data = molecular_data(temp_estimate, transition_freq, mol_tag, vgas)
+
+   >>> intl = intensity_conversion(temp_estimate, transition_freq, mol_tag, vgas)
+
+   >>> co
+     [<Quantity 265886.18 MHz>,
+      <Quantity 37.5 K>,
+      <Quantity 0.08412014 MHz nm2>,
+      424.32634842758375,
+      53.91380704697852,
+      1.7317,
+      <Quantity 6.62607004e-34 J s>,
+      <Quantity 1.38064852e-23 J / K>,
+      <Quantity 2.99792458e+08 m / s>,
+      <Quantity 800. m / s>,
+      <Quantity 3.52359898e-22 J>,
+      <Quantity 1.76181853e-22 J>]
+
+   >>> intl
+      <Quantity 3.99731047636546 MHz nm2>
+
+
+Einstein coefficient
+--------------------
+
+`sbpy.spectroscopy` offers a function to calculate the Einstein coefficient
+for a specific molecule and transition frequency.
+
+.. code-block:: python
+
+   >>> from sbpy.spectroscopy import einstein_coeff
+
+   >>> e = einstein_coeff(temp_estimate, transition_freq, mol_tag, vgas)
+
+   >>> e
+      <Quantity 0.0008601294364222543 1 / s>
+
+
+Production Rate Calculations
+----------------------------
+
+`sbpy.spectroscopy` provides several models to calculate production rates in comets.
+One of the models followed by this module is based on the following paper:
+
+| Drahus et al. September 2012. The Sources of HCN and CH3OH and the
+| Rotational Temperature in Comet 103P/Hartley 2 from Time-resolved
+| Millimeter Spectroscopy. The Astrophysical Journal, Volume 756,
+| Issue 1.
+
+This model does not include photodissociation. The model uses the functions for
+constants, conversion, and Einstein coefficients as well as a JPLHorizons
+lookup to obtain the distance to the comet at observation time. The following
+example shows the usage of the module. For more information on the parameters
+that are optional or needed for the module follow the link under Reference/API
+section.
+
+.. code-block:: python
+
+  >>> from sbpy.spectroscopy import prodrate_np
+
+  >>> temp_estimate = 33. * u.K
+
+  >>> target = '900918'
+
+  >>> vgas = 0.8 * u.km / u.s
+
+  >>> diameter = 30 * u.m
+
+  >>> b = 1.13
+
+  >>> mol_tag = 27001
+
+  >>> transition_freq = 265.886434 * u.MHz
+
+  >>> spectra = 1.22 * u.K * u.km / u.s
+
+  >>> time = '2010-11-3 00:48:06'
+
+  >>> q = prodrate_np(spectra, temp_estimate, transition_freq,
+                            mol_tag, time, target, vgas, diameter,
+                            b=b, id_type='id')  # doctest: +SKIP
+
+  >>> q
+  <Quantity 1.0432591198553935e+25 1 / s>
+
+
 Spectral standards and photometric calibration
 ----------------------------------------------
 `sbpy` has the ability to return spectra of the Sun and Vega.  There are built-in spectra for each.  The spectra are additionally used for `sbpy`'s photometric calibration.  Users may provide their own spectra.
@@ -39,6 +149,7 @@ The names of the built-in sources are stored as an internal array.  Any built-in
    >>> print(sun)
    <Sun: E490-00a (2014) low resolution reference solar spectrum (Table 4)>
 
+<<<<<<< HEAD
 The solar spectrum in current use is controlled with `default_sun`:
   
 .. doctest-requires:: synphot
@@ -50,6 +161,18 @@ The solar spectrum in current use is controlled with `default_sun`:
    >>> sun = Sun.from_default()
    >>> print(sun)
    <Sun: E490-00a (2014) low resolution reference solar spectrum (Table 4)>
+=======
+The solar spectrum in current use is controlled and revealed through `default_sun`::
+
+.. doctest-requires:: synphot
+
+   >>> from sbpy.spectroscopy.sun import default_sun
+   >>> default_sun.set('E490_2014')
+   <ScienceState default_sun: <Sun: E490-00a (2014) reference solar spectrum (Table 3).>>
+   >>> # E490 in effect for all of sbpy
+   >>> default_sun.get() # Get the default spectrum as a `Sun` object
+   <Sun: E490-00a (2014) reference solar spectrum (Table 3).>
+>>>>>>> Updated documentation to include prodrate_np and Einstein coefficient modules
 
 `default_sun` can also be used as a context manager to temporarily change the default spectrum:
 
@@ -95,11 +218,21 @@ Observe the Sun through a filter
 Get the default solar spectrum, and observe it through the Johnson V-band filter, using `synphot`'s built-in support:
 
 .. doctest-requires:: synphot
+<<<<<<< HEAD
 		      
    >>> from sbpy.spectroscopy.sun import Sun
    >>> sun = Sun.from_default()
    >>> wave, mag = sun.filt('johnson_v', unit='vegamag')                                                                          # doctest: +REMOTE_DATA
    >>> print('\n{}\n- Johnson V = {:.2f} at {:.0f}'.format(sun.description, mag, wave))                                           # doctest: +REMOTE_DATA
+=======
+
+   >>> import synphot
+   >>> from sbpy.spectroscopy.sun import default_sun
+   >>> sun = default_sun.get()
+   >>> v = synphot.SpectralElement.from_filter('johnson_v')                             # doctest: +REMOTE_DATA +IGNORE_OUTPUT
+   >>> wave, mag = sun.filt(v, unit='vegamag')                                          # doctest: +REMOTE_DATA
+   >>> print('\n{}\n- Johnson V = {:.2f} at {:.0f}'.format(sun.description, mag, wave)) # doctest: +REMOTE_DATA
+>>>>>>> Updated documentation to include prodrate_np and Einstein coefficient modules
    E490-00a (2014) reference solar spectrum (Table 3).
    - Johnson V = -26.77 VEGAMAG at 5502 Angstrom
 
@@ -119,8 +252,11 @@ Finally, observe the Sun through *Hubble*/WFC3's F438W and F606W filters:
 
 .. doctest-requires:: synphot
 
+<<<<<<< HEAD
    >>> import synphot
    >>> from sbpy.spectroscopy.sun import Sun
+=======
+>>>>>>> Updated documentation to include prodrate_np and Einstein coefficient modules
    >>> fn = 'ftp://ftp.stsci.edu/cdbs/comp/wfc3/wfc3uvis1_f438w_mjd_006_syn.fits'
    >>> f438w = synphot.SpectralElement.from_file(fn)                                                               # doctest: +REMOTE_DATA +IGNORE_OUTPUT
    >>> fn = 'ftp://ftp.stsci.edu/cdbs/comp/wfc3/wfc3uvis1_f606w_mjd_006_syn.fits'
@@ -130,7 +266,7 @@ Finally, observe the Sun through *Hubble*/WFC3's F438W and F606W filters:
    ...     print(name)
    ...     for unit in ('vegamag', 'ABmag', 'W/(m2 um)'):
    ...         wave, obs = sun.filt(bp, unit=unit)
-   ...         print('  {:.2f} at {:.0f}'.format(obs, wave)) 
+   ...         print('  {:.2f} at {:.0f}'.format(obs, wave))
    F438W
      -26.08 VEGAMAG at 4351 Angstrom
      -26.24 mag(AB) at 4351 Angstrom
@@ -187,7 +323,37 @@ Solar spectra in Sun objects can be plotted at the native resolution of the data
    plt.plot(wave_binned, fluxd_binned, ls='steps-mid', color='#ff7f0e', label='C96, R~{}'.format(R))
    plt.setp(plt.gca(), xlim=wrange, xlabel='Wavelength (μm)', ylabel='Flux density (W/(m2 μm)')
    plt.legend()
+<<<<<<< HEAD
    plt.tight_layout()
+=======
+
+
+.. MM: following code blocks do not work. Please check.
+
+.. Compare Castelli 1996, Kurucz 1993, and E490_2014 spectra in the optical at a spectral resolution of ~25:
+
+..   .. doctest-skip::
+
+..      >>> import matplotlib.pyplot as plt
+..      >>> from sbpy.spectroscopy.sun import Sun
+..      >>> for source in ['Castelli1996', 'Kurucz1993', 'E490_2014']:
+..      ...     sun = Sun.from_builtin(source)
+..      ...     fluxd_binned = sun(wave_binned, unit='W / (m2 um)')
+..      ...     plt.plot(wave_binned, fluxd_binned, ls='steps-mid', label=source)
+..      >>> plt.xlim(0.3, 0.8)
+..      >>> plt.legend()
+
+..   .. plot::
+
+..      import matplotlib.pyplot as plt
+..      from sbpy.spectroscopy.sun import Sun
+..      for source in ['Castelli1996', 'Kurucz1993', 'E490_2014']:
+..	  sun = Sun.from_builtin(source)
+..	  fluxd_binned = sun(wave_binned, unit='W / (m2 um)')
+..	  plt.plot(wave_binned, fluxd_binned, ls='steps-mid', label=source)
+..      plt.xlim(0.3, 0.8)
+..      plt.legend()
+>>>>>>> Updated documentation to include prodrate_np and Einstein coefficient modules
 
 
 Reference/API

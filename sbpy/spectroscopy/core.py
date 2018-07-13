@@ -131,7 +131,7 @@ def intensity_conversion(temp_estimate, transition_freq, mol_tag):
 
     """
 
-    mol_data= molecular_data(temp_estimate, transition_freq, mol_tag)
+    mol_data = molecular_data(temp_estimate, transition_freq, mol_tag)
 
     temp = mol_data[1]
     lgint = mol_data[2]
@@ -188,7 +188,7 @@ def einstein_coeff(temp_estimate, transition_freq, mol_tag):
 
     """
 
-    mol_data= molecular_data(temp_estimate, transition_freq, mol_tag)
+    mol_data = molecular_data(temp_estimate, transition_freq, mol_tag)
 
     t_freq = mol_data[0]
     temp = mol_data[1]
@@ -437,10 +437,10 @@ class Spectrum():
         """
 
     def prodrate_np(self, spectra, temp_estimate, transition_freq,
-                          mol_tag, time, target, vgas=1 * u.km/u.s,
-                          diameter=25 * u.m, observatory='500', b=1.2,
-                          format='iso', time_scale='utc',
-                          id_type='designation'):
+                    mol_tag, time, target, vgas=1 * u.km/u.s,
+                    diameter=25 * u.m, observatory='500', b=1.2,
+                    format='iso', time_scale='utc',
+                    id_type='designation'):
 
         """
         | Returns production rate based on Drahus 2012 model referenced. Includes
@@ -559,7 +559,7 @@ class Spectrum():
                                               astroquery.jplhorizons,\
                                               i.e. '500' (geocentric)"
 
-        mol_data= molecular_data(temp_estimate, transition_freq, mol_tag)
+        mol_data = molecular_data(temp_estimate, transition_freq, mol_tag)
 
         t_freq = mol_data[0]
         temp = mol_data[1]

@@ -33,7 +33,7 @@ def test_remote_prodrate_simple():
         spectra = hcn['T_B'][i] * u.K * u.km / u.s
 
         q = prodrate_np(spectra, temp_estimate, transition_freq, mol_tag,
-                              time, target, vgas, diameter, b=b, id_type='id')
+                        time, target, vgas, diameter, b=b, id_type='id')
 
         q = np.log10(q.value)
 
