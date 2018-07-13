@@ -18,7 +18,7 @@ from ..activity.gas import photo_timescale
 __all__ = ['Spectrum', 'SpectralModel']
 
 
-def constants(temp_estimate, transition_freq, mol_tag, vgas):
+def molecular_data(temp_estimate, transition_freq, mol_tag):
 
     """
     Returns relevant constants from JPLSpec catalog and energy calculations
@@ -34,12 +34,9 @@ def constants(temp_estimate, transition_freq, mol_tag, vgas):
     mol_tag : int or str
         Molecule identifier. Make sure it is an exclusive identifier.
 
-    vgas : `~astropy.units.Quantity`
-        Gas velocity approximation in km / s
-
     Returns
     -------
-    constants : list
+    Molecular data : list
         List of constants in the following order:
             | Transtion frequency
             | Temperature
@@ -95,19 +92,8 @@ def constants(temp_estimate, transition_freq, mol_tag, vgas):
 
     part300 = 10 ** (float(mol['QLOG1'].data))
 
-    h = con.h.to('J*s')  # planck constant
-
-    k = con.k_B.to('J/K')  # boltzman constant
-
-    c = con.c.to('m/s')  # speed of light
-
-    vgas = vgas.to('m/s')  # convert our vgas to m/s
-
     # yields in 1/cm
     energy = elo + (t_freq.to(1/u.cm, equivalencies=u.spectral()))
-
-    scale = gu*np.exp(-energy.to(u.J, equivalencies=u.spectral()) /
-                      (k*temp))/partition  # upper level energy
 
     energy_J = energy.to(u.J, equivalencies=u.spectral())
     elo_J = elo.to(u.J, equivalencies=u.spectral())
@@ -117,42 +103,26 @@ def constants(temp_estimate, transition_freq, mol_tag, vgas):
     result.append(t_freq)
 
     result.extend((temp, lgint, part300, partition, gu, energy_J,
-                   elo_J, df, h, c, k))
+                   elo_J, df))
 
     return result
 
 
-def intensity_conversion(energy_J, elo_J, temp, k, lgint, part300, partition,
-                         df):
+def intensity_conversion(temp_estimate, transition_freq, mol_tag):
 
     """
     Returns conversion of integrated line intensity at designated temperature.
 
     Parameters
     ----------
-    energy_J : `~astropy.units.Quantity`
-        Upper level energy in Joules
+    transition_freq : `~astropy.units.Quantity`
+        Transition frequency in MHz
 
-    elo_J : `~astropy.units.Quantity`
-        Lower level energy in Joules
+    temp_estimate : `~astropy.units.Quantity`
+        Estimated temperature in Kelvins
 
-    temp : `~astropy.units.Quantity`
-        Temperature in K
-
-    k : `~astropy.units.Quantity`
-        Boltzmann constant
-
-    lgint : `~astropy.units.Quantity`
-        Integrated line intensity at 300 K (queried from JPLSpec)
-
-    part300 : float
-        Partition function at 300 K
-
-    partition : float
-        Partition function at designated temperature
-
-    df : int
-        Degrees of freedom
+    mol_tag : int or str
+        Molecule identifier. Make sure it is an exclusive identifier.
 
     Returns
     -------
@@ -160,6 +130,18 @@ def intensity_conversion(energy_J, elo_J, temp, k, lgint, part300, partition,
         Integrated line intensity at designated temperature
 
     """
+
+    mol_data= molecular_data(temp_estimate, transition_freq, mol_tag)
+
+    temp = mol_data[1]
+    lgint = mol_data[2]
+    part300 = mol_data[3]
+    partition = mol_data[4]
+    energy_J = mol_data[6]
+    elo_J = mol_data[7]
+    df = mol_data[8]
+
+    k = con.k_B.to('J/K')  # boltzman constant
 
     if ((energy_J-elo_J).value/(k*temp).value) and ((energy_J-elo_J).value /
                                                     (k*300 * u.K).value) < 1:
@@ -183,7 +165,7 @@ def intensity_conversion(energy_J, elo_J, temp, k, lgint, part300, partition,
     return intl
 
 
-def einstein_coeff(temp_estimate, transition_freq, mol_tag, vgas):
+def einstein_coeff(temp_estimate, transition_freq, mol_tag):
 
     """
     Einstein coefficient from molecular data
@@ -191,16 +173,13 @@ def einstein_coeff(temp_estimate, transition_freq, mol_tag, vgas):
     Parameters
     ----------
     transition_freq : `~astropy.units.Quantity`
-        Transition frequency in GHz
+        Transition frequency in MHz
 
     temp_estimate : `~astropy.units.Quantity`
         Estimated temperature in Kelvins
 
     mol_tag : int or str
         Molecule identifier. Make sure it is an exclusive identifier.
-
-    vgas : `~astropy.units.Quantity`
-        Gas velocity approximation in km / s
 
     Returns
     -------
@@ -209,22 +188,22 @@ def einstein_coeff(temp_estimate, transition_freq, mol_tag, vgas):
 
     """
 
-    const = constants(temp_estimate, transition_freq, mol_tag, vgas)
+    mol_data= molecular_data(temp_estimate, transition_freq, mol_tag)
 
-    t_freq = const[0]
-    temp = const[1]
-    lgint = const[2]
-    part300 = const[3]
-    partition = const[4]
-    gu = const[5]
-    energy_J = const[6]
-    elo_J = const[7]
-    df = const[8]
-    h = const[9]
-    k = const[11]
+    t_freq = mol_data[0]
+    temp = mol_data[1]
+    lgint = mol_data[2]
+    part300 = mol_data[3]
+    partition = mol_data[4]
+    gu = mol_data[5]
+    energy_J = mol_data[6]
+    elo_J = mol_data[7]
 
-    intl = intensity_conversion(energy_J, elo_J, temp, k, lgint, part300,
-                                partition, df)
+    h = con.h.to('J*s')  # planck constant
+
+    k = con.k_B.to('J/K')  # boltzman constant
+
+    intl = intensity_conversion(temp_estimate, transition_freq, mol_tag)
 
     if (h*t_freq/(k*temp)).decompose().value and \
             (h*t_freq/(k*300*u.K)).decompose().value < 1:
@@ -252,7 +231,7 @@ def photod_rate(time, time_scale, target, id_type, observatory, format,
     try:
         orb = obj.ephemerides()
 
-    except ValueError as error:
+    except ValueError:
 
         raise
 
@@ -457,14 +436,15 @@ class Spectrum():
 
         """
 
-    def nophotod_prodrate(self, spectra, temp_estimate, transition_freq,
+    def prodrate_np(self, spectra, temp_estimate, transition_freq,
                           mol_tag, time, target, vgas=1 * u.km/u.s,
                           diameter=25 * u.m, observatory='500', b=1.2,
                           format='iso', time_scale='utc',
                           id_type='designation'):
 
         """
-        Returns relevant constants from JPLSpec catalog and energy calculations
+        | Returns production rate based on Drahus 2012 model referenced. Includes
+        | no photodissociation
 
         Parameters
         ----------
@@ -518,34 +498,38 @@ class Spectrum():
 
         Returns
         -------
-        constants : list
+        q : list
             Production rate, not including photodissociation
 
         Examples
         --------
-        >>> temp_estimate = 33. * u.K
+        >>> import astropy.units as u
 
-        >>> target = '900918'
+        >>> from sbpy.spectroscopy import prodrate_np
 
-        >>> vgas = 0.8 * u.km / u.s
+        >>> temp_estimate = 33. * u.K  # doctest: +SKIP
 
-        >>> diameter = 30 * u.m
+        >>> target = '900918'  # doctest: +SKIP
 
-        >>> b = 1.13
+        >>> vgas = 0.8 * u.km / u.s  # doctest: +SKIP
 
-        >>> mol_tag = 27001
+        >>> diameter = 30 * u.m  # doctest: +SKIP
 
-        >>> transition_freq = 265.886434 * u.GHz
+        >>> b = 1.13  # doctest: +SKIP
 
-        >>> spectra = 1.22 * u.K * u.km / u.s
+        >>> mol_tag = 27001  # doctest: +SKIP
 
-        >>> time = '2010-11-3 00:48:06'
+        >>> transition_freq = 265.886434 * u.MHz  # doctest: +SKIP
 
-        >>> q = nophotod_prodrate(spectra, temp_estimate, transition_freq,
+        >>> spectra = 1.22 * u.K * u.km / u.s  # doctest: +SKIP
+
+        >>> time = '2010-11-3 00:48:06'  # doctest: +SKIP
+
+        >>> q = prodrate_np(spectra, temp_estimate, transition_freq,
                                   mol_tag, time, target, vgas, diameter,
-                                  b=b, id_type='id')
+                                  b=b, id_type='id')  # doctest: +SKIP
 
-        >>> q
+        >>> q  # doctest: +SKIP
         <Quantity 1.0432591198553935e+25 1 / s>
 
 
@@ -575,18 +559,19 @@ class Spectrum():
                                               astroquery.jplhorizons,\
                                               i.e. '500' (geocentric)"
 
-        const = constants(temp_estimate, transition_freq, mol_tag, vgas)
+        mol_data= molecular_data(temp_estimate, transition_freq, mol_tag)
 
-        t_freq = const[0]
-        temp = const[1]
-        partition = const[4]
-        gu = const[5]
-        energy_J = const[6]
-        h = const[9]
-        c = const[10]
-        k = const[11]
+        t_freq = mol_data[0]
+        temp = mol_data[1]
+        partition = mol_data[4]
+        gu = mol_data[5]
+        energy_J = mol_data[6]
+        h = con.h.to('J*s')  # planck constant
+        k = con.k_B.to('J/K')  # boltzman constant
+        c = con.c.to('m/s')  # speed of light
+        vgas = vgas.to('m/s')
 
-        au = einstein_coeff(temp_estimate, transition_freq, mol_tag, vgas)
+        au = einstein_coeff(temp_estimate, transition_freq, mol_tag)
 
         beta, delta = photod_rate(time, time_scale, target, id_type,
                                   observatory, format, mol_tag)

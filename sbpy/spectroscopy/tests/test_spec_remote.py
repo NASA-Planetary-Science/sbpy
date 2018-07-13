@@ -1,5 +1,5 @@
 import astropy.units as u
-from ..spectroscopy import nophotod_prodrate
+from ..spectroscopy import prodrate_np
 from astropy.tests.helper import remote_data
 from astropy.table import Table
 import numpy as np
@@ -32,7 +32,7 @@ def test_remote_prodrate_simple():
 
         spectra = hcn['T_B'][i] * u.K * u.km / u.s
 
-        q = nophotod_prodrate(spectra, temp_estimate, transition_freq, mol_tag,
+        q = prodrate_np(spectra, temp_estimate, transition_freq, mol_tag,
                               time, target, vgas, diameter, b=b, id_type='id')
 
         q = np.log10(q.value)
