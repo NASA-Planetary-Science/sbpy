@@ -13,7 +13,9 @@ from astroquery.jplspec import JPLSpec
 from astropy.time import Time
 from astroquery.jplhorizons import Horizons
 from ..activity.gas import photo_timescale
+from astroquery.jplhorizons import conf
 
+conf.horizons_server = 'https://ssd.jpl.nasa.gov/horizons_batch.cgi'
 
 __all__ = ['Spectrum', 'SpectralModel']
 
@@ -53,8 +55,8 @@ def molecular_data(temp_estimate, transition_freq, mol_tag):
 
     """
 
-    query = JPLSpec.query_lines(min_frequency=(transition_freq - (100 * u.MHz)),
-                                max_frequency=(transition_freq + (100 * u.MHz)),
+    query = JPLSpec.query_lines(min_frequency=(transition_freq - (1 * u.MHz)),
+                                max_frequency=(transition_freq + (1 * u.MHz)),
                                 molecule=mol_tag)
 
     freq_list = query['FREQ']
@@ -222,7 +224,7 @@ def einstein_coeff(temp_estimate, transition_freq, mol_tag):
 
 
 def photod_rate(time, time_scale, target, id_type, observatory, format,
-                mol_tag, model):
+                mol_tag):
 
     epoch = Time(time, scale=time_scale, format=format)
     obj = Horizons(id=target, epochs=epoch.jd, location=observatory,
@@ -503,9 +505,9 @@ class Spectrum():
 
         Examples
         --------
-        >>> import astropy.units as u
+        >>> import astropy.units as u  # doctest: +SKIP
 
-        >>> from sbpy.spectroscopy import prodrate_np
+        >>> from sbpy.spectroscopy import prodrate_np  # doctest: +SKIP
 
         >>> temp_estimate = 33. * u.K  # doctest: +SKIP
 
@@ -525,9 +527,9 @@ class Spectrum():
 
         >>> time = '2010-11-3 00:48:06'  # doctest: +SKIP
 
-        >>> q = prodrate_np(spectra, temp_estimate, transition_freq,
-                                  mol_tag, time, target, vgas, diameter,
-                                  b=b, id_type='id')  # doctest: +SKIP
+        >>> q = prodrate_np(spectra, temp_estimate, transition_freq, # doctest: +SKIP
+                            mol_tag, time, target, vgas, diameter,
+                            b=b, id_type='id')
 
         >>> q  # doctest: +SKIP
         <Quantity 1.0432591198553935e+25 1 / s>
@@ -583,8 +585,6 @@ class Spectrum():
         q = spectra*(calc * b * delta / diameter)
 
         q = q.decompose().to(u.Hz, equivalencies=u.spectral()).decompose()[0]
-
-        print("Q:", q)
 
         return q
 
