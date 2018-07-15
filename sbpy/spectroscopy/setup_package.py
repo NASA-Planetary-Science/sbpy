@@ -7,6 +7,7 @@ import os
 def get_package_data():
 
     paths_test = [os.path.join('data', 'HCN.data'),
-                  os.path.join('data', 'HCN.csv')]
+                  os.path.join('data', 'HCN.csv'),
+                  os.path.join('data', 'CH3OH.csv')]
 
-    return {'astroquery.jplspec.tests': paths_test, }
+    return {'sbpy.spectroscopy.tests': paths_test, }

@@ -1,7 +1,7 @@
 import os
 
 import astropy.units as u
-from ..spectroscopy import prodrate_np
+from .. import Spectrum
 from astropy.tests.helper import remote_data
 from astropy.table import Table
 import numpy as np
