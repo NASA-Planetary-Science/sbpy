@@ -15,16 +15,15 @@ __all__ = [
 
 __doctest_requires__ = {'Sun': 'synphot'}
 
+
 class Sun(SpectralStandard):
+
     """Solar spectrum.
 
     Parameters
     ----------
-    wave : `~astropy.units.Quantity`
-      The spectral wavelengths.
-
-    fluxd : `~astropy.units.Quantity`
-      The solar flux densities, at 1 au.
+    source : `~synphot.SourceSpectrum`
+      The source spectrum.
 
     description : string, optional
       A brief description of the source spectrum.
@@ -93,7 +92,7 @@ class Sun(SpectralStandard):
         import os
         from astropy.utils.data import _is_url
         from . import sources
-        
+
         try:
             parameters = getattr(sources, name).copy()
 
@@ -102,14 +101,16 @@ class Sun(SpectralStandard):
                 path = os.path.dirname(__file__)
                 parameters['filename'] = os.sep.join(
                     (path, parameters['filename']))
-                
+
             return Sun.from_file(**parameters)
         except AttributeError:
-            msg = 'Unknown solar spectrum "{}".  Valid spectra:\n{}'.format(name, sources.available)
+            msg = 'Unknown solar spectrum "{}".  Valid spectra:\n{}'.format(
+                name, sources.available)
             raise ValueError(msg)
-            
+
 
 class default_sun(ScienceState):
+
     """The default solar spectrum to use.
 
     To retrieve the current default::
@@ -140,4 +141,3 @@ class default_sun(ScienceState):
             return value
         else:
             raise TypeError("default_sun must be a string or Sun instance.")
-
