@@ -58,7 +58,6 @@ def total_number(integrated_flux, frequency):
 
 
 class SpectralModel():
-
     """Range of spectral models"""
     def haser():
         """Haser model
@@ -266,7 +265,6 @@ class Spectrum():
 
 
 class SpectralStandard(ABC):
-
     """Abstract base class for SBPy spectral standards.
 
     Parameters
@@ -423,12 +421,10 @@ class SpectralStandard(ABC):
         import synphot
 
         if np.size(wave_or_freq) > 1:
-            # Method adapted from
-            # http://www.astrobetter.com/blog/2013/08/12/python-tip-re-sampling-spectra-with-pysynphot/
+            # Method adapted from http://www.astrobetter.com/blog/2013/08/12/python-tip-re-sampling-spectra-with-pysynphot/
             specele = synphot.SpectralElement(synphot.ConstFlux1D(1))
-            obs = synphot.Observation(
-                self.source, specele, binset=wave_or_freq,
-                force='taper')
+            obs = synphot.Observation(self.source, specele, binset=wave_or_freq,
+                                      force='taper')
 
             # The following is the same as obs.binflux, except sample_binned
             # will do the unit coversions.
@@ -438,14 +434,15 @@ class SpectralStandard(ABC):
 
         return fluxd
 
-    def filt(self, bandpass, unit='W / (m2 um)', vegaspec=None, **kwargs):
+    def filt(self, bp, unit='W / (m2 um)', vegaspec=None, **kwargs):
         """Spectrum observed through a filter.
 
         Parameters
         ----------
-        bandpass : string or `~synphot.SpectralElement`
+        bp : string or `~synphot.SpectralElement`
           The name of a filter, or a transmission spectrum as a
-          `~synphot.SpectralElement`.
+          `~synphot.SpectralElement`.  See notes for built-in filter
+          names.
 
         unit : string, `~astropy.units.Unit`, optional
           Spectral units of the output: flux density, 'vegamag',
@@ -471,20 +468,34 @@ class SpectralStandard(ABC):
         Notes
         -----
 
-        Filter names can be found in the `synphot` `documentation
-          <http://synphot.readthedocs.io/en/stable/synphot/bandpass.html#synphot-predefined-filter>`_.
+        Filter reference data is from STScI's Calibration Reference
+        Data System.
+
+        * ``'bessel_j'`` (Bessel *J*)
+        * ``'bessel_h'`` (Bessel *H*)
+        * ``'bessel_k'`` (Bessel *K*)
+        * ``'cousins_r'`` (Cousins *R*)
+        * ``'cousins_i'`` (Cousins *I*)
+        * ``'johnson_u'`` (Johnson *U*)
+        * ``'johnson_b'`` (Johnson *B*)
+        * ``'johnson_v'`` (Johnson *V*)
+        * ``'johnson_r'`` (Johnson *R*)
+        * ``'johnson_i'`` (Johnson *I*)
+        * ``'johnson_j'`` (Johnson *J*)
+        * ``'johnson_k'`` (Johnson *K*)
 
         """
 
         import synphot
         from .vega import default_vega
 
-        assert isinstance(bandpass, (str, synphot.SpectralElement))
+        assert isinstance(bp, (str, synphot.SpectralElement))
 
-        if isinstance(bandpass, str):
-            bandpass = synphot.SpectralElement.from_filter(bandpass)
+        if isinstance(bp, str):
+            # bp = get_bandpass(bp)
+            raise NotImplementedError
 
-        obs = synphot.Observation(self.source, bandpass, **kwargs)
+        obs = synphot.Observation(self.source, bp, **kwargs)
 
         if unit == 'vegamag' and vegaspec is None:
             vegaspec = default_vega.get().source

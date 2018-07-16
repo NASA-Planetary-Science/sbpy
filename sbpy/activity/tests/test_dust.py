@@ -4,15 +4,12 @@ import numpy as np
 import astropy.units as u
 from ..dust import *
 
-
 def test_phase_HalleyMarcus():
     assert np.isclose(phase_HalleyMarcus(0 * u.deg), 1.0)
     assert np.isclose(phase_HalleyMarcus(15 * u.deg), 5.8720e-01)
     assert np.isclose(phase_HalleyMarcus(14.5 * u.deg), 0.5959274462322928)
 
-
 class TestAfrho:
-
     def test_init(self):
         afrho = Afrho(1000 * u.cm)
         assert afrho.value == 1000
@@ -46,24 +43,6 @@ class TestAfrho:
         afrho = Afrho.from_fluxd(nu, fluxd, aper, eph, S=S)
         assert np.isclose(afrho.cm, 1000.0)
 
-    def test_from_filt(self):
-        """Use a solar spectrum flat in dλ space, and estimate Afρ."""
-        import synphot
-        from ...spectroscopy.sun import Sun, default_sun
-
-        sun = Sun(synphot.SourceSpectrum(
-            synphot.ConstFlux1D, amplitude=1 * u.W / u.m**2 / u.um))
-        bp = synphot.SpectralElement(synphot.Box1D, amplitude=1.0,
-                                     x_0=0.55 * u.um, width=0.1 * u.um)
-
-        fluxd = 0.25e-21 * u.W / u.m**2 / u.um
-        aper = 100 * u.km
-        eph = dict(rh=1 * u.au, delta=1e9 * u.km)
-        with default_sun.set(sun):
-            afrho = Afrho.from_filt(bp, fluxd, aper, eph)
-
-        assert np.isclose(afrho.cm, 1.0)
-
     def test_fluxd(self):
         afrho = Afrho(1000, 'cm')
         aper = 1 * u.arcsec
@@ -94,10 +73,8 @@ class TestAfrho:
     def test_to_phase(self):
         afrho = Afrho(10 * u.cm).to_phase(15 * u.deg, 0 * u.deg)
         assert np.isclose(afrho.cm, 5.8720)
-
-
+    
 class TestEfrho:
-
     def test_init(self):
         efrho = Efrho(1000 * u.cm)
         assert efrho.value == 1000
@@ -138,7 +115,7 @@ class TestEfrho:
         eph = dict(rh=1.5 * u.au, delta=1.0 * u.au)
         fluxd = efrho.fluxd(wave, aper, eph)
         assert np.isclose(fluxd.value, 1e-16)
-
+    
     def test_fluxd_unit(self):
         efrho = Efrho(100, 'cm')
         wave = 5 * u.um
@@ -147,3 +124,4 @@ class TestEfrho:
         Tscale = 1.1
         fluxd = efrho.fluxd(wave, aper, eph, Tscale=Tscale, unit='mJy')
         assert np.isclose(fluxd.value, 0.3197891693353106)
+    
