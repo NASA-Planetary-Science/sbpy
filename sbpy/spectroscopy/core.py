@@ -14,6 +14,7 @@ from astropy.time import Time
 from astroquery.jplhorizons import Horizons
 from ..activity.gas import photo_timescale
 from astroquery.jplhorizons import conf
+from scipy import interpolate
 
 conf.horizons_server = 'https://ssd.jpl.nasa.gov/horizons_batch.cgi'
 
@@ -81,16 +82,14 @@ def molecular_data(temp_estimate, transition_freq, mol_tag):
 
     temp_list = cat.meta['Temperature (K)'] * u.K
 
-    temp = min(temp_list, key=lambda x: abs(x-temp_estimate))
+    part = list(mol['QLOG1', 'QLOG2', 'QLOG3', 'QLOG4', 'QLOG5', 'QLOG6',
+                    'QLOG7'][0])
 
-    for i in range(1, 8):
-        if mol.columns['QLOG{}'.format(i)].meta !=\
-           {'Temperature (K)': temp.value}:
+    temp = temp_estimate
 
-            pass
+    f = interpolate.interp1d(temp_list, part, 'nearest')
 
-        else:
-            partition = 10 ** (float(mol.columns['QLOG{}'.format(i)].data))
+    partition = 10**(f(temp_estimate.value))
 
     part300 = 10 ** (float(mol['QLOG1'].data))
 
@@ -161,7 +160,7 @@ def intensity_conversion(temp_estimate, transition_freq, mol_tag):
     else:
 
         intl = lgint*(part300/partition)*(np.exp(-elo_J/(k*temp)) -
-                                          np.exp(-energy_J/k*temp)) / \
+                                          np.exp(-energy_J/(k*temp))) / \
                (np.exp(-elo_J/(k*300 * u.K)) - np.exp(-energy_J/(k*300*u.K)))
 
     return intl
@@ -216,8 +215,8 @@ def einstein_coeff(temp_estimate, transition_freq, mol_tag):
     else:
 
         au = (intl*(t_freq)**2 *
-              (partition/gu)*(np.exp(-elo_J/(k*temp)) -
-                              np.exp(-energy_J/(k*temp)))**(-1)
+              (partition/gu)*(np.exp(-(elo_J/(k*temp)).value) -
+                              np.exp(-(energy_J/(k*temp)).value))**(-1)
               * (2.7964e-16)).value
 
     return au / u.s
@@ -453,8 +452,18 @@ class Spectrum():
         spectra : `~astropy.units.Quantity`
             Temperature brightness integral derived from spectra
 
-        transition_freq : `~astropy.units.Quantity`
-            Transition frequency in MHz
+        transition_freq : `~astropy.units.Quantity` or list of this type
+            Transition frequency in MHz. If a list of more than one frequency
+            is given the function will find the average constants from all the
+            lines and use these to calculate the final production rate.
+            According to Drahus himself:
+            "One advantage of this approach is that the calculated production
+            rate is based on the high-S/N observation of the averaged line
+            profile and not the much lower S/N of a single line- as
+            long as the theory behind holds. In some cases, individual lines
+            may not even be detectable, but if their average is, one will be
+            able to calculate the production rate for some assumed rotational
+            temperature."
 
         temp_estimate : `~astropy.units.Quantity`
             Estimated temperature in Kelvins
@@ -546,7 +555,6 @@ class Spectrum():
 
         assert isinstance(temp_estimate, u.Quantity)
         assert isinstance(vgas, u.Quantity)
-        assert isinstance(transition_freq, u.Quantity)
         assert isinstance(diameter, u.Quantity)
         assert isinstance(spectra, u.Quantity)  # K * km / s
         assert isinstance(time, str), "Input time as string, i.e. '2018-05-14'"
@@ -561,30 +569,88 @@ class Spectrum():
                                               astroquery.jplhorizons,\
                                               i.e. '500' (geocentric)"
 
-        mol_data = molecular_data(temp_estimate, transition_freq, mol_tag)
+        if type(transition_freq) == list:
 
-        t_freq = mol_data[0]
-        temp = mol_data[1]
-        partition = mol_data[4]
-        gu = mol_data[5]
-        energy_J = mol_data[6]
-        h = con.h.to('J*s')  # planck constant
-        k = con.k_B.to('J/K')  # boltzman constant
-        c = con.c.to('m/s')  # speed of light
-        vgas = vgas.to('m/s')
+            t_freq_list = []
+            temp_list = []
+            partition_list = []
+            gu_list = []
+            energy_J_list = []
+            au_list = []
+            h = con.h.to('J*s')  # planck constant
+            k = con.k_B.to('J/K')  # boltzman constant
+            c = con.c.to('m/s')  # speed of light
+            vgas = vgas.to('m/s')
 
-        au = einstein_coeff(temp_estimate, transition_freq, mol_tag)
+            for i in range(0, len(transition_freq)):
 
-        beta, delta = photod_rate(time, time_scale, target, id_type,
-                                  observatory, format, mol_tag)
+                assert isinstance(transition_freq[i], u.Quantity)
 
-        calc = ((16*np.pi*k*t_freq.decompose() *
-                 partition*vgas) / ((np.sqrt(np.pi*np.log(2)))
-                * h * c**2 * au * gu * np.exp(-energy_J/(k*temp)))).decompose()
+                mol_data = molecular_data(temp_estimate, transition_freq[i],
+                                          mol_tag)
 
-        q = spectra*(calc * b * delta / diameter)
+                t_freq = mol_data[0]
+                temp = mol_data[1]
+                partition = mol_data[4]
+                gu = mol_data[5]
+                energy_J = mol_data[6]
 
-        q = q.decompose().to(u.Hz, equivalencies=u.spectral()).decompose()[0]
+                au = einstein_coeff(temp_estimate, transition_freq[i], mol_tag)
+
+                au_list.append(au)
+                t_freq_list.append(t_freq)
+                temp_list.append(temp)
+                partition_list.append(partition)
+                gu_list.append(gu)
+                energy_J_list.append(energy_J)
+
+            t_freq = t_freq_list[0]
+            temp = temp_list[0]
+            au = sum(au_list) / float(len(au_list))
+            partition = sum(partition_list) / float(len(partition_list))
+            gu = sum(gu_list) / float(len(gu_list))
+            energy_J = sum(energy_J_list) / float(len(energy_J_list))
+
+            beta, delta = photod_rate(time, time_scale, target, id_type,
+                                      observatory, format, mol_tag)
+
+            calc = ((16*np.pi*k*t_freq.decompose() *
+                     partition*vgas) / (np.sqrt(np.pi*np.log(2))
+                    * h * c**2 * au * gu *
+                    np.exp(-energy_J/(k*temp)))).decompose()
+
+            q = spectra*(calc * b * delta / diameter)
+
+            q = q.decompose().to(u.Hz, equivalencies=u.spectral()).decompose()[0]
+
+        else:
+
+            assert isinstance(transition_freq, u.Quantity)
+
+            mol_data = molecular_data(temp_estimate, transition_freq, mol_tag)
+
+            t_freq = mol_data[0]
+            temp = mol_data[1]
+            partition = mol_data[4]
+            gu = mol_data[5]
+            energy_J = mol_data[6]
+            h = con.h.to('J*s')  # planck constant
+            k = con.k_B.to('J/K')  # boltzman constant
+            c = con.c.to('m/s')  # speed of light
+            vgas = vgas.to('m/s')
+
+            au = einstein_coeff(temp_estimate, transition_freq, mol_tag)
+
+            beta, delta = photod_rate(time, time_scale, target, id_type,
+                                      observatory, format, mol_tag)
+
+            calc = ((16*np.pi*k*t_freq.decompose() *
+                     partition*vgas) / ((np.sqrt(np.pi*np.log(2)))
+                    * h * c**2 * au * gu * np.exp(-energy_J/(k*temp)))).decompose()
+
+            q = spectra*(calc * b * delta / diameter)
+
+            q = q.decompose().to(u.Hz, equivalencies=u.spectral()).decompose()[0]
 
         return q
 

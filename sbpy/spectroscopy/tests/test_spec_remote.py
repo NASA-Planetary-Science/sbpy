@@ -57,6 +57,12 @@ def test_remote_prodrate_simple_hcn():
 
     np.testing.assert_almost_equal(q_pred, q_found, decimal=1.3)
 
+    err = abs((np.array(q_pred) - np.array(q_found)) / np.array(q_pred) * 100)
+
+    for i in range(0, len(err)):
+
+        assert err[i] < 0.135
+
 
 @remote_data
 def test_remote_prodrate_simple_ch3oh():
@@ -75,8 +81,11 @@ def test_remote_prodrate_simple_ch3oh():
 
     mol_tag = 32003
 
-    transition_freq = (157.270832 * u.GHz).to('MHz')
-
+    transition_freq = [(157.178987 * u.GHz).to('MHz'),
+                       (157.246062 * u.GHz).to('MHz'),
+                       (157.270832 * u.GHz).to('MHz'),
+                       (157.272338 * u.GHz).to('MHz'),
+                       (157.276019 * u.GHz).to('MHz')]
     q_found = []
 
     dispersionaxis = 1
@@ -101,12 +110,8 @@ def test_remote_prodrate_simple_ch3oh():
 
     q_pred = list(ch3oh['log(Q)'])
 
-    q_pred_upperbound = list(ch3oh['log(Q)']+ch3oh['error_top'])
+    err = abs((np.array(q_pred) - np.array(q_found)) / np.array(q_pred) * 100)
 
-    q_pred_lowerbound = list(ch3oh['log(Q)']-ch3oh['error_bottom'])
+    for i in range(0, len(err)):
 
-    np.testing.assert_almost_equal(q_pred, q_found, decimal=1.3)
-
-    q_found_rounded = [round(elem, 2) for elem in q_found]
-
-    assert q_pred_upperbound >= q_found_rounded >= q_pred_lowerbound
+        assert err[i] < 0.39
