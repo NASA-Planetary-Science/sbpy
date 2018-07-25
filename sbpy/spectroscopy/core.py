@@ -18,7 +18,7 @@ from scipy import interpolate
 
 conf.horizons_server = 'https://ssd.jpl.nasa.gov/horizons_batch.cgi'
 
-__all__ = ['Spectrum', 'SpectralModel']
+__all__ = ['Spectrum', 'SpectralModel', 'molecular_data', 'einstein_coeff']
 
 
 def molecular_data(temp_estimate, transition_freq, mol_tag):
@@ -87,7 +87,7 @@ def molecular_data(temp_estimate, transition_freq, mol_tag):
 
     temp = temp_estimate
 
-    f = interpolate.interp1d(temp_list, part, 'nearest')
+    f = interpolate.interp1d(temp_list, part, 'linear')
 
     partition = 10**(f(temp_estimate.value))
 
@@ -252,17 +252,17 @@ def photod_rate(time, time_scale, target, id_type, observatory, format,
     return beta, delta
 
 
-def total_number(integrated_flux, frequency):
+def total_number(integrated_flux, temp_estimate, transition_freq, mol_tag, aper):
     """
     Basic equation relating number of molecules with observed integrated flux.
     This is given by equation 10 in
-    https://ui.adsabs.harvard.edu/#abs/2004come.book..523C
+    https://ui.adsabs.harvard.edu/#abs/2004come.book..391B
 
     Parameters
     ----------
     integrated_flux : `~astropy.units.Quantity`
         Integrated flux of emission line.
-    frequency : `~astropy.units.Quantity`
+    transition_freq : `~astropy.units.Quantity`
         Transition frequency
 
     Returns
@@ -272,9 +272,30 @@ def total_number(integrated_flux, frequency):
 
     not implemented
     """
-    total_number = integrated_flux
-    total_number *= 8*np.pi*u.k_B*frequency**2/(con.h*con.c**3 *
-                                                einstein_coeff(frequency))
+
+    try:
+        from scipy.integrate import quad, dblquad
+    except ImportError as e:
+        from astropy.utils.exceptions import AstropyWarning
+        from warnings import warn
+        warn(AstropyWarning(
+            'scipy is not present, cannot integrate column density.'))
+        return None
+
+    cdensity = integrated_flux
+    cdensity *= (8*np.pi*con.k_B*transition_freq**2/
+                    (con.h*con.c**3 * einstein_coeff(temp_estimate,
+                                                     transition_freq,
+                                                     mol_tag))).decompose()
+
+    print(cdensity.decompose())
+
+    f = lambda rho: rho * cdensity.decompose().value
+
+    total_number, err = quad(f, 0, aper.to('m').value, epsabs=1.49e-8)
+
+    total_number *= 2 * np.pi
+
     return total_number
 
 
@@ -654,7 +675,8 @@ class Spectrum():
 
         return q
 
-    def production_rate(self, coma, molecule, frequency, aper):
+    def production_rate(self, coma, aper, integrated_flux,
+                        temp_estimate, transition_freq, mol_tag):
         """
         Calculate production rate for `GasComa`
 
@@ -682,13 +704,20 @@ class Spectrum():
 
         assert isinstance(coma, GasComa)
 
-        integrated_line = self.integrated_flux(frequency)
+        integrated_line = self.integrated_flux(transition_freq)
 
-        molecules = total_number(integrated_line, frequency)
+        molecules = total_number(integrated_flux, temp_estimate,
+                                 transition_freq, mol_tag, aper)
+
+        print(molecules)
 
         model_molecules = coma.total_number(aper)
 
-        Q = coma.q * molecules/model_molecules
+        print(model_molecules)
+
+        Q = coma.Q * molecules/model_molecules
+
+        print(Q)
 
         return Q
 
