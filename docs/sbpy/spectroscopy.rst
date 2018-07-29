@@ -21,19 +21,12 @@ by the user.
 
    >>> from sbpy.spectrosocpy import molecular_data, intensity_conversion
    >>> import astropy.units as u
-
    >>> temp_estimate = 33. * u.K
-
    >>> vgas = 0.8 * u.km / u.s
-
    >>> mol_tag = 27001
-
    >>> transition_freq = 265.886434 * u.MHz
-
    >>> mol_data = molecular_data(temp_estimate, transition_freq, mol_tag, vgas)
-
    >>> intl = intensity_conversion(temp_estimate, transition_freq, mol_tag, vgas)
-
    >>> co
      [<Quantity 265886.18 MHz>,
       <Quantity 37.5 K>,
@@ -61,9 +54,7 @@ for a specific molecule and transition frequency.
 .. code-block:: python
 
    >>> from sbpy.spectroscopy import einstein_coeff
-
    >>> e = einstein_coeff(temp_estimate, transition_freq, mol_tag, vgas)
-
    >>> e
       <Quantity 0.0008601294364222543 1 / s>
 
@@ -89,31 +80,62 @@ section.
 .. code-block:: python
 
   >>> from sbpy.spectroscopy import prodrate_np
-
   >>> temp_estimate = 33. * u.K
-
   >>> target = '900918'
-
   >>> vgas = 0.8 * u.km / u.s
-
-  >>> diameter = 30 * u.m
-
+  >>> aper = 30 * u.m
   >>> b = 1.13
-
   >>> mol_tag = 27001
-
   >>> transition_freq = 265.886434 * u.MHz
-
   >>> spectra = 1.22 * u.K * u.km / u.s
-
   >>> time = '2010-11-3 00:48:06'
-
   >>> q = prodrate_np(spectra, temp_estimate, transition_freq,
-                            mol_tag, time, target, vgas, diameter,
-                            b=b, id_type='id')  # doctest: +SKIP
+                            mol_tag, time, target, vgas, aper,
+                            b=b, id_type='id')
 
   >>> q
   <Quantity 1.0432591198553935e+25 1 / s>
+
+Another model included in the module is based off of the model in the following
+literature:
+
+| Haser 1957, Bulletin de la Societe Royale des Sciences de Liege 43, 740.
+| Newburn and Johnson 1978, Icarus 35, 360-368.
+
+This model takes in an initial guess for the production rate, and uses the
+module found in ``sbpy.activity.gas`` to find a ratio between the model model
+total number of molecules and the number of molecules calculated from the data
+to scale the model Q and output the new production rate from the result. This
+model does account for the effects of photolysis.
+
+.. code-block:: python
+
+  >>> from sbpy.activity.gas import Haser
+  >>> coma = Haser(Q, v, parent)
+  >>> Q = spec.production_rate(coma, molecule='H2O')
+
+  >>> Q_estimate = 2.8*10**(28) / u.s
+  >>> transition_freq = (230.53799 * u.GHz).to('MHz')
+  >>> aper = 10 * u.m
+  >>> mol_tag = 28001
+  >>> temp_estimate = 25. * u.K
+  >>> target = 'C/2016 R2'
+  >>> b = 0.74
+  >>> vgas = 0.5 * u.km / u.s
+
+  >>> time = '2017-12-22 05:24:20'
+  >>> spectra = 0.26 * u.K * u.km / u.s
+
+  >>> parent = photo_timescale('CO') * vgas
+
+  >>> coma = Haser(Q_estimate, vgas, parent)
+
+  >>> Q = spec.production_rate(coma, spectra, temp_estimate,
+                               transition_freq, mol_tag, time, target,
+                               aper=aper, b=b)
+
+  >>> print(Q)
+      <Quantity [1.64403219e+28] 1 / s>
 
 
 Spectral standards and photometric calibration
@@ -149,11 +171,10 @@ The names of the built-in sources are stored as an internal array.  Any built-in
    >>> print(sun)
    <Sun: E490-00a (2014) low resolution reference solar spectrum (Table 4)>
 
-<<<<<<< HEAD
 The solar spectrum in current use is controlled with `default_sun`:
-  
+
 .. doctest-requires:: synphot
-		      
+
    >>> from sbpy.spectroscopy.sun import Sun, default_sun
    >>> default_sun.set('E490_2014LR')
    <ScienceState default_sun: <Sun: E490-00a (2014) low resolution reference solar spectrum (Table 4)>>
@@ -161,18 +182,6 @@ The solar spectrum in current use is controlled with `default_sun`:
    >>> sun = Sun.from_default()
    >>> print(sun)
    <Sun: E490-00a (2014) low resolution reference solar spectrum (Table 4)>
-=======
-The solar spectrum in current use is controlled and revealed through `default_sun`::
-
-.. doctest-requires:: synphot
-
-   >>> from sbpy.spectroscopy.sun import default_sun
-   >>> default_sun.set('E490_2014')
-   <ScienceState default_sun: <Sun: E490-00a (2014) reference solar spectrum (Table 3).>>
-   >>> # E490 in effect for all of sbpy
-   >>> default_sun.get() # Get the default spectrum as a `Sun` object
-   <Sun: E490-00a (2014) reference solar spectrum (Table 3).>
->>>>>>> Updated documentation to include prodrate_np and Einstein coefficient modules
 
 `default_sun` can also be used as a context manager to temporarily change the default spectrum:
 
@@ -194,7 +203,7 @@ Provide your own solar spectrum with the `Sun` class:
 .. doctest-requires:: synphot
 
    >>> from sbpy.spectroscopy.sun import Sun, default_sun
-   >>> with default_sun.set(Sun.from_file('sun.txt')):  # doctest: +SKIP
+   >>> with default_sun.set(Sun.from_file('sun.txt')):
    ...   # sun.txt in effect
 
 See `~Sun` for more information on ways to create solar spectra.
@@ -204,9 +213,15 @@ In a similar manner, Vega spectra are accessed and controlled via `Vega` and `de
 .. doctest-requires:: synphot
 
    >>> from sbpy.spectroscopy.vega import Vega, default_vega
+<<<<<<< HEAD
    >>> print(Vega.from_default())     # doctest: +SKIP
    <Vega: Spectrum of Bohlin 2014>
    >>> with default_vega.set(Vega.from_file('vega.txt')):  # doctest: +SKIP
+=======
+   >>> print(default_vega.get().description)               # doctest: +REMOTE_DATA +IGNORE_OUTPUT
+   Vega spectrum of Bohlin 2014.
+   >>> with default_vega.set(Vega.from_file('vega.txt')):
+>>>>>>> Updates on documentation
    ...   # vega.txt in effect
 
 
@@ -219,7 +234,7 @@ Get the default solar spectrum, and observe it through the Johnson V-band filter
 
 .. doctest-requires:: synphot
 <<<<<<< HEAD
-		      
+
    >>> from sbpy.spectroscopy.sun import Sun
    >>> sun = Sun.from_default()
    >>> wave, mag = sun.filt('johnson_v', unit='vegamag')                                                                          # doctest: +REMOTE_DATA
