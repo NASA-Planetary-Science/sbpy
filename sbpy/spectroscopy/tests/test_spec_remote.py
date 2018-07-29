@@ -1,13 +1,13 @@
+import os
+
+import numpy as np
 import astropy.units as u
-from .. import Spectrum, einstein_coeff
 from astropy.tests.helper import remote_data
 from astropy.table import Table
-import numpy as np
 from astroquery.lamda import Lamda
 from astroquery.jplspec import JPLSpec
-from sbpy.activity.gas import Haser, photo_timescale
-
-import os
+from ...activity.gas import Haser, photo_timescale
+from .. import Spectrum, einstein_coeff
 
 
 def data_path(filename):
@@ -21,35 +21,25 @@ def test_remote_prodrate_simple_hcn():
     hcn = Table.read(data_path('HCN.csv'), format="ascii.csv")
 
     temp_estimate = 47. * u.K
-
     target = '900918'
-
     vgas = 0.8 * u.km / u.s
-
-    diameter = 30 * u.m  # The diameter for telescope used (Drahus et al. 2012)
-
+    aper = 30 * u.m  # The aperture for telescope used (Drahus et al. 2012)
     b = 1.13  # Value taken from (Drahus et al. 2012)
-
     mol_tag = 27001
-
     transition_freq = (265.886434 * u.GHz).to('MHz')
-
     q_found = []
-
     dispersionaxis = 1
-
     unit = u.Hz
 
     for i in range(0, 28):
 
         time = hcn['Time'][i]
-
         spectra = hcn['T_B'][i] * u.K * u.km / u.s
 
         s = Spectrum(spectra, dispersionaxis, unit)
 
         q = s.prodrate_np(spectra, temp_estimate, transition_freq,
-                          mol_tag, time, target, vgas, diameter, b=b,
+                          mol_tag, time, target, vgas, aper, b=b,
                           id_type='id')
 
         q = np.log10(q.value)
@@ -71,40 +61,30 @@ def test_remote_prodrate_simple_hcn():
 def test_remote_prodrate_simple_ch3oh():
 
     ch3oh = Table.read(data_path('CH3OH.csv'), format="ascii.csv")
-
     temp_estimate = 47. * u.K
-
     target = '900918'
-
     vgas = 0.8 * u.km / u.s
-
-    diameter = 30 * u.m  # The diameter for telescope used (Drahus et al. 2012)
-
+    aper = 30 * u.m  # The aperture for telescope used (Drahus et al. 2012)
     b = 1.13  # Value taken from (Drahus et al. 2012)
-
     mol_tag = 32003
-
     transition_freq = [(157.178987 * u.GHz).to('MHz'),
                        (157.246062 * u.GHz).to('MHz'),
                        (157.270832 * u.GHz).to('MHz'),
                        (157.272338 * u.GHz).to('MHz'),
                        (157.276019 * u.GHz).to('MHz')]
     q_found = []
-
     dispersionaxis = 1
-
     unit = u.Hz
 
-    for i in range(0, 21):
+    for i in range(0, 20):
 
         time = ch3oh['Time'][i]
-
         spectra = ch3oh['T_B'][i] * u.K * u.km / u.s
 
         s = Spectrum(spectra, dispersionaxis, unit)
 
         q = s.prodrate_np(spectra, temp_estimate, transition_freq,
-                          mol_tag, time, target, vgas, diameter, b=b,
+                          mol_tag, time, target, vgas, aper, b=b,
                           id_type='id')
 
         q = np.log10(q.value)
@@ -125,21 +105,17 @@ def test_einstein():
 
     transition_freq_list = [(1611.7935180 * u.GHz).to('MHz'),
                             (177.26111120 * u.GHz).to('MHz')]
-
-    mol_tag_list = [28001,27001]
-
+    mol_tag_list = [28001, 27001]
     temp_estimate = 33. * u.K
 
     result = []
-
     catalog_result = []
 
     cat = JPLSpec.get_species_table()
 
-    for i in range(0,2):
+    for i in range(0, 2):
 
         transition_freq = transition_freq_list[i]
-
         mol_tag = mol_tag_list[i]
 
         au = einstein_coeff(temp_estimate, transition_freq, mol_tag)
@@ -166,7 +142,8 @@ def test_einstein():
 
     print(catalog_result, result)
 
-    err = abs((np.array(catalog_result) - np.array(result)) / np.array(catalog_result) * 100)
+    err = (abs((np.array(catalog_result) - np.array(result)) /
+           np.array(catalog_result) * 100))
 
     for i in range(0, len(err)):
 
@@ -176,25 +153,40 @@ def test_einstein():
 @remote_data
 def test_Haser_prodrate():
 
-    spec = Spectrum(0.26 * u.K * u.km / u.s, 1 , u.Hz)
+    co = Table.read(data_path('CO.csv'), format="ascii.csv")
 
-    Q_estimate = 2.8*10**(27) / u.s
+    spec = Spectrum(0.26 * u.K * u.km / u.s, 1, u.Hz)
 
-    vgas = 0.5 * u.km / u.s
-
-    parent = photo_timescale('CO') * vgas
-
-    transition_freq = (230.538 * u.GHz).to('MHz')
-
+    Q_estimate = 2.8*10**(28) / u.s
+    transition_freq = (230.53799 * u.GHz).to('MHz')
     aper = 10 * u.m
-
     mol_tag = 28001
+    temp_estimate = 25. * u.K
+    vgas = 0.5 * u.km / u.s
+    target = 'C/2016 R2'
+    b = 0.74
 
-    temp_estimate = 33. * u.K
+    q_found = []
 
-    integrated_flux = 0.26 * u.K * u.km / u.s
+    for i in range(0, 5):
 
-    coma = Haser(Q_estimate, vgas, parent)
+        time = co['Time'][i]
+        spectra = co['T_B'][i] * u.K * u.km / u.s
 
-    Q = spec.production_rate(coma, aper, integrated_flux, temp_estimate,
-                             transition_freq, mol_tag)
+        parent = photo_timescale('CO') * vgas
+
+        coma = Haser(Q_estimate, vgas, parent)
+
+        Q = spec.production_rate(coma, spectra, temp_estimate,
+                                 transition_freq, mol_tag, time, target,
+                                 aper=aper, b=b)
+
+        q_found.append(np.log10(Q.value)[0])
+
+    q_pred = list(co['log(Q)'])
+
+    err = abs((np.array(q_pred) - np.array(q_found)) / np.array(q_pred) * 100)
+
+    for i in range(0, len(err)):
+
+        assert err[i] < 2.5

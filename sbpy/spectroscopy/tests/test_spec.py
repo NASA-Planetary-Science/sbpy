@@ -1,11 +1,5 @@
 import os
 
-import astropy.units as u
-from .. import Spectrum
-from astropy.tests.helper import remote_data
-from astropy.table import Table
-import numpy as np
-
 
 def data_path(filename):
     data_dir = os.path.join(os.path.dirname(__file__), 'data')

@@ -6,8 +6,8 @@ import os
 
 def get_package_data():
 
-    paths_test = [os.path.join('data', 'HCN.data'),
-                  os.path.join('data', 'HCN.csv'),
-                  os.path.join('data', 'CH3OH.csv')]
+    paths_test = [os.path.join('data', 'HCN.csv'),
+                  os.path.join('data', 'CH3OH.csv'),
+                  os.path.join('data', 'CO.csv')]
 
     return {'sbpy.spectroscopy.tests': paths_test, }

@@ -7,14 +7,13 @@ created on June 23, 2017
 
 from abc import ABC
 import numpy as np
+from scipy import interpolate
 import astropy.constants as con
 import astropy.units as u
-from astroquery.jplspec import JPLSpec
 from astropy.time import Time
-from astroquery.jplhorizons import Horizons
+from astroquery.jplspec import JPLSpec
+from astroquery.jplhorizons import Horizons, conf
 from ..activity.gas import photo_timescale
-from astroquery.jplhorizons import conf
-from scipy import interpolate
 
 conf.horizons_server = 'https://ssd.jpl.nasa.gov/horizons_batch.cgi'
 
@@ -50,9 +49,6 @@ def molecular_data(temp_estimate, transition_freq, mol_tag):
             | Upper level energy in Joules
             | Lower level energy in Joules
             | Degrees of freedom
-            | Planck Constant
-            | Speed of light
-            | Boltzmann constant
 
     """
 
@@ -222,10 +218,10 @@ def einstein_coeff(temp_estimate, transition_freq, mol_tag):
     return au / u.s
 
 
-def photod_rate(time, time_scale, target, id_type, observatory, format,
+def photod_rate(time, time_scale, target, id_type, observatory, time_format,
                 mol_tag):
 
-    epoch = Time(time, scale=time_scale, format=format)
+    epoch = Time(time, scale=time_scale, format=time_format)
     obj = Horizons(id=target, epochs=epoch.jd, location=observatory,
                    id_type=id_type)
 
@@ -244,7 +240,8 @@ def photod_rate(time, time_scale, target, id_type, observatory, format,
 
     timescale = photo_timescale(name)
 
-    if type(timescale) == np.array:
+    if timescale.ndim != 0:
+        # array
         timescale = timescale[0]
 
     beta = (timescale) * r**2
@@ -252,7 +249,9 @@ def photod_rate(time, time_scale, target, id_type, observatory, format,
     return beta, delta
 
 
-def total_number(integrated_flux, temp_estimate, transition_freq, mol_tag, aper):
+def total_number(integrated_line, temp_estimate, transition_freq, mol_tag,
+                 aper, b, time, target, time_scale, id_type, observatory,
+                 time_format):
     """
     Basic equation relating number of molecules with observed integrated flux.
     This is given by equation 10 in
@@ -260,7 +259,7 @@ def total_number(integrated_flux, temp_estimate, transition_freq, mol_tag, aper)
 
     Parameters
     ----------
-    integrated_flux : `~astropy.units.Quantity`
+    integrated_line : `~astropy.units.Quantity`
         Integrated flux of emission line.
     transition_freq : `~astropy.units.Quantity`
         Transition frequency
@@ -273,28 +272,18 @@ def total_number(integrated_flux, temp_estimate, transition_freq, mol_tag, aper)
     not implemented
     """
 
-    try:
-        from scipy.integrate import quad, dblquad
-    except ImportError as e:
-        from astropy.utils.exceptions import AstropyWarning
-        from warnings import warn
-        warn(AstropyWarning(
-            'scipy is not present, cannot integrate column density.'))
-        return None
+    cdensity = integrated_line
+    cdensity *= (8*np.pi*con.k_B*transition_freq**2 /
+                 (con.h*con.c**3 * einstein_coeff(temp_estimate,
+                                                  transition_freq,
+                                                  mol_tag))).decompose()
 
-    cdensity = integrated_flux
-    cdensity *= (8*np.pi*con.k_B*transition_freq**2/
-                    (con.h*con.c**3 * einstein_coeff(temp_estimate,
-                                                     transition_freq,
-                                                     mol_tag))).decompose()
+    delta, beta = photod_rate(time, time_scale, target, id_type, observatory,
+                              time_format, mol_tag)
 
-    print(cdensity.decompose())
+    sigma = (1./2. * delta * b * con.c / (transition_freq * aper)).value
 
-    f = lambda rho: rho * cdensity.decompose().value
-
-    total_number, err = quad(f, 0, aper.to('m').value, epsabs=1.49e-8)
-
-    total_number *= 2 * np.pi
+    total_number = cdensity.decompose() * sigma * u.m * u.m / np.sqrt(np.log(2))
 
     return total_number
 
@@ -460,8 +449,8 @@ class Spectrum():
 
     def prodrate_np(self, spectra, temp_estimate, transition_freq,
                     mol_tag, time, target, vgas=1 * u.km/u.s,
-                    diameter=25 * u.m, observatory='500', b=1.2,
-                    format='iso', time_scale='utc',
+                    aper=25 * u.m, observatory='500', b=1.2,
+                    time_format='iso', time_scale='utc',
                     id_type='designation'):
 
         """
@@ -504,8 +493,8 @@ class Spectrum():
         vgas : `~astropy.units.Quantity`
             Gas velocity approximation in km / s. Default is 1 km / s
 
-        diameter : `~astropy.units.Quantity`
-            Telescope diameter in meters. Default is 25 m
+        aper : `~astropy.units.Quantity`
+            Telescope aperture in meters. Default is 25 m
 
         observatory : str
             | Observatory identifier as per `~astroquery.jplhorizons`
@@ -516,7 +505,7 @@ class Spectrum():
             | value, and the default for this model, is 1.22. See
             | references for more information on this parameter.
 
-        format : str
+        time_format : str
             | Time format, see `~astropy.time` for more information
             | Default is 'iso' which corresponds to 'YYYY-MM-DD HH:MM:SS'
 
@@ -545,7 +534,7 @@ class Spectrum():
 
         >>> vgas = 0.8 * u.km / u.s  # doctest: +SKIP
 
-        >>> diameter = 30 * u.m  # doctest: +SKIP
+        >>> aper = 30 * u.m  # doctest: +SKIP
 
         >>> b = 1.13  # doctest: +SKIP
 
@@ -558,7 +547,7 @@ class Spectrum():
         >>> time = '2010-11-3 00:48:06'  # doctest: +SKIP
 
         >>> q = prodrate_np(spectra, temp_estimate, transition_freq, # doctest: +SKIP
-                            mol_tag, time, target, vgas, diameter,
+                            mol_tag, time, target, vgas, aper,
                             b=b, id_type='id')
 
         >>> q  # doctest: +SKIP
@@ -576,7 +565,7 @@ class Spectrum():
 
         assert isinstance(temp_estimate, u.Quantity)
         assert isinstance(vgas, u.Quantity)
-        assert isinstance(diameter, u.Quantity)
+        assert isinstance(aper, u.Quantity)
         assert isinstance(spectra, u.Quantity)  # K * km / s
         assert isinstance(time, str), "Input time as string, i.e. '2018-05-14'"
         assert isinstance(time_scale, str), "Input time scale as string, i.e.\
@@ -633,14 +622,14 @@ class Spectrum():
             energy_J = sum(energy_J_list) / float(len(energy_J_list))
 
             beta, delta = photod_rate(time, time_scale, target, id_type,
-                                      observatory, format, mol_tag)
+                                      observatory, time_format, mol_tag)
 
             calc = ((16*np.pi*k*t_freq.decompose() *
                      partition*vgas) / (np.sqrt(np.pi*np.log(2))
-                    * h * c**2 * au * gu *
-                    np.exp(-energy_J/(k*temp)))).decompose()
+                                        * h * c**2 * au * gu *
+                                        np.exp(-energy_J/(k*temp)))).decompose()
 
-            q = spectra*(calc * b * delta / diameter)
+            q = spectra*(calc * b * delta / aper)
 
             q = q.decompose().to(u.Hz, equivalencies=u.spectral()).decompose()[0]
 
@@ -663,20 +652,24 @@ class Spectrum():
             au = einstein_coeff(temp_estimate, transition_freq, mol_tag)
 
             beta, delta = photod_rate(time, time_scale, target, id_type,
-                                      observatory, format, mol_tag)
+                                      observatory, time_format, mol_tag)
 
             calc = ((16*np.pi*k*t_freq.decompose() *
-                     partition*vgas) / ((np.sqrt(np.pi*np.log(2)))
-                    * h * c**2 * au * gu * np.exp(-energy_J/(k*temp)))).decompose()
+                     partition*vgas) / (np.sqrt(np.pi*np.log(2))
+                                        * h * c**2 * au * gu *
+                                        np.exp(-energy_J/(k*temp)))).decompose()
 
-            q = spectra*(calc * b * delta / diameter)
+            q = spectra*(calc * b * delta / aper)
 
             q = q.decompose().to(u.Hz, equivalencies=u.spectral()).decompose()[0]
 
         return q
 
-    def production_rate(self, coma, aper, integrated_flux,
-                        temp_estimate, transition_freq, mol_tag):
+    def production_rate(self, coma, integrated_line, temp_estimate,
+                        transition_freq, mol_tag, time, target,
+                        aper=25 * u.m, observatory='500', b=1.2,
+                        time_format='iso', time_scale='utc',
+                        id_type='designation'):
         """
         Calculate production rate for `GasComa`
 
@@ -685,6 +678,51 @@ class Spectrum():
         coma : `sbpy.activity.gas.GasComa`
             Gas coma model
 
+        integrated_line : `~astropy.units.Quantity`
+            Temperature brightness integral derived from spectra
+
+        temp_estimate : `~astropy.units.Quantity`
+            Estimated temperature in Kelvins
+
+        transition_freq : `~astropy.units.Quantity`
+            Transition frequency being analyzed
+
+        mol_tag : int or str
+            Molecule identifier. Make sure it is an exclusive identifier.
+
+        time : str
+            Time of observation of any format supported by `~astropy.time`
+
+        target : str
+            | Target designation, if there is more than one aparition you
+            | will be prompted to pick a more specific identifier from a
+            | displayed table and change the parameter id_type to 'id'.
+            | Look at `~astroquery.jplhorizons` for more information.
+
+        aper : `~astropy.units.Quantity`
+            Telescope aperture in meters. Default is 25 m
+
+        observatory : str
+            | Observatory identifier as per `~astroquery.jplhorizons`
+            | Default is geocentric ('500')
+
+        b : int
+            | Dimensionless factor intrinsic to every antenna. Typical
+            | value, and the default for this model, is 1.22. See
+            | references for more information on this parameter.
+
+        time_format : str
+            | Time format, see `~astropy.time` for more information
+            | Default is 'iso' which corresponds to 'YYYY-MM-DD HH:MM:SS'
+
+        time_scale : str
+            | Time scale, see `~astropy.time` for mor information.
+            | Default is 'utc'
+
+        id_type : str
+            | ID type for target. See `~astroquery.jplhorizons` for more.
+            | Default is 'designation'
+
         Returns
         -------
         Q : `~astropy.units.Quantity`
@@ -692,11 +730,38 @@ class Spectrum():
 
         Examples
         --------
-        >>> from sbpy.activity.gas import Haser
+        >>> from sbpy.activity.gas import Haser # doctest: +SKIP
         >>> coma = Haser(Q, v, parent) # doctest: +SKIP
         >>> Q = spec.production_rate(coma, molecule='H2O') # doctest: +SKIP
 
-        not yet implemented
+        >>> Q_estimate = 2.8*10**(28) / u.s # doctest: +SKIP
+        >>> transition_freq = (230.53799 * u.GHz).to('MHz') # doctest: +SKIP
+        >>> aper = 10 * u.m # doctest: +SKIP
+        >>> mol_tag = 28001 # doctest: +SKIP
+        >>> temp_estimate = 25. * u.K # doctest: +SKIP
+        >>> target = 'C/2016 R2' # doctest: +SKIP
+        >>> b = 0.74 # doctest: +SKIP
+        >>> vgas = 0.5 * u.km / u.s # doctest: +SKIP
+
+        >>> time = '2017-12-22 05:24:20' # doctest: +SKIP
+        >>> spectra = 0.26 * u.K * u.km / u.s # doctest: +SKIP
+
+        >>> parent = photo_timescale('CO') * vgas # doctest: +SKIP
+
+        >>> coma = Haser(Q_estimate, vgas, parent) # doctest: +SKIP
+
+        >>> Q = spec.production_rate(coma, spectra, temp_estimate, # doctest: +SKIP
+                                     transition_freq, mol_tag, time, target,
+                                     aper=aper, b=b) # doctest: +SKIP
+
+        >>> print(Q) # doctest: +SKIP
+            <Quantity [1.64403219e+28] 1 / s>
+
+        References
+        ----------
+        Haser 1957, Bulletin de la Societe Royale des Sciences de Liege
+        43, 740.
+        Newburn and Johnson 1978, Icarus 35, 360-368.
 
         """
 
@@ -704,20 +769,15 @@ class Spectrum():
 
         assert isinstance(coma, GasComa)
 
-        integrated_line = self.integrated_flux(transition_freq)
+        # integrated_line = self.integrated_flux(transition_freq) - not yet implemented
 
-        molecules = total_number(integrated_flux, temp_estimate,
-                                 transition_freq, mol_tag, aper)
-
-        print(molecules)
+        molecules = total_number(integrated_line, temp_estimate,
+                                 transition_freq, mol_tag, aper, b, time, target,
+                                 time_scale, id_type, observatory, time_format)
 
         model_molecules = coma.total_number(aper)
 
-        print(model_molecules)
-
         Q = coma.Q * molecules/model_molecules
-
-        print(Q)
 
         return Q
 
