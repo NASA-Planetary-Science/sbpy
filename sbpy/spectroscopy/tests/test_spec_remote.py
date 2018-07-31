@@ -52,9 +52,7 @@ def test_remote_prodrate_simple_hcn():
 
     err = abs((np.array(q_pred) - np.array(q_found)) / np.array(q_pred) * 100)
 
-    for i in range(0, len(err)):
-
-        assert err[i] < 0.2345
+    assert np.all(err < 0.2345)
 
 
 @remote_data
@@ -95,9 +93,7 @@ def test_remote_prodrate_simple_ch3oh():
 
     err = abs((np.array(q_pred) - np.array(q_found)) / np.array(q_pred) * 100)
 
-    for i in range(0, len(err)):
-
-        assert err[i] < 0.35
+    assert np.all(err < 0.35)
 
 
 @remote_data
@@ -106,7 +102,7 @@ def test_einstein():
     transition_freq_list = [(1611.7935180 * u.GHz).to('MHz'),
                             (177.26111120 * u.GHz).to('MHz')]
     mol_tag_list = [28001, 27001]
-    temp_estimate = 33. * u.K
+    temp_estimate = 300. * u.K
 
     result = []
     catalog_result = []
@@ -140,15 +136,10 @@ def test_einstein():
 
         catalog_result.append(au_cat)
 
-    print(catalog_result, result)
-
     err = (abs((np.array(catalog_result) - np.array(result)) /
            np.array(catalog_result) * 100))
 
-    for i in range(0, len(err)):
-
-        assert err[i] < 24.
-
+    assert np.all(err < 23.5)
 
 @remote_data
 def test_Haser_prodrate():
@@ -187,6 +178,4 @@ def test_Haser_prodrate():
 
     err = abs((np.array(q_pred) - np.array(q_found)) / np.array(q_pred) * 100)
 
-    for i in range(0, len(err)):
-
-        assert err[i] < 2.5
+    assert np.all(err < 2.5)

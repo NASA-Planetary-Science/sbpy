@@ -203,7 +203,7 @@ Provide your own solar spectrum with the `Sun` class:
 .. doctest-requires:: synphot
 
    >>> from sbpy.spectroscopy.sun import Sun, default_sun
-   >>> with default_sun.set(Sun.from_file('sun.txt')):
+   >>> with default_sun.set(Sun.from_file('sun.txt')):  # doctest: +SKIP
    ...   # sun.txt in effect
 
 See `~Sun` for more information on ways to create solar spectra.
