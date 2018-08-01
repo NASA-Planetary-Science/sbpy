@@ -9,10 +9,8 @@ A Python Module for Small-Body Planetary Astronomy
     :target: https://travis-ci.org/mommermi/sbpy
     :alt: Travis-CI status
 
-.. image:: https://coveralls.io/repos/github/mommermi/sbpy/badge.svg?branch=master
-    :target: https://coveralls.io/github/mommermi/sbpy?branch=master
-    :alt: Coverage
-	 
+.. image:: https://coveralls.io/repos/github/NASA-Planetary-Science/sbpy/badge.svg?branch=master
+:target: https://coveralls.io/github/NASA-Planetary-Science/sbpy?branch=master	 
 .. image:: https://readthedocs.org/projects/sbpy/badge/?version=latest
     :target: http://sbpy.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
