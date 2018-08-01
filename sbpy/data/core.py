@@ -10,27 +10,34 @@ created on June 22, 2017
 __all__ = ['DataClass', 'mpc_observations', 'sb_search', 'image_search',
            'pds_ferret']
 
-from astropy.table import Table, Column
+from numpy import ndarray, array
+from astropy.table import QTable, Column
 
 
 class DataClass():
-    """`DataClass` serves as a base class for all data container classes
-    in `sbpy` in order to provide consistent functionality for all
-    these classes.
+    """`~sbpy.data.DataClass` serves as the base class for all data
+    container classes in ``sbpy`` in order to provide consistent
+    functionality throughout all these classes.
 
-    The core of `DataClass` is an `astropy.Table` object
-    (`DataClass.table`), which already provides most of the required
-    functionality. `DataClass` objects can be manually generated from
-    `dict` (DataClass.from_dict), `array`-like
-    (DataClass.from_array) objects, or astropy `Table` objects. A few 
-    high-level functions for
-    table modification are provided; other modifications can be
-    applied to the table object (`DataClass.table`) directly.
+    The core of `~sbpy.data.DataClass` is an `~astropy.table.QTable`
+    object (referred to as the `data table` below) - a type of
+    `~astropy.table.Table` object that supports the `~astropy.units`
+    formalism on a per-column base - which already provides most of
+    the required functionality. `~sbpy.data.DataClass` objects can be
+    manually generated from ``dict``
+    (`~sbpy.data.DataClass.from_dict`), `~numpy.array`-like
+    (`~sbpy.data.DataClass.from_array`) objects, or directly from
+    another `~astropy.table.QTable` object.
+
+    A few high-level functions for table data access or modification
+    are provided; other, more complex modifications can be applied to
+    the table object (`~sbpy.data.DataClass.data`) directly.
+
     """
 
     def __init__(self, **kwargs):
-        """Build data table from `**kwargs`."""
-        self.table = Table()
+        """``__init__``: Build data table from ``**kwargs``."""
+        self.table = QTable()
         # self.altkeys = {}  # dictionary for alternative column names
 
         if (len(kwargs.items()) == 1 and 'table' in kwargs.keys()):
@@ -55,16 +62,17 @@ class DataClass():
 
     @classmethod
     def from_dict(cls, data):
-        """Create `DataClass` object from dictionary or list of
+        """Create `~sbpy.data.DataClass` object from dictionary or list of
         dictionaries.
 
         Parameters
         ----------
-        data : dictionary or list of dictionaries
-             Data that will be ingested in `DataClass` object. Each
-             dictionary creates a row in the data table. Dictionary
-             keys are used as column names. If a list of dicitionaries
-             is provided, all dictionaries have to provide them same
+        data : dictionary or list (or similar) of dictionaries
+             Data that will be ingested in `~sbpy.data.DataClass` object.
+             Each dictionary creates a row in the data table. Dictionary
+             keys are used as column names; corresponding values must be
+             scalar (cannot be lists or arrays). If a list of dicitionaries
+             is provided, all dictionaries have to provide the same
              set of keys (and units, if used at all).
 
         Returns
@@ -91,11 +99,11 @@ class DataClass():
         """
         if isinstance(data, dict):
             return cls(**data)
-        elif isinstance(data, list):
+        elif isinstance(data, (list, ndarray, tuple)):
             # build table from first dict and append remaining rows
             tab = cls(**data[0])
             for row in data[1:]:
-                tab.add_row(row)
+                tab.add_rows(row)
             return tab
         else:
             raise TypeError('this function requires a dictionary or a '
@@ -103,11 +111,11 @@ class DataClass():
 
     @classmethod
     def from_array(cls, data, names):
-        """Create `DataClass` object from list or array.
+        """Create `~sbpy.data.DataClass` object from list or array.
 
         Parameters
         ----------
-        data : list of lists or array
+        data : 1d or 2d list-like
              Data that will be ingested in `DataClass` object. Each
              of the sub-lists or sub-arrays on the 0-axis creates a row
              in the data table. Dictionary
@@ -161,9 +169,7 @@ class DataClass():
             raise AttributeError("field '{:s}' does not exist".format(field))
 
     def __setattr__(self, field, value):
-        """Set attribute
-
-        modify attribute in `self.table`, if available, else set it for self
+        """Set attribute modify attribute in `self.table`, if available, else set it for self
         """
         try:
             # if self.table exists ...
@@ -182,59 +188,81 @@ class DataClass():
 
     @property
     def data(self):
-        """returns the Astropy Table containing all data."""
+        """returns the `~astropy.table.QTable` containing all data."""
         return self.table
 
     @property
     def column_names(self):
-        """Returns a list of column names in Table"""
+        """Returns a list of all column names in the data table"""
         return self.table.columns
 
-    def add_row(self, row):
-        """Append a single row to the current table. The new data can be
-        provided in the form of a dictionary or a list. In case of a
-        dictionary, all table column names must be provided in row;
-        additional keys that are not yet column names in the table
-        will be discarded. In case of a list, the list elements must
-        be in the same order as the table columns.
-
-        Returns
-        -------
-
-        n : int, the total number of rows in the table
-
-        """
-        if isinstance(row, dict):
-            newrow = [row[colname] for colname in self.table.columns]
-            self.add_row(newrow)
-        if isinstance(row, list):
-            self.table.add_row(row)
-        return len(self.data)
-
-    def add_column(self, data, name):
-        """Append a single column to the current table.
+    def add_rows(self, rows):
+        """Appends additional rows to the existing data table. Must be in the
+        form of a list, tuple, or `~numpy.ndarray` of rows or a single
+        list, tuple, `~numpy.ndarray`, or dictionary to the current
+        data table. The new data rows can each be provided in the form
+        of a dictionary or a list. In case of a dictionary, all table
+        column names must be provided in ``row``; additional keys that
+        are not yet column names in the table will be discarded. In
+        case of a list, the list elements must be in the same order as
+        the table columns. In either case, `~astropy.units` must be
+        provided in ``rows`` if used in the data table.
 
         Parameters
         ----------
-        data : list or array-like, data to be filled into the table; required
-        to have the same length as the existing table
-        name : string, column name
+        rows : list, tuple, `~numpy.ndarray`, or dict
+            data to be appended to the table; required to have the same 
+            length as the existing table, as well as the same units
+
 
         Returns
         -------
-        None
+        n : int, the total number of rows in the data table
+
+        """
+        if isinstance(rows, dict):
+            try:
+                newrow = [rows[colname] for colname in self.table.columns]
+            except KeyError as e:
+                raise ValueError('data for column {0} missing in row {1}'.
+                                 format(e, rows))
+            self.add_rows(newrow)
+        if isinstance(rows, (list, ndarray, tuple)):
+            if len(array(rows).shape) > 1 or isinstance(rows[0], dict):
+                for subrow in rows:
+                    self.add_rows(subrow)
+            else:
+                self.table.add_row(rows)
+        return len(self.table)
+
+    def add_column(self, data, name):
+        """Append a single column to the current data table. The lenght of 
+        the input list, `~numpy.ndarray`, or tuple must match the current 
+        number of rows in the data table.
+
+        Parameters
+        ----------
+        data : list, `~numpy.ndarray`, or tuple
+            data to be filled into the table; required to have the same 
+            length as the existing table
+        name : string, new column's name
+
+        Returns
+        -------
+        n : int, the total number of columns in the data table
 
         """
         self.table.add_column(Column(data, name=name))
+        return len(self.column_names)
 
     def _check_columns(self, colnames):
         """Checks whether all of the elements in colnames exist as
-        column names in `self.table`."""
+        column names in the data table."""
 
         return all([col in self.column_names for col in colnames])
 
 
-def mpc_observations(targetid, bib=None):
+def mpc_observations(targetid):
     """Obtain all available observations of a small body from the Minor
     Planet Center (http://www.minorplanetcenter.net) and provides them in
     the form of an Astropy table.
@@ -243,12 +271,10 @@ def mpc_observations(targetid, bib=None):
     ----------
     targetid : str, mandatory
         target identifier
-    bib : SBPy Bibliography instance, optional, default None
-        Bibliography instance that will be populated
 
     Returns
     -------
-    Astropy Table
+    `~sbpy.data.DataClass` object
 
     Examples
     --------
@@ -260,7 +286,7 @@ def mpc_observations(targetid, bib=None):
     """
 
 
-def sb_search(field, bib=None):
+def sb_search(field):
     """Use the Skybot service (http://vo.imcce.fr/webservices/skybot/) at
     IMCCE to Identify moving objects potentially present in a registered
     FITS images.
@@ -271,12 +297,9 @@ def sb_search(field, bib=None):
       A FITS image file name, HDU data structure, or header with
       defined WCS
 
-    bib : SBPy Bibliography instance, optional, default None
-        Bibliography instance that will be populated
-
     Returns
     -------
-    Astropy Table
+    `~sbpy.data.DataClass` object
 
     Examples
     --------
@@ -288,7 +311,7 @@ def sb_search(field, bib=None):
     """
 
 
-def image_search(targetid, bib=None):
+def image_search(targetid):
     """Use the Solar System Object Image Search function of the Canadian
     Astronomy Data Centre
     (http://www.cadc-ccda.hia-iha.nrc-cnrc.gc.ca/en/ssois/) to identify
@@ -298,12 +321,10 @@ def image_search(targetid, bib=None):
     ----------
     targetid : str, mandatory
         target identifier
-    bib : SBPy Bibliography instance, optional, default None
-        Bibliography instance that will be populated
 
     Returns
     -------
-    Astropy Table
+    `~sbpy.data.DataClass` object
 
     Examples
     --------
@@ -315,7 +336,7 @@ def image_search(targetid, bib=None):
     """
 
 
-def pds_ferret(targetid, bib=None):
+def pds_ferret(targetid):
     """Use the Small Bodies Data Ferret (http://sbntools.psi.edu/ferret/)
     at the Planetary Data System's Small Bodies Node to query for
     information on a specific small body in the PDS.
@@ -324,8 +345,6 @@ def pds_ferret(targetid, bib=None):
     ----------
     targetid : str, mandatory
         target identifier
-    bib : SBPy Bibliography instance, optional, default None
-        Bibliography instance that will be populated
 
     Returns
     -------
