@@ -280,7 +280,51 @@ tbd
 
 How to use Names
 ----------------
-tbd
+
+`~sbpy.data.Names` is different from the other classes in `~sbpy.data`
+in that it does not use `~sbpy.data.DataClass` as a base class. Instead,
+`~sbpy.data.Names` does not contain any data, it merely serves as an
+umbrella for functions to identify asteroid and comet names, numbers,
+and designations.
+
+In order to distinguish if a string designates a comet or an asteroid,
+you can use the following code:
+
+    >>> from sbpy.data import Names
+    >>> print(Names.asteroid_or_comet('(1) Ceres'))
+    asteroid
+    >>> print(Names.asteroid_or_comet('2P/Encke'))
+    comet
+
+The module basically uses regular expressions to match the input
+strings and find patterns that agree with asteroid and comet names,
+numbers, and designations. There are separate tasks to identify
+asteroid and comet identifiers:
+
+    >>> print(Names.parse_asteroid('(228195) 6675 P-L'))
+    {'number': 228195, 'desig': '6675 P-L'}
+    >>> print(Names.parse_asteroid('C/2001 A2-A (LINEAR)')) # doctest: _ELLIPSIS
+    ...sbpy.data.names.TargetNameParseError: C/2001 A2-A (LINEAR) does not appear to be an asteroid identifier
+    >>> print(Names.parse_comet('12893')) # doctest: +ELLIPSIS
+    ...sbpy.data.names.TargetNameParseError: 12893 does not appear to be a comet name
+    >>> print(Names.parse_comet('73P-C/Schwassmann Wachmann 3 C	'))
+    {'type': 'P', 'number': 73, 'fragment': 'C', 'name': 'Schwassmann Wachmann 3 C'}
+    
+Note that these examples are somewhat idealized. Consider the
+following query:
+
+    >>> print(Names.parse_comet('12893 Mommert (1998 QS55)'))
+    {'name': 'Mommert ', 'desig': '1998 QS55'}
+
+Although this target identifier clearly denotes an asteroid, the
+routine finds a comet name and a comet designation. The reason for
+this is that some comets are discovered as asteroids and hence obtain
+asteroid-like designations that stick to them; similarly, comet names
+cannot be easily distinguished from asteroids names, unless one knows
+all comet and asteroid names. Hence, some caution is advised when
+using these routines - identification might not be unambiguous.
+
+    
 
 
 Reference/API

@@ -21,12 +21,20 @@ class TargetNameParseError(Exception):
 
 
 class Names():
-    """Class for dealing with object naming conventions"""
+    """Class for parsing target identifiers. The functions in this class will
+    identify designation, name strings, and number for both comets and
+    asteroids. It also includes functionality to distinguish between comet and
+    asteroid identifiers."""
 
     @staticmethod
-    def altident(identifier, bib=None):
+    def altident(identifier):
         """Query Lowell database to obtain alternative target names for
-        `identifier`.
+        this object.
+
+        Parameters
+        ----------
+        identifier : str
+           Target identifier.
 
         Examples
         --------
@@ -46,13 +54,13 @@ class Names():
 
         Parameters
         ----------
-        s : string
-        The long target identifier.
+        s : str
+           Target identifier.
 
         Returns
         -------
-        p : string
-        The packed designation/number.
+        p : str
+           Packed designation/number.
 
         Examples
         --------
@@ -67,18 +75,22 @@ class Names():
             ident = Names.parse_asteroid(s)
 
         # packed numbers translation string
-        pkd = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghifklmnopqrstuvwxyz'
+        pkd = ('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+               'abcdefghifklmnopqrstuvwxyz')
 
         if 'number' in ident:
             if ident['number'] < 100000:
                 return ('{:05d}'.format(ident['number']))
             elif ident['number'] > 619999:
-                raise TargetNameParseError(('{} cannot be turned into a '
-                                            'packed number').format(ident['number']))
+                raise TargetNameParseError(
+                    ('{} cannot be turned into a '
+                     'packed number').format(ident['number']))
             else:
                 mod = (ident['number'] % 10000)
-                return ('{}{:04d}'.format(pkd[int((ident['number']-mod)/10000)],
-                                          mod))
+                return ('{}{:04d}'.format(
+                    pkd[int((ident['number']-mod)/10000)],
+                    mod))
+
         elif 'desig' in ident:
             yr = ident['desig'].strip()[:4]
             yr = pkd[int(float(yr[:2]))]+yr[2:]
@@ -90,12 +102,15 @@ class Names():
                 try:
                     num = pkd[int(float(num[:-1]))]+num[-1]
                 except IndexError:
-                    raise TargetNameParseError(('{} cannot be turned into a '
-                                                'packed designation').format(ident['desig']))
+                    raise TargetNameParseError(
+                        ('{} cannot be turned into a '
+                         'packed designation').format(ident['desig']))
             return (yr + let[0] + num + let[1])
+
         else:
-            raise TargetNameParseError(('{} cannot be turned into a '
-                                        'packed number or designation').format(s))
+            raise TargetNameParseError(
+                ('{} cannot be turned into a '
+                 'packed number or designation').format(s))
 
     @staticmethod
     def parse_comet(s):
@@ -106,21 +121,21 @@ class Names():
 
         Parameters
         ----------
-        s : string or list/array of strings
-        The string, or a list/array of strings, to parse.
+        s : str or list/array of str
+           String, or a list/array of strings, to parse.
 
         Returns
         -------
         r : dict
-        The dictionary contains the components identified from `s`:
-        number, orbit type, designation, name, and/or fragment. If
-        none of these components are identified, a
-        `TargetNameParseError` is raised
+           The dictionary contains the components identified from ``s``:
+           number, orbit type, designation, name, and/or fragment. If
+           none of these components are identified, a
+           `TargetNameParseError` is raised.
 
         Raises
         ------
         TargetNameParseError : Exception
-        If the string does not appear to be a comet name.
+           If the string does not appear to be a comet name.
 
         Examples
         --------
@@ -134,38 +149,37 @@ class Names():
 
         The following table shows results of the parsing:
 
-        +--------------------------------+-------+------+-------+------------+----------------------------+
-        |targetname                      |number | type | fragm | desig      |  name                      |
-        +================================+=======+======+=======+============+============================+
-        |1P/Halley                       | 1     | 'P'  |       |            | 'Halley'                   |
-        +--------------------------------+-------+------+-------+------------+----------------------------+
-        |3D/Biela                        | 3     | 'D'  |       |            | 'Biela'                    |
-        +--------------------------------+-------+------+-------+------------+----------------------------+
-        |9P/Tempel 1                     | 9     | 'P'  |       |            | 'Tempel 1'                 |
-        +--------------------------------+-------+------+-------+------------+----------------------------+
-        |73P/Schwassmann Wachmann 3 C    | 73    | 'P'  |       |            | 'Schwassmann Wachmann 3 C' |
-        +--------------------------------+-------+------+-------+------------+----------------------------+
-        |73P-C/Schwassmann Wachmann 3 C  | 73    | 'P'  | 'C'   |            | 'Schwassmann Wachmann 3 C' |
-        +--------------------------------+-------+------+-------+------------+----------------------------+
-        |73P-BB                          | 73    | 'P'  | 'BB'  |            |                            |
-        +--------------------------------+-------+------+-------+------------+----------------------------+
-        |322P                            | 322   | 'P'  |       |            |                            |
-        +--------------------------------+-------+------+-------+------------+----------------------------+
-        |X/1106 C1                       |       | 'X'  |       | '1066 C1'  |                            |
-        +--------------------------------+-------+------+-------+------------+----------------------------+
-        |P/1994 N2 (McNaught-Hartley)    |       | 'P'  |       |  '1994 N2' | 'McNaught-Hartley'         |
-        +--------------------------------+-------+------+-------+------------+----------------------------+
-        |P/2001 YX127 (LINEAR)           |       | 'P'  |       |'2001 YX127'| 'LINEAR'                   |
-        +--------------------------------+-------+------+-------+------------+----------------------------+
-        |C/-146 P1                       |       | 'C'  |       | '-146 P1'  |                            |
-        +--------------------------------+-------+------+-------+------------+----------------------------+
-        |C/2001 A2-A (LINEAR)            |       | 'C'  | 'A'   | '2001 A2'  | 'LINEAR'                   |
-        +--------------------------------+-------+------+-------+------------+----------------------------+
-        |C/2013 US10                     |       | 'C'  |       | '2013 US10'|                            |
-        +--------------------------------+-------+------+-------+------------+----------------------------+
-        |C/2015 V2 (Johnson)             |       | 'C'  |       | '2015 V2'  | 'Johnson'                  |
-        +--------------------------------+-------+------+-------+------------+----------------------------+
-
+        +------------------------------+------+----+-----+----------+------------------------+
+        |targetname                    |number|type|fragm|desig     |name                    |
+        +==============================+======+====+=====+==========+========================+
+        |1P/Halley                     | 1    | P  |     |          |Halley                  |
+        +------------------------------+------+----+-----+----------+------------------------+
+        |3D/Biela                      | 3    | D  |     |          |Biela                   |
+        +------------------------------+------+----+-----+----------+------------------------+
+        |9P/Tempel 1                   | 9    | P  |     |          |Tempel 1                |
+        +------------------------------+------+----+-----+----------+------------------------+
+        |73P/Schwassmann Wachmann 3 C  | 73   | P  |     |          |Schwassmann Wachmann 3 C|
+        +------------------------------+------+----+-----+----------+------------------------+
+        |73P-C/Schwassmann Wachmann 3 C| 73   | P  | C   |          |Schwassmann Wachmann 3 C|
+        +------------------------------+------+----+-----+----------+------------------------+
+        |73P-BB                        | 73   | P  | BB  |          |                        |
+        +------------------------------+------+----+-----+----------+------------------------+
+        |322P                          | 322  | P  |     |          |                        |
+        +------------------------------+------+----+-----+----------+------------------------+
+        |X/1106 C1                     |      | X  |     | 1066 C1  |                        |
+        +------------------------------+------+----+-----+----------+------------------------+
+        |P/1994 N2 (McNaught-Hartley)  |      | P  |     |  1994 N2 |McNaught-Hartley        |
+        +------------------------------+------+----+-----+----------+------------------------+
+        |P/2001 YX127 (LINEAR)         |      | P  |     |2001 YX127|LINEAR                  |
+        +------------------------------+------+----+-----+----------+------------------------+
+        |C/-146 P1                     |      | C  |     | -146 P1  |                        |
+        +------------------------------+------+----+-----+----------+------------------------+
+        |C/2001 A2-A (LINEAR)          |      | C  | A   | 2001 A2  |LINEAR                  |
+        +------------------------------+------+----+-----+----------+------------------------+
+        |C/2013 US10                   |      | C  |     | 2013 US10|                        |
+        +------------------------------+------+----+-----+----------+------------------------+
+        |C/2015 V2 (Johnson)           |      | C  |     | 2015 V2  |Johnson                 |
+        +------------------------------+------+----+-----+----------+------------------------+
         """
 
         import re
@@ -243,18 +257,27 @@ class Names():
         Considers IAU-formatted permanent and new-style designations,
         as well as MPC packed designations and numbers. Note that
         letter case is important. Parentheses are ignored in the parsing.
+
         Parameters
         ----------
-        s : string or list/array of strings
-        The string, or a list/array of strings, to parse.
+        s : str or list of str
+           The string, or a list/array of strings, to parse.
 
         Returns
         -------
         r : dict
-        The dictionary contains the components identified from `s`:
-        IAU number, designation, and/or name. If none of these
-        components are identfied, a `TargetNameParseError` is raised
+           The dictionary contains the components identified from ``s``:
+           IAU number, designation, and/or name. If none of these
+           components are identified, a `TargetNameParseError` is raised
 
+        Raises
+        ------
+        TargetNameParseError : Exception
+           If the string does not appear to be an asteroid name.
+
+
+        Examples
+        --------
         >>> from sbpy.data import Names
         >>> ceres = Names.parse_asteroid('(1) Ceres')
         >>> ceres['number'], ceres['name']
@@ -263,56 +286,65 @@ class Names():
         >>> mu['desig']
         '2014 MU69'
 
-        Examples
-        --------
         The following table shows results of the parsing:
 
-        +--------------------------------+--------------+--------+---------------------+
-        |targetname                      | desig        | number | name                |
-        +================================+==============+========+=====================+
-        |1                               |              | 1      |                     |
-        +--------------------------------+--------------+--------+---------------------+
-        |2 Pallas                        |              | 2      | 'Pallas'            |
-        +--------------------------------+--------------+--------+---------------------+
-        |\(2001\) Einstein               |              | 2001   | 'Einstein'          |
-        +--------------------------------+--------------+--------+---------------------+
-        |1714 Sy                         |              | 1714   | 'Sy'                |
-        +--------------------------------+--------------+--------+---------------------+
-        |2014 MU69                       | '2014 MU69'  |        |                     |
-        +--------------------------------+--------------+--------+---------------------+
-        |(228195) 6675 P-L               | '6675 P-L'   | 228195 | None                |
-        +--------------------------------+--------------+--------+---------------------+
-        |4101 T-3                        | '4101 T-3'   |        |                     |
-        +--------------------------------+--------------+--------+---------------------+
-        |4015 Wilson-Harrington (1979 VA)| '1979 VA'    | 4015   | 'Wilson-Harrington' |
-        +--------------------------------+--------------+--------+---------------------+
-        |J95X00A                         | '1995 XA'    |        |                     |
-        +--------------------------------+--------------+--------+---------------------+
-        |K07Tf8A                         | '2007 TA418' |        |                     |
-        +--------------------------------+--------------+--------+---------------------+
-        |G3693                           |              | 163693 |                     |
-        +--------------------------------+--------------+--------+---------------------+
+        +----------------------------------+----------+------+-----------------+
+        |targetname                        |desig     |number|name             |
+        +==================================+==========+======+=================+
+        |1                                 |          |1     |                 |
+        +----------------------------------+----------+------+-----------------+
+        |2 Pallas                          |          |2     |Pallas           |
+        +----------------------------------+----------+------+-----------------+
+        |\(2001\) Einstein                 |          |2001  |Einstein         |
+        +----------------------------------+----------+------+-----------------+
+        |1714 Sy                           |          |1714  |Sy               |
+        +----------------------------------+----------+------+-----------------+
+        |2014 MU69                         |2014 MU69 |      |                 |
+        +----------------------------------+----------+------+-----------------+
+        |\(228195\) 6675 P-L               |6675 P-L  |228195|                 |
+        +----------------------------------+----------+------+-----------------+
+        |4101 T-3                          |4101 T-3  |      |                 |
+        +----------------------------------+----------+------+-----------------+
+        |4015 Wilson-Harrington \(1979 VA\)|1979 VA   |4015  |Wilson-Harrington|
+        +----------------------------------+----------+------+-----------------+
+        |J95X00A                           |1995 XA   |      |                 |
+        +----------------------------------+----------+------+-----------------+
+        |K07Tf8A                           |2007 TA418|      |                 |
+        +----------------------------------+----------+------+-----------------+
+        |G3693                             |          |163693|                 |
+        +----------------------------------+----------+------+-----------------+
         """
 
         import re
 
         # packed numbers translation string
-        pkd = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghifklmnopqrstuvwxyz'
+        pkd = ('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+               'abcdefghifklmnopqrstuvwxyz')
 
-        pat = ('(([1-2][0-9]{0,3}[ _][A-Z]{2}[0-9]{0,3})'  # designation [0,1]
-               '|([1-9][0-9]{3}[ _](P-L|T-[1-3])))'  # Palomar-Leiden  [0,2,3]
-               '|([IJKL][0-9]{2}[A-Z][0-9a-z][0-9][A-Z])'  # packed desig [4]
-               '|([A-Za-z][0-9]{4})'  # packed number [5]
+        pat = ('(([1-2][0-9]{0,3}[ _][A-Z]{2}[0-9]{0,3})'
+               # designation [0,1]
+               '|([1-9][0-9]{3}[ _](P-L|T-[1-3])))'
+               # Palomar-Leiden  [0,2,3]
+               '|([IJKL][0-9]{2}[A-Z][0-9a-z][0-9][A-Z])'
+               # packed desig [4]
+               '|([A-Za-z][0-9]{4})'
+               # packed number [5]
                '|([A-Z][A-Z]*[a-z][a-z]*[^0-9]*'
-               '[ -]?[A-Z]?[a-z]*[^0-9]*)'  # name [6]
-               '|([1-9][0-9]*(\b|$| |_))')  # number [7,8]
+               '[ -]?[A-Z]?[a-z]*[^0-9]*)'
+               # name [6]
+               '|([1-9][0-9]*(\b|$| |_))'
+               # number [7,8]
+               )
 
         # regex patterns that will be rejected
-        rej_pat = ('([1-2][0-9]{0,3}[ _][A-Z][0-9]*(\b|$))'  # comet desig
-                   '|([1-9][0-9]*[PDCXAI]\b)'  # comet number
-                   '|([PDCXAI]/)'  # comet type
-                   # small-caps desig
+        rej_pat = ('([1-2][0-9]{0,3}[ _][A-Z][0-9]*(\b|$))'
+                   # comet desig
+                   '|([1-9][0-9]*[PDCXAI]\b)'
+                   # comet number
+                   '|([PDCXAI]/)'
+                   # comet type
                    '|([1-2][0-9]{0,3}[ _][a-z]{2}[0-9]{0,3})'
+                   # small-caps desig
                    )
 
         raw = s.translate(str.maketrans('()_', '   ')).strip()
@@ -369,7 +401,8 @@ class Names():
                 # packed number (unpack here)
                 elif len(el[5]) > 0:
                     ident = el[5]
-                    r['number'] = int(float(str(pkd.find(ident[0]))+ident[1:]))
+                    r['number'] = int(float(str(pkd.find(ident[0])) +
+                                            ident[1:]))
                 # number
                 elif len(el[7]) > 0:
                     r['number'] = int(float(el[7]))
@@ -391,29 +424,29 @@ class Names():
 
         Parameters
         ----------
-        s : string
-        target identifier
+        s : str
+           Target identifier.
 
         Returns
         -------
-        target_type : string
-        The target identification: 'comet', 'asteroid', or `None`.
+        target_type : str
+           The target identification: 'comet', 'asteroid', or ``None``.
 
         Examples
         --------
         >>> from sbpy.data import Names
-        >>> Names.asteroid_or_comet('2P')
-        'comet'
-        >>> Names.asteroid_or_comet('(1) Ceres')
-        'asteroid'
-        >>> Names.asteroid_or_comet('Fred')
-
-
+        >>> print(Names.asteroid_or_comet('2P'))
+        comet
+        >>> print(Names.asteroid_or_comet('(1) Ceres'))
+        asteroid
+        >>> print(Names.asteroid_or_comet('Fred'))
+        None
         """
 
-        # compare lengths of dictionaries from parse_asteroid and parse_comet;
-        # the longer one is more likely to describe the nature of the target,
-        # if both dictionaries have the same length, the nature is ambiguous
+        # compare lengths of dictionaries from parse_asteroid and
+        # parse_comet; the longer one is more likely to describe the
+        # nature of the target, if both dictionaries have the same
+        # length, the nature is ambiguous
         ast = {}
         com = {}
 

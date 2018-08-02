@@ -1,12 +1,20 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+import os
+import pytest
+from numpy import array
+import astropy.units as u
+from astropy.table import QTable
+from ..core import DataClass
+
+
+def data_path(filename):
+    data_dir = os.path.join(os.path.dirname(__file__), 'data')
+    return os.path.join(data_dir, filename)
 
 
 def test_creation_single():
     """ test the creation of DataClass objects from dicts or arrays;
     single row only"""
-
-    from astropy.table import QTable
-    from ..core import DataClass
 
     ground_truth = QTable([[1], [2], ['test']], names=('a', 'b', 'c'))
 
@@ -23,11 +31,6 @@ def test_creation_single():
 def test_creation_multi():
     """ test the creation of DataClass objects from dicts or arrays;
     multiple rows"""
-
-    import pytest
-    from numpy import array
-    from astropy.table import QTable
-    from ..core import DataClass
 
     ground_truth = QTable([[1, 2, 3], [4, 5, 6], ['a', 'b', 'c']],
                           names=('a', 'b', 'c'))
@@ -51,7 +54,8 @@ def test_creation_multi():
     file_ground_truth = DataClass.from_array(
         [ra, dec, epoch], names=['ra', 'dec', 't'])
 
-    test_file = DataClass.from_file('data/test.dat', format='ascii')
+    test_file = DataClass.from_file(data_path('test.txt'),
+                                    format='ascii')
     assert all(file_ground_truth.table == test_file.table)
 
     # test failing if columns have different lengths
@@ -67,10 +71,6 @@ def test_creation_multi():
 
 def test_units():
     """ test units on multi-row tables """
-
-    from astropy.table import QTable
-    import astropy.units as u
-    from ..core import DataClass
 
     ground_truth = QTable([[1, 2, 3]*u.Unit('m'),
                            [4, 5, 6]*u.m/u.s,
@@ -93,12 +93,6 @@ def test_units():
 
 def test_add():
     """ test adding rows and columns to an existing table """
-
-    import pytest
-    from numpy import array
-    from astropy.table import QTable
-    import astropy.units as u
-    from ..core import DataClass
 
     tab = DataClass.from_dict([{'a': 1*u.m, 'b': 4*u.m/u.s, 'c': 'a'},
                                {'a': 2*u.m, 'b': 5*u.m/u.s, 'c': 'b'},
@@ -144,10 +138,6 @@ def test_add():
 def test_check_columns():
     """test function that checks the existing of a number of column names
     provided"""
-
-    import pytest
-    import astropy.units as u
-    from ..core import DataClass
 
     tab = DataClass.from_dict([{'a': 1*u.m, 'b': 4*u.m/u.s, 'c': 'a'},
                                {'a': 2*u.m, 'b': 5*u.m/u.s, 'c': 'b'},

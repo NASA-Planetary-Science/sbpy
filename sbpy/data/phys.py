@@ -76,7 +76,7 @@ class Phys(DataClass):
 
     def derive_diam(self):
         """Derive diameter from absolute magnitude and geometric albedo"""
-        
+
     def derive_pv(self):
         """Derive geometric albedo from diameter and absolute magnitude"""
 

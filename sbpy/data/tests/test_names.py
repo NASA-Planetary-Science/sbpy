@@ -33,7 +33,7 @@ asteroids = {
     '(2001) Einstein': {'number': 2001, 'name': 'Einstein'},
     '2001 AT1': {'desig': '2001 AT1'},
     '(1714) Sy': {'number': 1714, 'name': 'Sy'},
-    '1714 SY': {'desig': '1714 SY'}, # not real, just for testing
+    '1714 SY': {'desig': '1714 SY'},  # not real, just for testing
     '2014 MU69': {'desig': '2014 MU69'},
     '(228195) 6675 P-L': {'number': 228195, 'desig': '6675 P-L'},
     '4101 T-3': {'desig': '4101 T-3'},
@@ -43,6 +43,7 @@ asteroids = {
     'K07Tf8A': {'desig': '2007 TA418'},
     'G3693': {'number': 163693}
 }
+
 
 def test_asteroid_or_comet():
     """Test target name identification."""
@@ -56,6 +57,7 @@ def test_asteroid_or_comet():
         if asteroid != '2017 U1':
             assert Names.asteroid_or_comet(asteroid) == 'asteroid', \
                 'failed for {}'.format(asteroid)
+
 
 def test_parse_comet():
     """Test comet name parsing."""
@@ -76,6 +78,7 @@ def test_parse_comet():
 
     with pytest.raises(TargetNameParseError):
         Names.parse_comet('2001 a2')
+
 
 def test_parse_asteroid():
     """Test asteroid name parsing."""
@@ -102,5 +105,3 @@ def test_parse_asteroid():
 
     with pytest.raises(TargetNameParseError):
         Names.parse_asteroid('2001 at1')
-
-

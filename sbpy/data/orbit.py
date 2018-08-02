@@ -14,6 +14,7 @@ from .core import DataClass
 
 __all__ = ['Orbit']
 
+
 class Orbit(DataClass):
     """Class for querying, manipulating, integrating, and fitting orbital elements
 
@@ -26,8 +27,6 @@ class Orbit(DataClass):
     (https://github.com/hannorein/rebound) for orbit integrations.
 
     """
-
-
 
     @classmethod
     def from_horizons(cls, targetid, epoch=None, center='500@10',
@@ -47,7 +46,7 @@ class Orbit(DataClass):
             Bibliography instance that will be populated
 
         preliminary implementation
-        
+
         Returns
         -------
         Astropy Table
@@ -61,7 +60,7 @@ class Orbit(DataClass):
         """
 
         from astropy.time import Time
-        
+
         if epoch is None:
             epoch = [Time.now()]
         elif isinstance(epoch, Time):
@@ -84,7 +83,7 @@ class Orbit(DataClass):
         if bib is not None:
             bib['Horizons orbital elements query'] = {'implementation':
                                                       '1996DPS....28.2504G'}
-            
+
         return cls.from_array(data, names)
 
     @classmethod
@@ -147,7 +146,7 @@ class Orbit(DataClass):
             positions vector
         vel : `Astropy.coordinates` instance, mandatory
             velocity vector
-        
+
         Returns
         -------
         Astropy Table
@@ -171,7 +170,7 @@ class Orbit(DataClass):
         ----------
         epoch : `astropy.time.Time` object, mandatory
           The epoch(s) at which to compute state vectors.
-        
+
         Returns
         -------
         pos : `Astropy.coordinates` instance
@@ -198,9 +197,9 @@ class Orbit(DataClass):
         Parameters
         ----------
         eph : `Astropy.table`, mandatory
-            set of ephemerides with mandatory columns `ra`, `dec`, `epoch` and 
-            optional columns `ra_sig`, `dec_sig`, `epoch_sig` 
-        
+            set of ephemerides with mandatory columns `ra`, `dec`, `epoch` and
+            optional columns `ra_sig`, `dec_sig`, `epoch_sig`
+
         additional parameters will be identified in the future
 
         Returns
@@ -210,7 +209,7 @@ class Orbit(DataClass):
         Examples
         --------
         >>> from sbpy.data import Orbit, Ephem # doctest: +SKIP
-        >>> eph = Ephem.from_array([ra, dec, ra_sigma, dec_sigma, # doctest: +SKIP 
+        >>> eph = Ephem.from_array([ra, dec, ra_sigma, dec_sigma, # doctest: +SKIP
         >>>                         epochs, epochs_sigma], # doctest: +SKIP
         >>>                         names=['ra', 'dec', 'ra_sigma', # doctest: +SKIP
         >>>                                'dec_sigma', 'epochs',  # doctest: +SKIP
@@ -220,7 +219,7 @@ class Orbit(DataClass):
         not yet implemented
 
         """
-        
+
     def integrate(self, time, integrator='IAS15'):
         """Function that integrates an orbit over a given range of time using
         the REBOUND (https://github.com/hannorein/rebound) package

@@ -9,7 +9,10 @@ Class for storing and querying ephemerides
 created on June 04, 2017
 """
 
+from astropy.time import Time
+from astroquery.jplhorizons import Horizons
 
+from .. import bib
 from .core import DataClass
 
 __all__ = ['Ephem']
@@ -43,15 +46,15 @@ class Ephem(DataClass):
         epochs : astropy ``Time`` instance or iterable or dictionary, optional, default: ``None``
             Epoch of elements; a list or array of astropy ``Time`` objects
             should be used for a number of discrete epochs; a dictionary
-            including keywords ``start``, ``step``, and ``stop`` can be 
-            used to generate a range of epochs (see 
-            http://astroquery.readthedocs.io/en/latest/jplhorizons/jplhorizons.html#overview 
+            including keywords ``start``, ``step``, and ``stop`` can be
+            used to generate a range of epochs (see
+            http://astroquery.readthedocs.io/en/latest/jplhorizons/jplhorizons.html#overview
             for details); if ``None`` is provided, current date
             and time are used.
         observatory : str, optional, default ``'500'`` (geocentric)
             location of observer
-        **kwargs : optional 
-            arguments that will be provided to 
+        **kwargs : optional
+            arguments that will be provided to
             `astroquery.jplhorizons.HorizonsClass.ephemerides`
 
         Returns
@@ -63,14 +66,9 @@ class Ephem(DataClass):
         >>> from sbpy.data import Ephem
         >>> from astropy.time import Time
         >>> epoch = Time('2018-05-14', scale='utc')
-        >>> eph = Ephem.from_horizons('ceres', epochs=epoch)
+        >>> eph = Ephem.from_horizons('ceres', epochs=epoch) # doctest: +SKIP
 
         """
-
-        from astropy.time import Time
-
-        from astroquery.jplhorizons import Horizons
-        from .. import bib
 
         if epochs is None:
             epochs = [Time.now().jd]
@@ -80,6 +78,7 @@ class Ephem(DataClass):
         # load ephemerides using astroquery.jplhorizons
         obj = Horizons(id=targetid, id_type=id_type, location=observatory,
                        epochs=epochs)
+
         eph = obj.ephemerides(**kwargs)
 
         return cls.from_table(eph)
@@ -87,7 +86,7 @@ class Ephem(DataClass):
     @classmethod
     def from_mpc(cls, targetid, epoch, observatory='500'):
         """
-        Load ephemerides from the 
+        Load ephemerides from the
         `Minor Planet Center <http://minorplanetcenter.net>`_.
 
         Parameters
@@ -116,7 +115,7 @@ class Ephem(DataClass):
 
     def report_to_mpc():
         """
-        Format ephemerides as a report to the 
+        Format ephemerides as a report to the
         `Minor Planet Center <http://minorplanetcenter.net>`_.
 
         Returns
@@ -136,7 +135,7 @@ class Ephem(DataClass):
     @classmethod
     def from_imcce(cls, targetid, epoch, observatory='500'):
         """
-        Load orbital elements from 
+        Load orbital elements from
         `IMCCE <http://vo.imcce.fr/webservices/miriade/>`_.
 
         Parameters
@@ -166,7 +165,7 @@ class Ephem(DataClass):
     @classmethod
     def from_lowell(cls, targetid, epoch, observatory='500'):
         """
-        Load orbital elements from 
+        Load orbital elements from
         Lowell Observatory's `astorb <http://asteroid.lowell.edu/>`_.
 
         Parameters
@@ -196,7 +195,7 @@ class Ephem(DataClass):
     @classmethod
     def from_pyephem(cls, orb, location, epoch):
         """
-        Derives ephemerides using 
+        Derives ephemerides using
         `PyEphem <http://rhodesmill.org/pyephem/>`_.
 
         Parameters

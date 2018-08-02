@@ -90,7 +90,7 @@ class DataClass():
         <sbpy.data.orbit.Orbit object at 0x...>
         >>> print(orb.column_names) # doctest: +SKIP
         <TableColumns names=('a','e','i')>
-        >>> print(orb.data['a', 'e', 'i'])
+        >>> print(orb.table['a', 'e', 'i'])
           a      e       i
           AU            deg
         ------ ------ --------
@@ -136,7 +136,7 @@ class DataClass():
         ...                             [4, 5, 6]*u.km,
         ...                             ['a', 'b', 'c']],
         ...                            names=('a', 'b', 'c'))
-        >>> dat.table
+        >>> print(dat.table)
          a   b   c
         deg  km
         --- --- ---
@@ -171,7 +171,7 @@ class DataClass():
         ...               [4,5,6]*u.m/u.s,],
         ...              names=['mass', 'velocity'])
         >>> dat = DataClass.from_table(tab)
-        >>> dat.table
+        >>> print(dat.table)
         mass velocity
          kg   m / s
         ---- --------
@@ -333,7 +333,7 @@ class DataClass():
         ...                            names=('a', 'b', 'c'))
         >>> dat.add_rows({'a': 5*u.m, 'b': 8*u.m/u.s, 'c': 'e'})
         4
-        >>> dat.table
+        >>> print(dat.table)
          a    b    c
          m  m / s
         --- ----- ---
