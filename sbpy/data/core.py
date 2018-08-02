@@ -1,22 +1,23 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 ================
-SBPy Data Module
+sbpy Data Module
 ================
 
 created on June 22, 2017
 """
 
+from numpy import ndarray, array
+from astropy.table import QTable, Column, vstack
+import astropy.units as u
+
 __all__ = ['DataClass', 'mpc_observations', 'sb_search', 'image_search',
            'pds_ferret']
-
-from numpy import ndarray, array
-from astropy.table import QTable, Column
 
 
 class DataClass():
     """`~sbpy.data.DataClass` serves as the base class for all data
-    container classes in ``sbpy`` in order to provide consistent
+    container classes in `sbpy` in order to provide consistent
     functionality throughout all these classes.
 
     The core of `~sbpy.data.DataClass` is an `~astropy.table.QTable`
@@ -24,25 +25,24 @@ class DataClass():
     `~astropy.table.Table` object that supports the `~astropy.units`
     formalism on a per-column base - which already provides most of
     the required functionality. `~sbpy.data.DataClass` objects can be
-    manually generated from ``dict``
+    manually generated from dictionaries
     (`~sbpy.data.DataClass.from_dict`), `~numpy.array`-like
     (`~sbpy.data.DataClass.from_array`) objects, or directly from
     another `~astropy.table.QTable` object.
 
     A few high-level functions for table data access or modification
     are provided; other, more complex modifications can be applied to
-    the table object (`~sbpy.data.DataClass.data`) directly.
+    the underlying table object (`~sbpy.data.DataClass.table`) directly.
 
     """
 
     def __init__(self, **kwargs):
-        """``__init__``: Build data table from ``**kwargs``."""
-        self.table = QTable()
+        self._table = QTable()
         # self.altkeys = {}  # dictionary for alternative column names
 
         if (len(kwargs.items()) == 1 and 'table' in kwargs.keys()):
             # single item provided named 'table' -> already Table object
-            self.table = kwargs['table']
+            self._table = QTable(kwargs['table'])
         else:
             # treat kwargs as dictionary
             for key, val in kwargs.items():
@@ -58,7 +58,7 @@ class DataClass():
                 except TypeError:
                     val = [val]
 
-                self.table[key] = Column(val, unit=unit)
+                self._table[key] = Column(val, unit=unit)
 
     @classmethod
     def from_dict(cls, data):
@@ -111,22 +111,18 @@ class DataClass():
 
     @classmethod
     def from_array(cls, data, names):
-        """Create `~sbpy.data.DataClass` object from list or array.
+        """Create `~sbpy.data.DataClass` object from list, `~numpy.ndarray`,
+        or tuple.
 
         Parameters
         ----------
-        data : 1d or 2d list-like
-             Data that will be ingested in `DataClass` object. Each
-             of the sub-lists or sub-arrays on the 0-axis creates a row
-             in the data table. Dictionary
-             keys are used as column names. If a list of dicitionaries
-             is provided, all dictionaries have to provide the same
-             set of keys (and units, if used at all).
-        data : list or array, mandatory
-            data that will be rearranged in astropy `Table` format, one
-            array per column
-        names : list, mandatory
-            column names, must have n names for n `data` arrays
+        data : list, `~numpy.ndarray`, or tuple
+            Data that will be ingested in `DataClass` object. A one
+            dimensional sequence will be interpreted as a single row. Each
+            element that is itself a sequence will be interpreted as a
+            column.
+        names : list
+            Column names, must have the same number of names as data columns.
 
         Returns
         -------
@@ -134,20 +130,28 @@ class DataClass():
 
         Examples
         --------
-        #>>> import astropy.units as u
-        #>>> from sbpy.data import Orbit
-        #>>> from numpy.random import random as r
-        #>>> orb = Orbit.from_array(data=[r(100)*2*u.au,
-        #>>>                              r(100),
-        #>>>                              r(100)*180*u.deg],
-        #>>>                        names=['a', 'e', 'i'])
+        >>> from sbpy.data import DataClass
+        >>> import astropy.units as u
+        >>> dat = DataClass.from_array([[1, 2, 3]*u.deg,
+        ...                             [4, 5, 6]*u.km,
+        ...                             ['a', 'b', 'c']],
+        ...                            names=('a', 'b', 'c'))
+        >>> dat.table
+         a   b   c
+        deg  km
+        --- --- ---
+        1.0 4.0   a
+        2.0 5.0   b
+        3.0 6.0   c
+
         """
 
         return cls.from_dict(dict(zip(names, data)))
 
     @classmethod
     def from_table(cls, data):
-        """Create `DataClass` object from astropy `Table` object.
+        """Create `DataClass` object from `~astropy.table.Table` or
+        `astropy.table.QTable` object.
 
         Parameters
         ----------
@@ -158,24 +162,122 @@ class DataClass():
         -------
         `DataClass` object
 
+        Examples
+        --------
+        >>> from astropy.table import QTable
+        >>> import astropy.units as u
+        >>> from sbpy.data import DataClass
+        >>> tab = QTable([[1,2,3]*u.kg,
+        ...               [4,5,6]*u.m/u.s,],
+        ...              names=['mass', 'velocity'])
+        >>> dat = DataClass.from_table(tab)
+        >>> dat.table
+        mass velocity
+         kg   m / s
+        ---- --------
+         1.0      4.0
+         2.0      5.0
+         3.0      6.0
         """
 
         return cls(table=data)
 
+    @classmethod
+    def from_file(cls, filename, **kwargs):
+        """Create `DataClass` object from a file using
+        `~astropy.table.Table.read`.
+
+        Parameters
+        ----------
+        filename : str
+             Name of the file that will be read and parsed.
+        **kwargs : additional parameters
+             Optional parameters that will be passed on to
+             `~astropy.table.Table.read`.
+
+        Returns
+        -------
+        `DataClass` object
+
+        Notes
+        -----
+        This function is merely a wrapper around
+        `~astropy.table.Table.read`. Please refer to the documentation of
+        that function for additional information on optional parameters
+        and data formats that are available. Furthermore, note that this
+        function is not able to identify units. If you want to work with
+        `~astropy.units` you have to assign them manually to the object
+        columns.
+
+        Examples
+        --------
+        >>> from sbpy.data import DataClass
+        >>> dat = Dataclass.from_file('data.txt', format='ascii')  # doctest: +SKIP
+        """
+
+        data = QTable.read(filename, **kwargs)
+
+        return cls(table=data)
+
+    def to_file(self, filename, format='ascii', **kwargs):
+        """Write object to a file using
+        `~astropy.table.Table.write`.
+
+        Parameters
+        ----------
+        filename : str
+             Name of the file that will be written.
+        format : str, optional
+             Data format in which the file should be written. Default:
+             ``ASCII``
+        **kwargs : additional parameters
+             Optional parameters that will be passed on to
+             `~astropy.table.Table.write`.
+
+        Returns
+        -------
+        None
+
+        Notes
+        -----
+        This function is merely a wrapper around
+        `~astropy.table.Table.write`. Please refer to the
+        documentation of that function for additional information on
+        optional parameters and data formats that are
+        available. Furthermore, note that this function is not able to
+        write unit information to the file.
+
+        Examples
+        --------
+        >>> from sbpy.data import DataClass
+        >>> import astropy.units as u
+        >>> dat = DataClass.from_array([[1, 2, 3]*u.deg,
+        ...                             [4, 5, 6]*u.km,
+        ...                             ['a', 'b', 'c']],
+        ...                            names=('a', 'b', 'c'))
+        >>> dat.to_file('test.txt')
+
+        """
+
+        self._table.write(filename, format=format, **kwargs)
+
     def __getattr__(self, field):
-        if field in self.table.columns:
-            return self.table[field]
+        """Get attribute from ``self._table` (columns, rows) or ``self``,
+        if the former does not exist."""
+
+        if field in self._table.columns:
+            return self._table[field]
         else:
             raise AttributeError("field '{:s}' does not exist".format(field))
 
     def __setattr__(self, field, value):
-        """Set attribute modify attribute in `self.table`, if available, else set it for self
-        """
+        """Modify attribute in ``self._table``, if it already exists there,
+        or set it in ``self``."""
         try:
-            # if self.table exists ...
-            if field in self.table.columns:
+            # if self._table exists ...
+            if field in self._table.columns:
                 # set value there...
-                self.table[field] = value
+                self._table[field] = value
             else:
                 super().__setattr__(field, value)
         except:
@@ -183,81 +285,132 @@ class DataClass():
             super().__setattr__(field, value)
 
     def __getitem__(self, ident):
-        """Return column or row from data table"""
-        return self.table[ident]
+        """Return column or row from data table (``self._table``)."""
+        return self._table[ident]
 
     @property
-    def data(self):
-        """returns the `~astropy.table.QTable` containing all data."""
-        return self.table
+    def table(self):
+        """Return `~astropy.table.QTable` object containing all data."""
+        return self._table
 
     @property
     def column_names(self):
-        """Returns a list of all column names in the data table"""
-        return self.table.columns
+        """Return a list of all column names in the data table."""
+        return self._table.columns
 
     def add_rows(self, rows):
-        """Appends additional rows to the existing data table. Must be in the
-        form of a list, tuple, or `~numpy.ndarray` of rows or a single
-        list, tuple, `~numpy.ndarray`, or dictionary to the current
-        data table. The new data rows can each be provided in the form
-        of a dictionary or a list. In case of a dictionary, all table
-        column names must be provided in ``row``; additional keys that
-        are not yet column names in the table will be discarded. In
-        case of a list, the list elements must be in the same order as
-        the table columns. In either case, `~astropy.units` must be
+        """Append additional rows to the existing data table. An individual
+        row can be provided in list, tuple, `~numpy.ndarray`, or
+        dictionary form. Multiple rows can be provided in the form of
+        a list, tuple, or `~numpy.ndarray` of individual
+        rows. Multiple rows can also be provided in the form of a
+        `~astropy.table.QTable` or another `~sbpy.data.DataClass`
+        object. In case of a dictionary, `~astropy.table.QTable`, or
+        `~sbpy.data.DataClass`, all table column names must be
+        provided in ``row``; additional keys that are not yet column
+        names in the table will be discarded. In case of a list, the
+        list elements must be in the same order as the table
+        columns. In either case, matching `~astropy.units` must be
         provided in ``rows`` if used in the data table.
 
         Parameters
         ----------
         rows : list, tuple, `~numpy.ndarray`, or dict
-            data to be appended to the table; required to have the same 
+            data to be appended to the table; required to have the same
             length as the existing table, as well as the same units
-
 
         Returns
         -------
         n : int, the total number of rows in the data table
 
+        Examples
+        --------
+        >>> from sbpy.data import DataClass
+        >>> import astropy.units as u
+        >>> dat = DataClass.from_array([[1, 2, 3]*u.Unit('m'),
+        ...                             [4, 5, 6]*u.m/u.s,
+        ...                             ['a', 'b', 'c']],
+        ...                            names=('a', 'b', 'c'))
+        >>> dat.add_rows({'a': 5*u.m, 'b': 8*u.m/u.s, 'c': 'e'})
+        4
+        >>> dat.table
+         a    b    c
+         m  m / s
+        --- ----- ---
+        1.0   4.0   a
+        2.0   5.0   b
+        3.0   6.0   c
+        5.0   8.0   e
+        >>> dat.add_rows(([6*u.m, 9*u.m/u.s, 'f'],
+        ...               [7*u.m, 10*u.m/u.s, 'g']))
+        6
+        >>> dat.add_rows(dat)
+        12
         """
+        if isinstance(rows, QTable):
+            self._table = vstack([self._table, rows])
+        if isinstance(rows, DataClass):
+            self._table = vstack([self._table, rows.table])
         if isinstance(rows, dict):
             try:
-                newrow = [rows[colname] for colname in self.table.columns]
+                newrow = [rows[colname] for colname in self._table.columns]
             except KeyError as e:
                 raise ValueError('data for column {0} missing in row {1}'.
                                  format(e, rows))
             self.add_rows(newrow)
         if isinstance(rows, (list, ndarray, tuple)):
-            if len(array(rows).shape) > 1 or isinstance(rows[0], dict):
+            if (not isinstance(rows[0], (u.quantity.Quantity, float)) and
+                    isinstance(rows[0], (dict, list, ndarray, tuple))):
                 for subrow in rows:
                     self.add_rows(subrow)
             else:
-                self.table.add_row(rows)
-        return len(self.table)
+                self._table.add_row(rows)
+        return len(self._table)
 
     def add_column(self, data, name):
-        """Append a single column to the current data table. The lenght of 
-        the input list, `~numpy.ndarray`, or tuple must match the current 
+        """Append a single column to the current data table. The lenght of
+        the input list, `~numpy.ndarray`, or tuple must match the current
         number of rows in the data table.
 
         Parameters
         ----------
         data : list, `~numpy.ndarray`, or tuple
-            data to be filled into the table; required to have the same 
-            length as the existing table
-        name : string, new column's name
+            Data to be filled into the table; required to have the same
+            length as the existing table's number rows.
+        name : str
+            Name of the new column; must be different from already existing
+            column names.
 
         Returns
         -------
         n : int, the total number of columns in the data table
 
+        Examples
+        --------
+        >>> from sbpy.data import DataClass
+        >>> import astropy.units as u
+        >>> dat = DataClass.from_array([[1, 2, 3]*u.Unit('m'),
+        ...                             [4, 5, 6]*u.m/u.s,
+        ...                             ['a', 'b', 'c']],
+        ...                            names=('a', 'b', 'c'))
+        >>> dat.add_column([10, 20, 30]*u.kg, name='d')
+        4
+        >>> print(dat.table)
+         a    b    c   d
+         m  m / s      kg
+        --- ----- --- ----
+        1.0   4.0   a 10.0
+        2.0   5.0   b 20.0
+        3.0   6.0   c 30.0
         """
-        self.table.add_column(Column(data, name=name))
+
+        self._table.add_column(Column(data, name=name))
         return len(self.column_names)
 
     def _check_columns(self, colnames):
-        """Checks whether all of the elements in colnames exist as
-        column names in the data table."""
+        """Checks whether all of the elements in ``colnames`` exist as
+        column names in the data table. If ``self.column_names`` is longer
+        than ``colnames``, this does not force ``False``."""
 
         return all([col in self.column_names for col in colnames])
 

@@ -25,6 +25,7 @@ def test_creation_multi():
     multiple rows"""
 
     import pytest
+    from numpy import array
     from astropy.table import QTable
     from ..core import DataClass
 
@@ -42,6 +43,16 @@ def test_creation_multi():
 
     test_table = DataClass.from_table(ground_truth)
     assert all(test_table.table == ground_truth)
+
+    # test reading data from file
+    ra = [10.223423, 10.233453, 10.243452]
+    dec = [-12.42123, -12.41562, -12.40435]
+    epoch = 2451523.5 + array([0.1234, 0.2345, 0.3525])
+    file_ground_truth = DataClass.from_array(
+        [ra, dec, epoch], names=['ra', 'dec', 't'])
+
+    test_file = DataClass.from_file('data/test.dat', format='ascii')
+    assert all(file_ground_truth.table == test_file.table)
 
     # test failing if columns have different lengths
     with pytest.raises(ValueError):
