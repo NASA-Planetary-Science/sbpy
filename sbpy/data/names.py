@@ -137,6 +137,17 @@ class Names():
         TargetNameParseError : Exception
            If the string does not appear to be a comet name.
 
+        Notes
+        -----
+        This function has absolutely no knowledge whether the Solar
+        System small body ``s`` is an asteroid or a comet. It simply
+        searches for common patterns in string ``s`` that are common for
+        comet names and designations. For instance, if ``s`` contains an
+        asteroid name, this function will identify that part as a
+        comet name. Hence, the user is advised to take that into
+        account when interpreting the parsing results.
+
+
         Examples
         --------
         >>> from sbpy.data import Names
@@ -275,6 +286,15 @@ class Names():
         TargetNameParseError : Exception
            If the string does not appear to be an asteroid name.
 
+        Notes
+        -----
+        This function has absolutely no knowledge whether the Solar
+        System small body ``s`` is an asteroid or a comet. It simply
+        searches for common patterns in string ``s`` that are common
+        for asteroid names, numbers, or designations. For instance, if
+        ``s`` contains a comet name, this function will identify that
+        part as an asteroid name. Hence, the user is advised to take
+        that into account when interpreting the parsing results.
 
         Examples
         --------
@@ -313,6 +333,7 @@ class Names():
         +----------------------------------+----------+------+-----------------+
         |G3693                             |          |163693|                 |
         +----------------------------------+----------+------+-----------------+
+
         """
 
         import re
@@ -419,8 +440,8 @@ class Names():
 
     @staticmethod
     def asteroid_or_comet(s):
-        """Checks if an object is an asteroid, or a comet, based on its
-        identifier.
+        """Checks if an object identifier is more likely to belong to an
+        asteroid or a comet.
 
         Parameters
         ----------
@@ -430,7 +451,19 @@ class Names():
         Returns
         -------
         target_type : str
-           The target identification: 'comet', 'asteroid', or ``None``.
+           The target identification: ``'comet'``, ``'asteroid'``, or 
+           ``None``.
+
+        Notes
+        -----
+        This function uses the results of
+        `~sbpy.data.Names.parse_asteroid` and
+        `~sbpy.data.Names.parse_comet`. Hence, it is affected by
+        ambiguities in the name/number/designation identification. If
+        the name is ambiguous, ``None`` will be
+        returned. ``'asteroid'`` will be returned if the number of
+        found asteroid identifier elements is larger than the number
+        of found comet identifier elements and vice versa.
 
         Examples
         --------
@@ -441,6 +474,7 @@ class Names():
         asteroid
         >>> print(Names.asteroid_or_comet('Fred'))
         None
+
         """
 
         # compare lengths of dictionaries from parse_asteroid and

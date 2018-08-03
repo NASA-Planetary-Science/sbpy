@@ -262,15 +262,141 @@ Writing object data to a file
 By default, the data are written in ASCII format, but other formats
 are available, too (cf. `~astropy.table.Table.write`).
 
-  
-How to use Orbit
-----------------
-tbd
-
-
 How to use Ephem
 ----------------
-tbd
+
+As shown above (`How to use Ephem, Orbit, and Phys objects`_),
+`~sbpy.data.Ephem` objects can be created on the fly. However,
+`~sbpy.data.Ephem` can also be used to access ephemerides information
+from remote services. For instance, the following few lines will query
+ephemerides for asteroid Ceres on a given data and for the position of
+Mauna Kea Observatory (IAU observatory code ``568``) from the `JPL Horizons service <https://ssd.jpl.nasa.gov/horizons.cgi>`_:
+
+    >>> from sbpy.data import Ephem
+    >>> from astropy.time import Time
+    >>> epoch = Time('2018-08-03 14:20', scale='utc') # time in UT
+    >>> eph = Ephem.from_horizons('Ceres',
+    ...                           location='568',
+    ...                           epochs=epoch)
+    >>> print(eph) # doctest: +ELLIPSIS
+    <sbpy.data.ephem.Ephem object at ...>
+    >>> print(eph.table)
+    targetname       datetime_str          datetime_jd    ...  PABLon PABLat
+                                                d         ...   deg    deg  
+    ---------- ------------------------ ----------------- ... ------- ------
+       1 Ceres 2018-Aug-03 14:20:00.000 2458334.097222222 ... 171.275 9.3473
+    >>> print(eph.column_names)
+    <TableColumns names=('targetname','datetime_str','datetime_jd','H','G','solar_presence','flags','RA','DEC','RA_app','DEC_app','RA_rate','DEC_rate','AZ','EL','AZ_rate','EL_rate','sat_X','sat_Y','sat_PANG','siderealtime','airmass','magextinct','V','surfbright','illumination','illum_defect','sat_sep','sat_vis','ang_width','PDObsLon','PDObsLat','PDSunLon','PDSunLat','SubSol_ang','SubSol_dist','NPole_ang','NPole_dist','EclLon','EclLat','r','r_rate','delta','delta_rate','lighttime','vel_sun','vel_obs','elong','elongFlag','alpha','lunar_elong','lunar_illum','sat_alpha','sunTargetPA','velocityPA','OrbPlaneAng','constellation','TDB-UT','ObsEclLon','ObsEclLat','NPole_RA','NPole_DEC','GlxLon','GlxLat','solartime','earth_lighttime','RA_3sigma','DEC_3sigma','SMAA_3sigma','SMIA_3sigma','Theta_3sigma','Area_3sigma','RSS_3sigma','r_3sigma','r_rate_3sigma','SBand_3sigma','XBand_3sigma','DoppDelay_3sigma','true_anom','hour_angle','alpha_true','PABLon','PABLat')>
+
+`~sbpy.data.Ephem.from_horizons` uses one or more target names, an
+observer location in the form of an IAU observatory code, and a list
+of discrete epochs or a range of epochs defined in a dictionary (see
+`~sbpy.data.Ephem.from_horizons`) to query the JPL Horizons
+service. Due to different requirements of the JPL Horizons service for
+the epoch format, we recommend to use `~astropy.time.Time`
+objects. The column names in the data table can be inquired using
+`~sbpy.data.DataClass.column_names`.
+    
+`~sbpy.data.Ephem.from_horizons` is actually a wrapper around
+`~astroquery.jplhorizons.HorizonsClass.ephemerides`. This function
+conveniently combines the creation of a
+`~astroquery.jplhorizons.HorizonsClass` query and the actual
+ephemerides information retrieval into a single function. Additional
+optional parameters provided to `~sbpy.data.Ephem.from_horizons` are
+directly passed on to
+`~astroquery.jplhorizons.HorizonsClass.ephemerides`, maintaining the
+full flexibility of the latter function:
+
+    >>> epoch1 = Time('2018-08-03 14:20', scale='utc')
+    >>> epoch2 = Time('2018-08-04 07:30', scale='utc')
+    >>> eph = Ephem.from_horizons('Ceres',
+    ...                           location='568',
+    ...                           epochs={'start': epoch1,
+    ...                                   'stop': epoch2,
+    ...                                   'step': '10m'},
+    ...                           skip_daylight=True)
+    targetname    datetime_str      datetime_jd    ... alpha_true  PABLon  PABLat
+                                         d         ...    deg       deg     deg  
+    ---------- ----------------- ----------------- ... ---------- -------- ------
+       1 Ceres 2018-Aug-03 14:20 2458334.097222222 ...    12.9735  171.275 9.3473
+       1 Ceres 2018-Aug-03 14:30 2458334.104166667 ...    12.9722 171.2774 9.3472
+       1 Ceres 2018-Aug-03 14:40 2458334.111111111 ...     12.971 171.2798 9.3471
+       1 Ceres 2018-Aug-03 14:50 2458334.118055556 ...    12.9698 171.2822  9.347
+       1 Ceres 2018-Aug-03 15:00       2458334.125 ...    12.9685 171.2846 9.3469
+       1 Ceres 2018-Aug-03 15:10 2458334.131944444 ...    12.9673 171.2869 9.3468
+           ...               ...               ... ...        ...      ...    ...
+       1 Ceres 2018-Aug-04 06:30 2458334.770833333 ...    12.8574 171.5052  9.337
+       1 Ceres 2018-Aug-04 06:40 2458334.777777778 ...    12.8562 171.5076 9.3369
+       1 Ceres 2018-Aug-04 06:50 2458334.784722222 ...     12.855 171.5099 9.3368
+       1 Ceres 2018-Aug-04 07:00 2458334.791666667 ...    12.8538 171.5123 9.3367
+       1 Ceres 2018-Aug-04 07:10 2458334.798611111 ...    12.8526 171.5147 9.3366
+       1 Ceres 2018-Aug-04 07:20 2458334.805555556 ...    12.8513 171.5171 9.3365
+       1 Ceres 2018-Aug-04 07:30      2458334.8125 ...    12.8501 171.5195 9.3364
+       Length = 26 rows
+
+Note that ``skip_daylight`` is an optional parameter of
+`~astroquery.jplhorizons.HorizonsClass.ephemerides` and it can be used
+here as well. An additional feature of
+`~sbpy.data.Ephem.from_horizons` is that you can automatically
+concatenate queries for a number of objects:
+
+    >>> eph = Ephem.from_horizons(['Ceres', 'Pallas', 12893, '1983 SA'],
+    >>>                           location='568',
+    >>>                           epochs=epoch)
+    >>> print(eph.table)
+            targetname               datetime_str       ...  PABLon   PABLat 
+                                                        ...   deg      deg   
+    -------------------------- ------------------------ ... -------- --------
+                       1 Ceres 2018-Aug-03 14:20:00.000 ...  171.275   9.3473
+                      2 Pallas 2018-Aug-03 14:20:00.000 ... 132.9518 -20.1396
+     12893 Mommert (1998 QS55) 2018-Aug-03 14:20:00.000 ... 100.9772  -2.0567
+    3552 Don Quixote (1983 SA) 2018-Aug-03 14:20:00.000 ...   29.298  13.3365
+
+Please be aware that these queries are not simultaneous. The more
+targets you query, the longer the query will take. Furthermore, keep
+in mind that asteroids and comets have slightly different table
+layouts (e.g., different magnitude systems: ``T-mag`` and ``N-mag``
+instead of ``V-mag``), which will complicate the interpretation of the
+data. It might be safest to query asteroids and comets separately.
+
+       
+How to use Orbit
+----------------
+
+`~sbpy.data.Orbit.from_horizons` enables the query of Solar System
+body osculating elements from the `JPL Horizons service
+<https://ssd.jpl.nasa.gov/horizons.cgi>`_:
+
+    >>> from sbpy.data import Orbit
+    >>> from astropy.time import Time
+    >>> epoch = Time('2018-05-14', scale='utc')
+    >>> elem = Orbit.from_horizons('Ceres', epochs=epoch)
+    >>> print(elem)  # doctest: +ELLIPSIS
+    >>> print(elem.table)
+    targetname datetime_jd ...         Q                 P        
+                    d      ...         AU                d        
+    ---------- ----------- ... ----------------- -----------------
+       1 Ceres   2458252.5 ... 2.976065555960228 1681.218128428134
+    >>> print(elem.column_names)
+    <TableColumns names=('targetname','datetime_jd','datetime_str','H','G','e','q','incl','Omega','w','Tp_jd','n','M','nu','a','Q','P')>
+
+If ``epochs`` is not set, the osculating elements for the current
+epoch (current time) are queried. Similar to
+`~sbpy.data.Ephem.from_horizons`, this function is a wrapper for
+`~astroquery.jplhorizons.HorizonsClass.elements` and passes optional
+parameter on to that function. Furthermore, it is possible to query
+orbital elements for a number of targets:
+
+    >>> elem = Orbit.from_horizons(['3749', '2009 BR60'], refplane='earth')
+    >>> print(elem)
+          targetname        datetime_jd    ...         Q                 P        
+                                 d         ...         AU                d        
+    --------------------- ---------------- ... ----------------- -----------------
+    3749 Balam (1982 BG1) 2458334.39364572 ... 2.481284118656967 1221.865337413631
+       312497 (2009 BR60) 2458334.39364572 ... 2.481576523576055 1221.776869445086
+
+
+
 
 
 How to use Phys
@@ -304,9 +430,9 @@ asteroid and comet identifiers:
     >>> print(Names.parse_asteroid('(228195) 6675 P-L'))
     {'number': 228195, 'desig': '6675 P-L'}
     >>> print(Names.parse_asteroid('C/2001 A2-A (LINEAR)')) # doctest: _ELLIPSIS
-    ...sbpy.data.names.TargetNameParseError: C/2001 A2-A (LINEAR) does not appear to be an asteroid identifier
+    ... sbpy.data.names.TargetNameParseError: C/2001 A2-A (LINEAR) does not appear to be an asteroid identifier
     >>> print(Names.parse_comet('12893')) # doctest: +ELLIPSIS
-    ...sbpy.data.names.TargetNameParseError: 12893 does not appear to be a comet name
+    ... sbpy.data.names.TargetNameParseError: 12893 does not appear to be a comet name
     >>> print(Names.parse_comet('73P-C/Schwassmann Wachmann 3 C	'))
     {'type': 'P', 'number': 73, 'fragment': 'C', 'name': 'Schwassmann Wachmann 3 C'}
     
