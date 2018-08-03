@@ -7,6 +7,7 @@ sbpy Data Module
 created on June 22, 2017
 """
 
+from collections import OrderedDict
 from numpy import ndarray, array
 from astropy.table import QTable, Column, vstack
 import astropy.units as u
@@ -67,13 +68,14 @@ class DataClass():
 
         Parameters
         ----------
-        data : dictionary or list (or similar) of dictionaries
-             Data that will be ingested in `~sbpy.data.DataClass` object.
-             Each dictionary creates a row in the data table. Dictionary
-             keys are used as column names; corresponding values must be
-             scalar (cannot be lists or arrays). If a list of dicitionaries
-             is provided, all dictionaries have to provide the same
-             set of keys (and units, if used at all).
+        data : `~collections.OrderedDict`, dictionary or list (or similar) of
+             dictionaries Data that will be ingested in
+             `~sbpy.data.DataClass` object.  Each dictionary creates a
+             row in the data table. Dictionary keys are used as column
+             names; corresponding values must be scalar (cannot be
+             lists or arrays). If a list of dictionaries is provided,
+             all dictionaries have to provide the same set of keys
+             (and units, if used at all). 
 
         Returns
         -------
@@ -84,8 +86,17 @@ class DataClass():
         >>> import astropy.units as u
         >>> from sbpy.data import Orbit
         >>> orb = Orbit.from_dict({'a': 2.7674*u.au,
-        ...                        'e': .0756,
+        ...                        'e': 0.0756,
         ...                        'i': 10.59321*u.deg})
+
+        Since dictionaries have no specific order, the ordering of the
+        column in the example above is not defined. If your data table
+        requires a specific order, use an ``OrderedDict``:
+
+        >>> from collections import OrderedDict
+        >>> orb = Orbit.from_dict(OrderedDict([('a', 2.7674*u.au),
+        ...                                    ('e', 0.0756),
+        ...                                    ('i', 10.59321*u.deg)]))
         >>> print(orb)
         <sbpy.data.orbit.Orbit object at 0x...>
         >>> print(orb.column_names) # doctest: +SKIP
@@ -146,7 +157,7 @@ class DataClass():
 
         """
 
-        return cls.from_dict(dict(zip(names, data)))
+        return cls.from_dict(OrderedDict(zip(names, data)))
 
     @classmethod
     def from_table(cls, data):
