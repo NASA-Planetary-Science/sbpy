@@ -5,15 +5,16 @@ A Python Module for Small-Body Planetary Astronomy
     :target: http://www.astropy.org
     :alt: Powered by Astropy Badge
 
-.. image:: https://travis-ci.org/mommermi/sbpy.svg?branch=master
-    :target: https://travis-ci.org/mommermi/sbpy
+.. image:: https://travis-ci.org/NASA-Planetary-Science/sbpy.svg?branch=master
+    :target: https://travis-ci.org/NASA-Planetary-Science/sbpy
     :alt: Travis-CI status
 
 .. image:: https://coveralls.io/repos/github/NASA-Planetary-Science/sbpy/badge.svg?branch=master
-:target: https://coveralls.io/github/NASA-Planetary-Science/sbpy?branch=master	 
+    :target: https://coveralls.io/github/NASA-Planetary-Science/sbpy?branch=master
+    :alt: Coveralls.io status
 .. image:: https://readthedocs.org/projects/sbpy/badge/?version=latest
     :target: http://sbpy.readthedocs.io/en/latest/?badge=latest
-    :alt: Documentation Status
+    :alt: Documentation status
 	  
 	  
 `sbpy` is a community effort to build a Python package for small-body
