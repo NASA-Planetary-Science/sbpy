@@ -120,13 +120,13 @@ In order to obtain a list of column names in a `~sbpy.data.DataClass` object, yo
 
 Each of these columns can be accessed easily, for instance:
 
-    >>> obs['ra']
+    >>> print(obs['ra'])
     [10.223423 10.233453 10.243452] deg
 
 Similarly, if you are interested in the first set of observations in
 ``obs``, you can use:
 
-    >>> obs[0]
+    >>> print(obs[0])
         ra       dec         t      
        deg       deg         d      
     --------- --------- ------------
@@ -136,12 +136,12 @@ which returns you a table with only the requested subset of the
 data. In order to retrieve RA from the second observation, you can
 combine both examples and do:
 
-    >>> obs[1]['ra']
+    >>> print(obs[1]['ra'])
     10.233453 deg
 
 Just like in any `~astropy.table.Table` or `~astropy.table.QTable` object, you can use slicing to obtain subset tables from your data, for instance:
 
-    >>> obs['ra', 'deg']
+    >>> print(obs['ra', 'dec'])
         ra       dec   
        deg       deg   
     --------- ---------
@@ -149,7 +149,7 @@ Just like in any `~astropy.table.Table` or `~astropy.table.QTable` object, you c
     10.233453 -12.41562
     10.243452 -12.40435
 
-    >>> obs[obs['ra'] <= 10.233453*u.deg]
+    >>> print(obs[obs['ra'] <= 10.233453*u.deg])
         ra       dec         t      
        deg       deg         d      
     --------- --------- ------------
@@ -178,7 +178,7 @@ object:
     >>> obs.add_rows([[10.255460*u.deg, -12.39460*u.deg, 2451523.94653*u.d],
     ...               [10.265425*u.deg, -12.38246*u.deg, 2451524.0673*u.d]])
     5
-    >>> obs.table
+    >>> print(obs.table)
         ra       dec          t      
        deg       deg          d      
     --------- --------- -------------
@@ -192,7 +192,7 @@ or if you want to add a column to your object:
 
     >>> obs.add_column(['V', 'V', 'R', 'i', 'g'], name='filter')
     4
-    >>> obs.table
+    >>> print(obs.table)
         ra       dec          t       filter
        deg       deg          d             
     --------- --------- ------------- ------
@@ -233,16 +233,18 @@ convenient to first convert all the new rows into new
     ...                          ['r', 'z']],
     ...                         names=['ra', 'dec', 't', 'filter'])
     >>> obs.add_rows(obs2)
-    7
+    8
 
 Individual elements, entire rows, and columns can be modified by
 directly addressing them:
 
     >>> print(obs['ra'])
-    [10.223423 10.233453 10.243452 10.25546  10.265425 10.4545   10.5656  ] deg
+    [10.223423 10.233453 10.243452 10.25546  10.265425 10.25546  10.4545
+     10.5656  ] deg
     >>> obs['ra'][:] = obs['ra'] + 0.1*u.deg
     >>> print(obs['ra'])
-    [10.323423 10.333453 10.343452 10.35546  10.365425 10.5545   10.6656  ] deg
+    [10.323423 10.333453 10.343452 10.35546  10.365425 10.35546  10.5545
+     10.6656  ] deg
 
 Note the specific syntax in this case (``obs['ra'][:] = ...``) that
 is required by `~astropy.table.Table` if you want to replace
@@ -315,6 +317,7 @@ full flexibility of the latter function:
     ...                                   'stop': epoch2,
     ...                                   'step': '10m'},
     ...                           skip_daylight=True)
+    >>> print(eph.table)
     targetname    datetime_str      datetime_jd    ... alpha_true  PABLon  PABLat
                                          d         ...    deg       deg     deg  
     ---------- ----------------- ----------------- ... ---------- -------- ------
@@ -341,8 +344,8 @@ here as well. An additional feature of
 concatenate queries for a number of objects:
 
     >>> eph = Ephem.from_horizons(['Ceres', 'Pallas', 12893, '1983 SA'],
-    >>>                           location='568',
-    >>>                           epochs=epoch)
+    ...                           location='568',
+    ...                           epochs=epoch)
     >>> print(eph.table)
             targetname               datetime_str       ...  PABLon   PABLat 
                                                         ...   deg      deg   
@@ -372,6 +375,7 @@ body osculating elements from the `JPL Horizons service
     >>> epoch = Time('2018-05-14', scale='utc')
     >>> elem = Orbit.from_horizons('Ceres', epochs=epoch)
     >>> print(elem)  # doctest: +ELLIPSIS
+    <sbpy.data.orbit.Orbit object at ...>
     >>> print(elem.table)
     targetname datetime_jd ...         Q                 P        
                     d      ...         AU                d        
@@ -387,16 +391,16 @@ epoch (current time) are queried. Similar to
 parameter on to that function. Furthermore, it is possible to query
 orbital elements for a number of targets:
 
-    >>> elem = Orbit.from_horizons(['3749', '2009 BR60'], refplane='earth')
-    >>> print(elem)
-          targetname        datetime_jd    ...         Q                 P        
-                                 d         ...         AU                d        
-    --------------------- ---------------- ... ----------------- -----------------
-    3749 Balam (1982 BG1) 2458334.39364572 ... 2.481284118656967 1221.865337413631
-       312497 (2009 BR60) 2458334.39364572 ... 2.481576523576055 1221.776869445086
-
-
-
+    >>> epoch = Time('2018-08-03 14:20', scale='utc')
+    >>> elem = Orbit.from_horizons(['3749', '2009 BR60'],
+    ...                            epochs=epoch,
+    ...                            refplane='earth')
+    >>> print(elem.table) # doctest:+ELLIPSIS
+          targetname         datetime_jd    ...         Q                 P        
+                                  d         ...         AU                d        
+    --------------------- ----------------- ... ----------------- -----------------
+    3749 Balam (1982 BG1) 2458334.097222222 ... 2.481...          1221.86...
+       312497 (2009 BR60) 2458334.097222222 ... 2.481...          1221.77...
 
 
 How to use Phys
@@ -429,9 +433,9 @@ asteroid and comet identifiers:
 
     >>> print(Names.parse_asteroid('(228195) 6675 P-L'))
     {'number': 228195, 'desig': '6675 P-L'}
-    >>> print(Names.parse_asteroid('C/2001 A2-A (LINEAR)')) # doctest: _ELLIPSIS
+    >>> print(Names.parse_asteroid('C/2001 A2-A (LINEAR)')) # doctest: +SKIP
     ... sbpy.data.names.TargetNameParseError: C/2001 A2-A (LINEAR) does not appear to be an asteroid identifier
-    >>> print(Names.parse_comet('12893')) # doctest: +ELLIPSIS
+    >>> print(Names.parse_comet('12893')) # doctest: +SKIP
     ... sbpy.data.names.TargetNameParseError: 12893 does not appear to be a comet name
     >>> print(Names.parse_comet('73P-C/Schwassmann Wachmann 3 C	'))
     {'type': 'P', 'number': 73, 'fragment': 'C', 'name': 'Schwassmann Wachmann 3 C'}

@@ -50,14 +50,14 @@ class Orbit(DataClass):
             epochs; a dictionary including keywords ``start``,
             ``step``, and ``stop`` can be used to generate a range of
             epochs (see
-            `~astroquery.jplhorizons.HorizonsClass.Horizons.ephemerides`
+            `~astroquery.jplhorizons.HorizonsClass.Horizons.elements`
             for details); if ``None`` is provided, current date and
             time are used. Default: ``None``
         center : str, optional, default ``'500@10'`` (center of the Sun)
             Elements will be provided relative to this position.
         **kwargs : optional
             Arguments that will be provided to
-            `astroquery.jplhorizons.HorizonsClass.ephemerides`.
+            `astroquery.jplhorizons.HorizonsClass.elements`.
 
         Returns
         -------
@@ -68,7 +68,7 @@ class Orbit(DataClass):
         >>> from sbpy.data import Orbit
         >>> from astropy.time import Time
         >>> epoch = Time('2018-05-14', scale='utc')
-        >>> eph = Ephem.from_horizons('Ceres', epochs=epoch)
+        >>> eph = Orbit.from_horizons('Ceres', epochs=epoch)
         """
 
         # modify epoch input to make it work with astroquery.jplhorizons
@@ -86,11 +86,11 @@ class Orbit(DataClass):
         if not isinstance(targetids, (list, ndarray, tuple)):
             targetids = [targetids]
 
-        # append ephemerides table for each targetid
+        # append elements table for each targetid
         all_elem = None
         for targetid in targetids:
 
-            # load ephemerides using astroquery.jplhorizons
+            # load elements using astroquery.jplhorizons
             obj = Horizons(id=targetid, id_type=id_type,
                            location=center, epochs=epochs)
             elem = obj.elements(**kwargs)
@@ -109,7 +109,7 @@ class Orbit(DataClass):
                 all_elem = vstack([all_elem, elem])
 
         if bib.status() is None or bib.status():
-            bib.register('sbpy.data.Ephem', {'data service':
+            bib.register('sbpy.data.Orbit', {'data service':
                                              '1996DPS....28.2504G'})
 
         return cls.from_table(all_elem)
