@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import os
+from collections import OrderedDict
 import pytest
 from numpy import array
 import astropy.units as u
@@ -18,7 +19,7 @@ def test_creation_single():
 
     ground_truth = QTable([[1], [2], ['test']], names=('a', 'b', 'c'))
 
-    test_init = DataClass(a=1, b=2, c='test')
+    test_init = DataClass(OrderedDict([('a', 1), ('b', 2), ('c', 'test')]))
     assert test_init.table == ground_truth
 
     test_dict = DataClass.from_dict({'a': 1, 'b': 2, 'c': 'test'})

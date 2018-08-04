@@ -37,16 +37,16 @@ class DataClass():
 
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, data):
         self._table = QTable()
         # self.altkeys = {}  # dictionary for alternative column names
 
-        if (len(kwargs.items()) == 1 and 'table' in kwargs.keys()):
+        if (len(data.items()) == 1 and 'table' in data.keys()):
             # single item provided named 'table' -> already Table object
-            self._table = QTable(kwargs['table'])
+            self._table = QTable(data['table'])
         else:
             # treat kwargs as dictionary
-            for key, val in kwargs.items():
+            for key, val in data.items():
                 try:
                     unit = val.unit
                     val = val.value
@@ -75,7 +75,7 @@ class DataClass():
              names; corresponding values must be scalar (cannot be
              lists or arrays). If a list of dictionaries is provided,
              all dictionaries have to provide the same set of keys
-             (and units, if used at all). 
+             (and units, if used at all).
 
         Returns
         -------
@@ -108,11 +108,11 @@ class DataClass():
         2.7674 0.0756 10.59321
 
         """
-        if isinstance(data, dict):
-            return cls(**data)
+        if isinstance(data, (dict, OrderedDict)):
+            return cls(data)
         elif isinstance(data, (list, ndarray, tuple)):
             # build table from first dict and append remaining rows
-            tab = cls(**data[0])
+            tab = cls(data[0])
             for row in data[1:]:
                 tab.add_rows(row)
             return tab
@@ -191,7 +191,7 @@ class DataClass():
          3.0      6.0
         """
 
-        return cls(table=data)
+        return cls({'table': data})
 
     @classmethod
     def from_file(cls, filename, **kwargs):
@@ -223,12 +223,12 @@ class DataClass():
         Examples
         --------
         >>> from sbpy.data import DataClass
-        >>> dat = Dataclass.from_file('data.txt', format='ascii')  # doctest: +SKIP
+        >>> dat = Dataclass.from_file('data.txt', format='ascii') # doctest: +SKIP
         """
 
         data = QTable.read(filename, **kwargs)
 
-        return cls(table=data)
+        return cls({'table': data})
 
     def to_file(self, filename, format='ascii', **kwargs):
         """Write object to a file using
@@ -326,7 +326,7 @@ class DataClass():
 
         Parameters
         ----------
-        rows : list, tuple, `~numpy.ndarray`, or dict
+        rows : list, tuple, `~numpy.ndarray`, dict, or `~collections.OrderedDict`
             data to be appended to the table; required to have the same
             length as the existing table, as well as the same units
 
@@ -362,7 +362,7 @@ class DataClass():
             self._table = vstack([self._table, rows])
         if isinstance(rows, DataClass):
             self._table = vstack([self._table, rows.table])
-        if isinstance(rows, dict):
+        if isinstance(rows, (dict, OrderedDict)):
             try:
                 newrow = [rows[colname] for colname in self._table.columns]
             except KeyError as e:
@@ -371,7 +371,8 @@ class DataClass():
             self.add_rows(newrow)
         if isinstance(rows, (list, ndarray, tuple)):
             if (not isinstance(rows[0], (u.quantity.Quantity, float)) and
-                    isinstance(rows[0], (dict, list, ndarray, tuple))):
+                    isinstance(rows[0], (dict, OrderedDict,
+                                         list, ndarray, tuple))):
                 for subrow in rows:
                     self.add_rows(subrow)
             else:
