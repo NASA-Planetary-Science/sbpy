@@ -13,6 +13,27 @@ def data_path(filename):
     return os.path.join(data_dir, filename)
 
 
+def test_get_set():
+    """ test the get and set methods"""
+
+    data = DataClass.from_dict(
+        [OrderedDict((('a', 1), ('b', 4), ('c', 'a'))),
+         OrderedDict((('a', 2), ('b', 5), ('c', 'b)'))),
+         OrderedDict((('a', 3), ('b', 6), ('c', 'c')))])
+
+    assert len(data['a']) == 3
+
+    assert len(data.a == 3)
+
+    data['a'][:] = [0, 0, 0]
+
+    with pytest.raises(AttributeError):
+        data.d
+
+    with pytest.raises(KeyError):
+        data['d']
+
+
 def test_creation_single():
     """ test the creation of DataClass objects from dicts or arrays;
     single row only"""
@@ -29,6 +50,13 @@ def test_creation_single():
     test_array = DataClass.from_array([[1], [2], ['test']],
                                       names=('a', 'b', 'c'))
     assert test_array.table == ground_truth
+
+    # test creation fails
+    with pytest.raises(TypeError):
+        DataClass.from_dict(True)
+
+    with pytest.raises(TypeError):
+        DataClass.from_array(True)
 
 
 def test_creation_multi():
@@ -143,15 +171,18 @@ def test_add():
         tab.add_column(array([10, 20, 30, 40, 50,
                               60, 70, 80, 90])*u.kg/u.um, name='e')
 
+    assert tab.add_rows(tab) == 20
+
 
 def test_check_columns():
     """test function that checks the existing of a number of column names
     provided"""
 
-    tab = DataClass.from_dict([{'a': 1*u.m, 'b': 4*u.m/u.s, 'c': 'a'},
-                               {'a': 2*u.m, 'b': 5*u.m/u.s, 'c': 'b'},
-                               {'a': 3*u.m, 'b': 6*u.m/u.s, 'c': 'c'}])
+    tab = DataClass.from_dict(
+        [OrderedDict((('a', 1*u.m), ('b', 4*u.m/u.s), ('c', 'a'))),
+         OrderedDict((('a', 2*u.m), ('b', 5*u.m/u.s), ('c', 'b'))),
+         OrderedDict((('a', 3*u.m), ('b', 6*u.m/u.s), ('c', 'c')))])
 
     assert tab._check_columns(['a', 'b', 'c'])
     assert tab._check_columns(['a', 'b'])
-    assert tab._check_columns(['a', 'b', 'f']) == False
+    assert not tab._check_columns(['a', 'b', 'f'])

@@ -157,7 +157,11 @@ class DataClass():
 
         """
 
-        return cls.from_dict(OrderedDict(zip(names, data)))
+        if isinstance(data, (list, ndarray, tuple)):
+            return cls.from_dict(OrderedDict(zip(names, data)))
+        else:
+            raise TypeError('this function requires a list, tuple or a '
+                            'numpy array')
 
     @classmethod
     def from_table(cls, data):
