@@ -81,8 +81,16 @@ class Orbit(DataClass):
             for key, val in epochs.items():
                 if isinstance(val, Time):
                     epochs[key] = str(val.utc)
+        elif isinstance(epochs, (list, tuple, ndarray)):
+            new_epochs = [None] * len(epochs)
+            for i in range(len(epochs)):
+                if isinstance(epochs[i], Time):
+                    new_epochs[i] = epochs[i].jd
+                else:
+                    new_epochs[i] = epochs[i]
+            epochs = new_epochs
 
-       # if targetids is a list, run separate Horizons queries and append
+        # if targetids is a list, run separate Horizons queries and append
         if not isinstance(targetids, (list, ndarray, tuple)):
             targetids = [targetids]
 
