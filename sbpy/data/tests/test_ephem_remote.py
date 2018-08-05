@@ -52,5 +52,4 @@ def test_from_horizons():
     # test bib service
     bib.track()
     data = Ephem.from_horizons(['Ceres', 'Pallas'])
-    assert bib.to_text() == ('sbpy.data.Ephem:\n  '
-                             'data service: 1996DPS....28.2504G\n')
+    assert 'sbpy.data.Ephem' in bib.to_text()

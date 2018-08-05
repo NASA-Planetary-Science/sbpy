@@ -385,8 +385,6 @@ class Names():
         # match target patterns
         m = re.findall(pat, raw)
 
-        print(m)
-
         r = {}
 
         if len(m) > 0:

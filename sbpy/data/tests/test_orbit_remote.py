@@ -52,5 +52,4 @@ def test_from_horizons():
     # test bib service
     bib.track()
     data = Orbit.from_horizons(['Ceres', 'Pallas'])
-    assert bib.to_text() == ('sbpy.data.Orbit:\n  '
-                             'data service: 1996DPS....28.2504G\n')
+    assert 'sbpy.data.Orbit' in bib.to_text()
