@@ -96,7 +96,9 @@ class Names():
             yr = pkd[int(float(yr[:2]))]+yr[2:]
             let = ident['desig'].strip()[4:7].strip()
             num = ident['desig'].strip()[7:].strip()
-            if len(num) == 1:
+            if num == '':
+                num = '00'
+            elif len(num) == 1:
                 num = '0' + num
             elif len(num) > 2:
                 try:
@@ -197,7 +199,7 @@ class Names():
 
         # define comet matching pattern
         pat = ('^(([1-9][0-9]*[PDCXAI]'
-               '(-[A-Z]{1,2})?)|[PDCXAI]/)'  # typ/number/fragm [0,1,2]
+               '(-[A-Z]{1,2})?)|[PDCXAI]/)'  # type/number/fragm [0,1,2]
                '|([-]?[0-9]{3,4}[ _][A-Z]{1,2}[0-9]{1,3}(-[1-9A-Z]{0,2})?)'
                # designation [3,4]
                '|(([dvA-Z][a-z\']? ?[A-Z]*[a-z]*[ -]?[A-Z]?[1-9]*[a-z]*)'
@@ -342,15 +344,18 @@ class Names():
         pkd = ('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
                'abcdefghifklmnopqrstuvwxyz')
 
-        pat = ('(([1-2][0-9]{0,3}[ _][A-Z]{2}[0-9]{0,3})'
+        pat = ('((1[8-9][0-9]{2}[ _][A-Z]{2}[0-9]{0,3}|'
+               '20[0-9]{2}[ _][A-Z]{2}[0-9]{0,3})'
                # designation [0,1]
                '|([1-9][0-9]{3}[ _](P-L|T-[1-3])))'
                # Palomar-Leiden  [0,2,3]
-               '|([IJKL][0-9]{2}[A-Z][0-9a-z][0-9][A-Z])'
+               '|([IJKL][0-9]{2}[A-Z][0-9a-z][0-9][A-Z]'
+               '|PLS[1-9][0-9]{3}|T1S[1-9][0-9]{3}|T2S[1-9][0-9]{3}'
+               '|T3S[1-9][0-9]{3})'
                # packed desig [4]
-               '|([A-Za-z][0-9]{4})'
+               '|(^[A-Za-z][0-9]{4}| [A-Za-z][0-9]{4})'
                # packed number [5]
-               '|([A-Z][A-Z]*[a-z][a-z]*[^0-9]*'
+               '|([A-Z]{3,} |[A-Z]{3,}$|[A-Z][A-Z]*[a-z][a-z]*[^0-9]*'
                '[ -]?[A-Z]?[a-z]*[^0-9]*)'
                # name [6]
                '|([1-9][0-9]*(\b|$| |_))'
@@ -379,6 +384,8 @@ class Names():
 
         # match target patterns
         m = re.findall(pat, raw)
+
+        print(m)
 
         r = {}
 
@@ -427,6 +434,8 @@ class Names():
                 # number
                 elif len(el[7]) > 0:
                     r['number'] = int(float(el[7]))
+                # elif len(el[8]) > 0:
+                #    r['number'] = int(float(el[8]))
                 # name (strip here)
                 elif len(el[6]) > 0:
                     if len(el[6].strip()) > 1:
