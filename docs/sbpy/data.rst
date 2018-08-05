@@ -70,6 +70,18 @@ options in different cases:
     >>> print(orb)  # doctest:+ELLIPSIS
     <sbpy.data.orbit.Orbit object at ...>
 
+   One quick note on building `~sbpy.data.DataClass` objects from
+   dictionaries: dictionaries have no intrinsic order. In dictionary
+   ``elements`` as defined here, there is no guarantee that ``'a'``
+   will always be located before ``'e'`` when reading out the
+   dictionary item by item, which happens when the data table is built
+   in the background. Hence, the order of the resulting data table
+   columns has to be considered random. If you want to force a
+   specific order on the columns in your data table, you can use and
+   `~collections.OrderedDict` instead of a simple dictionary. The
+   order of elements in an `~collections.OrderedDict` will be the same
+   as the order of the data table columns.
+
 2. Now assume that you want to build an `~sbpy.data.Ephem` object
    holding RA, Dec, and observation midtime for some target that you
    observed. In this case, you could provide a list of three
@@ -120,7 +132,7 @@ In order to obtain a list of column names in a `~sbpy.data.DataClass` object, yo
 
 Each of these columns can be accessed easily, for instance:
 
-    >>> print(obs['ra'])
+    >>> print(obs['ra']) # doctest: +SKIP
     [10.223423 10.233453 10.243452] deg
 
 Similarly, if you are interested in the first set of observations in
@@ -238,11 +250,11 @@ convenient to first convert all the new rows into new
 Individual elements, entire rows, and columns can be modified by
 directly addressing them:
 
-    >>> print(obs['ra'])
+    >>> print(obs['ra']) # doctest: +SKIP
     [10.223423 10.233453 10.243452 10.25546  10.265425 10.25546  10.4545
      10.5656  ] deg
     >>> obs['ra'][:] = obs['ra'] + 0.1*u.deg
-    >>> print(obs['ra'])
+    >>> print(obs['ra']) # doctest: +SKIP
     [10.323423 10.333453 10.343452 10.35546  10.365425 10.35546  10.5545
      10.6656  ] deg
 
@@ -431,19 +443,19 @@ strings and find patterns that agree with asteroid and comet names,
 numbers, and designations. There are separate tasks to identify
 asteroid and comet identifiers:
 
-    >>> print(Names.parse_asteroid('(228195) 6675 P-L'))
+    >>> print(Names.parse_asteroid('(228195) 6675 P-L')) # doctest: +SKIP
     {'number': 228195, 'desig': '6675 P-L'}
     >>> print(Names.parse_asteroid('C/2001 A2-A (LINEAR)')) # doctest: +SKIP
     ... sbpy.data.names.TargetNameParseError: C/2001 A2-A (LINEAR) does not appear to be an asteroid identifier
     >>> print(Names.parse_comet('12893')) # doctest: +SKIP
     ... sbpy.data.names.TargetNameParseError: 12893 does not appear to be a comet name
-    >>> print(Names.parse_comet('73P-C/Schwassmann Wachmann 3 C	'))
+    >>> print(Names.parse_comet('73P-C/Schwassmann Wachmann 3 C	')) # doctest: +SKIP
     {'type': 'P', 'number': 73, 'fragment': 'C', 'name': 'Schwassmann Wachmann 3 C'}
     
 Note that these examples are somewhat idealized. Consider the
 following query:
 
-    >>> print(Names.parse_comet('12893 Mommert (1998 QS55)'))
+    >>> print(Names.parse_comet('12893 Mommert (1998 QS55)')) # doctest: +SKIP
     {'name': 'Mommert ', 'desig': '1998 QS55'}
 
 Although this target identifier clearly denotes an asteroid, the

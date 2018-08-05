@@ -22,10 +22,12 @@ def test_creation_single():
     test_init = DataClass(OrderedDict([('a', 1), ('b', 2), ('c', 'test')]))
     assert test_init.table == ground_truth
 
-    test_dict = DataClass.from_dict({'a': 1, 'b': 2, 'c': 'test'})
+    test_dict = DataClass.from_dict(
+        OrderedDict([('a', 1), ('b', 2), ('c', 'test')]))
     assert test_dict.table == ground_truth
 
-    test_array = DataClass.from_array([1, 2, 'test'], names=('a', 'b', 'c'))
+    test_array = DataClass.from_array([[1], [2], ['test']],
+                                      names=('a', 'b', 'c'))
     assert test_array.table == ground_truth
 
 
@@ -36,12 +38,14 @@ def test_creation_multi():
     ground_truth = QTable([[1, 2, 3], [4, 5, 6], ['a', 'b', 'c']],
                           names=('a', 'b', 'c'))
 
-    test_dict = DataClass.from_dict([{'a': 1, 'b': 4, 'c': 'a'},
-                                     {'a': 2, 'b': 5, 'c': 'b'},
-                                     {'a': 3, 'b': 6, 'c': 'c'}])
+    test_dict = DataClass.from_dict(
+        [OrderedDict((('a', 1), ('b', 4), ('c', 'a'))),
+         OrderedDict((('a', 2), ('b', 5), ('c', 'b)'))),
+         OrderedDict((('a', 3), ('b', 6), ('c', 'c')))])
     assert all(test_dict.table == ground_truth)
 
-    test_array = DataClass.from_array([[1, 2, 3], [4, 5, 6], ['a', 'b', 'c']],
+    test_array = DataClass.from_array([[1, 2, 3], [4, 5, 6],
+                                       ['a', 'b', 'c']],
                                       names=('a', 'b', 'c'))
     assert all(test_array.table == ground_truth)
 
@@ -57,13 +61,15 @@ def test_creation_multi():
 
     test_file = DataClass.from_file(data_path('test.txt'),
                                     format='ascii')
+
     assert all(file_ground_truth.table == test_file.table)
 
     # test failing if columns have different lengths
     with pytest.raises(ValueError):
-        test_dict = DataClass.from_dict([{'a': 1, 'b': 4, 'c': 'a'},
-                                         {'a': 2, 'b': 5, 'c': 'b'},
-                                         {'a': 3, 'b': 6}])
+        test_dict = DataClass.from_dict(
+            OrderedDict([(('a', 1), ('b', 4), ('c', 'a')),
+                         (('a', 2), ('b', 5), ('c', 'b)')),
+                         (('a', 3), ('b', 6), ('c', 7))]))
 
     with pytest.raises(ValueError):
         test_array = DataClass.from_array([[1, 2, 3], [4, 5, 6], ['a', 'b']],
@@ -80,9 +86,10 @@ def test_units():
 
     assert ((ground_truth['a']**2).unit == 'm2')
 
-    test_dict = DataClass.from_dict([{'a': 1*u.m, 'b': 4*u.m/u.s, 'c': 'a'},
-                                     {'a': 2*u.m, 'b': 5*u.m/u.s, 'c': 'b'},
-                                     {'a': 3*u.m, 'b': 6*u.m/u.s, 'c': 'c'}])
+    test_dict = DataClass.from_dict(
+        [OrderedDict((('a', 1*u.m), ('b', 4*u.m/u.s), ('c', 'a'))),
+         OrderedDict((('a', 2*u.m), ('b', 5*u.m/u.s), ('c', 'b'))),
+         OrderedDict((('a', 3*u.m), ('b', 6*u.m/u.s), ('c', 'c')))])
     assert all(test_dict.table == ground_truth)
 
     test_array = DataClass.from_array([[1, 2, 3]*u.m,
@@ -95,9 +102,10 @@ def test_units():
 def test_add():
     """ test adding rows and columns to an existing table """
 
-    tab = DataClass.from_dict([{'a': 1*u.m, 'b': 4*u.m/u.s, 'c': 'a'},
-                               {'a': 2*u.m, 'b': 5*u.m/u.s, 'c': 'b'},
-                               {'a': 3*u.m, 'b': 6*u.m/u.s, 'c': 'c'}])
+    tab = DataClass.from_dict(
+        [OrderedDict((('a', 1*u.m), ('b', 4*u.m/u.s), ('c', 'a'))),
+         OrderedDict((('a', 2*u.m), ('b', 5*u.m/u.s), ('c', 'b'))),
+         OrderedDict((('a', 3*u.m), ('b', 6*u.m/u.s), ('c', 'c')))])
 
     # adding single rows
 
