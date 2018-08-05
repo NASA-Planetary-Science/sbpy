@@ -1,4 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+import pytest
+
+from ..names import Names, TargetNameParseError
 
 # name: expected result from parse_comet()
 comets = {
@@ -33,7 +36,7 @@ asteroids = {
     '(2001) Einstein': {'number': 2001, 'name': 'Einstein'},
     '2001 AT1': {'desig': '2001 AT1'},
     '(1714) Sy': {'number': 1714, 'name': 'Sy'},
-    '1714 SY': {'desig': '1714 SY'}, # not real, just for testing
+    '1814 SY': {'desig': '1814 SY'},  # not real, just for testing
     '2014 MU69': {'desig': '2014 MU69'},
     '(228195) 6675 P-L': {'number': 228195, 'desig': '6675 P-L'},
     '4101 T-3': {'desig': '4101 T-3'},
@@ -41,13 +44,18 @@ asteroids = {
                                          'name': 'Wilson-Harrington'},
     'J95X00A': {'desig': '1995 XA'},
     'K07Tf8A': {'desig': '2007 TA418'},
-    'G3693': {'number': 163693}
+    'G3693': {'number': 163693},
+    '1735 ITA (1948 RJ1)': {'number': 1735, 'name': 'ITA',
+                            'desig': '1948 RJ1'},
+    'PLS2040': {'desig': '2040 P-L'},
+    'T1S3138': {'desig': '3138 T-1'},
+    'T2S1010': {'desig': '1010 T-2'},
+    'T3S4101': {'desig': '4101 T-3'}
 }
+
 
 def test_asteroid_or_comet():
     """Test target name identification."""
-    from ..names import Names
-    print(dir())
     for comet in comets:
         assert Names.asteroid_or_comet(comet) == 'comet', \
             'failed for {}'.format(comet)
@@ -57,11 +65,19 @@ def test_asteroid_or_comet():
             assert Names.asteroid_or_comet(asteroid) == 'asteroid', \
                 'failed for {}'.format(asteroid)
 
+
+def test_packed():
+    """Test packed numbers and designations"""
+    assert Names.to_packed('1995 XA') == 'J95X00A'
+    assert Names.to_packed('2007 TA418') == 'K07Tf8A'
+
+    assert Names.to_packed('50000') == '50000'
+    assert Names.to_packed('100345') == 'A0345'
+    assert Names.to_packed('360017') == 'a0017'
+
+
 def test_parse_comet():
     """Test comet name parsing."""
-
-    from ..names import Names, TargetNameParseError
-    import pytest
 
     for comet, result in comets.items():
         r = Names.parse_comet(comet)
@@ -77,11 +93,9 @@ def test_parse_comet():
     with pytest.raises(TargetNameParseError):
         Names.parse_comet('2001 a2')
 
+
 def test_parse_asteroid():
     """Test asteroid name parsing."""
-
-    from ..names import Names, TargetNameParseError
-    import pytest
 
     for asteroid, result in asteroids.items():
         r = Names.parse_asteroid(asteroid)
@@ -102,5 +116,3 @@ def test_parse_asteroid():
 
     with pytest.raises(TargetNameParseError):
         Names.parse_asteroid('2001 at1')
-
-

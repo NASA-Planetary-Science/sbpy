@@ -19,10 +19,10 @@ identify which aspect of the method the citation is relevant to:
 
     >>> from sbpy import bib, data
     >>> bib.track()
-    >>> eph = data.Ephem.from_horizons('433', epochs=None, observatory='500')
+    >>> eph = data.Ephem.from_horizons('433', epochs=None, location='500')
     >>> print(bib.to_text())  # doctest: +REMOTE_DATA
     sbpy.data.Ephem:
-      implementation: Giorgini et al. 1996, 1996DPS....28.2504G
+      data service: Giorgini et al. 1996, 1996DPS....28.2504G
 
 In this case, ``Giorgini et al. 1996, 1996DPS....28.2504G`` is
 relevant to the implementation of the JPL Horizons system that is
@@ -36,10 +36,10 @@ Bibliography tracking can also be used in a context manager:
     >>> from sbpy import bib
     >>> from sbpy.data import Ephem
     >>> with bib.Tracking():
-    ...     eph = Ephem.from_horizons('Ceres', epochs=None, observatory='500')
+    ...     eph = Ephem.from_horizons('Ceres', epochs=None, location='500')
     >>> print(bib.to_text())  # doctest: +REMOTE_DATA
     sbpy.data.Ephem:
-      implementation: Giorgini et al. 1996, 1996DPS....28.2504G
+      data service: Giorgini et al. 1996, 1996DPS....28.2504G
 
       
 Output formats
@@ -51,7 +51,7 @@ Simple text (`~sbpy.bib.to_text`)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     >>> bib.to_text()  # doctest: +REMOTE_DATA
     sbpy.data.Ephem:
-      implementation: Giorgini et al. 1996, 1996DPS....28.2504G
+      data service: Giorgini et al. 1996, 1996DPS....28.2504G
 
 
 BibTeX (`~sbpy.bib.to_bibtex`)
