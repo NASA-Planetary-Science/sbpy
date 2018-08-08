@@ -344,7 +344,7 @@ class Names():
         pkd = ('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
                'abcdefghifklmnopqrstuvwxyz')
 
-        pat = ('((1[8-9][0-9]{2}[ _][A-Z]{2}[0-9]{0,3}|'
+        pat = ('(([1A][8-9][0-9]{2}[ _][A-Z]{2}[0-9]{0,3}|'
                '20[0-9]{2}[ _][A-Z]{2}[0-9]{0,3})'
                # designation [0,1]
                '|([1-9][0-9]{3}[ _](P-L|T-[1-3])))'
@@ -394,7 +394,10 @@ class Names():
             for el in m:
                 # designation
                 if len(el[0]) > 0:
-                    r['desig'] = el[0]
+                    if el[0][0] == 'A':
+                        r['desig'] = '1'+el[0][1:]
+                    else:
+                        r['desig'] = el[0]
                 # packed designation (unpack here)
                 elif len(el[4]) > 0:
                     ident = el[4]
@@ -461,7 +464,7 @@ class Names():
         Returns
         -------
         target_type : str
-           The target identification: ``'comet'``, ``'asteroid'``, or 
+           The target identification: ``'comet'``, ``'asteroid'``, or
            ``None``.
 
         Notes

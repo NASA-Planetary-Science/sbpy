@@ -57,7 +57,8 @@ asteroids = {
     "361267 `I`iwi (2006 SV395)": {'number': 361267, 'name':
                                    '`I`iwi', 'desig': '2006 SV395'},
     "374710 `O`o (2006 RJ110)": {'number': 374710, 'name':
-                                 '`O`o', 'desig': '2006 RJ110'}
+                                 '`O`o', 'desig': '2006 RJ110'},
+    "(20123) A900 MA": {'number': 20123, 'desig': '1900 MA'}
 }
 
 
