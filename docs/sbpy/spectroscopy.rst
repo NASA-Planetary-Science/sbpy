@@ -1,3 +1,5 @@
+.. doctest-skip-all
+
 Spectroscopy Module (`sbpy.spectroscopy`)
 =========================================
 
@@ -19,7 +21,7 @@ by the user.
 
 .. code-block:: python
 
-   >>> from sbpy.spectrosocpy import molecular_data, intensity_conversion
+   >>> from sbpy.spectroscopy import molecular_data, intensity_conversion
    >>> import astropy.units as u
    >>> temp_estimate = 33. * u.K
    >>> vgas = 0.8 * u.km / u.s

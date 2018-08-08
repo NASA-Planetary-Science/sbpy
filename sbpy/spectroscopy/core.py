@@ -17,7 +17,8 @@ from ..activity.gas import photo_timescale
 
 conf.horizons_server = 'https://ssd.jpl.nasa.gov/horizons_batch.cgi'
 
-__all__ = ['Spectrum', 'SpectralModel', 'molecular_data', 'einstein_coeff']
+__all__ = ['Spectrum', 'SpectralModel', 'molecular_data', 'einstein_coeff',
+           'intensity_conversion']
 
 
 def molecular_data(temp_estimate, transition_freq, mol_tag):
