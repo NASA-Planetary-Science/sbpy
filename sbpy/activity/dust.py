@@ -220,9 +220,6 @@ class Afrho(u.SpecificTypeQuantity):
         """
         Initialize from flux density.
 
-        Assumes the small angle approximation.
-
-
         Parameters
         ----------
         wave_or_freq : `~astropy.units.Quantity`
@@ -358,8 +355,7 @@ class Afrho(u.SpecificTypeQuantity):
             keywords ``rh`` and ``delta``.  Phase angle, ``phase``, is
             required if ``phasecor`` is enabled.
 
-        vegaspec: `~synphot.SourceSpectrum`, optional
-
+        vegaspec : `~synphot.SourceSpectrum`, optional
             Use this spectrum for Vega when ``unit == 'vegamag'``,
             otherwise the default sbpy spectrum will be used.
 
@@ -395,7 +391,15 @@ class Afrho(u.SpecificTypeQuantity):
 
         """
 
-        raise NotImplemented
+        from ..spectroscopy.sun import default_sun
+
+        sun = default_sun.get()
+        wave, Msun = sun.filt(bandpass, unit=unit, vegaspec=vegaspec)
+
+        # fluxd is relative to the Sun
+        fluxd = u.Quantity(10**(-0.4 * (mag - Msun.value)), 'W/(m2 um)')
+        S = u.Quantity(1, fluxd.unit)
+        return cls.from_fluxd(None, fluxd, aper, eph, S=S, **kwargs)
 
     def fluxd(self, wave_or_freq, aper, eph, phasecor=False, Phi=None,
               S=None, unit='W/(m2 um)'):

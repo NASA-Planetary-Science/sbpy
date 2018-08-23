@@ -1,7 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import os
+import pytest
 import numpy as np
 import astropy.units as u
+from astropy.tests.helper import remote_data
+import synphot
 from ..dust import *
 
 
@@ -28,13 +32,26 @@ class TestAfrho:
         assert v == 2000 * u.cm**2
         assert not isinstance(v, Afrho)
 
-    def test_from_flam(self):
-        fluxd = 6.730018324465526e-14 * u.W / u.m**2 / u.um
-        aper = 1 * u.arcsec
-        eph = dict(rh=1.5 * u.au, delta=1.0 * u.au)
-        S = 1869 * u.W / u.m**2 / u.um
+    def test_from_fluxd(self):
+        """HST/WFC3 photometry of C/2013 A1 (Siding Spring) (Li et al. 2014).
+
+        Li et al. (2013) quotes the Sun in F606W as 1730 W/m2/um, but
+        confirmed with J.-Y. Li that 1707 W/m2/um is a better value
+
+        Li et al. (2014) quotes 1660 cm, which is 1680 cm (3
+        significant figures) after solar flux density
+        revision.
+
+        Throughput file for this test at:
+        http://www.stsci.edu/hst/wfc3/ins_performance/throughputs/Throughput_Tables
+
+        """
+        fluxd = 4.68e-15 * u.W / u.m**2 / u.um
+        aper = 5000 * u.km
+        eph = {'rh': 4.582 * u.au, 'delta': 4.042 * u.au}
+        S = 1707 * u.W / u.m**2 / u.um
         afrho = Afrho.from_fluxd(None, fluxd, aper, eph, S=S)
-        assert np.isclose(afrho.cm, 1000)
+        assert np.isclose(afrho.cm, 1680, atol=4)
 
     def test_from_flam_with_synphot(self):
         wave = 0.55 * u.um
@@ -53,6 +70,45 @@ class TestAfrho:
         afrho = Afrho.from_fluxd(nu, fluxd, aper, eph, S=S)
         assert np.isclose(afrho.cm, 1000.0)
 
+<<<<<<< HEAD
+=======
+    def test_from_filt(self):
+        """HST/WFC3 photometry of C/2013 A1 (Siding Spring) (Li et al. 2014).
+
+        Li et al. quotes 1660 cm, but we have revised it to 1683 (see
+        test_from_fluxd).
+
+        Throughput file for this test at:
+        http://www.stsci.edu/hst/wfc3/ins_performance/throughputs/Throughput_Tables
+
+        """
+
+        fluxd = 4.68e-15 * u.W / u.m**2 / u.um
+        aper = 5000 * u.km
+        eph = {'rh': 4.582 * u.au, 'delta': 4.042 * u.au}
+        fn = os.path.join(os.path.dirname(__file__), 'data',
+                          'wfc3_uvis_f606w_004_syn.fits')
+        bandpass = synphot.SpectralElement.from_file(fn)
+        afrho = Afrho.from_filt(bandpass, fluxd, aper, eph)
+        assert np.isclose(afrho.cm, 1680, atol=4)
+
+    def test_from_mag(self):
+        """HST/WFC3 photometry of C/2013 A1 (Siding Spring) (Li et al. 2014).
+
+        Throughput files for this test:
+        http://www.stsci.edu/hst/wfc3/ins_performance/throughputs/Throughput_Tables
+
+        """
+        mag = 16.98
+        rho = 5000 * u.km
+        eph = {'rh': 4.582 * u.au, 'delta': 4.042 * u.au}
+        fn = os.path.join(os.path.dirname(__file__), 'data',
+                          'wfc3_uvis_f606w_004_syn.fits')
+        bandpass = synphot.SpectralElement.from_file(fn)
+        afrho = Afrho.from_mag(bandpass, mag, 'vegamag', rho, eph)
+        assert np.isclose(afrho.cm, 1680, atol=4)
+
+>>>>>>> Revise dust tests.
     def test_fluxd(self):
         afrho = Afrho(1000, 'cm')
         aper = 1 * u.arcsec
