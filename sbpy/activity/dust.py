@@ -230,6 +230,7 @@ class Afrho(u.SpecificTypeQuantity):
         """
         Initialize from flux density.
 
+
         Parameters
         ----------
         wave_or_freq : `~astropy.units.Quantity`
@@ -367,7 +368,6 @@ class Afrho(u.SpecificTypeQuantity):
             required if ``phasecor`` is enabled.
 
         vegaspec : `~synphot.SourceSpectrum`, optional
-
             Use this spectrum for Vega when ``unit == 'vegamag'``,
             otherwise the default sbpy spectrum will be used.
 
@@ -403,7 +403,6 @@ class Afrho(u.SpecificTypeQuantity):
 
         """
 
-        raise NotImplemented
         from ..spectroscopy.sun import default_sun
 
         sun = default_sun.get()
