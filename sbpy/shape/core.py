@@ -1,13 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-=================
-SBPy Shape Module
-=================
+sbpy Shape Module
 
 created on June 26, 2017
 """
 
 __all__ = ['ModelClass', 'Kaasalainen', 'Lightcurve']
+
 
 class ModelClass():
 
@@ -28,7 +27,6 @@ class ModelClass():
 
     def lightcurve(self, eph, time):
         """Derive lightcurve"""
-
 
 
 class Kaasalainen(ModelClass):
@@ -53,7 +51,7 @@ class Lightcurve():
         self.eph = eph
         self.fouriercoeff = None
         self.period = None
-        self.pole = (0, 90) # ecliptic coordinates
+        self.pole = (0, 90)  # ecliptic coordinates
 
     def axis_ratio(self):
         """Derive axis ratio from lightcurve amplitude"""
@@ -72,5 +70,3 @@ class Lightcurve():
 
     def simulate(self):
         """Simulate a lightcurve from period, Fourier coefficients, pole orientation"""
-
-

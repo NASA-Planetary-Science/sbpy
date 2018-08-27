@@ -1,657 +1,437 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 ================
-SBPy Data Module
+sbpy Data Module
 ================
 
 created on June 22, 2017
 """
 
-__all__ = ['DataClass', 'mpc_observations', 'sb_search', 'image_search', 'pds_ferret']
-
-from astropy.table import Table, Column
-from astropy.time import Time
+from collections import OrderedDict
+from numpy import ndarray, array
+from astropy.table import QTable, Column, vstack
 import astropy.units as u
-import callhorizons
+
+__all__ = ['DataClass', 'mpc_observations', 'sb_search', 'image_search',
+           'pds_ferret']
 
 
 class DataClass():
-    def __init__(self, *args, **kwargs):
-        """Create Astropy.table from kwargs"""
-        self.table = Table()
-        for key, val in kwargs.items():
-            try:
-                unit = val.unit
-                val = val.value
-            except:
-                unit = None
-            # check if val is already list-like
-            try:
-                val[0]
-            except TypeError:
-                val = [val]
+    """`~sbpy.data.DataClass` serves as the base class for all data
+    container classes in `sbpy` in order to provide consistent
+    functionality throughout all these classes.
 
-            self.table[key] = Column(val, unit=unit)
+    The core of `~sbpy.data.DataClass` is an `~astropy.table.QTable`
+    object (referred to as the `data table` below) - a type of
+    `~astropy.table.Table` object that supports the `~astropy.units`
+    formalism on a per-column base - which already provides most of
+    the required functionality. `~sbpy.data.DataClass` objects can be
+    manually generated from dictionaries
+    (`~sbpy.data.DataClass.from_dict`), `~numpy.array`-like
+    (`~sbpy.data.DataClass.from_array`) objects, or directly from
+    another `~astropy.table.QTable` object.
 
-    @classmethod
-    def from_dict(cls, data):
-        """Create data table from dictionary or list of dictionaries
-        
-        Parameters
-        ----------
-        data : dictionary or list of dicts, mandatory
-            data that will be rearranged in Astropy Table format
-
-        Returns
-        -------
-        Astropy Table
-
-        Examples
-        --------
-        >>> import astropy.units as u
-        >>> orb = Orbit.from_dict({'a': 2.7674*u.au, 
-        >>>                        'e': .0756,
-        >>>                        'i': 10.59321*u.deg})
-
-        """
-        return cls(**data)
-    
-    @classmethod
-    def from_array(cls, data, names):
-        """Create data table from lists or arrays
-
-        Parameters
-        ----------
-        data : list or array, mandatory
-            data that will be rearraned in Astropy Table format, one array per 
-            column
-        names : list, mandatory
-            column names, must have n names for n `data` arrays
-
-        Returns
-        -------
-        Astropy Table
-
-        Examples
-        --------
-        >>> import astropy.units as u
-        >>> from numpy.random import random as r
-        >>> orb = Orbit.from_array(data=[r(100)*2*u.au,
-        >>>                              r(100),
-        >>>                              r(100)*180*u.deg],
-        >>>                        names=['a', 'e', 'i'])
-
-        """
-
-        return cls.from_dict(dict(zip(names, data)))
-    
-    def __getattr__(self, field):
-        if field in self.table.columns:
-            return self.table[field]
-        else:
-           raise AttributeError ("field '{:s}' does not exist".format(field))
-
-    def __setattr__(self, field, value):
-        """Set attribute
-
-        modify attribute in `self.table`, if available, else set it for self
-        """
-        try:
-            # if self.table exists ...
-            if field in self.table.columns:
-                # set value there...
-                self.table[field] = value
-            else:
-                super().__setattr__(field, value) 
-        except:
-            # if, not set it for self
-            super().__setattr__(field, value)
-    
-    def __getitem__(self, ident):
-        """Return column or row from data table"""
-        return self.table[ident]
-
-
-    @property
-    def data(self):
-        return self.table
-    
-            
-class Orbit(DataClass):
-    """Class for querying, manipulating, integrating, and fitting orbital elements
-
-    Every function of this class returns an Astropy Table object; the
-    columns in these tables are not fixed and depend on the function
-    generating the table or the user input.
-
-    The `Orbit` class also provides interfaces to OpenOrb
-    (https://github.com/oorb/oorb) for orbit fitting and REBOUND
-    (https://github.com/hannorein/rebound) for orbit integrations.
+    A few high-level functions for table data access or modification
+    are provided; other, more complex modifications can be applied to
+    the underlying table object (`~sbpy.data.DataClass.table`) directly.
 
     """
 
+    def __init__(self, data):
+        self._table = QTable()
+        # self.altkeys = {}  # dictionary for alternative column names
 
+        if (len(data.items()) == 1 and 'table' in data.keys()):
+            # single item provided named 'table' -> already Table object
+            self._table = QTable(data['table'])
+        else:
+            # treat kwargs as dictionary
+            for key, val in data.items():
+                try:
+                    unit = val.unit
+                    val = val.value
+                except AttributeError:
+                    unit = None
 
-    @classmethod
-    def from_horizons(cls, targetid, epoch=None, center='500@10',
-                      bib=None):
-        """Load orbital elements from JPL Horizons
-        (https://ssd.jpl.nasa.gov/horizons.cgi).
+                # check if val is already list-like
+                try:
+                    val[0]
+                except TypeError:
+                    val = [val]
 
-        Parameters
-        ----------
-        targetid : str, mandatory
-            target identifier
-        epoch : astropy Time instance or iterable, optional, default None
-            epoch of elements; if None is provided, current date is used
-        center : str, optional, default '500@10' (Sun)
-            center body of orbital elements
-        bib : SBPy Bibliography instance, optional, default None
-            Bibliography instance that will be populated
-
-        preliminary implementation
-        
-        Returns
-        -------
-        Astropy Table
-
-        Examples
-        --------
-        >>> from sbpy.data import Orbit
-        >>> from astropy.time import Time
-        >>> epoch = Time('2018-05-14', scale='utc')
-        >>> orb = Orbit.from_horizons('ceres', epoch)
-        """
-
-        if epoch is None:
-            epoch = [Time.now()]
-        elif isinstance(epoch, Time):
-            epoch = [epoch]
-
-        # for now, use CALLHORIZONS for the query; this will be replaced with
-        # a dedicated query
-        el = callhorizons.query(targetid)
-        el.set_discreteepochs([ep.jd for ep in epoch])
-        el.get_elements(center=center)
-        data = [el[field] for field in el.fields]
-        names = el.fields
-        #meta = {'name': 'orbital elements from JPL Horizons'}
-        # table = Table([el[field] for field in el.fields],
-        #               names=el.fields,
-        #               meta={'name': 'orbital elements from JPL Horizons'})
-        # # Astropy units will be integrated in the future
-
-        if bib is not None:
-            bib['Horizons orbital elements query'] = {'implementation':
-                                                      '1996DPS....28.2504G'}
-            
-        return cls.from_array(data, names)
+                self._table[key] = Column(val, unit=unit)
 
     @classmethod
-    def from_mpc(cls, targetid, bib=None):
-        """Load orbital elements from the Minor Planet Center
-        (http://minorplanetcenter.net/).
+    def from_dict(cls, data):
+        """Create `~sbpy.data.DataClass` object from dictionary or list of
+        dictionaries.
 
         Parameters
         ----------
-        targetid : str, mandatory
-            target identifier
-        bib : SBPy Bibliography instance, optional, default None
-            Bibliography instance that will be populated
+        data : `~collections.OrderedDict`, dictionary or list (or similar) of
+             dictionaries Data that will be ingested in
+             `~sbpy.data.DataClass` object.  Each dictionary creates a
+             row in the data table. Dictionary keys are used as column
+             names; corresponding values must be scalar (cannot be
+             lists or arrays). If a list of dictionaries is provided,
+             all dictionaries have to provide the same set of keys
+             (and units, if used at all).
 
         Returns
         -------
-        Astropy Table
+        `DataClass` object
 
         Examples
         --------
+        >>> import astropy.units as u
         >>> from sbpy.data import Orbit
-        >>> orb = Orbit.from_mpc('ceres')
+        >>> orb = Orbit.from_dict({'a': 2.7674*u.au,
+        ...                        'e': 0.0756,
+        ...                        'i': 10.59321*u.deg})
 
-        not yet implemented
+        Since dictionaries have no specific order, the ordering of the
+        column in the example above is not defined. If your data table
+        requires a specific order, use an ``OrderedDict``:
+
+        >>> from collections import OrderedDict
+        >>> orb = Orbit.from_dict(OrderedDict([('a', 2.7674*u.au),
+        ...                                    ('e', 0.0756),
+        ...                                    ('i', 10.59321*u.deg)]))
+        >>> print(orb)
+        <sbpy.data.orbit.Orbit object at 0x...>
+        >>> print(orb.column_names) # doctest: +SKIP
+        <TableColumns names=('a','e','i')>
+        >>> print(orb.table['a', 'e', 'i'])
+          a      e       i
+          AU            deg
+        ------ ------ --------
+        2.7674 0.0756 10.59321
 
         """
+        if isinstance(data, (dict, OrderedDict)):
+            return cls(data)
+        elif isinstance(data, (list, ndarray, tuple)):
+            # build table from first dict and append remaining rows
+            tab = cls(data[0])
+            for row in data[1:]:
+                tab.add_rows(row)
+            return tab
+        else:
+            raise TypeError('this function requires a dictionary or a '
+                            'list of dictionaries')
 
     @classmethod
-    def from_astdys(cls, targetid, bib=None):
-        """Load orbital elements from AstDyS
-        (http://hamilton.dm.unipi.it/astdys/).
+    def from_array(cls, data, names):
+        """Create `~sbpy.data.DataClass` object from list, `~numpy.ndarray`,
+        or tuple.
 
         Parameters
         ----------
-        targetid : str, mandatory
-            target identifier
-        bib : SBPy Bibliography instance, optional, default None
-            Bibliography instance that will be populated
+        data : list, `~numpy.ndarray`, or tuple
+            Data that will be ingested in `DataClass` object. A one
+            dimensional sequence will be interpreted as a single row. Each
+            element that is itself a sequence will be interpreted as a
+            column.
+        names : list
+            Column names, must have the same number of names as data columns.
 
         Returns
         -------
-        Astropy Table
+        `DataClass` object
 
         Examples
         --------
-        >>> from sbpy.data import Orbit
-        >>> orb = Orbit.from_mpc('ceres')
-
-        not yet implemented
+        >>> from sbpy.data import DataClass
+        >>> import astropy.units as u
+        >>> dat = DataClass.from_array([[1, 2, 3]*u.deg,
+        ...                             [4, 5, 6]*u.km,
+        ...                             ['a', 'b', 'c']],
+        ...                            names=('a', 'b', 'c'))
+        >>> print(dat.table)
+         a   b   c
+        deg  km
+        --- --- ---
+        1.0 4.0   a
+        2.0 5.0   b
+        3.0 6.0   c
 
         """
+
+        if isinstance(data, (list, ndarray, tuple)):
+            return cls.from_dict(OrderedDict(zip(names, data)))
+        else:
+            raise TypeError('this function requires a list, tuple or a '
+                            'numpy array')
 
     @classmethod
-    def from_state(cls, pos, vel):
-        """Convert state vector (positions and velocities) or orbital elements.
+    def from_table(cls, data):
+        """Create `DataClass` object from `~astropy.table.Table` or
+        `astropy.table.QTable` object.
 
         Parameters
         ----------
-        pos : `Astropy.coordinates` instance, mandatory
-            positions vector
-        vel : `Astropy.coordinates` instance, mandatory
-            velocity vector
-        
-        Returns
-        -------
-        Astropy Table
-
-        Examples
-        --------
-        >>> from sbpy.data import Orbit
-        >>> import astropy.coordinates as coords
-        >>> r = coords.HeliocentricTrueEcliptic(coords.CartesianRepresentation(x=1, y=0, z=0, unit=u.au))
-        >>> v = coords.HeliocentricTrueEcliptic(coords.CartesianRepresentation(x=30, y=0, z=0, unit=u.km / u.s))
-        >>> orb = Orbit.from_state(r, v)
-
-        not yet implemented
-
-        """
-
-    def to_state(self, epoch):
-        """Convert orbital elements to state vector (positions and velocities)
-
-        Parameters
-        ----------
-        epoch : `astropy.time.Time` object, mandatory
-          The epoch(s) at which to compute state vectors.
-        
-        Returns
-        -------
-        pos : `Astropy.coordinates` instance
-            positions vector
-        vel : `Astropy.coordinates` instance
-            velocity vector
-
-        Examples
-        --------
-        >>> from astropy.time import Time
-        >>> from sbpy.data import Orbit
-        >>> orb = Orbit.from_mpc('ceres')
-        >>> state = orb.to_state(Time('2015-03-06')
-
-        not yet implemented
-
-        """
-
-    def orbfit(self, eph):
-        """Function that fits an orbit solution to a set of ephemerides using
-        the OpenOrb (https://github.com/oorb/oorb) software which has
-        to be installed locally.
-
-        Parameters
-        ----------
-        eph : `Astropy.table`, mandatory
-            set of ephemerides with mandatory columns `ra`, `dec`, `epoch` and 
-            optional columns `ra_sig`, `dec_sig`, `epoch_sig` 
-        
-        additional parameters will be identified in the future
+        data : astropy `Table` object, mandatory
+             Data that will be ingested in `DataClass` object.
 
         Returns
         -------
-        Astropy Table
+        `DataClass` object
 
         Examples
         --------
-        >>> from sbpy.data import Orbit, Ephem
-        >>> eph = Ephem.from_array([ra, dec, ra_sigma, dec_sigma, 
-        >>>                         epochs, epochs_sigma],
-        >>>                         names=['ra', 'dec', 'ra_sigma', 
-        >>>                                'dec_sigma', 'epochs', 
-        >>>                                'epochs_sigma'])
-        >>> orb = Orbit.orbfit(eph)
-
-        not yet implemented
-
+        >>> from astropy.table import QTable
+        >>> import astropy.units as u
+        >>> from sbpy.data import DataClass
+        >>> tab = QTable([[1,2,3]*u.kg,
+        ...               [4,5,6]*u.m/u.s,],
+        ...              names=['mass', 'velocity'])
+        >>> dat = DataClass.from_table(tab)
+        >>> print(dat.table)
+        mass velocity
+         kg   m / s
+        ---- --------
+         1.0      4.0
+         2.0      5.0
+         3.0      6.0
         """
-        
-    def integrate(self, time, integrator='IAS15'):
-        """Function that integrates an orbit over a given range of time using
-        the REBOUND (https://github.com/hannorein/rebound) package
 
-        Parameters
-        ----------
-        time : `Astropy.units` quantity, mandatory
-            Time range over which the orbit will be integrated.
-        integrator : str, option, default 'IAS15'
-            Integrator type to be used for the integration.
-
-        Returns
-        -------
-        REBOUND simulation object
-
-        Examples
-        --------
-        >>> from sbpy.data import Orbit
-        >>> orb = Orbit.from...
-        >>> sim = orb.integrate(1000*u.year)
-
-        not yet implemented
-
-        """
+        return cls({'table': data})
 
     @classmethod
-    def from_rebound(cls, sim):
-        """Obtain orbital elements from REBOUND
-        (https://github.com/hannorein/rebound) simulation instance.
+    def from_file(cls, filename, **kwargs):
+        """Create `DataClass` object from a file using
+        `~astropy.table.Table.read`.
 
         Parameters
         ----------
-        sim : REBOUND simulation instance, mandatory
-            Simulation from which to obtain orbital elements.
+        filename : str
+             Name of the file that will be read and parsed.
+        **kwargs : additional parameters
+             Optional parameters that will be passed on to
+             `~astropy.table.Table.read`.
 
         Returns
         -------
-        Astropy Table
+        `DataClass` object
+
+        Notes
+        -----
+        This function is merely a wrapper around
+        `~astropy.table.Table.read`. Please refer to the documentation of
+        that function for additional information on optional parameters
+        and data formats that are available. Furthermore, note that this
+        function is not able to identify units. If you want to work with
+        `~astropy.units` you have to assign them manually to the object
+        columns.
 
         Examples
         --------
-        >>> from sbpy.data import Orbit
-        >>> orb = Orbit.from...
-        >>> sim = Orbit.integrate(orb, time=1000*u.year)
-        >>> future_orb = Orbit.from_rebound(sim)
+        >>> from sbpy.data import DataClass
+        >>> dat = Dataclass.from_file('data.txt', format='ascii') # doctest: +SKIP
+        """
 
-        not yet implemented
+        data = QTable.read(filename, **kwargs)
+
+        return cls({'table': data})
+
+    def to_file(self, filename, format='ascii', **kwargs):
+        """Write object to a file using
+        `~astropy.table.Table.write`.
+
+        Parameters
+        ----------
+        filename : str
+             Name of the file that will be written.
+        format : str, optional
+             Data format in which the file should be written. Default:
+             ``ASCII``
+        **kwargs : additional parameters
+             Optional parameters that will be passed on to
+             `~astropy.table.Table.write`.
+
+        Returns
+        -------
+        None
+
+        Notes
+        -----
+        This function is merely a wrapper around
+        `~astropy.table.Table.write`. Please refer to the
+        documentation of that function for additional information on
+        optional parameters and data formats that are
+        available. Furthermore, note that this function is not able to
+        write unit information to the file.
+
+        Examples
+        --------
+        >>> from sbpy.data import DataClass
+        >>> import astropy.units as u
+        >>> dat = DataClass.from_array([[1, 2, 3]*u.deg,
+        ...                             [4, 5, 6]*u.km,
+        ...                             ['a', 'b', 'c']],
+        ...                            names=('a', 'b', 'c'))
+        >>> dat.to_file('test.txt')
 
         """
-        
-# class Ephem(DataClass):
-#     """Class for storing and querying ephemerides
-    
-#     The `Ephem` class provides an interface to PyEphem
-#     (http://rhodesmill.org/pyephem/) for ephemeris calculations.
-    
-#     """
 
-#     @classmethod
-#     def from_horizons(cls, targetid, epoch, observatory, center='500@10',
-#                       bib=None):
-#         """Load orbital elements from JPL Horizons (https://ssd.jpl.nasa.gov/horizons.cgi).
+        self._table.write(filename, format=format, **kwargs)
 
-#         Parameters
-#         ----------
-#         targetid : str, mandatory
-#             Target identifier.
-#         epoch : astropy Time instance or iterable, optional, default None
-#             Epoch of elements; if None is provided, current date is used.
-#         center : str, optional, default '500@10' (Sun)
-#             Center body of orbital elements.
-#         bib : SBPy Bibliography instance, optional, default None
-#             Bibliography instance that will be populated.
+    def __getattr__(self, field):
+        """Get attribute from ``self._table` (columns, rows) or ``self``,
+        if the former does not exist."""
 
-#         preliminary implementation
-        
-#         Returns
-#         -------
-#         Astropy Table
+        if field in self._table.columns:
+            return self._table[field]
+        else:
+            raise AttributeError("field '{:s}' does not exist".format(field))
 
-#         Examples
-#         --------
-#         >>> from sbpy.data import Orbit
-#         >>> from astropy.time import Time
-#         >>> epoch = Time('2018-05-14', scale='utc')
-#         >>> orb = Orbit.from_horizons('ceres', epoch)
+    def __setattr__(self, field, value):
+        """Modify attribute in ``self._table``, if it already exists there,
+        or set it in ``self``."""
+        try:
+            # if self._table exists ...
+            if field in self._table.columns:
+                # set value there...
+                self._table[field] = value
+            else:
+                super().__setattr__(field, value)
+        except:
+            # if, not set it for self
+            super().__setattr__(field, value)
 
-#         """
+    def __getitem__(self, ident):
+        """Return column or row from data table (``self._table``)."""
+        return self._table[ident]
 
-#         try:
-#             dummy = epoch[0]
-#         except TypeError:
-#             epoch = [epoch]
+    @property
+    def table(self):
+        """Return `~astropy.table.QTable` object containing all data."""
+        return self._table
 
-            
-#         # for now, use CALLHORIZONS for the query; this will be replaced with
-#         # a dedicated query
-#         el = callhorizons.query(targetid)
-#         el.set_discreteepochs([ep.jd for ep in epoch])
-#         el.get_ephemerides(observatory)
+    @property
+    def column_names(self):
+        """Return a list of all column names in the data table."""
+        return self._table.columns
 
-#         print(el.dates)
+    def add_rows(self, rows):
+        """Append additional rows to the existing data table. An individual
+        row can be provided in list, tuple, `~numpy.ndarray`, or
+        dictionary form. Multiple rows can be provided in the form of
+        a list, tuple, or `~numpy.ndarray` of individual
+        rows. Multiple rows can also be provided in the form of a
+        `~astropy.table.QTable` or another `~sbpy.data.DataClass`
+        object. In case of a dictionary, `~astropy.table.QTable`, or
+        `~sbpy.data.DataClass`, all table column names must be
+        provided in ``row``; additional keys that are not yet column
+        names in the table will be discarded. In case of a list, the
+        list elements must be in the same order as the table
+        columns. In either case, matching `~astropy.units` must be
+        provided in ``rows`` if used in the data table.
 
-#         data = [el[field] for field in el.fields]
-#         names = el.fields
-#         #meta = {'name': 'orbital elements from JPL Horizons'}
-#         # table = Table([el[field] for field in el.fields],
-#         #               names=el.fields,
-#         #               meta={'name': 'orbital elements from JPL Horizons'})
-#         # # Astropy units will be integrated in the future
+        Parameters
+        ----------
+        rows : list, tuple, `~numpy.ndarray`, dict, or `~collections.OrderedDict`
+            data to be appended to the table; required to have the same
+            length as the existing table, as well as the same units
 
-#         if bib is not None:
-#             bib['Horizons orbital elements query'] = {'implementation':
-#                                                       '1996DPS....28.2504G'}
-            
-#         return cls.from_array(data, names)
+        Returns
+        -------
+        n : int, the total number of rows in the data table
 
-#     @classmethod
-#     def from_mpc(cls, targetid, epoch, observatory='500', bib=None):
-#         """Load ephemerides from the Minor Planet Center (http://minorplanetcenter.net/).
+        Examples
+        --------
+        >>> from sbpy.data import DataClass
+        >>> import astropy.units as u
+        >>> dat = DataClass.from_array([[1, 2, 3]*u.Unit('m'),
+        ...                             [4, 5, 6]*u.m/u.s,
+        ...                             ['a', 'b', 'c']],
+        ...                            names=('a', 'b', 'c'))
+        >>> dat.add_rows({'a': 5*u.m, 'b': 8*u.m/u.s, 'c': 'e'})
+        4
+        >>> print(dat.table)
+         a    b    c
+         m  m / s
+        --- ----- ---
+        1.0   4.0   a
+        2.0   5.0   b
+        3.0   6.0   c
+        5.0   8.0   e
+        >>> dat.add_rows(([6*u.m, 9*u.m/u.s, 'f'],
+        ...               [7*u.m, 10*u.m/u.s, 'g']))
+        6
+        >>> dat.add_rows(dat)
+        12
+        """
+        if isinstance(rows, QTable):
+            self._table = vstack([self._table, rows])
+        if isinstance(rows, DataClass):
+            self._table = vstack([self._table, rows.table])
+        if isinstance(rows, (dict, OrderedDict)):
+            try:
+                newrow = [rows[colname] for colname in self._table.columns]
+            except KeyError as e:
+                raise ValueError('data for column {0} missing in row {1}'.
+                                 format(e, rows))
+            self.add_rows(newrow)
+        if isinstance(rows, (list, ndarray, tuple)):
+            if (not isinstance(rows[0], (u.quantity.Quantity, float)) and
+                    isinstance(rows[0], (dict, OrderedDict,
+                                         list, ndarray, tuple))):
+                for subrow in rows:
+                    self.add_rows(subrow)
+            else:
+                self._table.add_row(rows)
+        return len(self._table)
 
-#         Parameters
-#         ----------
-#         targetid : str, mandatory
-#             target identifier
-#         epochs : astropy Time instance or iterable, optional, default None
-#             epoch of elements; if None is provided, current date is used
-#         observatory : str, optional, default '500' (geocentric)
-#             location of observer
-#         bib : SBPy Bibliography instance, optional, default None
-#             Bibliography instance that will be populated
+    def add_column(self, data, name):
+        """Append a single column to the current data table. The lenght of
+        the input list, `~numpy.ndarray`, or tuple must match the current
+        number of rows in the data table.
 
-#         Returns
-#         -------
-#         Astropy Table
+        Parameters
+        ----------
+        data : list, `~numpy.ndarray`, or tuple
+            Data to be filled into the table; required to have the same
+            length as the existing table's number rows.
+        name : str
+            Name of the new column; must be different from already existing
+            column names.
 
-#         Examples
-#         --------
-#         >>> from sbpy.data import Ephem
-#         >>> from astropy.time import Time
-#         >>> epoch = Time('2018-05-14', scale='utc')
-#         >>> eph = Ephem.from_mpc('ceres', '568', epoch)
+        Returns
+        -------
+        n : int, the total number of columns in the data table
 
-#         not yet implemented
+        Examples
+        --------
+        >>> from sbpy.data import DataClass
+        >>> import astropy.units as u
+        >>> dat = DataClass.from_array([[1, 2, 3]*u.Unit('m'),
+        ...                             [4, 5, 6]*u.m/u.s,
+        ...                             ['a', 'b', 'c']],
+        ...                            names=('a', 'b', 'c'))
+        >>> dat.add_column([10, 20, 30]*u.kg, name='d')
+        4
+        >>> print(dat.table)
+         a    b    c   d
+         m  m / s      kg
+        --- ----- --- ----
+        1.0   4.0   a 10.0
+        2.0   5.0   b 20.0
+        3.0   6.0   c 30.0
+        """
 
-#         """
+        self._table.add_column(Column(data, name=name))
+        return len(self.column_names)
 
-#     def report_to_mpc(bib=None):
-#         """Format as a report to the Minor Planet Center
-#         (http://minorplanetcenter.net/).
+    def _check_columns(self, colnames):
+        """Checks whether all of the elements in ``colnames`` exist as
+        column names in the data table. If ``self.column_names`` is longer
+        than ``colnames``, this does not force ``False``."""
 
-#         Parameters
-#         ----------
-#         bib : SBPy Bibliography instance, optional, default None
-#             Bibliography instance that will be populated
-        
-#         additional parameters will be identified in the future
-        
-#         Returns
-#         -------
-#         str
-
-#         Examples
-#         --------
-#         >>> from sbpy.data import Ephem
-#         >>> eph = Ephem.from_array...
-#         >>> report = eph.report_to_mpc()
-
-#         not yet implemented
-
-#         """
-
-#     @classmethod
-#     def from_imcce(cls, targetid, epoch, observatory='500', bib=None):
-#         """Load orbital elements from IMCCE (http://vo.imcce.fr/webservices/miriade/).
-           
-#         Parameters
-#         ----------
-#         targetid : str, mandatory
-#             target identifier
-#         epochs : astropy Time instance or iterable, optional, default None
-#             epoch of elements; if None is provided, current date is used
-#         observatory : str, optional, default '500' (geocentric)
-#             location of observer
-#         bib : SBPy Bibliography instance, optional, default None
-#             Bibliography instance that will be populated
-
-#         Returns
-#         -------
-#         Astropy Table
-
-#         Examples
-#         --------
-#         >>> from sbpy.data import Ephem
-#         >>> from astropy.time import Time
-#         >>> epoch = Time('2018-05-14', scale='utc')
-#         >>> eph = Ephem.from_imcce('ceres', '568', epoch)
-
-#         not yet implemented
-
-#         """
-
-#     @classmethod
-#     def from_lowell(cls, targetid, epoch, observatory='500', bib=None):
-#         """Load orbital elements from Lowell Observatory (http://asteroid.lowell.edu/).
-
-#         Parameters
-#         ----------
-#         targetid : str, mandatory
-#             target identifier
-#         epochs : astropy Time instance or iterable, optional, default None
-#             epoch of elements; if None is provided, current date is used
-#         observatory : str, optional, default '500' (geocentric)
-#             location of observer
-#         bib : SBPy Bibliography instance, optional, default None
-#             Bibliography instance that will be populated
-
-#         Returns
-#         -------
-#         Astropy Table
-
-#         Examples
-#         --------
-#         >>> from sbpy.data import Ephem
-#         >>> from astropy.time import Time
-#         >>> epoch = Time('2018-05-14', scale='utc')
-#         >>> eph = Ephem.from_lowell('ceres', '568', epoch)
-
-#         not yet implemented
-
-#         """
-
-#     @classmethod
-#     def from_pyephem(cls, orb, location, epoch):
-#         """Function that derives ephemerides based on an `Astropy.table`
-#         containing orbital elements using PyEphem (http://rhodesmill.org/pyephem/).
-        
-#         Parameters
-#         ----------
-#         orb : `Astropy.table`, mandatory
-#             complete set of orbital elements
-#         location : str or dictionary, mandatory
-#             name of location or a dictionary fully describing the location
-#         epoch : `Astropy.time` object
-            
-#         Examples
-#         --------
-#         >>> from sbpy.data import Ephem, Orbit
-#         >>> orb = Orbit.from_...
-#         >>> eph = Ephem.from_pyephem(orb, 
-#         >>>                          location={'name':'Flagstaff', 
-#         >>>                                    'geolon':35.199167, 
-#         >>>                                    'geolat':-111.631111, 
-#         >>>                                    'altitude':'2106'},
-#         >>>                          epoch=epoch)
-
-#         not yet implemented
-
-#         """        
-
-# class Phys(DataClass):
-#     """Class for storing and querying physical properties"""
-
-#     @classmethod
-#     def from_horizons(cls, targetid, bib=None):
-#         """Load physical properties from JPL Horizons
-#         (https://ssd.jpl.nasa.gov/horizons.cgi)
-
-#         Parameters
-#         ----------
-#         targetid : str, mandatory
-#             target identifier
-#         bib : SBPy Bibliography instance, optional, default None
-#             Bibliography instance that will be populated
-
-#         Returns
-#         -------
-#         Astropy Table
-
-#         Examples
-#         --------
-#         >>> from sbpy.data import Phys
-#         >>> phys = Phys.from_horizons('ceres'(
-
-#         not yet implemented
-
-#         """
-
-#     @classmethod
-#     def from_lowell(cls, targetid, bib=None):
-#         """Load physical properties from Lowell Observatory
-#         (http://asteroid.lowell.edu/).
-
-#         The Lowell database will provide a database of physical
-#         properties which is a compilation of a number of different sources.
-
-#         Parameters
-#         ----------
-#         targetid : str, mandatory
-#             target identifier
-#         bib : SBPy Bibliography instance, optional, default None
-#             Bibliography instance that will be populated
-
-#         Returns
-#         -------
-#         Astropy Table
-
-#         Examples
-#         --------
-#         >>> from sbpy.data import Phys
-#         >>> phys = Phys.from_astorb('ceres'(
-
-#         not yet implemented
-
-#         """
-
-#     def derive_absmag(self):
-#         """Derive absolute magnitude from diameter and geometric albedo"""
-
-#     def derive_diam(self):
-#         """Derive diameter from absolute magnitude and geometric albedo"""
-        
-#     def derive_pv(self):
-#         """Derive geometric albedo from diameter and absolute magnitude"""
-
-#     def derive_bondalbedo(self):
-#         """Derive Bond albedo from geometric albedo and photometric phase slope"""
+        return all([col in self.column_names for col in colnames])
 
 
-
-def mpc_observations(targetid, bib=None):
+def mpc_observations(targetid):
     """Obtain all available observations of a small body from the Minor
     Planet Center (http://www.minorplanetcenter.net) and provides them in
     the form of an Astropy table.
@@ -660,23 +440,22 @@ def mpc_observations(targetid, bib=None):
     ----------
     targetid : str, mandatory
         target identifier
-    bib : SBPy Bibliography instance, optional, default None
-        Bibliography instance that will be populated
 
     Returns
     -------
-    Astropy Table
+    `~sbpy.data.DataClass` object
 
     Examples
     --------
     >>> from sbpy.data import mpc_observations
-    >>> obs = mpc_observations('ceres')
+    >>> obs = mpc_observations('ceres')  # doctest: +SKIP
 
     not yet implemented
 
     """
 
-def sb_search(field, bib=None):
+
+def sb_search(field):
     """Use the Skybot service (http://vo.imcce.fr/webservices/skybot/) at
     IMCCE to Identify moving objects potentially present in a registered
     FITS images.
@@ -686,24 +465,22 @@ def sb_search(field, bib=None):
     field : string, astropy.io.fits Header object, Primary HDU, or Image HDU
       A FITS image file name, HDU data structure, or header with
       defined WCS
-        
-    bib : SBPy Bibliography instance, optional, default None
-        Bibliography instance that will be populated
 
     Returns
     -------
-    Astropy Table
+    `~sbpy.data.DataClass` object
 
     Examples
     --------
     >>> from sbpy.data import sb_search
-    >>> objects = sb_search('ceres')
+    >>> objects = sb_search('ceres')  # doctest: +SKIP
 
     not yet implemented
 
     """
-        
-def image_search(targetid, bib=None):
+
+
+def image_search(targetid):
     """Use the Solar System Object Image Search function of the Canadian
     Astronomy Data Centre
     (http://www.cadc-ccda.hia-iha.nrc-cnrc.gc.ca/en/ssois/) to identify
@@ -713,23 +490,22 @@ def image_search(targetid, bib=None):
     ----------
     targetid : str, mandatory
         target identifier
-    bib : SBPy Bibliography instance, optional, default None
-        Bibliography instance that will be populated
 
     Returns
     -------
-    Astropy Table
+    `~sbpy.data.DataClass` object
 
     Examples
     --------
-    >>> from sbpy.data import Misc
-    >>> images = Misc.image_search('ceres')
+    >>> from sbpy.data import Misc  # doctest: +SKIP
+    >>> images = Misc.image_search('ceres')  # doctest: +SKIP
 
     not yet implemented
 
     """
-        
-def pds_ferret(targetid, bib=None):
+
+
+def pds_ferret(targetid):
     """Use the Small Bodies Data Ferret (http://sbntools.psi.edu/ferret/)
     at the Planetary Data System's Small Bodies Node to query for
     information on a specific small body in the PDS.
@@ -738,8 +514,6 @@ def pds_ferret(targetid, bib=None):
     ----------
     targetid : str, mandatory
         target identifier
-    bib : SBPy Bibliography instance, optional, default None
-        Bibliography instance that will be populated
 
     Returns
     -------
@@ -749,13 +523,8 @@ def pds_ferret(targetid, bib=None):
     Examples
     --------
     >>> from sbpy.data import pds_ferret
-    >>> data = pds_ferret('ceres')
+    >>> data = pds_ferret('ceres')  # doctest: +SKIP
 
     not yet implemented
 
     """
-
-
-
-
-    
