@@ -187,7 +187,6 @@ class DiskIntegratedModelClass(Fittable1DModel):
     >>> # Define a disk-integrated phase function model
     >>> import numpy as np
     >>> from astropy.modeling import Parameter
-    >>> from matplotlib import pyplot as plt
     >>>
     >>> class LinearPhaseFunc(DiskIntegratedModelClass):
     ...
@@ -201,10 +200,8 @@ class DiskIntegratedModelClass(Fittable1DModel):
     ...
     >>> linear_phasefunc = LinearPhaseFunc(5, 2.29, radius=300)
     >>> pha = np.linspace(0, 180, 200)
-    >>> f,ax = plt.subplots(2, 1, sharex=True)
-    >>> dummy = ax[0].plot(pha, linear_phasefunc.mag(np.deg2rad(pha)))
-    >>> dummy = ax[0].set_ylim([13, 4])
-    >>> dummy = ax[1].plot(pha, linear_phasefunc.ref(np.deg2rad(pha)))
+    >>> mag = linear_phasefunc.mag(np.deg2rad(pha))
+    >>> ref = linear_phasefunc.ref(np.deg2rad(pha))
     >>> geoalb = linear_phasefunc.geoalb
     >>> phaseint = linear_phasefunc.phaseint
     >>> bondalb = linear_phasefunc.bondalb
@@ -317,10 +314,9 @@ class DiskIntegratedModelClass(Fittable1DModel):
         Examples
         --------
         >>> import numpy as np
-        >>> from matplotlib import pyplot as plt
         >>> ceres_hg = HG(3.4, 0.12)
         >>> pha = np.linspace(0, 180, 200)
-        >>> dummy = plt.plot(pha, ceres_hg.mag(np.deg2rad(pha)))
+        >>> mag = ceres_hg.mag(np.deg2rad(pha))
         """
         self._check_unit()
         out = self(pha, **kwargs)
@@ -346,10 +342,9 @@ class DiskIntegratedModelClass(Fittable1DModel):
         Examples
         --------
         >>> import numpy as np
-        >>> from matplotlib import pyplot as plt
         >>> ceres_hg = HG(3.4, 0.12, radius=480)
         >>> pha = np.linspace(0, 180, 200)
-        >>> dummy = plt.plot(pha, ceres_hg.ref(np.deg2rad(pha)))
+        >>> ref = ceres_hg.ref(np.deg2rad(pha))
 
         """
         self._check_unit()
