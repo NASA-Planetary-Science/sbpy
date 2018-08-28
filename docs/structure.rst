@@ -1,10 +1,10 @@
 Module Structure
 ================
 
-`sbpy` consists of a number of modules, each of which is set up as
-a class structure to encapsulate functionality and allow the user to
-deal with a set of top-level functions. The general module design in
-shown in the following sketch.
+`sbpy` consists of a number of modules, each of which is set up as a
+class structure to encapsulate functionality and allow the user to
+deal with a relatively small set of top-level functions. The general
+module design is shown in the following sketch.
 
 .. figure:: static/structure.png
    :alt: sbpy module structure	    
@@ -24,19 +24,20 @@ detailed below.
 `sbpy.data`
 -----------
 
-The `sbpy.data` module provides data containers used throughout `sbpy` for
-orbital elements (`sbpy.data.Orbit`), ephemerides and observations
-(`sbpy.data.Ephem`), physical properties (`sbpy.data.Phys`), and target names
-(`sbpy.data.Names`). Instances of these classes are used as input to a
-wide range of top-level functions throughout `sbpy`, guaranteeing a
-consistent and user-friendly API. All classes in `sbpy.data` provide
-query functions to obtain relevant information from web-based services
-such as `JPL Horizons`_, `Minor Planet Center`_ (MPC), `IMCCE`_, and
-`Lowell Observatory`_, providing orbital elements at different epochs,
+The `~sbpy.data` module provides data containers used throughout
+`sbpy` for orbital elements (`~sbpy.data.Orbit`), ephemerides and
+observations (`~sbpy.data.Ephem`), physical properties
+(`~sbpy.data.Phys`), and target names (`~sbpy.data.Names`). Instances
+of these classes are used as input to a wide range of top-level
+functions throughout `sbpy`, guaranteeing a consistent and
+user-friendly API. All classes in `~sbpy.data` provide query functions
+to obtain relevant information from web-based services such as `JPL
+Horizons`_, `Minor Planet Center`_ (MPC), `IMCCE`_, and `Lowell
+Observatory`_, providing orbital elements at different epochs,
 ephemerides, physical properties, (alternative) target identifiers
 etc. Please refer to the `github wiki`_ for examples.
 
-Additional functionality of `sbpy.data` includes: an interface for
+Additional functionality of `~sbpy.data` includes: an interface for
 ephemerides calculations to `PyEphem`_; an interface to the `REBOUND`_
 (Rein and Liu 2012) package for orbital integration; a wrapper for the
 orbit fitting software `OpenOrb`_; an interface to SPICE for offline
@@ -45,15 +46,15 @@ utilities tailored to the needs of the small body community;
 transformations between orbital elements, state vectors, physical
 properties, and naming conventions.
 
-`sbpy.data` also provides a range of other useful module-level
-functions: `sbpy.data.mpc_observations` enables the user to query all
-observations reported to the MPC for a given target. `sbpy.data.image_search`
+`~sbpy.data` also provides a range of other useful module-level
+functions: `~sbpy.data.mpc_observations` enables the user to query all
+observations reported to the MPC for a given target. `~sbpy.data.image_search`
 queries the `Solar System Object Image Search function of the
 Canadian Astronomy Data Centre`_, providing a table of images that
-may contain the target based on its ephemerides. `sbpy.data.sb_search` uses
+may contain the target based on its ephemerides. `~sbpy.data.sb_search` uses
 IMCCE’s `Skybot`_; given a registered FITS image, the function will
 search for small bodies that might be present in the image based on
-their ephemerides. `sbpy.data.pds_ferret` queries the `Small Bodies Data
+their ephemerides. `~sbpy.data.pds_ferret` queries the `Small Bodies Data
 Ferret`_ at the Planetary Data Systems Small Bodies Node for all
 existing information on a specific small body in the PDS. 
 
@@ -61,27 +62,27 @@ existing information on a specific small body in the PDS.
 `sbpy.activity`
 ---------------
 
-The `sbpy.activity` module provides classes for modeling cometary
+The `~sbpy.activity` module provides classes for modeling cometary
 comae, tails, and ice sublimation, and functions for working with
 cometary absolute magnitudes and photometry (e.g., the Afrho parameter
 of A'Hearn et al. 1984). We implement a gas coma class that will use
-Haser (`sbpy.activity.Haser`, Haser 1957) and Vectorial
-(`sbpy.activity.Vectorial`, Festou 1981) models for gas comae, including
+Haser (`~sbpy.activity.Haser`, Haser 1957) and Vectorial
+(`~sbpy.activity.Vectorial`, Festou 1981) models for gas comae, including
 parameters for commonly observed molecules (e.g., H2O, CO2 , CO, OH,
 CN, C2 ; A'Hearn et al. 1995; Debout et al. 2016). Independent of the
 model, the gas coma class can be used to generate aperture photometry
 or a synthetic image of the comet. For dust, we integrate a
-syndyne/synchrone model (`sbpy.activity.Syndynes`, Finson & Probstein 1968;
+syndyne/synchrone model (`~sbpy.activity.Syndynes`, Finson & Probstein 1968;
 Kelley et al. 2013), and write a visualization plugin for the `Ginga
 Image Viewer`_. The Cowan & A'Hearn (1979) ice sublimation model
-(`sbpy.activity.sublimation`), used to describe comet activity, and common
+(`~sbpy.activity.sublimation`), used to describe comet activity, and common
 parameters will be incorporated, too.
 
 
 `sbpy.photometry`
 -----------------
 
-The `sbpy.photometry` module implements a number of light scattering
+The `~sbpy.photometry` module implements a number of light scattering
 models for asteroidal surfaces and cometary coma dust. The goal of
 this module is to provide a facility to fit light scattering models to
 observed brightness data of asteroids, and to estimate the brightness
@@ -97,7 +98,7 @@ disk-resolved bidirectional reflectance model includes a number of
 models that have been widely used in the small bodies community, such
 as the Lommel-Seeliger model, Lambert model, Lunar-Lambert model,
 etc. Surface facet geometries used in the different models can be
-derived with methods in `sbpy.shape`. We also include the most
+derived with methods in `~sbpy.shape`. We also include the most
 commonly used 5-parameter version of the Hapke scattering
 model. Empirical cometary dust phase functions are implemented, too
 (Marcus 2007; Schleicher & Bair 2011,
@@ -109,31 +110,31 @@ function will also be implemented.
 `sbpy.shape`
 ------------
 
-The `sbpy.shape` module provides tools for the use of 3D shape models
+The `~sbpy.shape` module provides tools for the use of 3D shape models
 of small bodies and the analysis of lightcurve observations. The user
 can load asteroid shapes saved in a number of common formats, such as
-VRML, OBJ, into `sbpy.shape.Kaasalainen`, and then calculate the geometry
+VRML, OBJ, into `~sbpy.shape.Kaasalainen`, and then calculate the geometry
 of illumination and view for its surface facets, and manipulate
-it. Furthermore, `sbpy.shape.Kaasalainen` will provide methods for
-lightcurve inversion. `sbpy.shape` will provide an interface to use
-shape models for functions in `sbpy.photometry`.
+it. Furthermore, `~sbpy.shape.Kaasalainen` will provide methods for
+lightcurve inversion. `~sbpy.shape` will provide an interface to use
+shape models for functions in `~sbpy.photometry`.
 
-In addition to the shape model methods, `sbpy.shape` also provides
+In addition to the shape model methods, `~sbpy.shape` also provides
 methods for the analysis and simulation of simple lightcurve data. The
-`sbpy.shape.Lightcurve` class provides routines to fit rotational period
+`~sbpy.shape.Lightcurve` class provides routines to fit rotational period
 (based on Lomb-Scargle routines implemented in astropy.stats and other
 frequency tools), Fourier coefficients, and spin pole axis
 orientation. The class will also be able to simulate a lightcurve at
 specified epochs with a shape model class and the associated
 information such as pole orientation, illumination and viewing
-geometry as provided by the `sbpy.data.Phys` class, and a scattering model
-provided through classes defined in the `sbpy.photometry` module.
+geometry as provided by the `~sbpy.data.Phys` class, and a scattering model
+provided through classes defined in the `~sbpy.photometry` module.
 
 
 `sbpy.spectroscopy`
 -------------------
 
-As part of `sbpy.spectroscopy`, we provide routines for fitting
+As part of `~sbpy.spectroscopy`, we provide routines for fitting
 measured spectra, as well as simulating synthetic spectra over a wide
 range of the electromagnetic spectrum.  The spectral models include
 emission lines relevant to observations of comet comae, as well as
@@ -157,11 +158,11 @@ have already been developed and will be included in a self-consistent
 model for this project.
 
 In addition to the aforementioned functionality, we provide a class
-`sbpy.spectroscopy.Hapke` that implements Hapke spectral mixing
-functionality. 
+`~sbpy.spectroscopy.Hapke` that implements Hapke spectral mixing
+functionality.
 
 This module also provides spectrophotometry methods as part of
-`sbpy.spectroscopy.Spectrophotometry`. This functionality includes the
+`~sbpy.spectroscopy.Spectrophotometry`. This functionality includes the
 convolution of common photometric filters with spectra generated by
 this module or literature spectra of small bodies or stars and the
 derivation of photometric colors from spectral slopes. 
@@ -171,31 +172,32 @@ derivation of photometric colors from spectral slopes.
 --------------
 
 Thermal modeling capabilities for asteroids are available through the
-`sbpy.thermal` module.  The module provides implementations of the
-Standard Thermal Model (`sbpy.thermal.STM`, Morrison & Lebofsky 1979), the
-Fast-Rotating Model (`sbpy.thermal.FRM`, Lebofsky & Spencer 1989), and the
-popular Near-Earth Asteroid Thermal Model (`sbpy.thermal.NEATM`,
-Harris 1998) which can all be used in the same way for estimating
-fluxes or fitting model solutions to observational data. 
+`~sbpy.thermal` module.  The module provides implementations of the
+Standard Thermal Model (`~sbpy.thermal.STM`, Morrison & Lebofsky
+1979), the Fast-Rotating Model (`~sbpy.thermal.FRM`, Lebofsky &
+Spencer 1989), and the popular Near-Earth Asteroid Thermal Model
+(`~sbpy.thermal.NEATM`, Harris 1998) which can all be used in the same
+way for estimating fluxes or fitting model solutions to observational
+data.
 
 
 `sbpy.imageanalysis`
 --------------------
 
-The `sbpy.imageanalysis` module will focus on the analysis of telescopic
-images. `imageanalysis.Centroid` provides a range of centroiding
-methods, including a dedicated comet centroiding technique that
-mitigates coma and tail biases (Tholen & Chesley 2004).  Code will
-also be developed to incorporate ephemerides into FITS image headers
-to facilitate image reprojection in the rest frame of the moving
-target (`imageanalysis.moving_wcs`) for image co-addition, e.g., using
-SWARP (Bertin 2002). We will modify and integrate cometary coma
-enhancement code from collaborator Samarasinha
-(`imageanalysis.CometaryEnhancements`; Samarasinha & Larson 2014; Martin
-et al. 2015). The coma enhancements will be coded into a plugin for the
-`Ginga Image Viewer`_.
+The `~sbpy.imageanalysis` module will focus on the analysis of
+telescopic images. `~sbpy.imageanalysis.Centroid` provides a range of
+centroiding methods, including a dedicated comet centroiding technique
+that mitigates coma and tail biases (Tholen & Chesley 2004).  Code
+will also be developed to incorporate ephemerides into FITS image
+headers to facilitate image reprojection in the rest frame of the
+moving target (`~imageanalysis.moving_wcs`) for image co-addition,
+e.g., using SWARP (Bertin 2002). We will modify and integrate cometary
+coma enhancement code from collaborator Samarasinha
+(`~imageanalysis.CometaryEnhancements`; Samarasinha & Larson 2014;
+Martin et al. 2015). The coma enhancements will be coded into a plugin
+for the `Ginga Image Viewer`_.
 
-`sbpy.imageanalysis` will also provide PSF subtraction functionality
+`~sbpy.imageanalysis` will also provide PSF subtraction functionality
 that is utilizing and extending the Astropy affiliated package
 `photutils`_; this class will provide wrap- pers for photutils to
 simplify the application for moving object observations. Results of
@@ -206,26 +208,26 @@ imageanalysis.Cometary- Enhancements for further analysis.
 `sbpy.obsutil`
 --------------
 
-The `sbpy.obsutil` module enables the user to conveniently check
+The `~sbpy.obsutil` module enables the user to conveniently check
 observability of moving targets and to plan future observations. Using
-`spby.data.Ephem` functionality, `sbpy.obsutil` provides tools to identify peak
-observability over a range of time based on different criteria, create
-observing scripts, plot quantities like airmass as a function of time,
-and create finder charts for an individual target. These functions and
-plots will be easily customizable and will work identically for
-individual targets and large numbers of targets. Finder charts will be
-produced from online sky survey data, providing information on the
-target's track across the sky, it's positional uncertainty, background
-stars with known magnitudes for calibration purposes, and other moving
-objects.
+`~spby.data.Ephem` functionality, `~sbpy.obsutil` provides tools to
+identify peak observability over a range of time based on different
+criteria, create observing scripts, plot quantities like airmass as a
+function of time, and create finder charts for an individual
+target. These functions and plots will be easily customizable and will
+work identically for individual targets and large numbers of
+targets. Finder charts will be produced from online sky survey data,
+providing information on the target's track across the sky, it's
+positional uncertainty, background stars with known magnitudes for
+calibration purposes, and other moving objects.
 
 
 `sbpy.bib`
 ----------
 
-`sbpy.bib` provides a unique feature that simplifies the
+`~sbpy.bib` provides a unique feature that simplifies the
 acknowledgment of methods and code utilized by the user. After
-activating the bibliography tracker in `sbpy.bib`, references and
+activating the bibliography tracker in `~sbpy.bib`, references and
 citations of all functions used by the user are tracked in the
 background. The user can request a list of references that should be
 cited based on sbpy functionality that was used at any time as clear

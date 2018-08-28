@@ -1,6 +1,5 @@
 numpy
 astropy-helpers
-callhorizons
 matplotlib
 ads
 synphot

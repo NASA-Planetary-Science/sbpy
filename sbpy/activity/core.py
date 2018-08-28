@@ -1,29 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-=========================
-SBPy Activity Core Module
-=========================
+sbpy Activity Core Module
 
 Core module functions and classes, especially for handling coma
 geometries.
 
-
-Functions
----------
-rho_as_angle    - Projected linear distance to angular distance.
-rho_as_length   - Angular distance to projected linear distance.
-
-Classes
--------
-Aperture            - Abstract base class for observation apertures.
-CircularAperture    - Circular photometric aperture.
-AnnularAperture     - Annular photometric aperture.
-RectangularAperture - Rectangular photometric aperture.
-GaussianAperture    - Gaussian photometric aperture.
-
-
 created on June 23, 2017
-
 """
 
 __all__ = [
@@ -299,7 +281,8 @@ class GaussianAperture(Aperture):
     """
 
     def __init__(self, sigma=None, fwhm=None):
-        assert (sigma is not None) or (fwhm is not None), "One of `sigma` or `fwhm` must be defined."
+        assert (sigma is not None) or (
+            fwhm is not None), "One of `sigma` or `fwhm` must be defined."
 
         if sigma is not None:
             super(GaussianAperture, self).__init__(sigma)

@@ -151,8 +151,7 @@ def phase_HalleyMarcus(phase):
     except ImportError as e:
         from astropy.utils.exceptions import AstropyWarning
         from warnings import warn
-        warn(
-            AstropyWarning('scipy is not present, using linear interpolation.'))
+        warn(AstropyWarning('scipy is not present, using linear interpolation.'))
         Phi = np.interp(np.abs(phase), th, ph)
 
     if np.iterable(phase):
@@ -168,6 +167,7 @@ class Afrho(u.SpecificTypeQuantity):
     Coma dust quantity of A'Hearn et al. (1984).
 
     ``Afrho`` objects behave like astropy `~astropy.units.Quantity`
+
     objects with units of length.
 
 
@@ -189,19 +189,10 @@ class Afrho(u.SpecificTypeQuantity):
 
     Notes
     -----
-    Afρ is the product of dust albedo, A, dust filling factor, f, and
-    circular aperture radius, ρ, projected to the distance of the
-    comet in units of length.  It is nominally a constant for a
+    Afρ is the product of dust albedo, dust filling factor, and
+    circular aperture radius.  It is nominally a constant for a
     steady-state coma in free expansion.  See A'Hearn et al. (1984)
-    for details, including the definition of albedo used in this case.
-
-    .. math::
-        Af\rho = 4 \Delta^2 r_h^2 F / (\rho S)
-
-    where :math:`\Delta` is the observer-comet distance, :math:`r_h`
-    is the heliocentric distance of the comet, :math:`F` is the
-    observed spectral flux density of the comet in the aperture, and
-    :math:`S` is the spectral flux density of the Sun at 1 au.
+    for details.
 
 
     References
@@ -229,6 +220,9 @@ class Afrho(u.SpecificTypeQuantity):
                    Phi=None, S=None, unit=None):
         """
         Initialize from flux density.
+
+
+        Assumes the small angle approximation.
 
 
         Parameters
@@ -261,6 +255,10 @@ class Afrho(u.SpecificTypeQuantity):
             then the default solar spectrum will be used via
             `~sbpy.spectroscopy.sun.default_sun`.
 
+        unit : `~astropy.units.Unit`, optional
+          The spectral unit for the output, ignored if `S` is
+          provided.
+
 
         Examples
         --------
@@ -276,8 +274,8 @@ class Afrho(u.SpecificTypeQuantity):
 
         """
 
-        fluxd1cm = Afrho(1 * u.cm).fluxd(
-            wave_or_freq, aper, eph=eph, S=S, unit=fluxd.unit)
+        fluxd1cm = Afrho(1 * u.cm).fluxd(wave_or_freq, aper, eph=eph, S=S,
+                                         unit=unit)
 
         afrho = Afrho((fluxd / fluxd1cm).decompose() * u.cm)
         if phasecor:
@@ -422,6 +420,9 @@ class Afrho(u.SpecificTypeQuantity):
               S=None, unit='W/(m2 um)'):
         """
         Coma flux density.
+
+
+        Assumes the small angle approximation.
 
 
         Parameters
@@ -602,10 +603,9 @@ class Afrho(u.SpecificTypeQuantity):
 
         **kwargs :
             Any other `Afrho.fluxd` keyword argument except ``S``.
-
         Returns
         -------
-        mag : float
+        mag : `~astropy.units.Quantity` ???
 
 
         Examples
@@ -633,10 +633,7 @@ class Afrho(u.SpecificTypeQuantity):
         <http://synphot.readthedocs.io/en/latest/synphot/units.html#counts-and-magnitudes>`_.
 
         """
-
-        afrho0 = Afrho.from_mag(
-            bandpass, 0, unit, aper, eph, vegaspec=vegaspec, **kwargs)
-        return -2.5 * np.log10(self / afrho0).value
+        raise NotImplemented
 
     def to_phase(self, to_phase, from_phase, Phi=None):
         """
@@ -657,6 +654,7 @@ class Afrho(u.SpecificTypeQuantity):
             returns a scale factor.  If ``None``,
             ``phase_HalleyMarcus`` is used.  The phase function is
             expected to be 1.0 at 0 deg.
+
 
 
         Returns
@@ -688,6 +686,7 @@ class Efrho(u.SpecificTypeQuantity):
     units of length.
 
 
+
     Parameters
     ----------
     value : number, astropy `~astropy.units.Quantity`
@@ -708,15 +707,16 @@ class Efrho(u.SpecificTypeQuantity):
     -----
     εfρ is the product of dust emissivity, dust filling factor, and
     circular aperture radius.  It is nominally a constant for a
-    steady -state coma in free expansion, and is the thermal emission
+    steady-state coma in free expansion, and is the thermal emission
     equivalent for the Afρ quanitity.  See A'Hearn et al. (1984) and
     Kelley et al. (2013) for details.
 
 
     References
     ----------
-    A'Hearn et al. 1984, AJ 89, 579 -591.
-    Kelley et al. 2013, Icarus 225, 475 -494.
+    A'Hearn et al. 1984, AJ 89, 579-591.
+    Kelley et al. 2013, Icarus 225, 475-494.
+
 
 
     Examples
@@ -740,6 +740,7 @@ class Efrho(u.SpecificTypeQuantity):
         """
         Initialize from flux density.
 
+        Assumes the small angle approximation.
 
         Parameters
         ----------
@@ -790,6 +791,7 @@ class Efrho(u.SpecificTypeQuantity):
         """
         Coma flux density.
 
+        Assumes the small angle approximation.
 
         Parameters
         ----------
@@ -895,14 +897,11 @@ class Syndynes:
 
         Parameters
         ----------
-        betas :
-            array, mandatory
+        betas : array, mandatory
             beta values
-        ages :
-            array, mandatory
+        ages : array, mandatory
             synchrone ages
-        location :
-            str, optional, default: '500' (geocentric)
+        location : str, optional, default: '500' (geocentric)
             observer location MPC code
 
 

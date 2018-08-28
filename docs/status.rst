@@ -5,8 +5,9 @@ Status Page
 
 This page indicates the progress on specific modules, classes, and functions.
 
-If you plan on testing functionality, please consider only those parts
-labeled as **released**.
+While this page is mainly intented for internal purposes, it provides
+insight into functionality that is already available and can be
+tested.
 
 If you are or have been working on code, please indicate its status here.
 
@@ -16,40 +17,62 @@ Status per Module
 
 `sbpy.data`
 ~~~~~~~~~~~
-somewhat complete module skeleton available
+maintainer: MM
 
+    * `~sbpy.data.DataClass` mostly complete; alternative property names not yet implemented
+    * `~sbpy.data.Names` mostly complete; `~sbpy.data.Names.altident` not yet implemented
+    * `~sbpy.data.Ephem` incomplete; `~sbpy.data.Ephem.from_horizons` implemented
+    * `~sbpy.data.Orbit` incomplete
+    * `~sbpy.data.Phys` incomplete
+      
 `sbpy.activity`
 ~~~~~~~~~~~~~~~
-incomplete (?) module skeleton available
+maintainer: MSK
+
+    * ???
 
 `sbpy.photometry`
 ~~~~~~~~~~~~~~~~~
-incomplete (?) module skeleton available
+maintainer: JYL, MM
+
+    * incomplete 
 
 `sbpy.shape`
 ~~~~~~~~~~~~
-incomplete (?) module skeleton available
+maintainer: MM
+
+    * incomplete 
 
 `sbpy.spectroscopy`
 ~~~~~~~~~~~~~~~~~~~
-incomplete (?) module skeleton available
+maintainer: MdVB
+
+    * ???
 
 `sbpy.thermal`
 ~~~~~~~~~~~~~~
-incomplete (?) module skeleton available
+maintainer: MM
+
+    * incomplete 
 
 `sbpy.imageanalysis`
 ~~~~~~~~~~~~~~~~~~~~
-incomplete (?) module skeleton available
+maintainer: MSK
+
+    * incomplete 
 
 `sbpy.obsutil`
 ~~~~~~~~~~~~~~
-incomplete (?) module skeleton available
+maintainer: MSK, MM
+
+    * incomplete 
 
 `sbpy.bib`
 ~~~~~~~~~~
-incomplete (?) module skeleton available
+maintainer: all
+
+    * mostly complete; `~sbpy.bib.to_bibtex` not implemented
 
 
 
-last updated: Aug 25, 2017
+last updated: Jul 9, 2018
