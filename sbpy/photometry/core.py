@@ -37,11 +37,11 @@ def ref2mag(ref, radius, M_sun=None):
     --------
     >>> from astropy import units as u
     >>> mag = ref2mag(0.1, 460)
-    >>> mag
+    >>> print(mag)
     2.0779632200851914
     >>> mag = ref2mag(0.1, 460*u.km)
-    >>> mag
-    <Quantity 2.07796322 mag>
+    >>> print(mag)
+    2.0779632200851914 mag
     """
 
     if M_sun is None:
@@ -84,11 +84,11 @@ def mag2ref(mag, radius, M_sun=None):
     --------
     >>> from astropy import units as u
     >>> ref = mag2ref(2.08, 460)
-    >>> ref
+    >>> print(ref)
     0.09981258148546485
     >>> ref = mag2ref(2.08, 460*u.km)
-    >>> ref
-    <Quantity 0.09981258 1 / sr>
+    >>> print(ref)
+    0.09981258148546485 1 / sr
     """
 
     if M_sun is None:
@@ -112,19 +112,32 @@ def mag2ref(mag, radius, M_sun=None):
 
 
 class spline(object):
-    '''Spline with function values at nodes and the first derivatives at
-    both ends.  Outside the data grid the extrapolations are linear based
-    on the first derivatives at the corresponding ends.
-    '''
+    """Cubic spline class
+
+    Spline function is defined by function values at nodes and the first
+    derivatives at both ends.  Outside the range of nodes, the extrapolations
+    are linear based on the first derivatives at the corresponding ends.
+    """
 
     def __init__(self, x, y, dy):
-        x = np.asarray(x)
-        y = np.asarray(y)
-        dy = np.asarray(dy)
-        self.x, self.y, self.dy = x, y, dy
-        n = len(y)
-        h = x[1:]-x[:-1]
-        r = (y[1:]-y[:-1])/(x[1:]-x[:-1])
+        """
+        Spline initialization
+
+        Parameters
+        ----------
+        x, y : array_like numbers
+            The (x, y) values at nodes that defines the spline
+        dy : array_like numbers with two elements
+            The first derivatives of the left and right ends of the nodes
+        """
+        from numpy.linalg import solve
+        from numpy.polynomial.polynomial import Polynomial
+        self.x = np.asarray(x)
+        self.y = np.asarray(y)
+        self.dy = np.asarray(dy)
+        n = len(self.y)
+        h = self.x[1:]-self.x[:-1]
+        r = (self.y[1:]-self.y[:-1])/(self.x[1:]-self.x[:-1])
         B = np.zeros((n-2,n))
         for i in range(n-2):
             k = i+1
@@ -133,21 +146,17 @@ class spline(object):
         for i in range(n-2):
             k = i+1
             C[i] = 3*(r[k-1]*h[k]+r[k]*h[k-1])
-        C[0] = C[0]-dy[0]*B[0,0]
-        C[-1] = C[-1]-dy[1]*B[-1,-1]
+        C[0] = C[0]-self.dy[0]*B[0,0]
+        C[-1] = C[-1]-self.dy[1]*B[-1,-1]
         B = B[:,1:n-1]
-        from numpy.linalg import solve
         dys = solve(B, C)
-        dys = np.array([dy[0]] + [tmp for tmp in dys.flatten()] + [dy[1]])
-        A0 = y[:-1]
+        dys = np.array([self.dy[0]] + [tmp for tmp in dys.flatten()] + [self.dy[1]])
+        A0 = self.y[:-1]
         A1 = dys[:-1]
         A2 = (3*r-2*dys[:-1]-dys[1:])/h
         A3 = (-2*r+dys[:-1]+dys[1:])/h**2
         self.coef = np.array([A0, A1, A2, A3]).T
-        self.polys = []
-        from numpy.polynomial.polynomial import Polynomial
-        for c in self.coef:
-            self.polys.append(Polynomial(c))
+        self.polys = [Polynomial(c) for c in self.coef]
         self.polys.insert(0, Polynomial([1,self.dy[0]]))
         self.polys.append(Polynomial([self.y[-1]-self.x[-1]*self.dy[-1], self.dy[-1]]))
 
@@ -172,34 +181,58 @@ class DiskIntegratedModelClass(Fittable1DModel):
 
     Examples
     --------
+    - Define a linear phase function with phase slope 0.04 mag/deg, and
+    study its properties
+
     >>> # Define a disk-integrated phase function model
     >>> import numpy as np
     >>> from astropy.modeling import Parameter
     >>> from matplotlib import pyplot as plt
     >>>
     >>> class LinearPhaseFunc(DiskIntegratedModelClass):
-    >>>     _unit = 'mag'
-    >>>     H = Parameter()
-    >>>     S = Parameter()
-    >>>     @staticmethod
-    >>>     def evaluate(a, H, S):
-    >>>         return H + S * a
-    >>>
+    ...
+    ...     _unit = 'mag'
+    ...     H = Parameter()
+    ...     S = Parameter()
+    ...
+    ...     @staticmethod
+    ...     def evaluate(a, H, S):
+    ...         return H + S * a
+    ...
     >>> linear_phasefunc = LinearPhaseFunc(5, 2.29, radius=300)
     >>> pha = np.linspace(0, 180, 200)
     >>> f,ax = plt.subplots(2, 1, sharex=True)
-    >>> dummy = ax[0].plot(pha, linear_phasefunc(np.deg2rad(pha)))
+    >>> dummy = ax[0].plot(pha, linear_phasefunc.mag(np.deg2rad(pha)))
     >>> dummy = ax[0].set_ylim([13, 4])
     >>> dummy = ax[1].plot(pha, linear_phasefunc.ref(np.deg2rad(pha)))
     >>> geoalb = linear_phasefunc.geoalb
+    >>> phaseint = linear_phasefunc.phaseint
     >>> bondalb = linear_phasefunc.bondalb
-    >>> print('Geometric albedo is {0:.3}, Bond albedo is {1:.3}'.format(geoalb, bondalb))
+    >>> print('Geometric albedo is {0:.3}'.format(geoalb))
+    Geometric albedo is 0.0501
+    >>> print('Bond albedo is {0:.3}'.format(bondalb))
+    Bond albedo is 0.0184
+    >>> print('Phase integral is {0:.3}'.format(phaseint))
+    Phase integral is 0.368
     """
 
     _unit = None
 
     def __init__(self, *args, radius=None, M_sun=None, **kwargs):
-        super(Fittable1DModel, self).__init__(*args, **kwargs)
+        """Initialize DiskIntegratedModelClass
+
+        Parameters
+        ----------
+        radius : number or astropy.units.Quantity
+            Radius of object, in km if a number.  Needed for magnitude and
+            reflectance conversion
+        M_sun : number or astropy.units.Quantity
+            Solar magnitude.  Needed for magnitude and reflectance conversion.
+            If not supplied, the V-band solar magnitude assumed.  See `ref2mag`
+            and `mag2ref`
+
+        """
+        super().__init__(*args, **kwargs)
         self.radius = radius
         self.M_sun = M_sun
 
@@ -449,12 +482,25 @@ class HG12BaseClass(DiskIntegratedModelClass):
         tmp = float(self._G1+self._G2)
         return (1-tmp)/tmp
 
+    class _spline_positive(spline):
+        """
+        Define a spline class that clips negative function values
+        """
+        def __call__(self, x):
+            y = super().__call__(x)
+            if hasattr(y,'__iter__'):
+                y[y<0] = 0
+            else:
+                if y < 0:
+                    y = 0
+            return y
+
     _phi1v = np.deg2rad([7.5, 30., 60, 90, 120, 150]),[7.5e-1, 3.3486016e-1, 1.3410560e-1, 5.1104756e-2, 2.1465687e-2, 3.6396989e-3],[-1.9098593, -9.1328612e-2]
-    _phi1 = spline(*_phi1v)
+    _phi1 = _spline_positive(*_phi1v)
     _phi2v = np.deg2rad([7.5, 30., 60, 90, 120, 150]),[9.25e-1, 6.2884169e-1, 3.1755495e-1, 1.2716367e-1, 2.2373903e-2, 1.6505689e-4],[-5.7295780e-1, -8.6573138e-8]
-    _phi2 = spline(*_phi2v)
+    _phi2 = _spline_positive(*_phi2v)
     _phi3v = np.deg2rad([0.0, 0.3, 1., 2., 4., 8., 12., 20., 30.]),[1., 8.3381185e-1, 5.7735424e-1, 4.2144772e-1, 2.3174230e-1, 1.0348178e-1, 6.1733473e-2, 1.6107006e-2, 0.],[-1.0630097, 0]
-    _phi3 = spline(*_phi3v)
+    _phi3 = _spline_positive(*_phi3v)
 
 
 class HG1G2(HG12BaseClass):
