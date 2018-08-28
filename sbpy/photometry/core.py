@@ -171,26 +171,25 @@ class DiskIntegratedModelClass(Fittable1DModel):
     >>> # Define a disk-integrated phase function model
     >>> import numpy as np
     >>> from astropy.modeling import Parameter
+    >>> from matplotlib import pyplot as plt
     >>>
-    >>> class LinearPhaseFunc(DiskIntegratedModelClass): # doctest: +SKIP
+    >>> class LinearPhaseFunc(DiskIntegratedModelClass):
+    >>>     _unit = 'mag'
+    >>>     H = Parameter()
+    >>>     S = Parameter()
+    >>>     @staticmethod
+    >>>     def evaluate(a, H, S):
+    >>>         return H + S * a
     >>>
-    >>>     _unit = 'mag' # doctest: +SKIP
-    >>>     H = Parameter() # doctest: +SKIP
-    >>>     S = Parameter() # doctest: +SKIP
-    >>>
-    >>>     @staticmethod # doctest: +SKIP
-    >>>     def evaluate(a, H, S): # doctest: +SKIP
-    >>>         return H + S * a # doctest: +SKIP
-    >>>
-    >>> linear_phasefunc = LinearPhaseFunc(5, 2.29, radius=300) # doctest: +SKIP
-    >>> pha = np.linspace(0, 180, 200) # doctest: +SKIP
-    >>> f,ax = plt.subplots(2, 1, sharex=True) # doctest: +SKIP
-    >>> ax[0].plot(pha, linear_phasefunc(np.deg2rad(pha))) # doctest: +SKIP
-    >>> ax[0].set_ylim([13, 4]) # doctest: +SKIP
-    >>> ax[1].plot(pha, linear_phasefunc.ref(np.deg2rad(pha))) # doctest: +SKIP
-    >>> geoalb = linear_phasefunc.geoalb # doctest: +SKIP
-    >>> bondalb = linear_phasefunc.bondalb # doctest: +SKIP
-    >>> print('Geometric albedo is {0:.3}, Bond albedo is {1:.3}'.format(geoalb, bondalb)) # doctest: +SKIP
+    >>> linear_phasefunc = LinearPhaseFunc(5, 2.29, radius=300)
+    >>> pha = np.linspace(0, 180, 200)
+    >>> f,ax = plt.subplots(2, 1, sharex=True)
+    >>> dummy = ax[0].plot(pha, linear_phasefunc(np.deg2rad(pha)))
+    >>> dummy = ax[0].set_ylim([13, 4])
+    >>> dummy = ax[1].plot(pha, linear_phasefunc.ref(np.deg2rad(pha)))
+    >>> geoalb = linear_phasefunc.geoalb
+    >>> bondalb = linear_phasefunc.bondalb
+    >>> print('Geometric albedo is {0:.3}, Bond albedo is {1:.3}'.format(geoalb, bondalb))
     """
 
     _unit = None
@@ -212,12 +211,12 @@ class DiskIntegratedModelClass(Fittable1DModel):
     @property
     def bondalb(self):
         """Bond albedo"""
-        return self.geoalb*self.phase_integral()
+        return self.geoalb*self.phaseint
 
     @property
     def phaseint(self):
         """Phase integral"""
-        return None
+        return self._phase_integral()
 
     def fit(self, eph):
         """Fit photometric model to photometric data stored in sbpy.data.Ephem
@@ -281,11 +280,10 @@ class DiskIntegratedModelClass(Fittable1DModel):
         Examples
         --------
         >>> import numpy as np
-        >>> from matplotlib import pyplot as plt # doctest: +SKIP
-        >>> ceres_hg = HG(3.4, 0.12) # doctest: +SKIP
-        >>> pha = np.linspace(0, 180, 200) # doctest: +SKIP
-        >>> plt.plot(pha, ceres_hg.mag(np.deg2rad(pha))) # doctest: +SKIP
-
+        >>> from matplotlib import pyplot as plt
+        >>> ceres_hg = HG(3.4, 0.12)
+        >>> pha = np.linspace(0, 180, 200)
+        >>> dummy = plt.plot(pha, ceres_hg.mag(np.deg2rad(pha)))
         """
         self._check_unit()
         out = self(pha, **kwargs)
@@ -312,9 +310,9 @@ class DiskIntegratedModelClass(Fittable1DModel):
         --------
         >>> import numpy as np
         >>> from matplotlib import pyplot as plt
-        >>> ceres_hg = HG(3.4, 0.12, radius=480) # doctest: +SKIP
-        >>> pha = np.linspace(0, 180, 200) # doctest: +SKIP
-        >>> plt.plot(pha, ceres_hg.ref(np.deg2rad(pha))) # doctest: +SKIP
+        >>> ceres_hg = HG(3.4, 0.12, radius=480)
+        >>> pha = np.linspace(0, 180, 200)
+        >>> dummy = plt.plot(pha, ceres_hg.ref(np.deg2rad(pha)))
 
         """
         self._check_unit()
@@ -331,12 +329,8 @@ class DiskIntegratedModelClass(Fittable1DModel):
                 out /= mag2ref(self(normalized, **kwargs), self.radius, M_sun=self.M_sun)
             return out
 
-    def phase_integral(self, integrator=quad):
-        """Calculate phase integral.
-
-        If property `self.phaseint` is not loaded (has a `None` value), then
-        the phase integral will be calculated with numerical integration.
-        Otherwise `self.phase.int` will be returned.
+    def _phase_integral(self, integrator=quad):
+        """Calculate phase integral with numerical integration
 
         Parameters
         ----------
@@ -352,16 +346,13 @@ class DiskIntegratedModelClass(Fittable1DModel):
 
         Examples
         --------
-        >>> ceres_hg = HG(3.4, 0.12, radius=480) # doctest: +SKIP
-        >>> print(ceres_hg.phase_integral()) # doctest: +SKIP
+        >>> ceres_hg = HG(3.4, 0.12, radius=480)
+        >>> ceres_hg._phase_integral()
+        0.36435057552929323
 
         """
-        if hasattr(self, 'phaseint'):
-            if self.phaseint is not None:
-                return self.phaseint
-        else:
-            integrand = lambda x: 2*self.ref(x, normalized=0.)*np.sin(x)
-            return integrator(integrand, 0, np.pi)[0]
+        integrand = lambda x: 2*self.ref(x, normalized=0.)*np.sin(x)
+        return integrator(integrand, 0, np.pi)[0]
 
 
 class HG(DiskIntegratedModelClass):
@@ -385,10 +376,6 @@ class HG(DiskIntegratedModelClass):
         Returns
         -------
         numpy array of float
-
-        Examples
-        --------
-        TBD
 
         Note
         ----
@@ -419,7 +406,7 @@ class HG(DiskIntegratedModelClass):
             ddh = 1.
         phi1 = HG._hgphi(pha,1)
         phi2 = HG._hgphi(pha,2)
-        ddg = -1.085736205*(-phi1+phi2)/((1-gg)*phi1+gg*phi2)
+        ddg = 1.085736205*(phi1-phi2)/((1-gg)*phi1+gg*phi2)
         return [ddh, ddg]
 
 
@@ -487,7 +474,6 @@ class HG1G2(HG12BaseClass):
 
     @staticmethod
     def fit_deriv(ph, h, g1, g2):
-        """Need to check the formula"""
         if hasattr(ph, '__iter__'):
             ddh = np.ones_like(ph)
         else:
@@ -496,8 +482,8 @@ class HG1G2(HG12BaseClass):
         phi2 = HG1G2._phi2(ph)
         phi3 = HG1G2._phi3(ph)
         dom = (g1*phi1+g2*phi2+(1-g1-g2)*phi3)
-        ddg1 = -1.085736205*(phi1-phi3)/dom
-        ddg2 = -1.085736205*(phi2-phi3)/dom
+        ddg1 = 1.085736205*(phi3-phi1)/dom
+        ddg2 = 1.085736205*(phi3-phi2)/dom
         return [ddh, ddg1, ddg2]
 
 
@@ -529,7 +515,6 @@ class HG12(HG12BaseClass):
 
     @staticmethod
     def fit_deriv(ph, h, g):
-        """Need to check formula"""
         if hasattr(ph, '__iter__'):
             ddh = np.ones_like(ph)
         else:
@@ -546,7 +531,7 @@ class HG12(HG12BaseClass):
         else:
             p1 = 0.9529
             p2 = -0.6125
-        ddg = -1.085736205*((phi1-phi3)*p1+(phi2-phi3)*p2)/dom
+        ddg = 1.085736205*((phi3-phi1)*p1+(phi3-phi1)*p2)/dom
         return [ddh, ddg]
 
 
