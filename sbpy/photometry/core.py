@@ -5,7 +5,8 @@ sbpy Photometry Module
 created on June 23, 2017
 """
 
-__all__ = ['DiskIntegratedModelClass', 'HG', 'HG12', 'HG1G2',
+__all__ = ['ref2mag', 'mag2ref',
+           'DiskIntegratedModelClass', 'HG', 'HG12', 'HG1G2',
            'DiskFunctionModel', 'LommelSeeliger', 'Lambert', 'LunarLambert',
            'PhaseFunctionModel', 'ROLOPhase',
            'ResolvedPhotometricModelClass', 'ROLO']
@@ -35,10 +36,12 @@ def ref2mag(ref, radius, M_sun=None):
     Examples
     --------
     >>> from astropy import units as u
-    >>> mag = ref2mag(0.1, 460) # doctest: +SKIP
-    >>> print(mag) # doctest: +SKIP
-    >>> mag = ref2mag(0.1, 460*u.km) # doctest: +SKIP
-    >>> print(mag) # doctest: +SKIP
+    >>> mag = ref2mag(0.1, 460)
+    >>> mag
+    2.0779632200851914
+    >>> mag = ref2mag(0.1, 460*u.km)
+    >>> mag
+    <Quantity 2.07796322 mag>
     """
 
     if M_sun is None:
@@ -80,11 +83,12 @@ def mag2ref(mag, radius, M_sun=None):
     Examples
     --------
     >>> from astropy import units as u
-    >>> ref = mag2ref(2.08, 460) # doctest: +SKIP
-    >>> print(ref) # doctest: +SKIP
-    >>> ref = mag2ref(2.08, 460*u.km) # doctest: +SKIP
-    >>> print(ref) # doctest: +SKIP
-
+    >>> ref = mag2ref(2.08, 460)
+    >>> ref
+    0.09981258148546485
+    >>> ref = mag2ref(2.08, 460*u.km)
+    >>> ref
+    <Quantity 0.09981258 1 / sr>
     """
 
     if M_sun is None:
