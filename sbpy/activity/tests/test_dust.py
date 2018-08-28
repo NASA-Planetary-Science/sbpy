@@ -42,9 +42,6 @@ class TestAfrho:
         significant figures) after solar flux density
         revision.
 
-        Throughput file for this test at:
-        http://www.stsci.edu/hst/wfc3/ins_performance/throughputs/Throughput_Tables
-
         """
         fluxd = 4.68e-15 * u.W / u.m**2 / u.um
         aper = 5000 * u.km
@@ -78,8 +75,8 @@ class TestAfrho:
         Li et al. quotes 1660 cm, but we have revised it to 1683 (see
         test_from_fluxd).
 
-        Throughput file for this test at:
-        http://www.stsci.edu/hst/wfc3/ins_performance/throughputs/Throughput_Tables
+        Throughput file for this test:
+        ftp://ftp.stsci.edu/cdbs/comp/wfc3/wfc3_uvis_f606w_004_syn.fits
 
         """
 
@@ -92,21 +89,58 @@ class TestAfrho:
         afrho = Afrho.from_filt(bandpass, fluxd, aper, eph)
         assert np.isclose(afrho.cm, 1680, atol=4)
 
-    def test_from_mag(self):
-        """HST/WFC3 photometry of C/2013 A1 (Siding Spring) (Li et al. 2014).
+    @pytest.mark.parametrize('filename, mag, unit, rho, afrho0, eph, unc', (
+        ('wfc3_uvis_f606w_004_syn.fits', 16.98, 'vegamag', '5000 km', 1680,
+         {'rh': 4.582 * u.au, 'delta': 4.042 * u.au}, 0.05),
+        ('wfc3_uvis_f438w_004_syn.fits', 17.91, 'vegamag', '5000 km', 1550,
+         {'rh': 4.582 * u.au, 'delta': 4.042 * u.au}, 0.05),
+        ('cousins_i_004_syn.fits', 8.49 - 0.53, 'vegamag', '10000 km', 3188,
+         {'rh': 1.45 * u.au, 'delta': 0.49 * u.au}, 0.06),
+        ('sdss-r.fits', 11.97, 'ABmag', '19.2 arcsec', 34.9,
+         {'rh': 1.098 * u.au, 'delta': 0.164 * u.au}, 0.03),
+        ('sdss-r.fits', 12.23, 'STmag', '19.2 arcsec', 34.9,
+         {'rh': 1.098 * u.au, 'delta': 0.164 * u.au}, 0.03),
+    ))
+    def test_from_mag(self, filename, mag, unit, rho, afrho0, eph, unc):
+        """Magnitude to afrho conversions.
+
+        HST/WFC3 photometry of C/2013 A1 (Siding Spring) (Li et
+        al. 2014).  Uncertainty is 5%.
+
+        Woodward et al. photometry of C/2007 N3 (Lulin) in I-band.
+        Their magnitude has been modifιed from 8.49 to 7.97 according
+        to their phase correction (0.03 mag/deg, phase angle 17.77
+        deg).  Uncertainty is 0.06 mag.
+
+        Li et al. (2017) photometry of 252P/LINEAR in r'.  They use
+        ABmag.  An additional test is performed with this observation
+        after converting ABmag to STmag::
+
+            synphot.units.convert_flux(6182, 11.97 * u.ABmag, u.STmag)
 
         Throughput files for this test:
-        http://www.stsci.edu/hst/wfc3/ins_performance/throughputs/Throughput_Tables
+
+            ftp://ftp.stsci.edu/cdbs/comp/wfc3/wfc3_uvis_f606w_004_syn.fits
+            ftp://ftp.stsci.edu/cdbs/comp/wfc3/wfc3_uvis_f438w_004_syn.fits
+            ftp://ftp.stsci.edu/cdbs/comp/nonhst/cousins_i_004_syn.fits
+            https://www.sdss.org/wp-content/uploads/2017/04/filter_curves.fits
+
+        The latter file is split into the r' portion::
+
+            from astropy.io import fits
+            from astropy.table import table
+            with fits.open('filter_curves.fits') as hdu:
+                tab = Table(hdu['R'].data)
+                tab['respt'].name = 'throughput'
+                del tab['resbig'], tab['resnoa'], tab['xatm']
+                tab.write('sdss-r.fits')
 
         """
-        mag = 16.98
-        rho = 5000 * u.km
-        eph = {'rh': 4.582 * u.au, 'delta': 4.042 * u.au}
-        fn = os.path.join(os.path.dirname(__file__), 'data',
-                          'wfc3_uvis_f606w_004_syn.fits')
+        rho = u.Quantity(rho)
+        fn = os.path.join(os.path.dirname(__file__), 'data', filename)
         bandpass = synphot.SpectralElement.from_file(fn)
-        afrho = Afrho.from_mag(bandpass, mag, 'vegamag', rho, eph)
-        assert np.isclose(afrho.cm, 1680, atol=4)
+        afrho = Afrho.from_mag(bandpass, mag, unit, rho, eph)
+        assert np.isclose(afrho.cm, afrho0, rtol=unc)
 
 >>>>>>> Revise dust tests.
     def test_fluxd(self):
