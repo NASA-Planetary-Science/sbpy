@@ -320,7 +320,8 @@ class Afrho(u.SpecificTypeQuantity):
         >>> fluxd = 5.667958103624571e-14 * u.W / u.m**2 / u.um
         >>> aper = 1 * u.arcsec
         >>> eph = dict(rh=1.5 * u.au, delta=1.0 * u.au)
-        >>> afrho = Afrho.from_filt(bp, fluxd, aper, eph) # doctest: +REMOTE_DATA +IGNORE_OUTPUT
+        # doctest: +REMOTE_DATA +IGNORE_OUTPUT
+        >>> afrho = Afrho.from_filt(bp, fluxd, aper, eph)
         >>> afrho.cm                           # doctest: +FLOAT_CMP +REMOTE_DATA
         1000.0
 
@@ -339,8 +340,7 @@ class Afrho(u.SpecificTypeQuantity):
         return cls.from_fluxd(None, fluxd, aper, eph, S=S, **kwargs)
 
     @classmethod
-    def from_mag(cls, bandpass, mag, unit, aper, eph, vegaspec=None,
-                 **kwargs):
+    def from_mag(cls, bandpass, mag, unit, aper, eph, **kwargs):
         """
         Initialize from filter and magnitude.
 
@@ -367,10 +367,6 @@ class Afrho(u.SpecificTypeQuantity):
             keywords ``rh`` and ``delta``.  Phase angle, ``phase``, is
             required if ``phasecor`` is enabled.
 
-        vegaspec : `~synphot.SourceSpectrum`, optional
-            Use this spectrum for Vega when ``unit == 'vegamag'``,
-            otherwise the default sbpy spectrum will be used.
-
         **kwargs
             Additional keyword arguments for `~Afrho.from_fluxd`,
             except ``S``.
@@ -378,10 +374,9 @@ class Afrho(u.SpecificTypeQuantity):
 
         Examples
         --------
-        # Approximates Woodward et al. 2011 values.
         >>> import astropy.units as u
         >>> from sbpy.activity import Afrho
-        >>> m = 8.49
+        >>> m = 7.98
         >>> aper = 10000 * u.km
         >>> eph = {'rh': 1.45 * u.au,
         ...        'delta': 0.49 * u.au,
@@ -389,7 +384,7 @@ class Afrho(u.SpecificTypeQuantity):
         >>> afrho = Afrho.from_mag('cousins_i', 8.49, 'vegamag', aper, eph,
         ...         phasecor=True)        # doctest: +REMOTE_DATA +IGNORE_OUTPUT
         >>> afrho.value                   # doctest: +REMOTE_DATA +FLOAT_CMP
-        3387.92
+        3423.6675739077887
 
 
         Notes
@@ -404,13 +399,23 @@ class Afrho(u.SpecificTypeQuantity):
         """
 
         from ..spectroscopy.sun import default_sun
+        from ..spectroscopy.vega import default_vega
 
         sun = default_sun.get()
-        wave, Msun = sun.filt(bandpass, unit=unit, vegaspec=vegaspec)
+        if unit.lower() == 'vegamag':
+            fluxd_sun = sun.filt(bandpass, unit='W/(m2 um)')[1]
+            vega = default_vega.get()
+            fluxd_vega = vega.filt(bandpass, unit='W/(m2 um)')[1]
+            m_sun = -2.5 * np.log10(fluxd_sun / fluxd_vega).value
+        elif unit.lower() == 'abmag':
+            fluxd_sun = sun.filt(bandpass, unit='erg/(s cm2 Hz)')[1]
+            m_sun = -2.5 * np.log10(fluxd_sun.value) - 48.60
+        elif unit.lower() == 'stmag':
+            fluxd_sun = sun.filt(bandpass, unit='erg/(s cm2 AA)')[1]
+            m_sun = -2.5 * np.log10(fluxd_sun.value) - 21.10
 
-        # fluxd is relative to the Sun
-        fluxd = u.Quantity(10**(-0.4 * (mag - Msun.value)), 'W/(m2 um)')
-        S = u.Quantity(1, fluxd.unit)
+        fluxd = u.Quantity(10**(-0.4 * (mag - m_sun)), 'W/(m2 um)')
+        S = u.Quantity(1, 'W/(m2 um)')  # fluxd already relative to the Sun
         return cls.from_fluxd(None, fluxd, aper, eph, S=S, **kwargs)
 
     def fluxd(self, wave_or_freq, aper, eph, phasecor=False, Phi=None,
@@ -543,7 +548,8 @@ class Afrho(u.SpecificTypeQuantity):
         >>> aper = 1 * u.arcsec
         >>> eph = dict(rh=1.5 * u.au, delta=1.0 * u.au)
         >>> unit = 'W/(m2 um)'
-        >>> fluxd = afrho.filt(bp, aper, eph, unit=unit)# doctest: +REMOTE_DATA +IGNORE_OUTPUT
+        # doctest: +REMOTE_DATA +IGNORE_OUTPUT
+        >>> fluxd = afrho.filt(bp, aper, eph, unit=unit)
         >>> fluxd.value                       # doctest: +FLOAT_CMP +REMOTE_DATA
         5.66795810362457e-14
 
