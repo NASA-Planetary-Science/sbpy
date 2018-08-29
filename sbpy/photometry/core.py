@@ -5,7 +5,7 @@ sbpy Photometry Module
 created on June 23, 2017
 """
 
-__all__ = ['ref2mag', 'mag2ref',
+__all__ = ['ref2mag', 'mag2ref', 'spline',
            'DiskIntegratedModelClass', 'HG', 'HG12', 'HG1G2',
            'DiskFunctionModel', 'LommelSeeliger', 'Lambert', 'LunarLambert',
            'PhaseFunctionModel', 'ROLOPhase',
@@ -37,11 +37,11 @@ def ref2mag(ref, radius, M_sun=None):
     --------
     >>> from astropy import units as u
     >>> mag = ref2mag(0.1, 460)
-    >>> print(mag)
-    2.0779632200851914
+    >>> print('{0:.4}'.format(mag))
+    2.078
     >>> mag = ref2mag(0.1, 460*u.km)
-    >>> print(mag)
-    2.0779632200851914 mag
+    >>> print('{0:.4}'.format(mag))
+    2.078 mag
     """
 
     if M_sun is None:
@@ -84,11 +84,11 @@ def mag2ref(mag, radius, M_sun=None):
     --------
     >>> from astropy import units as u
     >>> ref = mag2ref(2.08, 460)
-    >>> print(ref)
-    0.09981258148546485
+    >>> print('{0:.4}'.format(ref))
+    0.09981
     >>> ref = mag2ref(2.08, 460*u.km)
-    >>> print(ref)
-    0.09981258148546485 1 / sr
+    >>> print('{0:.4}'.format(ref))
+    0.09981 1 / sr
     """
 
     if M_sun is None:
@@ -157,7 +157,7 @@ class spline(object):
         A3 = (-2*r+dys[:-1]+dys[1:])/h**2
         self.coef = np.array([A0, A1, A2, A3]).T
         self.polys = [Polynomial(c) for c in self.coef]
-        self.polys.insert(0, Polynomial([1,self.dy[0]]))
+        self.polys.insert(0, Polynomial([self.y[0]-self.x[0]*self.dy[0],self.dy[0]]))
         self.polys.append(Polynomial([self.y[-1]-self.x[-1]*self.dy[-1], self.dy[-1]]))
 
     def __call__(self, x):
@@ -240,7 +240,10 @@ class DiskIntegratedModelClass(Fittable1DModel):
     @property
     def geoalb(self):
         """Geometric albedo"""
-        return np.pi*self.ref(0)
+        alb = np.pi*self.ref(0)
+        if hasattr(alb, 'unit'):
+            alb = alb*units.sr
+        return alb
 
     @property
     def bondalb(self):
@@ -379,8 +382,8 @@ class DiskIntegratedModelClass(Fittable1DModel):
         Examples
         --------
         >>> ceres_hg = HG(3.4, 0.12, radius=480)
-        >>> ceres_hg._phase_integral()
-        0.36435057552929323
+        >>> print('{0:.3}'.format(ceres_hg._phase_integral()))
+        0.364
 
         """
         integrand = lambda x: 2*self.ref(x, normalized=0.)*np.sin(x)
@@ -507,11 +510,11 @@ class HG1G2(HG12BaseClass):
 
     @property
     def _G1(self):
-        return self.G1
+        return self.G1.value
 
     @property
     def _G2(self):
-        return self.G2
+        return self.G2.value
 
     @staticmethod
     def evaluate(ph, h, g1, g2):
@@ -539,23 +542,33 @@ class HG12(HG12BaseClass):
     G12 = Parameter(description='G12 parameter')
 
     @property
-    def _G1(G12):
-        if G12<0.2:
-            return 0.7527*G12+0.06164
-        else:
-            return 0.9529*G12+0.02162
+    def _G1(self):
+        return self._G12_to_G1(self.G12.value)
 
     @property
-    def _G2(G12):
-        if G12<0.2:
-            return -0.9612*G12+0.6270
+    def _G2(self):
+        return self._G12_to_G2(self.G12.value)
+
+    @staticmethod
+    def _G12_to_G1(g12):
+        """Calculate G1 from G12"""
+        if g12<0.2:
+            return 0.7527*g12+0.06164
         else:
-            return -0.6125*G12+0.5572
+            return 0.9529*g12+0.02162
+
+    @staticmethod
+    def _G12_to_G2(g12):
+        """Calculate G2 from G12"""
+        if g12<0.2:
+            return -0.9612*g12+0.6270
+        else:
+            return -0.6125*g12+0.5572
 
     @staticmethod
     def evaluate(ph, h, g):
-        g1 = HG12._G1(g)
-        g2 = HG12._G2(g)
+        g1 = HG12._G12_to_G1(g)
+        g2 = HG12._G12_to_G2(g)
         return HG1G2.evaluate(ph, h, g1, g2)
 
     @staticmethod
@@ -564,8 +577,8 @@ class HG12(HG12BaseClass):
             ddh = np.ones_like(ph)
         else:
             ddh = 1.
-        g1 = HG12._G1(g)
-        g2 = HG12._G2(g)
+        g1 = HG12._G12_to_G1(g)
+        g2 = HG12._G12_to_G2(g)
         phi1 = HG1G2._phi1(ph)
         phi2 = HG1G2._phi2(ph)
         phi3 = HG1G2._phi3(ph)
