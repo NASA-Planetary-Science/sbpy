@@ -36,8 +36,8 @@ class Phys(DataClass):
 
         Examples
         --------
-        >>> from sbpy.data import Phys
-        >>> phys = Phys.from_horizons('ceres'(
+        >>> from sbpy.data import Phys # doctest: +SKIP
+        >>> phys = Phys.from_horizons('Ceres') # doctest: +SKIP
 
         not yet implemented
 
@@ -64,8 +64,8 @@ class Phys(DataClass):
 
         Examples
         --------
-        >>> from sbpy.data import Phys
-        >>> phys = Phys.from_astorb('ceres'(
+        >>> from sbpy.data import Phys # doctest: +SKIP
+        >>> phys = Phys.from_astorb('Ceres') # doctest: +SKIP
 
         not yet implemented
 
@@ -76,7 +76,7 @@ class Phys(DataClass):
 
     def derive_diam(self):
         """Derive diameter from absolute magnitude and geometric albedo"""
-        
+
     def derive_pv(self):
         """Derive geometric albedo from diameter and absolute magnitude"""
 

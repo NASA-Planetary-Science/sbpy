@@ -114,11 +114,10 @@ release = package.__version__
 
 # Please update these texts to match the name of your package.
 html_theme_options = {
-    'logotext1': 'SB',  # white,  semi-bold
-    'logotext2': 'Py',  # orange, light
+    'logotext1': 'sb',  # white,  semi-bold
+    'logotext2': 'py',  # orange, light
     'logotext3': ':docs'   # white,  light
-    }
-
+}
 
 
 # Custom sidebar templates, maps document names to template names.
@@ -177,5 +176,5 @@ if eval(setup_cfg.get('edit_on_github')):
     edit_on_github_doc_root = "docs"
 
 # -- Resolving issue number to links in changelog -----------------------------
-github_issues_url = 'https://github.com/{0}/issues/'.format(setup_cfg['github_project'])
-
+github_issues_url = 'https://github.com/{0}/issues/'.format(
+    setup_cfg['github_project'])
