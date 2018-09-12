@@ -12,6 +12,8 @@ from numpy import ndarray, array
 from astropy.table import QTable, Column, vstack
 import astropy.units as u
 
+from . import conf
+
 __all__ = ['DataClass', 'mpc_observations', 'sb_search', 'image_search',
            'pds_ferret']
 
@@ -227,7 +229,7 @@ class DataClass():
         Examples
         --------
         >>> from sbpy.data import DataClass
-        >>> dat = Dataclass.from_file('data.txt', format='ascii') # doctest: +SKIP
+        >>> dat = DataClass.from_file('data.txt', format='ascii') # doctest: +SKIP
         """
 
         data = QTable.read(filename, **kwargs)
@@ -277,13 +279,14 @@ class DataClass():
         self._table.write(filename, format=format, **kwargs)
 
     def __getattr__(self, field):
-        """Get attribute from ``self._table` (columns, rows) or ``self``,
-        if the former does not exist."""
+        """Get attribute from ``self._table` (columns, rows); checks
+        for and may use alternative field names."""
 
-        if field in self._table.columns:
-            return self._table[field]
+        if field == '_table':
+            return self._table
         else:
-            raise AttributeError("field '{:s}' does not exist".format(field))
+            field = self._translate_columns(field)[0]
+            return self._table[field]
 
     def __setattr__(self, field, value):
         """Modify attribute in ``self._table``, if it already exists there,
@@ -300,7 +303,11 @@ class DataClass():
             super().__setattr__(field, value)
 
     def __getitem__(self, ident):
-        """Return column or row from data table (``self._table``)."""
+        """Return column or row from data table (``self._table``); checks
+        for and may use alternative field names."""
+
+        if isinstance(ident, str):
+            ident = self._translate_columns(ident)[0]
         return self._table[ident]
 
     @property
@@ -423,12 +430,35 @@ class DataClass():
         self._table.add_column(Column(data, name=name))
         return len(self.column_names)
 
-    def _check_columns(self, colnames):
-        """Checks whether all of the elements in ``colnames`` exist as
-        column names in the data table. If ``self.column_names`` is longer
-        than ``colnames``, this does not force ``False``."""
+    def _translate_columns(self, target_colnames):
+        """Translate target_colnames to the corresponding column names
+        present in this object's table. Returns a list of actual column
+        names present in this object that corresponds to target_colnames
+        (order is preserved). Raises ValueError if not all columns are
+        present or one or more columns could not be translated
+        """
+        if not isinstance(target_colnames, (list, ndarray)):
+            target_colnames = [target_colnames]
 
-        return all([col in self.column_names for col in colnames])
+        translated_colnames = []
+        for colname in target_colnames:
+            if colname in self.column_names:
+                # colname already in self._table
+                translated_colnames.append(colname)
+            elif colname in conf.namealts.keys():
+                # colname already default name (conf.namealts key)
+                for translation in conf.namealts[colname]:
+                    if translation in self.column_names:
+                        translated_colnames.append(translation)
+            else:
+                # colname is alternative name (conf.altnames key)
+                if colname in conf.altnames.keys():
+                    translated_colnames.append(conf.altnames[colname])
+                else:
+                    raise KeyError('column \"{:s}\" not available'.format(
+                        colname))
+
+        return translated_colnames
 
 
 def mpc_observations(targetid):

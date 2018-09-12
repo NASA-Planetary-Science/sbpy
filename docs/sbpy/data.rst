@@ -284,6 +284,31 @@ Writing object data to a file
 By default, the data are written in ASCII format, but other formats
 are available, too (cf. `~astropy.table.Table.write`).
 
+Alternative field names
+^^^^^^^^^^^^^^^^^^^^^^^
+
+It is common practice to use a set of different names for the same
+property. For instance, the orbital inclination can be referred to as
+``'i'``, ``'inc'``, or ``'incl'`` - it's a matter of personal
+taste. `~sbpy.data.DataClass` accounts for this fact and is able to
+provide a number of alternative field or property names, as suggested
+above.
+
+As an example, if your `~sbpy.data.Orbit` object has a column named
+``'incl'`` but you try to get column ``'i'``, the object will
+internally check if ``'i'`` is a legitimate alternative field name for
+``'incl'``. The corresponding column is then returned. If you try to
+get a field name that is not connected to any existing field name, a
+``KeyError`` will be raised.
+
+The definition of alternative field names is done in the file
+``sbpy/data/__init__.py``, using the dictionary ``namealts``. This
+dictionary is automatically tested for potential naming conflicts,
+i.e., different properties that share the same alternative field
+names.
+
+
+
 How to use Ephem
 ----------------
 

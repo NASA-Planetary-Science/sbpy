@@ -5,7 +5,7 @@ import pytest
 from numpy import array
 import astropy.units as u
 from astropy.table import QTable
-from ..core import DataClass
+from ..core import DataClass, conf
 
 
 def data_path(filename):
@@ -27,7 +27,7 @@ def test_get_set():
 
     data['a'][:] = [0, 0, 0]
 
-    with pytest.raises(AttributeError):
+    with pytest.raises(KeyError):
         data.d
 
     with pytest.raises(KeyError):
@@ -174,15 +174,38 @@ def test_add():
     assert tab.add_rows(tab) == 20
 
 
-def test_check_columns():
-    """test function that checks the existing of a number of column names
-    provided"""
+def test_alternative_name_uniqueness():
+    """test the uniqueness of alternative field names"""
+
+    from ..core import conf
+
+    assert (len(conf.namealts.keys()) +
+            sum([len(val) for val in conf.namealts.values()]) ==
+            len(set(list(conf.namealts.keys()) +
+                    [item for sublist in list(conf.namealts.values())
+                     for item in sublist])))
+
+    with pytest.raises(AssertionError):
+        conf.namealts['epoch'] = 'i'
+        assert (len(conf.namealts.keys()) +
+                sum([len(val) for val in conf.namealts.values()]) ==
+                len(set(list(conf.namealts.keys()) +
+                        [item for sublist in list(conf.namealts.values())
+                         for item in sublist])))
+
+
+def test_translate_columns():
+    """test function that translates column names"""
+
+    conf.namealts = {'z': ['a']}
 
     tab = DataClass.from_dict(
         [OrderedDict((('a', 1*u.m), ('b', 4*u.m/u.s), ('c', 'a'))),
          OrderedDict((('a', 2*u.m), ('b', 5*u.m/u.s), ('c', 'b'))),
          OrderedDict((('a', 3*u.m), ('b', 6*u.m/u.s), ('c', 'c')))])
 
-    assert tab._check_columns(['a', 'b', 'c'])
-    assert tab._check_columns(['a', 'b'])
-    assert not tab._check_columns(['a', 'b', 'f'])
+    assert tab._translate_columns(['a', 'b', 'c']) == ['a', 'b', 'c']
+    assert tab._translate_columns(['z', 'b', 'c']) == ['a', 'b', 'c']
+
+    with pytest.raises(KeyError):
+        tab._translate_columns(['x'])
