@@ -249,10 +249,6 @@ class Afrho(u.SpecificTypeQuantity):
           default solar spectrum will be used via
           `~sbpy.spectroscopy.sun.default_sun`.
 
-        unit : `~astropy.units.Unit`, optional
-          The spectral unit for the output, ignored if `S` is
-          provided.
-
 
         Examples
         --------
@@ -269,7 +265,7 @@ class Afrho(u.SpecificTypeQuantity):
         """
 
         fluxd1cm = Afrho(1 * u.cm).fluxd(wave_or_freq, aper, eph=eph, S=S,
-                                         unit=unit)
+                                         unit=fluxd.unit)
 
         afrho = Afrho((fluxd / fluxd1cm).decompose() * u.cm)
         if phasecor:
