@@ -284,6 +284,31 @@ Writing object data to a file
 By default, the data are written in ASCII format, but other formats
 are available, too (cf. `~astropy.table.Table.write`).
 
+Alternative field names
+^^^^^^^^^^^^^^^^^^^^^^^
+
+It is common practice to use a set of different names for the same
+property. For instance, the orbital inclination can be referred to as
+``'i'``, ``'inc'``, or ``'incl'`` - it's a matter of personal
+taste. `~sbpy.data.DataClass` accounts for this fact and is able to
+provide a number of alternative field or property names, as suggested
+above.
+
+As an example, if your `~sbpy.data.Orbit` object has a column named
+``'incl'`` but you try to get column ``'i'``, the object will
+internally check if ``'i'`` is a legitimate alternative field name for
+``'incl'``. The corresponding column is then returned. If you try to
+get a field name that is not connected to any existing field name, a
+``KeyError`` will be raised.
+
+The definition of alternative field names is done in the file
+``sbpy/data/__init__.py``, using the dictionary ``namealts``. This
+dictionary is automatically tested for potential naming conflicts,
+i.e., different properties that share the same alternative field
+names.
+
+
+
 How to use Ephem
 ----------------
 
@@ -460,19 +485,14 @@ asteroid and comet identifiers:
     >>> print(Names.parse_comet('73P-C/Schwassmann Wachmann 3 C	')) # doctest: +SKIP
     {'type': 'P', 'number': 73, 'fragment': 'C', 'name': 'Schwassmann Wachmann 3 C'}
     
-Note that these examples are somewhat idealized. Consider the
-following query:
-
-    >>> print(Names.parse_comet('12893 Mommert (1998 QS55)')) # doctest: +SKIP
-    {'name': 'Mommert ', 'desig': '1998 QS55'}
-
-Although this target identifier clearly denotes an asteroid, the
-routine finds a comet name and a comet designation. The reason for
-this is that some comets are discovered as asteroids and hence obtain
-asteroid-like designations that stick to them; similarly, comet names
-cannot be easily distinguished from asteroids names, unless one knows
-all comet and asteroid names. Hence, some caution is advised when
-using these routines - identification might not be unambiguous.
+In order to be able to distinguish between asteroid and comet
+identifiers, `sbpy` follows the MPC guideline in that it requires
+comet identifiers to include the comet type in either in combination
+with a number (e.g., ``'259P'``), a name (e.g., ``'P/Halley'``), or
+both (e.g., ``'2P/Encke'``). For instance, the identifier ``'Halley'``
+would be identified as an asteroid, as it lacks a comet type
+identifier. Hence, some caution is advised when using these routines -
+identification might not be unambiguous.
 
     
 
