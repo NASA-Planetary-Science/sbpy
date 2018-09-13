@@ -282,8 +282,8 @@ class DataClass():
         """Get attribute from ``self._table` (columns, rows); checks
         for and may use alternative field names."""
 
-        if field == '_table':
-            return self._table
+        if field in dir(self):
+            return self.field
         else:
             field = self._translate_columns(field)[0]
             return self._table[field]
