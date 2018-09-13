@@ -4,10 +4,12 @@ import numpy as np
 import astropy.units as u
 from ..dust import *
 
+
 def test_phase_HalleyMarcus():
     assert np.isclose(phase_HalleyMarcus(0 * u.deg), 1.0)
     assert np.isclose(phase_HalleyMarcus(15 * u.deg), 5.8720e-01)
     assert np.isclose(phase_HalleyMarcus(14.5 * u.deg), 0.5959274462322928)
+
 
 class TestAfrho:
     def test_init(self):
@@ -32,6 +34,14 @@ class TestAfrho:
         eph = dict(rh=1.5 * u.au, delta=1.0 * u.au)
         S = 1869 * u.W / u.m**2 / u.um
         afrho = Afrho.from_fluxd(None, fluxd, aper, eph, S=S)
+        assert np.isclose(afrho.cm, 1000)
+
+    def test_from_flam_with_synphot(self):
+        wave = 0.55 * u.um
+        fluxd = 6.764172537310662e-14 * u.W / u.m**2 / u.um
+        aper = 1 * u.arcsec
+        eph = dict(rh=1.5 * u.au, delta=1.0 * u.au)
+        afrho = Afrho.from_fluxd(wave, fluxd, aper, eph)
         assert np.isclose(afrho.cm, 1000)
 
     def test_from_fnu(self):
@@ -73,7 +83,8 @@ class TestAfrho:
     def test_to_phase(self):
         afrho = Afrho(10 * u.cm).to_phase(15 * u.deg, 0 * u.deg)
         assert np.isclose(afrho.cm, 5.8720)
-    
+
+
 class TestEfrho:
     def test_init(self):
         efrho = Efrho(1000 * u.cm)
@@ -115,7 +126,7 @@ class TestEfrho:
         eph = dict(rh=1.5 * u.au, delta=1.0 * u.au)
         fluxd = efrho.fluxd(wave, aper, eph)
         assert np.isclose(fluxd.value, 1e-16)
-    
+
     def test_fluxd_unit(self):
         efrho = Efrho(100, 'cm')
         wave = 5 * u.um
@@ -124,4 +135,3 @@ class TestEfrho:
         Tscale = 1.1
         fluxd = efrho.fluxd(wave, aper, eph, Tscale=Tscale, unit='mJy')
         assert np.isclose(fluxd.value, 0.3197891693353106)
-    
