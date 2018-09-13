@@ -485,19 +485,14 @@ asteroid and comet identifiers:
     >>> print(Names.parse_comet('73P-C/Schwassmann Wachmann 3 C	')) # doctest: +SKIP
     {'type': 'P', 'number': 73, 'fragment': 'C', 'name': 'Schwassmann Wachmann 3 C'}
     
-Note that these examples are somewhat idealized. Consider the
-following query:
-
-    >>> print(Names.parse_comet('12893 Mommert (1998 QS55)')) # doctest: +SKIP
-    {'name': 'Mommert ', 'desig': '1998 QS55'}
-
-Although this target identifier clearly denotes an asteroid, the
-routine finds a comet name and a comet designation. The reason for
-this is that some comets are discovered as asteroids and hence obtain
-asteroid-like designations that stick to them; similarly, comet names
-cannot be easily distinguished from asteroids names, unless one knows
-all comet and asteroid names. Hence, some caution is advised when
-using these routines - identification might not be unambiguous.
+In order to be able to distinguish between asteroid and comet
+identifiers, `sbpy` follows the MPC guideline in that it requires
+comet identifiers to include the comet type in either in combination
+with a number (e.g., ``'259P'``), a name (e.g., ``'P/Halley'``), or
+both (e.g., ``'2P/Encke'``). For instance, the identifier ``'Halley'``
+would be identified as an asteroid, as it lacks a comet type
+identifier. Hence, some caution is advised when using these routines -
+identification might not be unambiguous.
 
     
 

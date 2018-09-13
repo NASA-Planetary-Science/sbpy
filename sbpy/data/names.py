@@ -119,7 +119,8 @@ class Names():
         """Parse a string as if it were a comet name.
 
         Considers IAU-formatted permanent and new-style
-        designations. Note that letter case is important.
+        designations. Note that comet types (P, D, C etc) are required
+        and letter case is important.
 
         Parameters
         ----------
@@ -169,6 +170,8 @@ class Names():
         +------------------------------+------+----+-----+----------+------------------------+
         |3D/Biela                      | 3    | D  |     |          |Biela                   |
         +------------------------------+------+----+-----+----------+------------------------+
+        |P/Encke                       |      | P  |     |          |Encke                   |
+        +------------------------------+------+----+-----+----------+------------------------+
         |9P/Tempel 1                   | 9    | P  |     |          |Tempel 1                |
         +------------------------------+------+----+-----+----------+------------------------+
         |73P/Schwassmann Wachmann 3 C  | 73   | P  |     |          |Schwassmann Wachmann 3 C|
@@ -193,6 +196,7 @@ class Names():
         +------------------------------+------+----+-----+----------+------------------------+
         |C/2015 V2 (Johnson)           |      | C  |     | 2015 V2  |Johnson                 |
         +------------------------------+------+----+-----+----------+------------------------+
+
         """
 
         import re
@@ -257,7 +261,7 @@ class Names():
                     if len(el[5]) > 1:
                         r['name'] = el[5]
 
-        if len(r) == 0:
+        if len(r) == 0 or 'type' not in r:
             raise TargetNameParseError(('{} does not appear to be a '
                                         'comet name').format(s))
         else:
@@ -476,7 +480,10 @@ class Names():
         the name is ambiguous, ``None`` will be
         returned. ``'asteroid'`` will be returned if the number of
         found asteroid identifier elements is larger than the number
-        of found comet identifier elements and vice versa.
+        of found comet identifier elements and vice versa. Note that
+        for any identifier that does not contain a comet type (P, D, C
+        etc.), it is highly likely that the object gets identified as an
+        asteroid.
 
         Examples
         --------
@@ -485,8 +492,6 @@ class Names():
         comet
         >>> print(Names.asteroid_or_comet('(1) Ceres'))
         asteroid
-        >>> print(Names.asteroid_or_comet('Fred'))
-        None
 
         """
 

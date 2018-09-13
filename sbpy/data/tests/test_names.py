@@ -7,6 +7,7 @@ from ..names import Names, TargetNameParseError
 comets = {
     '1P/Halley': {'type': 'P', 'number': 1, 'name': 'Halley'},
     '3D/Biela': {'type': 'D', 'number': 3, 'name': 'Biela'},
+    'P/Encke': {'type': 'P', 'name': 'Encke'},
     '6P/d\'Arrest': {'type': 'P', 'number': 6, 'name': 'd\'Arrest'},
     '9P/Tempel 1': {'type': 'P', 'number': 9, 'name': 'Tempel 1'},
     '73P/Schwassmann Wachmann 3 C': {'type': 'P', 'number': 73,
