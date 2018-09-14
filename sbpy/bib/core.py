@@ -29,7 +29,8 @@ def register(task, citations):
     """
     global _bibliography, _track
     if _track:
-        _bibliography[task] = citations
+        _bibliography[task] = _bibliography.get(task, {})
+        _bibliography[task].update(citations)
 
 
 def reset():
