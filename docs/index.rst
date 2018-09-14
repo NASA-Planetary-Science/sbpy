@@ -33,14 +33,26 @@ Installation
 supported. We hence recommend that you install the latest version of
 `Anaconda Python 3.x <https://www.anaconda.com/download/>`_ on your
 system before installing `sbpy`. Make sure that Anaconda Python is
-your default Python (this is asked during the installation process).
+your default Python (this will be asked during the installation process).
+
+Requirements
+^^^^^^^^^^^^
+
+Most requirements should be resolved during the installation process. However, we recommend to install the latest development version of `astroquery` using
+
+    >>> pip install git+https://github.com/astropy/astroquery.git
+
+Also, if you want to use `pyoorb
+<https://github.com/oorb/oorb/tree/master/python>`_, you will have to
+install it using the instructions provided on that page.
+    
 
 Using pip
 ^^^^^^^^^
 
 The latest development version of `sbpy` can be easily installed using
 
-    pip install git+https://github.com/NASA-Planetary-Science/sbpy.git
+    >>> pip install git+https://github.com/NASA-Planetary-Science/sbpy.git
 
 
 Using GitHub
@@ -50,15 +62,15 @@ This way of installing `sbpy` is recommended if you plan to contribute
 to the module. The current development version of `sbpy` can be
 obtained from `GitHub <https://github.com/mommermi/sbpy>`_ using
 
-    git clone https://github.com/mommermi/sbpy.git
+    >>> git clone https://github.com/mommermi/sbpy.git
 
 This will create a new directory (``sbpy/``). In this directory, run
 
-    python setup.py install --user
+    >>> python setup.py install --user
 
 in order to use `sbpy` in your default Python environment. If you plan to work on the code and always want to use the latest version of your code, you can install it with
 
-    python setup.py develop --user
+    >>> python setup.py develop --user
 
 Learning how to use `sbpy`
 --------------------------
