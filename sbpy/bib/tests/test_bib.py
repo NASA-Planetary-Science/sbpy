@@ -44,3 +44,15 @@ def test_Tracking():
     register('test', {'do not track this': 'bibcode'})
 
     assert ['test:', 'track_this:', 'bibcode'] == to_text().split()
+
+
+def test_Tracking_issue_64():
+    from sbpy.activity import photo_lengthscale
+    reset()
+    with Tracking():
+        gamma_H2O = photo_lengthscale('H2O')
+        gamma_OH = photo_lengthscale('OH')
+    expected = """activity.gas.photo_lengthscale:
+  H2O photodissociation lengthscale: 1993Icar..105..235C
+  OH photodissociation lengthscale: 1993Icar..105..235C""".split()
+    assert to_text().split() == expected
