@@ -98,8 +98,9 @@ The current development version status is as follows:
     :alt: Travis-CI status
 
 .. image:: https://coveralls.io/repos/github/NASA-Planetary-Science/sbpy/badge.svg?branch=master
-:target: https://coveralls.io/github/NASA-Planetary-Science/sbpy?branch=master
-	 
+    :target: https://coveralls.io/github/NASA-Planetary-Science/sbpy?branch=master
+    :alt: Coveralls status
+	
 .. image:: https://readthedocs.org/projects/sbpy/badge/?version=latest
     :target: http://sbpy.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
