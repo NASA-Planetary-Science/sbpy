@@ -1,6 +1,6 @@
-numpy
+numpy>=1.4.0
 astropy-helpers
 matplotlib
 ads
 synphot
-astroquery
+astroquery>=0.3.8
