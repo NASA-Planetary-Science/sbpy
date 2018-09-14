@@ -6,7 +6,7 @@ created on June 23, 2017
 """
 
 __all__ = ['ref2mag', 'mag2ref', 'spline',
-           'DiskIntegratedModelClass', 'HG', 'HG12', 'HG1G2',
+           'DiskIntegratedModelClass', 'LinearPhaseFunc', 'HG', 'HG12', 'HG1G2',
            'DiskFunctionModel', 'LommelSeeliger', 'Lambert', 'LunarLambert',
            'PhaseFunctionModel', 'ROLOPhase',
            'ResolvedPhotometricModelClass', 'ROLO']
@@ -15,6 +15,7 @@ import numpy as np
 from scipy.integrate import quad
 from astropy.modeling import FittableModel, Fittable1DModel, Fittable2DModel, Parameter
 from astropy import units
+from ..data import Ephem
 
 
 def ref2mag(ref, radius, M_sun=None):
@@ -22,11 +23,11 @@ def ref2mag(ref, radius, M_sun=None):
 
     Parameters
     ----------
-    ref : num, astropy.units.Quantity
+    ref : float, astropy.units.Quantity
         Average bidirectional reflectance
-    radius : num, astropy.units.Quantity
+    radius : float, astropy.units.Quantity
         Radius of object
-    M_sun : number, optional
+    M_sun : float, optional
         The magnitude of the Sun, default is -26.74
 
     Returns
@@ -36,6 +37,7 @@ def ref2mag(ref, radius, M_sun=None):
     Examples
     --------
     >>> from astropy import units as u
+    >>> from sbpy.photometry import ref2mag
     >>> mag = ref2mag(0.1, 460)
     >>> print('{0:.4}'.format(mag))
     2.078
@@ -69,11 +71,11 @@ def mag2ref(mag, radius, M_sun=None):
 
     Parameters
     ----------
-    mag : num, astropy.units.Quantity
+    mag : float, astropy.units.Quantity
         Reduced magnitude
-    radius : num, astropy.units.Quantity
+    radius : float, astropy.units.Quantity
         Radius of object
-    M_sun : number, optional
+    M_sun : float, optional
         The magnitude of the Sun, default is -26.74
 
     Returns
@@ -83,6 +85,7 @@ def mag2ref(mag, radius, M_sun=None):
     Examples
     --------
     >>> from astropy import units as u
+    >>> from sbpy.photometry import mag2ref
     >>> ref = mag2ref(2.08, 460)
     >>> print('{0:.4}'.format(ref))
     0.09981
@@ -125,9 +128,9 @@ class spline(object):
 
         Parameters
         ----------
-        x, y : array_like numbers
+        x, y : array_like float
             The (x, y) values at nodes that defines the spline
-        dy : array_like numbers with two elements
+        dy : array_like float with two elements
             The first derivatives of the left and right ends of the nodes
         """
         from numpy.linalg import solve
@@ -187,6 +190,7 @@ class DiskIntegratedModelClass(Fittable1DModel):
     >>> # Define a disk-integrated phase function model
     >>> import numpy as np
     >>> from astropy.modeling import Parameter
+    >>> from sbpy.photometry import DiskIntegratedModelClass
     >>>
     >>> class LinearPhaseFunc(DiskIntegratedModelClass):
     ...
@@ -220,13 +224,13 @@ class DiskIntegratedModelClass(Fittable1DModel):
 
         Parameters
         ----------
-        radius : number or astropy.units.Quantity
-            Radius of object, in km if a number.  Needed for magnitude and
+        radius : float or astropy.units.Quantity
+            Radius of object, in km if a float.  Needed for magnitude and
             reflectance conversion
-        M_sun : number or astropy.units.Quantity
+        M_sun : float or astropy.units.Quantity
             Solar magnitude.  Needed for magnitude and reflectance conversion.
-            If not supplied, the V-band solar magnitude assumed.  See `ref2mag`
-            and `mag2ref`
+            If not supplied, the V-band solar magnitude assumed.  See
+            `~ref2mag` and `~mag2ref`
 
         """
         super().__init__(*args, **kwargs)
@@ -261,7 +265,7 @@ class DiskIntegratedModelClass(Fittable1DModel):
 
         Parameters
         ----------
-        eph : `sbpy.data.Ephem` instance, mandatory
+        eph : `~sbpy.data.Ephem` instance, mandatory
             photometric data; must contain `phase` (phase angle) and `mag`
             (apparent magnitude) columns; `mag_err` optional
 
@@ -302,66 +306,127 @@ class DiskIntegratedModelClass(Fittable1DModel):
 
         """
 
-    def mag(self, pha, **kwargs):
+    def mag(self, eph, **kwargs):
         """Calculate phase function in magnitude
 
         Parameters
         ----------
-        pha : number or array_like of numbers
-            Phase angles
+        eph : `~sbpy.data.Ephem`, dict_like, float, or array_like of float
+            If `~sbpy.data.Ephem` or dict_like, ephemerides of the object that
+            can include phase angle, heliocentric and geocentric distances via
+            keywords `phase`, `r` and `delta`.  If float or array_like, then
+            the phase angle of object.  If any distance (heliocentric and
+            geocentric) is not provided, then it will be assumed to be 1 au.
+            If no unit is provided via type `~astropy.units.Quantity`, then
+            radiance is assumed for phase angle, and au is assumed for
+            distances.
 
         Returns
         -------
-        Numpy array of magnitude
+        Numpy array of magnitude based on the phase function model at specified
+        phase angle, heliocentric and geocentric distances
 
         Examples
         --------
         >>> import numpy as np
-        >>> ceres_hg = HG(3.4, 0.12)
+        >>> from astropy import units as u
+        >>> from sbpy.photometry import HG
+        >>> from sbpy.data import Ephem
+        >>> ceres_hg = HG(3.34, 0.12)
+        >>> # parameter `eph` as `~sbpy.data.Ephem` type
+        >>> eph = Ephem({'alpha': np.linspace(0,np.pi*0.9,200),
+        ...              'r': np.repeat(2.7*u.au, 200),
+        ...              'delta': np.repeat(1.8*u.au, 200)})
+        >>> mag1 = ceres_hg.mag(eph)
+        >>> # parameter `eph` as numpy array
         >>> pha = np.linspace(0, 180, 200)
-        >>> mag = ceres_hg.mag(np.deg2rad(pha))
+        >>> mag2 = ceres_hg.mag(np.deg2rad(pha))
         """
         self._check_unit()
-        out = self(pha, **kwargs)
-        if self._unit == 'mag':
-            return out
+        if isinstance(eph, Ephem):
+            pass
+        elif isinstance(eph, dict):
+            eph = Ephem(eph)
         else:
+            eph = Ephem({'alpha': eph})
+        pha = eph['alpha']
+        if isinstance(pha, units.Quantity):
+            pha = pha.to('rad').value
+        out = self(pha, **kwargs)
+        if self._unit != 'mag':
             if self.radius is None:
                 raise ValueError('cannot calculate phase funciton in magnitude because the size of object is unknown')
-            return ref2mag(out, self.radius, M_sun=self.M_sun)
+            out = ref2mag(out, self.radius, M_sun=self.M_sun)
+        if 'r' in eph.column_names:
+            rh = eph['r']
+            if isinstance(rh, units.Quantity):
+                rh = rh.to('au').value
+            out += 5*np.log10(rh)
+        if 'delta' in eph.column_names:
+            delta = eph['delta']
+            if isinstance(delta, units.Quantity):
+                delta = delta.to('au').value
+            out += 5*np.log10(delta)
+        return out
 
-    def ref(self, pha, normalized=None, **kwargs):
+    def ref(self, eph, normalized=None, **kwargs):
         """Calculate phase function in average bidirectional reflectance
 
         Parameters
         ----------
-        pha : number or array_like of numbers
-            Phase angles
+        eph : `~sbpy.data.Ephem`, dict_like, float, or array_like of float
+            If `~sbpy.data.Ephem` or dict_like, ephemerides of the object that
+            can include phase angle, heliocentric and geocentric distances via
+            keywords `phase`, `r` and `delta`.  If float or array_like, then
+            the phase angle of object.  If any distance (heliocentric and
+            geocentric) is not provided, then it will be assumed to be 1 au.
+            If no unit is provided via type `~astropy.units.Quantity`, then
+            radiance is assumed for phase angle, and au is assumed for
+            distances.
 
         Returns
         -------
-        Numpy array of average bidirectional reflectance
+        Numpy array of average bidirectional reflectance based on the phase
+        function model at specified phase angle
 
         Examples
         --------
         >>> import numpy as np
-        >>> ceres_hg = HG(3.4, 0.12, radius=480)
+        >>> from astropy import units as u
+        >>> from sbpy.photometry import HG
+        >>> from sbpy.data import Ephem
+        >>> ceres_hg = HG(3.34, 0.12, radius=480)
+        >>> # parameter `eph` as `~sbpy.data.Ephem` type
+        >>> eph = Ephem({'alpha': np.linspace(0,np.pi*0.9,200),
+        ...              'r': np.repeat(2.7*u.au, 200),
+        ...              'delta': np.repeat(1.8*u.au, 200)})
+        >>> ref1 = ceres_hg.ref(eph)
+        >>> # parameter `eph` as numpy array
         >>> pha = np.linspace(0, 180, 200)
-        >>> ref = ceres_hg.ref(np.deg2rad(pha))
-
+        >>> ref2 = ceres_hg.mag(np.deg2rad(pha))
         """
         self._check_unit()
+        if isinstance(eph, (dict, Ephem)):
+            pha = eph['alpha']
+        else:
+            pha = eph
+        if isinstance(pha, units.Quantity):
+            pha = pha.to('rad').value
         out = self(pha, **kwargs)
+        if normalized is not None:
+            if isinstance(normalized, units.Quantity):
+                normalized = normalized.to('rad').value
+            norm = self(normalized, **kwargs)
         if self._unit == 'ref':
             if normalized is not None:
-                out /= self(normalized, **kwargs)
+                out /= norm
             return out
         else:
             if self.radius is None:
                 raise ValueError('cannot calculate phase function in reflectance unit because the size of object is unknown')
             out = mag2ref(out, self.radius, M_sun=self.M_sun)
             if normalized is not None:
-                out /= mag2ref(self(normalized, **kwargs), self.radius, M_sun=self.M_sun)
+                out /= mag2ref(norm, self.radius, M_sun=self.M_sun)
             return out
 
     def _phase_integral(self, integrator=quad):
@@ -370,18 +435,19 @@ class DiskIntegratedModelClass(Fittable1DModel):
         Parameters
         ----------
         integrator : function, optinonal
-            Numerical integrator, default is `scipy.integrate.quad`.  If caller
-            supplies a numerical integrator, it must has the same return
-            signature as `scipy.integrator.quad`, i.e., a tuple of (y, ...),
-            where `y` is the result of numerical integration
+            Numerical integrator, default is `~scipy.integrate.quad`.
+            If caller supplies a numerical integrator, it must has the same
+            return signature as `~scipy.integrator.quad`, i.e., a tuple of
+            (y, ...), where `y` is the result of numerical integration
 
         Returns
         -------
-        Number, phase integral
+        Float, phase integral
 
         Examples
         --------
-        >>> ceres_hg = HG(3.4, 0.12, radius=480)
+        >>> from sbpy.photometry import HG
+        >>> ceres_hg = HG(3.34, 0.12, radius=480)
         >>> print('{0:.3}'.format(ceres_hg._phase_integral()))
         0.364
 
@@ -390,8 +456,64 @@ class DiskIntegratedModelClass(Fittable1DModel):
         return integrator(integrand, 0, np.pi)[0]
 
 
+class LinearPhaseFunc(DiskIntegratedModelClass):
+    """Linear phase function model
+
+    Examples
+    --------
+    >>> # Define a linear phase function model with absolute magnitude
+    >>> # H = 5 and slope = 0.04 mag/deg = 2.29 mag/rad
+    >>> from sbpy.photometry import LinearPhaseFunc
+    >>>
+    >>> linear_phasefunc = LinearPhaseFunc(5, 2.29, radius=300)
+    >>> pha = np.linspace(0, 180, 200)
+    >>> mag = linear_phasefunc.mag(np.deg2rad(pha))
+    >>> ref = linear_phasefunc.ref(np.deg2rad(pha))
+    >>> geoalb = linear_phasefunc.geoalb
+    >>> phaseint = linear_phasefunc.phaseint
+    >>> bondalb = linear_phasefunc.bondalb
+    >>> print('Geometric albedo is {0:.3}'.format(geoalb))
+    Geometric albedo is 0.0501
+    >>> print('Bond albedo is {0:.3}'.format(bondalb))
+    Bond albedo is 0.0184
+    >>> print('Phase integral is {0:.3}'.format(phaseint))
+    Phase integral is 0.368
+
+    """
+
+    _unit = 'mag'
+    H = Parameter(description='Absolute magnitude')
+    S = Parameter(description='Linear slope (mag/rad)')
+
+    @staticmethod
+    def evaluate(a, H, S):
+        return H + S * a
+
+    @staticmethod
+    def fit_deriv(a, H, S):
+        if hasattr(a,'__iter__'):
+            ddh = np.ones_like(a)
+        else:
+            ddh = 1.
+        dds = a
+        return [ddh, dds]
+
+
 class HG(DiskIntegratedModelClass):
-    """HG photometric phase model (Bowell et al. 1989)"""
+    """HG photometric phase model (Bowell et al. 1989)
+
+    Examples
+    --------
+
+    >>> # Define the phase function for Ceres with H = 3.34, G = 0.12
+    >>> from sbpy.photometry import HG
+    >>> ceres = HG(3.34, 0.12, radius=480)
+    >>> print('{0:.4f}'.format(ceres.geoalb))
+    0.0902
+    >>> print('{0:.4f}'.format(ceres.phaseint))
+    0.3644
+
+    """
 
     _unit = 'mag'
     H = Parameter(description='H parameter')
@@ -403,7 +525,7 @@ class HG(DiskIntegratedModelClass):
 
         Parameters
         ----------
-        pha : number or array_like of numbers
+        pha : float or array_like of float
             Phase angle
         i   : int in [1, 2]
             Choose the form of function
@@ -502,7 +624,22 @@ class HG12BaseClass(DiskIntegratedModelClass):
 
 
 class HG1G2(HG12BaseClass):
-    """HG1G2 photometric phase model (Muinonen et al. 2010)"""
+    """HG1G2 photometric phase model (Muinonen et al. 2010)
+
+    Examples
+    --------
+
+    >>> # Define the phase function for Themis with
+    >>> # H = 7.063, G1 = 0.62, G2 = 0.14
+    >>>
+    >>> from sbpy.photometry import HG1G2
+    >>> themis = HG1G2(7.063,0.62,0.14,radius=100)
+    >>> print('{0:.4f}'.format(themis.geoalb))
+    0.0674
+    >>> print('{0:.4f}'.format(themis.phaseint))
+    0.3742
+
+    """
 
     H = Parameter(description='H parameter')
     G1 = Parameter(description='G1 parameter')
@@ -536,7 +673,22 @@ class HG1G2(HG12BaseClass):
 
 
 class HG12(HG12BaseClass):
-    """HG12 photometric phase model (Muinonen et al. 2010)"""
+    """HG12 photometric phase model (Muinonen et al. 2010)
+
+    Examples
+    --------
+
+    >>> # Define the phase function for Themis with
+    >>> # H = 7.121, G12 = 0.68
+    >>>
+    >>> from sbpy.photometry import HG12
+    >>> themis = HG12(7.121, 0.68, radius=100)
+    >>> print('{0:.4f}'.format(themis.geoalb))
+    0.0639
+    >>> print('{0:.4f}'.format(themis.phaseint))
+    0.3949
+
+    """
 
     H = Parameter(description='H parameter')
     G12 = Parameter(description='G12 parameter')
