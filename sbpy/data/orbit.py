@@ -82,7 +82,11 @@ class Orbit(DataClass):
         elif isinstance(epochs, dict):
             for key, val in epochs.items():
                 if isinstance(val, Time):
-                    epochs[key] = str(val.utc)
+                    val.format = 'iso'
+                    val.out_subfmt = 'date_hm'
+                    epochs[key] = "'"+val.value+"'"
+                else:
+                    epochs[key] = "'"+epochs[key]+"'"
         elif isinstance(epochs, (list, tuple, ndarray)):
             new_epochs = [None] * len(epochs)
             for i in range(len(epochs)):
@@ -103,6 +107,7 @@ class Orbit(DataClass):
             # load elements using astroquery.jplhorizons
             obj = Horizons(id=targetid, id_type=id_type,
                            location=center, epochs=epochs)
+
             elem = obj.elements(**kwargs)
 
             # workaround for current version of astroquery to make
@@ -119,8 +124,8 @@ class Orbit(DataClass):
                 all_elem = vstack([all_elem, elem])
 
         if bib.status() is None or bib.status():
-            bib.register('sbpy.data.Orbit', {'data service':
-                                             '1996DPS....28.2504G'})
+            bib.register('sbpy.data.Orbit.from_horizons',
+                         {'data service': '1996DPS....28.2504G'})
 
         return cls.from_table(all_elem)
 
@@ -304,12 +309,12 @@ class Orbit(DataClass):
 
         """
 
-    # function using pyoorb
+    # functions using pyoorb
 
     def _to_oo(self, timescale='UTC'):
         """Converts this orbit object to a openorb-compatible orbit array"""
 
-        # identify orbit type based on dictionary keys
+        # identify orbit type based on available table columns
         orbittype = None
         for testtype in ['KEP', 'COM', 'CART']:
             try:
@@ -320,8 +325,6 @@ class Orbit(DataClass):
             except KeyError:
                 pass
 
-        print(orbittype)
-
         if orbittype is None:
             raise ValueError(
                 'orbit type cannot be determined from elements')
@@ -330,62 +333,62 @@ class Orbit(DataClass):
         if orbittype == 'COM':
             # cometary orbit: id q e i node argperi t_p otype epoch t H G
             orbits = array(array([arange(0, len(self.table), 1),
-                                  self.table['q'].to('au').value,
-                                  self.table['e'].data,
-                                  self.table['i'].to('radian').value,
-                                  self.table['Omega'].to('radian').value,
-                                  self.table['w'].to('radian').value,
-                                  (self.table['Tp_jd'].to('d').value -
+                                  self['q'].to('au').value,
+                                  self['e'].data,
+                                  self['i'].to('radian').value,
+                                  self['Omega'].to('radian').value,
+                                  self['w'].to('radian').value,
+                                  (self['Tp_jd'].to('d').value -
                                    2400000.5),
                                   [conf.oorb_elemType[orbittype]] *
                                   len(self.table),
-                                  (self.table['epoch'].to('d').value
+                                  (self['epoch'].to('d').value
                                    - 2400000.5),
                                   [conf.oorb_timeScales[timescale]] *
                                   len(self.table),
-                                  self.table['H'].value,
-                                  self.table['G'].data]).transpose(),
+                                  self['H'].value,
+                                  self['G'].data]).transpose(),
                            dtype=double, order='F')
         elif orbittype == 'KEP':
             # keplerian orbit: id a e i node argperi M otype epoch ttype H G
             orbits = array(array([arange(0, len(self.table), 1),
-                                  self.table['a'].to('au').value,
-                                  self.table['e'].data,
-                                  self.table['incl'].to('radian').value,
-                                  self.table['Omega'].to('radian').value,
-                                  self.table['w'].to('radian').value,
-                                  self.table['M'].to('radian').value,
+                                  self['a'].to('au').value,
+                                  self['e'].data,
+                                  self['incl'].to('radian').value,
+                                  self['Omega'].to('radian').value,
+                                  self['w'].to('radian').value,
+                                  self['M'].to('radian').value,
                                   [conf.oorb_elemType[orbittype]] *
                                   len(self.table),
-                                  (self.table['epoch'].to('d').value
+                                  (self['epoch'].to('d').value
                                    - 2400000.5),
                                   [conf.oorb_timeScales[timescale]] *
                                   len(self.table),
-                                  self.table['H'].value,
-                                  self.table['G'].data]).transpose(),
+                                  self['H'].value,
+                                  self['G'].data]).transpose(),
                            dtype=double, order='F')
         elif orbittype == 'CART':
             # cartesian orbit: id x y z dx dy dz otype epoch ttype H G
             orbits = array(array([arange(0, len(self.table), 1),
-                                  self.table['x'].to('au').value,
-                                  self.table['y'].to('au').value,
-                                  self.table['z'].to('au').value,
-                                  self.table['dx'].to('au/d').value,
-                                  self.table['dy'].to('au/d').value,
-                                  self.table['dz'].to('au/d').value,
+                                  self['x'].to('au').value,
+                                  self['y'].to('au').value,
+                                  self['z'].to('au').value,
+                                  self['dx'].to('au/d').value,
+                                  self['dy'].to('au/d').value,
+                                  self['dz'].to('au/d').value,
                                   [conf.oorb_elemType[orbittype]] *
                                   len(self.table),
-                                  self.table['datetime_jd'].to('d').value
+                                  self['datetime_jd'].to('d').value
                                   - 2400000.5,
                                   [conf.oorb_timeScales[timescale]] *
                                   len(self.table),
-                                  self.table['H'].data,
-                                  self.table['G'].data]).transpose(),
+                                  self['H'].data,
+                                  self['G'].data]).transpose(),
                            dtype=double, order='F')
 
         return orbits
 
-    def oo_transform(self, orbittype, timescale='UTC'):
+    def oo_transform(self, orbittype, timescale='UTC', ephfile='de430'):
         """Uses pyoorb to transform this orbit object to a different
         orbit type definition.
 
@@ -395,6 +398,13 @@ class Orbit(DataClass):
             Orbit definition to be transformed to; available orbit
             definitions are ``KEP`` (Keplerian elements), ``CART``
             (cartesian elements), ``COM`` (cometary elements).
+        timescale : str
+            Timescale to be used in the transformation; the following
+            values are allowed: ``'UTC'``, ``'UT1'``, ``'TT'``,
+            ``'TAI'``. Default: ``'UTC'``
+        ephfile : str, optional
+            Planet and Lunar ephemeris file version as provided by JPL
+            to be used in the propagation. Default: ``'de430'``
 
         Returns
         -------
@@ -402,12 +412,23 @@ class Orbit(DataClass):
 
         Examples
         --------
+        Obtain the current state vector (cartesian definition, ``CART``) for
+        asteroid Ceres.
+
+        >>> from sbpy.data import Orbit
+        >>> ceres = Orbit.from_horizons('Ceres')
+        >>> statevec = ceres.oo_transform('CART')
+        >>> print(statevec.table)  # doctest: +SKIP
+           id           x                   y           ... epoch_scale  H    G
+                        AU                  AU          ...             mag
+        ------- ------------------ -------------------- ... ----------- ---- ----
+        1 Ceres -2.525066589355839 -0.34964875372044524 ...         UTC 3.34 0.12
 
         """
         import pyoorb
 
         # initialize pyoorb
-        ephfile = os.path.join(os.getenv('OORB_DATA'), 'de430.dat')
+        ephfile = os.path.join(os.getenv('OORB_DATA'), ephfile+'.dat')
         pyoorb.pyoorb.oorb_init(ephfile)
 
         oo_orbits, err = pyoorb.pyoorb.oorb_element_transformation(
@@ -419,16 +440,125 @@ class Orbit(DataClass):
             RuntimeError('pyoorb failed with error code {:d}'.format(err))
 
         # reorder data in Orbit object
-        columns = {'COM': ['id', 'q', 'e', 'incl',
-                           'Omega', 'w', 'Tp_jd', 'Tp_scale',
-                           'epoch', 'epoch_scale', 'H', 'G'],
-                   'KEP': ['id', 'a', 'e', 'incl',
-                           'Omega', 'w', 'M', 'M_scale',
-                           'epoch', 'epoch_scale', 'H', 'G']}[orbittype]
+        columns = conf.oorb_orbit_fields[orbittype]
 
         orbits = self.from_array(oo_orbits.transpose(), names=columns)
 
+        # apply units
+        for i, col in enumerate(orbits.column_names):
+            orbits[col].unit = conf.oorb_orbit_units[orbittype][i]
+
+        # replace id column with actual target names from original orbits
+        orbits.table.replace_column('id', self['targetname'])
+
+        # replace orbtype and epoch_scale columns
+        orbits.table.replace_column('orbtype',
+                                    [orbittype] * len(orbits.table))
+        orbits.table.replace_column('epoch_scale',
+                                    [timescale] * len(orbits.table))
+
+        if bib.status() is None or bib.status():
+            bib.register('sbpy.data.Ephem.from_oo',
+                         {'method': '2009M&PS...44.1853G',
+                          'implementation': 'https://github.com/oorb/oorb'})
+
+        return orbits
+
+    def oo_propagate(self, epoch, timescale='UTC',
+                     dynmodel='N', ephfile='de430'):
+        """Uses pyoorb to propagate this `~Orbit` object.
+
+        Parameters
+        ----------
+        epoch : `~astropy.time.Time` object or float
+            Epoch to which the orbit will be propagated to. A float
+            value will be interpreted as Julian date.
+        timescale : str, optional
+            Timescale to be used in the propagation; the following
+            values are allowed: ``'UTC'``, ``'UT1'``, ``'TT'``,
+            ``'TAI'``. Default: ``'UTC'``
+        dynmodel : str, optional
+            The dynamical model to be used in the propagation: ``'N'``
+            for n-body simulation or ``'2'`` for a 2-body
+            simulation. Default: ``'N'``
+        ephfile : str, optional
+            Planet and Lunar ephemeris file version as provided by JPL
+            to be used in the propagation. Default: ``'de430'``
+
+        Returns
+        -------
+        `~Orbit` object
+
+        Examples
+        --------
+        Propagate the orbit of Ceres 100 days into the future.
+        >>> from sbpy.data import Orbit
+        >>> from astropy.time import Time
+        >>> epoch = Time.now().jd + 100
+        >>> ceres = Orbit.from_horizons('Ceres')
+        >>> future_ceres = ceres.oo_propagate(epoch)
+        >>> print(future_ceres.table)  # doctest: +SKIP
+           id           a                  e          ... epoch_scale  H    G  
+                        AU                            ...             mag      
+        ------- ----------------- ------------------- ... ----------- ---- ----
+        1 Ceres 2.767911178119476 0.07574650026062148 ...         UTC 3.34 0.12
+        """
+
+        import pyoorb
+
+        # initialize pyoorb
+        ephfile = os.path.join(os.getenv('OORB_DATA'), ephfile+'.dat')
+        pyoorb.pyoorb.oorb_init(ephfile)
+
+        # identify orbit type based on available table columns
+        orbittype = None
+        for testtype in ['KEP', 'COM', 'CART']:
+            try:
+                self._translate_columns(
+                    conf.oorb_orbit_fields[testtype][1:6])
+                orbittype = testtype
+                break
+            except KeyError:
+                pass
+
+        if orbittype is None:
+            raise ValueError(
+                'orbit type cannot be determined from elements')
+
+        if isinstance(epoch, Time):
+            ooepoch = [epoch.jd-2400000.5, conf.oorb_timeScales[timescale]]
+        else:
+            ooepoch = [epoch-2400000.5, conf.oorb_timeScales[timescale]]
+
+        oo_orbits, err = pyoorb.pyoorb.oorb_propagation(
+            in_orbits=self._to_oo(timescale),
+            in_epoch=ooepoch,
+            in_dynmodel=dynmodel)
+
+        if err != 0:
+            RuntimeError('pyoorb failed with error code {:d}'.format(err))
+
+        # reorder data in Orbit object
+        columns = conf.oorb_orbit_fields[orbittype]
+
+        orbits = self.from_array(oo_orbits.transpose(), names=columns)
+
+        # apply units
+        for i, col in enumerate(orbits.column_names):
+            orbits[col].unit = conf.oorb_orbit_units[orbittype][i]
+
         # replace id column with actual target names from original orbits
         orbits.table.replace_column('id', self.table['targetname'])
+
+        # replace orbtype and epoch_scale columns
+        orbits.table.replace_column('orbtype',
+                                    [orbittype] * len(orbits.table))
+        orbits.table.replace_column('epoch_scale',
+                                    [timescale] * len(orbits.table))
+
+        if bib.status() is None or bib.status():
+            bib.register('sbpy.data.Ephem.from_oo',
+                         {'method': '2009M&PS...44.1853G',
+                          'implementation': 'https://github.com/oorb/oorb'})
 
         return orbits

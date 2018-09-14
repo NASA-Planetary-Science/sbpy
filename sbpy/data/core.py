@@ -229,7 +229,7 @@ class DataClass():
         Examples
         --------
         >>> from sbpy.data import DataClass
-        >>> dat = DataClass.from_file('data.txt', format='ascii') # doctest: +SKIP
+        >>> dat = DataClass.from_file('data.txt', format='ascii')  # doctest: +SKIP
         """
 
         data = QTable.read(filename, **kwargs)
@@ -285,8 +285,12 @@ class DataClass():
         if field in dir(self):
             return self.field
         else:
-            field = self._translate_columns(field)[0]
-            return self._table[field]
+            if len(self._translate_columns(field)) > 0:
+                field = self._translate_columns(field)[0]
+                return self._table[field]
+            else:
+                raise AttributeError('Attribute {:s} not available.'.format(
+                    field))
 
     def __setattr__(self, field, value):
         """Modify attribute in ``self._table``, if it already exists there,
@@ -307,8 +311,12 @@ class DataClass():
         for and may use alternative field names."""
 
         if isinstance(ident, str):
-            ident = self._translate_columns(ident)[0]
-        return self._table[ident]
+            if len(self._translate_columns(ident)) > 0:
+                ident = self._translate_columns(ident)[0]
+                return self._table[ident]
+            else:
+                raise KeyError('Item {:s} not available.'.format(
+                    ident))
 
     @property
     def table(self):
