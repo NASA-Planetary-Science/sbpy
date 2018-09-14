@@ -428,8 +428,8 @@ class Afrho(u.SpecificTypeQuantity):
         Parameters
         ----------
         wave_or_freq : `~astropy.units.Quantity`
-          Wavelengths or frequencies of the observation, or ``None``
-          if ``S`` is provided.
+            Wavelengths or frequencies of the observation.  Ignored if
+            `S` is provided.
 
         aper : `~astropy.units.Quantity`, `~sbpy.activity.Aperture`
             Aperture of the observation as a circular radius (length
