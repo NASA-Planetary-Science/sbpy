@@ -1,9 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import numpy as np
+import astropy
 from astropy import units as u
 from astropy.modeling import Parameter
 from ..core import *
+from ...data import Ephem
 from distutils.version import LooseVersion
 
 req_ver = LooseVersion('3.0.2')
@@ -56,7 +58,8 @@ class TestLinear():
         ref_norm_test = np.array([1.        , 0.47891196, 0.22935666,
             0.10984165, 0.05260448, 0.02519291, 0.01206519, 0.00577816,
             0.00276723, 0.00132526])
-        assert np.isclose(linphase.ref(pha_test, normalized=0), ref_test).all()
+        assert np.isclose(linphase.ref(pha_test), ref_test).all()
+        assert np.isclose(linphase.ref(pha_test, normalized=0), ref_norm_test).all()
 
     def test_props(self):
         linphase = LinearPhaseFunc(5, 2.29, radius=300)
@@ -80,7 +83,7 @@ class TestHG:
         pha_test = np.linspace(0, np.pi, 10)
         phi_test = np.array([ 3.34      ,  4.37957695,  4.97935011,
             5.55797517,  6.20811269,  7.03560828,  8.2295693 , 10.19445176,
-            14.29255427,         inf])
+            14.29255427,         np.inf])
         assert np.isclose(HG.evaluate(pha_test, 3.34, 0.12), phi_test).all()
 
     def test_fit_deriv(self):
