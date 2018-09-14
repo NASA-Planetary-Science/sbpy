@@ -42,7 +42,9 @@ Requirements
 
 Most requirements should be resolved during the installation process. However, we recommend to install the latest development version of `astroquery` using
 
-    >>> pip install git+https://github.com/astropy/astroquery.git
+.. code-block:: bash
+
+    $ pip install git+https://github.com/astropy/astroquery.git
 
 Also, if you want to use `pyoorb
 <https://github.com/oorb/oorb/tree/master/python>`_, you will have to
@@ -54,7 +56,9 @@ Using pip
 
 The latest development version of `sbpy` can be easily installed using
 
-    >>> pip install git+https://github.com/NASA-Planetary-Science/sbpy.git
+.. code-block:: bash
+
+    $ pip install git+https://github.com/NASA-Planetary-Science/sbpy.git
 
 
 Using GitHub
@@ -64,15 +68,22 @@ This way of installing `sbpy` is recommended if you plan to contribute
 to the module. The current development version of `sbpy` can be
 obtained from `GitHub <https://github.com/mommermi/sbpy>`_ using
 
-    >>> git clone https://github.com/mommermi/sbpy.git
+.. code-block:: bash
+
+    $ git clone https://github.com/mommermi/sbpy.git
 
 This will create a new directory (``sbpy/``). In this directory, run
 
-    >>> python setup.py install --user
+.. code-block:: bash
+
+    $ python setup.py install --user
 
 in order to use `sbpy` in your default Python environment. If you plan to work on the code and always want to use the latest version of your code, you can install it with
 
-    >>> python setup.py develop --user
+
+.. code-block:: bash
+
+    $ python setup.py develop --user
 
 Learning how to use `sbpy`
 --------------------------
