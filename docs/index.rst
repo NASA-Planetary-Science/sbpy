@@ -93,8 +93,8 @@ implementation status of all modules and functions.
 	  
 The current development version status is as follows:
 
-.. image:: https://travis-ci.org/mommermi/sbpy.svg?branch=master
-    :target: https://travis-ci.org/mommermi/sbpy
+.. image:: https://travis-ci.org/NASA-Planetary-Science/sbpy.svg?branch=master
+    :target: https://travis-ci.org/NASA-Planetary-Science/sbpy
     :alt: Travis-CI status
 
 .. image:: https://coveralls.io/repos/github/NASA-Planetary-Science/sbpy/badge.svg?branch=master
