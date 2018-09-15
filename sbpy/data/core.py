@@ -307,16 +307,14 @@ class DataClass():
             super().__setattr__(field, value)
 
     def __getitem__(self, ident):
-        """Return column or row from data table (``self._table``); checks
+        """Return columns or rows from data table (``self._table``); checks
         for and may use alternative field names."""
 
         if isinstance(ident, str):
             if len(self._translate_columns(ident)) > 0:
                 ident = self._translate_columns(ident)[0]
-                return self._table[ident]
-            else:
-                raise KeyError('Item {:s} not available.'.format(
-                    ident))
+
+        return self._table[ident]
 
     @property
     def table(self):
@@ -445,12 +443,13 @@ class DataClass():
         (order is preserved). Raises ValueError if not all columns are
         present or one or more columns could not be translated
         """
-        if not isinstance(target_colnames, (list, ndarray)):
+
+        if not isinstance(target_colnames, (list, ndarray, tuple)):
             target_colnames = [target_colnames]
 
         translated_colnames = []
         for colname in target_colnames:
-            if colname in self.column_names:
+            if colname in self._table.columns:
                 # colname already in self._table
                 translated_colnames.append(colname)
             elif colname in conf.namealts.keys():
