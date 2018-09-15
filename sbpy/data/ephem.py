@@ -313,7 +313,7 @@ class Ephem(DataClass):
         >>> from astropy.time import Time
         >>> epochs = Time.now().jd + np.arange(0, 10, 1/24)
         >>> ceres = Orbit.from_horizons('1')
-        >>> eph = Ephem.from_oo(ceres, epochs=epochs, location='G37')
+        >>> eph = Ephem.from_oo(ceres, epochs=epochs, location='G37')  # doctest: +SKIP
         >>> print(eph.table)  # doctest: +SKIP
         targetname      MJD [1]       ...        obsy [1]              obsz [1]
                            d          ...           AU                    AU
