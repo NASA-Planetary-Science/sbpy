@@ -494,7 +494,7 @@ propagated into the future or past using
 In order to transform some current orbits to a state vector in cartesian coordinates, one could use the following code:
 
     >>> elem = Orbit.from_horizons(['Ceres', 'Pallas', 'Vesta'])
-    >>> statevec = elem.oo_transform('CART')
+    >>> statevec = elem.oo_transform('CART')  # doctest: +SKIP
     >>> print(statevec.table)  # doctest: +SKIP
        id             x                   y           ... epoch_scale  H    G  
                       AU                  AU          ...             mag      
@@ -509,8 +509,8 @@ Orbit propagation requires the epoch to which the orbit should be propagated to 
 
     >>> elem = Orbit.from_horizons('Ceres')
     >>> epoch = Time('2000-01-01', format='iso')
-    >>> newelem = elem.oo_propagate(epoch)
-    >>> print(newelem.table)
+    >>> newelem = elem.oo_propagate(epoch)  # doctest: +SKIP
+    >>> print(newelem.table)  # doctest: +SKIP
        id           a                  e          ... epoch_scale  H    G  
                     AU                            ...             mag      
     ------- ----------------- ------------------- ... ----------- ---- ----
