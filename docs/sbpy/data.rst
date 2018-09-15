@@ -419,7 +419,7 @@ from the Discovery Channel Telescope:
      >>> from astropy.time import Time
      >>> epochs = Time.now().jd + np.arange(0, 10, 1/24)
      >>> ceres = Orbit.from_horizons('1')
-     >>> eph = Ephem.from_oo(ceres, 'G37', epochs)
+     >>> eph = Ephem.from_oo(ceres, 'G37', epochs)  # doctest: +SKIP
      >>> print(eph.table)  # doctest: +SKIP
      targetname      MJD [1]       ...        obsy [1]              obsz [1]       
                         d          ...           AU                    AU          
