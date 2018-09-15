@@ -229,7 +229,7 @@ class DataClass():
         Examples
         --------
         >>> from sbpy.data import DataClass
-        >>> dat = DataClass.from_file('data.txt', format='ascii') # doctest: +SKIP
+        >>> dat = DataClass.from_file('data.txt', format='ascii')  # doctest: +SKIP
         """
 
         data = QTable.read(filename, **kwargs)
@@ -282,11 +282,15 @@ class DataClass():
         """Get attribute from ``self._table` (columns, rows); checks
         for and may use alternative field names."""
 
-        if field == '_table':
-            return self._table
+        if field in dir(self):
+            return self.field
         else:
-            field = self._translate_columns(field)[0]
-            return self._table[field]
+            if len(self._translate_columns(field)) > 0:
+                field = self._translate_columns(field)[0]
+                return self._table[field]
+            else:
+                raise AttributeError('Attribute {:s} not available.'.format(
+                    field))
 
     def __setattr__(self, field, value):
         """Modify attribute in ``self._table``, if it already exists there,
@@ -303,11 +307,13 @@ class DataClass():
             super().__setattr__(field, value)
 
     def __getitem__(self, ident):
-        """Return column or row from data table (``self._table``); checks
+        """Return columns or rows from data table (``self._table``); checks
         for and may use alternative field names."""
 
         if isinstance(ident, str):
-            ident = self._translate_columns(ident)[0]
+            if len(self._translate_columns(ident)) > 0:
+                ident = self._translate_columns(ident)[0]
+
         return self._table[ident]
 
     @property
@@ -437,12 +443,13 @@ class DataClass():
         (order is preserved). Raises ValueError if not all columns are
         present or one or more columns could not be translated
         """
-        if not isinstance(target_colnames, (list, ndarray)):
+
+        if not isinstance(target_colnames, (list, ndarray, tuple)):
             target_colnames = [target_colnames]
 
         translated_colnames = []
         for colname in target_colnames:
-            if colname in self.column_names:
+            if colname in self._table.columns:
                 # colname already in self._table
                 translated_colnames.append(colname)
             elif colname in conf.namealts.keys():

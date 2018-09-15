@@ -2,6 +2,7 @@
 import os
 from collections import OrderedDict
 import pytest
+from copy import deepcopy
 from numpy import array
 import astropy.units as u
 from astropy.table import QTable
@@ -27,7 +28,7 @@ def test_get_set():
 
     data['a'][:] = [0, 0, 0]
 
-    with pytest.raises(KeyError):
+    with pytest.raises(AttributeError):
         data.d
 
     with pytest.raises(KeyError):
@@ -165,7 +166,9 @@ def test_add():
     tab.add_column(array([10, 20, 30, 40, 50,
                           60, 70, 80, 90, 100])*u.kg/u.um, name='d')
 
-    assert tab[0]['d'] == 10*u.kg/u.um
+    print(tab.table)
+
+    assert tab['d'][0] == 10*u.kg/u.um
 
     with pytest.raises(ValueError):
         tab.add_column(array([10, 20, 30, 40, 50,
@@ -186,7 +189,7 @@ def test_alternative_name_uniqueness():
                      for item in sublist])))
 
     with pytest.raises(AssertionError):
-        conf.namealts['epoch'] = 'i'
+        conf.namealts['dummy_variable'] = 'i'
         assert (len(conf.namealts.keys()) +
                 sum([len(val) for val in conf.namealts.values()]) ==
                 len(set(list(conf.namealts.keys()) +
@@ -197,6 +200,7 @@ def test_alternative_name_uniqueness():
 def test_translate_columns():
     """test function that translates column names"""
 
+    storage = deepcopy(conf.namealts)
     conf.namealts = {'z': ['a']}
 
     tab = DataClass.from_dict(
@@ -209,3 +213,5 @@ def test_translate_columns():
 
     with pytest.raises(KeyError):
         tab._translate_columns(['x'])
+
+    conf.namealts = storage

@@ -8,13 +8,15 @@ Class for storing and querying ephemerides
 
 created on June 04, 2017
 """
+import os
+
 from numpy import ndarray
 from astropy.time import Time
-from astropy.table import vstack
+from astropy.table import vstack, Column
 from astroquery.jplhorizons import Horizons
 
 from .. import bib
-from .core import DataClass
+from .core import DataClass, conf
 
 __all__ = ['Ephem']
 
@@ -66,7 +68,7 @@ class Ephem(DataClass):
         >>> from sbpy.data import Ephem
         >>> from astropy.time import Time
         >>> epoch = Time('2018-05-14', scale='utc')
-        >>> eph = Ephem.from_horizons('ceres', epochs=epoch)
+        >>> eph = Ephem.from_horizons('ceres', epochs=epoch) # doctest: +SKIP
         """
 
         # modify epoch input to make it work with astroquery.jplhorizons
@@ -78,7 +80,11 @@ class Ephem(DataClass):
         elif isinstance(epochs, dict):
             for key, val in epochs.items():
                 if isinstance(val, Time):
-                    epochs[key] = str(val.utc)
+                    val.format = 'iso'
+                    val.out_subfmt = 'date_hm'
+                    epochs[key] = val.value
+                else:
+                    epochs[key] = epochs[key]
         elif isinstance(epochs, (list, tuple, ndarray)):
             new_epochs = [None] * len(epochs)
             for i in range(len(epochs)):
@@ -115,8 +121,8 @@ class Ephem(DataClass):
                 all_eph = vstack([all_eph, eph])
 
         if bib.status() is None or bib.status():
-            bib.register('sbpy.data.Ephem', {'data service':
-                                             '1996DPS....28.2504G'})
+            bib.register('sbpy.data.Ephem.from_horizons',
+                         {'data service': '1996DPS....28.2504G'})
 
         return cls.from_table(all_eph)
 
@@ -257,3 +263,152 @@ class Ephem(DataClass):
         not yet implemented
 
         """
+
+    @classmethod
+    def from_oo(self, orbit, epochs=None, location='500', scope='full',
+                timescale='UTC', dynmodel='N', ephfile='de430'):
+        """Uses pyoorb to derive ephemerides from an `~Orbit` object. For a
+        list of output parameters, please read the `pyoorb documentation
+        <https://github.com/oorb/oorb/tree/master/python>`_.
+
+        Parameters
+        ----------
+        orbit : `~Orbit` object
+            orbit can contain any number of orbits. Required fields are XXX.
+        epochs : `~astropy.time.Time` object or iterable thereof, optional
+            Epochs of elements to be queried; a list, tuple or
+            `~numpy.ndarray` of `~astropy.time.Time` objects or Julian
+            Dates as floats should be used for a number of discrete
+            epochs; if ``None`` is provided, current date and
+            time are used. Default: ``None``
+        location : str, optional, default ``'500'`` (geocentric)
+            Location of the observer.
+
+        scope : str
+            Scope of data to be determined: ``'full'`` obtains all
+            available properties, ``'basic'`` obtains only a limited
+            amount of data. Default: ``'full'``
+        timescale : str, optional
+            Timescale to be used in the computation; the following
+            values are allowed: ``'UTC'``, ``'UT1'``, ``'TT'``,
+            ``'TAI'``. Default: ``'UTC'``
+        dynmodel : str, optional
+            The dynamical model to be used in the propagation: ``'N'``
+            for n-body simulation or ``'2'`` for a 2-body
+            simulation. Default: ``'N'``
+        ephfile : str, optional
+            Planet and Lunar ephemeris file version as provided by JPL
+            to be used in the propagation. Default: ``'de430'``
+
+        Returns
+        -------
+        `~Ephem` object
+
+        Examples
+        --------
+        Compute ephemerides for Ceres as seen from the Discovery Channel
+        Telescope for the next 10 days at 1hr intervals:
+        >>> import numpy as np
+        >>> from sbpy.data import Orbit, Ephem
+        >>> from astropy.time import Time
+        >>> epochs = Time.now().jd + np.arange(0, 10, 1/24)
+        >>> ceres = Orbit.from_horizons('1')
+        >>> eph = Ephem.from_oo(ceres, epochs=epochs, location='G37')  # doctest: +SKIP
+        >>> print(eph.table)  # doctest: +SKIP
+        targetname      MJD [1]       ...        obsy [1]              obsz [1]
+                           d          ...           AU                    AU
+        ---------- ------------------ ... --------------------- ----------------------
+           1 Ceres 58374.720415079966 ...   -0.1640418731222332 1.3660753531152814e-05
+           1 Ceres  58374.76208174648 ...  -0.16334416599555382 1.6732994041007698e-05
+           1 Ceres 58374.803748413455 ...  -0.16264729902661218 2.0200328928084155e-05
+           1 Ceres 58374.845415079966 ...  -0.16195072092478624 2.3823231905778508e-05
+           1 Ceres  58374.88708174648 ...  -0.16125385509757997  2.735153478080482e-05
+           1 Ceres 58374.928748413455 ...  -0.16055613920683476 3.0541568772989025e-05
+                ...                ... ...                   ...                    ...
+           1 Ceres 58384.428748413455 ... 0.0016096754330388497  9.924120661052244e-06
+           1 Ceres 58384.470415079966 ... 0.0023287044344341605   7.69766111133525e-06
+           1 Ceres  58384.51208174648 ... 0.0030458232636104473  6.300640241761616e-06
+           1 Ceres 58384.553748413455 ...  0.003760809893911351 5.8280310798125914e-06
+           1 Ceres 58384.595415079966 ...  0.004473588211662766  6.311456253324348e-06
+           1 Ceres  58384.63708174648 ...  0.005184233254950517  7.717021060406424e-06
+           1 Ceres 58384.678748413455 ...  0.005892966025131429  9.947635868821306e-06
+        Length = 240 rows
+        """
+
+        import pyoorb
+
+        # initialize pyoorb
+        ephfile = os.path.join(os.getenv('OORB_DATA'), ephfile+'.dat')
+        pyoorb.pyoorb.oorb_init(ephfile)
+
+        # identify orbit type based on available table columns
+        orbittype = None
+        for testtype in ['KEP', 'COM', 'CART']:
+            try:
+                orbit._translate_columns(
+                    conf.oorb_orbit_fields[testtype][1:6])
+                orbittype = testtype
+                break
+            except KeyError:
+                pass
+
+        if orbittype is None:
+            raise ValueError(
+                'orbit type cannot be determined from elements')
+
+        # modify epochs input to make it work with pyoorb
+        if epochs is None:
+            epochs = [Time.now()]
+        elif isinstance(epochs, Time):
+            epochs = [Time(epochs)]
+        elif isinstance(epochs, (list, tuple, ndarray)):
+            new_epochs = [None] * len(epochs)
+            for i in range(len(epochs)):
+                if isinstance(epochs[i], Time):
+                    new_epochs[i] = epochs[i]
+                else:
+                    new_epochs[i] = Time(epochs[i], format='jd')
+            epochs = new_epochs
+        epochs = list(zip([epoch.jd-2400000.5 for epoch in epochs],
+                          [conf.oorb_timeScales[timescale]]*len(epochs)))
+
+        if scope == 'full':
+            oo_eph, err = pyoorb.pyoorb.oorb_ephemeris_full(
+                orbit._to_oo(timescale),
+                location,
+                epochs,
+                dynmodel)
+        elif scope == 'basic':
+            oo_eph, err = pyoorb.pyoorb.oorb_ephemeris_basic(
+                orbit._to_oo(timescale),
+                location,
+                epochs,
+                dynmodel)
+        else:
+            raise ValueError('only \'full\' or \'basic\' allowed for scope')
+
+        if err != 0:
+            RuntimeError('pyoorb failed with error code {:d}'.format(err))
+
+        # reorder data in Orbit object
+        ephem = self.from_array(oo_eph.transpose(),
+                                names=conf.oorb_ephem_fields)
+
+        # apply units
+        for i, col in enumerate(ephem.column_names):
+            ephem[col].unit = conf.oorb_ephem_units[i]
+
+        # add targetname column
+        ephem.table.add_column(Column(data=[orbit['targetname'][0]] *
+                                      len(ephem.table), name='targetname'),
+                               index=0)
+
+        # remove trueanom column for now as it only holds a dummy value
+        ephem.table.remove_column('trueanom')
+
+        if bib.status() is None or bib.status():
+            bib.register('sbpy.data.Ephem.from_oo',
+                         {'method': '2009M&PS...44.1853G',
+                          'implementation': 'https://github.com/oorb/oorb'})
+
+        return ephem
