@@ -32,11 +32,14 @@ maintainer: MM
 maintainer: MSK
 
     * `~sbpy.activity.dust` 2018/09:
+      
       * Halley-Marcus phase function implemented
       * Afρ class: conversion to/from flux density for a specific wavelength is implemented, using a filter bandpass is in development; conversion to/from magnitudes is in development.
       * εfρ class: conversion to/from flux density implemented for a specific wavelength, using a filter bandpass is TBD; to/from magnitudes is TBD.
       * Syndynes and synchrones are TBD.
+	
     * `~sbpy.activity.gas` 2018/09:
+      
       * Haser model implemented, final tests TBD.
       * Vectorial model TBD (use source code from M. Festou?).
 
