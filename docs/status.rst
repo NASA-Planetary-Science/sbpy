@@ -31,8 +31,15 @@ maintainer: MM
 ~~~~~~~~~~~~~~~
 maintainer: MSK
 
-    * 2018/09: dust: afrho and basic Haser model implemented
-    * 2018/09: gas: basic Haser model implemented
+    * `~sbpy.activity.dust` 2018/09:
+      * Halley-Marcus phase function implemented
+      * Afρ class: conversion to/from flux density for a specific wavelength is implemented, using a filter bandpass is in development; conversion to/from magnitudes is in development.
+      * εfρ class: conversion to/from flux density implemented for a specific wavelength, using a filter bandpass is TBD; to/from magnitudes is TBD.
+      * Syndynes and synchrones are TBD.
+    * `~sbpy.activity.gas` 2018/09:
+      * Haser model implemented, final tests TBD.
+      * Vectorial model TBD (use source code from M. Festou?).
+
 
 `sbpy.photometry`
 ~~~~~~~~~~~~~~~~~
@@ -54,6 +61,7 @@ maintainer: MdVB
 
     * 2018/09: JPL molecular spectral database interface implemented as astroquery.jplspec 
     * 2018/09: some methods preliminarily implemented
+    * 2018/09: `~sbpy.spectroscopy.sun` and `~sbpy.spectroscopy.vega` spectral models implemented.  Tests are TBD.
 
 `sbpy.thermal`
 ~~~~~~~~~~~~~~
