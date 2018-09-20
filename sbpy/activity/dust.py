@@ -308,8 +308,7 @@ class Afrho(u.SpecificTypeQuantity):
         >>> fluxd = 5.667958103624571e-14 * u.W / u.m**2 / u.um
         >>> aper = 1 * u.arcsec
         >>> eph = dict(rh=1.5 * u.au, delta=1.0 * u.au)
-        # doctest: +REMOTE_DATA +IGNORE_OUTPUT
-        >>> afrho = Afrho.from_filt(bp, fluxd, aper, eph)
+        >>> afrho = Afrho.from_filt(bp, fluxd, aper, eph)  # doctest: +REMOTE_DATA +IGNORE_OUTPUT
         >>> afrho.cm                      # doctest: +FLOAT_CMP +REMOTE_DATA
         1000.0
 
@@ -552,8 +551,7 @@ class Afrho(u.SpecificTypeQuantity):
         >>> aper = 1 * u.arcsec
         >>> eph = dict(rh=1.5 * u.au, delta=1.0 * u.au)
         >>> unit = 'W/(m2 um)'
-        # doctest: +REMOTE_DATA +IGNORE_OUTPUT
-        >>> fluxd = afrho.filt(bp, aper, eph, unit=unit)
+        >>> fluxd = afrho.filt(bp, aper, eph, unit=unit)   # doctest: +REMOTE_DATA +IGNORE_OUTPUT
         >>> fluxd.value                       # doctest: +FLOAT_CMP +REMOTE_DATA
         5.66795810362457e-14
 
