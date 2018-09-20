@@ -329,8 +329,9 @@ class Afrho(u.SpecificTypeQuantity):
 
     @classmethod
     def from_mag(cls, mag, unit, aper, eph, bandpass=None, m_sun=None,
-                 **kwargs):
-        """Initialize from filter and magnitude.
+                 verbose=True, **kwargs):
+        """
+        Initialize from filter and magnitude.
 
         Parameters
         ----------
@@ -352,14 +353,18 @@ class Afrho(u.SpecificTypeQuantity):
             required if ``phasecor`` is enabled.
 
         bandpass : string or `~synphot.SpectralElement`
-            The name of a filter, or a transmission spectrum as a
-            `~synphot.SpectralElement`.  Ignored if ``m_sun`` is
-            defined.
+            The name of a `~synphot` filter, or a transmission
+            spectrum as a `~synphot.SpectralElement`.  Used to compute
+            the apparent magnitude of the Sun.  Ignored if ``m_sun``
+            is defined.
 
         m_sun : float
             Use this value for the apparent magnitude of the Sun
             rather than computing it using ``bandpass``.  ``m_sun`` is
             assumed to be in the same magnitude system as ``mag``.
+
+        verbose : bool, optional
+            If ``True``, print the computed solar magnitude.
 
         **kwargs
             Additional keyword arguments for `~Afrho.from_fluxd`,
@@ -381,14 +386,12 @@ class Afrho(u.SpecificTypeQuantity):
 
         Notes
         -----
-        Filter names can be found in the `synphot` `documentation
-        # synphot-predefined-filter>`_.
-        <http: // synphot.readthedocs.io/en/stable/synphot/bandpass.html
+        Filter names can be found in the `~synphot` `documentation
+        <http://synphot.readthedocs.io/en/stable/synphot/bandpass.html#synphot-predefined-filter>`_.
 
         A discussion of magnitude zero points can be found in the
-        `synphot` `documentation
-        # counts-and-magnitudes>`_.
-        <http: // synphot.readthedocs.io/en/latest/synphot/units.html
+        `~synphot` `documentation
+        <http://synphot.readthedocs.io/en/latest/synphot/units.html#counts-and-magnitudes>`_.
 
         """
 
@@ -411,6 +414,8 @@ class Afrho(u.SpecificTypeQuantity):
             elif unit.lower() == 'stmag':
                 fluxd_sun = sun.filt(bandpass, unit='erg/(s cm2 AA)')[1]
                 m_sun = -2.5 * np.log10(fluxd_sun.value) - 21.10
+            if verbose:
+                print('Using m_sun = {:.4f}'.format(m_sun))
 
         fluxd = u.Quantity(10**(-0.4 * (mag - m_sun)), 'W/(m2 um)')
         S = u.Quantity(1, 'W/(m2 um)')  # fluxd already relative to the Sun
@@ -517,8 +522,8 @@ class Afrho(u.SpecificTypeQuantity):
         Parameters
         ----------
         bandpass : string or `~synphot.SpectralElement`
-            The name of a filter, or a transmission spectrum as a
-            `~synphot.SpectralElement`.
+            The name of a `~synphot` filter, or a transmission
+            spectrum as a `~synphot.SpectralElement`.
 
         aper : `~astropy.units.Quantity`, `~sbpy.activity.Aperture`
             Aperture of the observation as a circular radius (length
@@ -572,39 +577,47 @@ class Afrho(u.SpecificTypeQuantity):
         wave, S = sun.filt(bandpass, unit=unit)
         return self.fluxd(None, aper, eph, S=S, unit=unit, **kwargs)
 
-    def mag(self, bandpass, unit, aper, eph, vegaspec=None, **kwargs):
+    def mag(self, unit, aper, eph, bandpass=None, m_sun=None, verbose=True,
+            **kwargs):
         """
         Coma apparent magnitude.
 
 
         Parameters
         ----------
-        bandpass : string or `~synphot.SpectralElement`
-            The name of a filter, or a transmission spectrum as a
-            `~synphot.SpectralElement`.
-
         unit : string
             Name of magnitude system: 'vegamag', 'ABmag', or 'STmag'.
+            Ignored if ``m_sun`` is provided.
 
         aper : `~astropy.units.Quantity` or `~sbpy.activity.Aperture`
             Aperture of the observation as a circular radius (length
-            or angular units), or as an sbpy `~sbpy.activity.Aperture` class.
+            or angular units), or as an sbpy `~sbpy.activity.Aperture`
+            class.
 
         eph : dictionary-like or `~sbpy.data.Ephem`, optional
             Ephemerides of the comet, describing heliocentric and
             geocentric distances as `~astropy.units.Quantity` via
             keywords ``rh`` and ``delta``.
 
-        vegaspec : `~synphot.SourceSpectrum`, optional
-            Use this spectrum for Vega when ``unit == 'vegamag'``,
-            otherwise the default sbpy spectrum will be used.
+        bandpass : string or `~synphot.SpectralElement`, optional
+            The name of a `~synphot` filter, or a transmission
+            spectrum as a `~synphot.SpectralElement`.  Used to compute
+            the apparent magnitude of the Sun.  Ignored if ``m_sun``
+            is provided.
+
+        m_sun : float, optional
+            Use this value for the apparent magnitude of the Sun.
+
+        verbose : bool, optional
+            If ``True``, print the computed solar magnitude.
 
         **kwargs :
             Any other `Afrho.fluxd` keyword argument except ``S``.
 
+
         Returns
         -------
-        mag : `~astropy.units.Quantity` ???
+        mag : float
 
 
         Examples
@@ -632,7 +645,13 @@ class Afrho(u.SpecificTypeQuantity):
         <http://synphot.readthedocs.io/en/latest/synphot/units.html#counts-and-magnitudes>`_.
 
         """
-        raise NotImplemented
+
+        if m_sun is None and bandpass is None:
+            raise ValueError('One of `bandpass` or `m_sun` must be provided.')
+
+        afrho0 = Afrho.from_mag(0, unit, aper, eph, bandpass=bandpass,
+                                m_sun=m_sun, verbose=verbose, **kwargs)
+        return -2.5 * np.log10(self.cm / afrho0.cm)
 
     def to_phase(self, to_phase, from_phase, Phi=None):
         """

@@ -180,6 +180,33 @@ class TestAfrho:
         fluxd = afrho.fluxd(freq, aper, eph, unit=unit)
         assert np.isclose(fluxd.value, 2.6930875895493665e-14)
 
+    @pytest.mark.parametrize('filename, mag0, unit, rho, afrho, eph, unc', (
+        ('wfc3_uvis_f606w_004_syn.fits', 16.98, 'vegamag', '5000 km', 1680,
+         {'rh': 4.582 * u.au, 'delta': 4.042 * u.au}, 0.05),
+        ('wfc3_uvis_f438w_004_syn.fits', 17.91, 'vegamag', '5000 km', 1550,
+         {'rh': 4.582 * u.au, 'delta': 4.042 * u.au}, 0.05),
+        ('cousins_i_004_syn.fits', 8.49 - 0.53, 'vegamag', '10000 km', 3188,
+         {'rh': 1.45 * u.au, 'delta': 0.49 * u.au}, 0.06),
+        ('sdss-r.fits', 11.97, 'ABmag', '19.2 arcsec', 34.9,
+         {'rh': 1.098 * u.au, 'delta': 0.164 * u.au}, 0.03),
+        ('sdss-r.fits', 12.23, 'STmag', '19.2 arcsec', 34.9,
+         {'rh': 1.098 * u.au, 'delta': 0.164 * u.au}, 0.03),
+    ))
+    def test_mag_bandpass(self, filename, mag0, unit, rho, afrho, eph, unc):
+        """Inverse of test_from_mag_bandpass."""
+        rho = u.Quantity(rho)
+        fn = os.path.join(os.path.dirname(__file__), 'data', filename)
+        bandpass = synphot.SpectralElement.from_file(fn)
+        mag = Afrho(afrho * u.cm).mag(unit, rho, eph, bandpass=bandpass)
+        assert np.isclose(mag, mag0, rtol=unc)
+
+    def test_mag_m_sun(self):
+        """Inverse of test_from_mag_m_sun."""
+        eph = {'rh': 1.098 * u.au, 'delta': 0.164 * u.au}
+        mag = Afrho(34.9 * u.cm).mag('ignored', 19.2 * u.arcsec, eph,
+                                     m_sun=-26.93)
+        assert np.isclose(mag, 11.97, rtol=0.0005)
+
     def test_to_phase(self):
         afrho = Afrho(10 * u.cm).to_phase(15 * u.deg, 0 * u.deg)
         assert np.isclose(afrho.cm, 5.8720)
