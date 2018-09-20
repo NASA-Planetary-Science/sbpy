@@ -310,7 +310,7 @@ class Afrho(u.SpecificTypeQuantity):
         >>> eph = dict(rh=1.5 * u.au, delta=1.0 * u.au)
         # doctest: +REMOTE_DATA +IGNORE_OUTPUT
         >>> afrho = Afrho.from_filt(bp, fluxd, aper, eph)
-        >>> afrho.cm                           # doctest: +FLOAT_CMP +REMOTE_DATA
+        >>> afrho.cm                      # doctest: +FLOAT_CMP +REMOTE_DATA
         1000.0
 
         Notes
@@ -328,21 +328,18 @@ class Afrho(u.SpecificTypeQuantity):
         return cls.from_fluxd(None, fluxd, aper, eph, S=S, **kwargs)
 
     @classmethod
-    def from_mag(cls, bandpass, mag, unit, aper, eph, **kwargs):
-        """
-        Initialize from filter and magnitude.
+    def from_mag(cls, mag, unit, aper, eph, bandpass=None, m_sun=None,
+                 **kwargs):
+        """Initialize from filter and magnitude.
 
         Parameters
         ----------
-        bandpass: string or `~synphot.SpectralElement`
-            The name of a filter, or a transmission spectrum as a
-            `~synphot.SpectralElement`.
-
-        mag: float
+        mag : float
             Apparent magntiude.
 
         unit: string
             Name of magnitude system: 'vegamag', 'ABmag', or 'STmag'.
+            Ignored if ``m_sun`` is defined.
 
         aper: `~astropy.units.Quantity`, `~sbpy.activity.Aperture`
             Aperture of the observation as a circular radius(length
@@ -353,6 +350,16 @@ class Afrho(u.SpecificTypeQuantity):
             geocentric distances as `~astropy.units.Quantity` via
             keywords ``rh`` and ``delta``.  Phase angle, ``phase``, is
             required if ``phasecor`` is enabled.
+
+        bandpass : string or `~synphot.SpectralElement`
+            The name of a filter, or a transmission spectrum as a
+            `~synphot.SpectralElement`.  Ignored if ``m_sun`` is
+            defined.
+
+        m_sun : float
+            Use this value for the apparent magnitude of the Sun
+            rather than computing it using ``bandpass``.  ``m_sun`` is
+            assumed to be in the same magnitude system as ``mag``.
 
         **kwargs
             Additional keyword arguments for `~Afrho.from_fluxd`,
@@ -368,8 +375,8 @@ class Afrho(u.SpecificTypeQuantity):
         ...        'delta': 0.49 * u.au,
         ...        'phase': 17.8 * u.deg}
         >>> afrho = Afrho.from_mag('cousins_i', 8.49, 'vegamag', aper, eph,
-        ...         phasecor=True)        # doctest: +REMOTE_DATA +IGNORE_OUTPUT
-        >>> afrho.value                   # doctest: +REMOTE_DATA +FLOAT_CMP
+        ...         phasecor=True)     # doctest: +REMOTE_DATA +IGNORE_OUTPUT
+        >>> afrho.value                # doctest: +REMOTE_DATA +FLOAT_CMP
         3423.6675739077887
 
         Notes
@@ -388,18 +395,22 @@ class Afrho(u.SpecificTypeQuantity):
         from ..spectroscopy.sun import default_sun
         from ..spectroscopy.vega import default_vega
 
-        sun = default_sun.get()
-        if unit.lower() == 'vegamag':
-            fluxd_sun = sun.filt(bandpass, unit='W/(m2 um)')[1]
-            vega = default_vega.get()
-            fluxd_vega = vega.filt(bandpass, unit='W/(m2 um)')[1]
-            m_sun = -2.5 * np.log10(fluxd_sun / fluxd_vega).value
-        elif unit.lower() == 'abmag':
-            fluxd_sun = sun.filt(bandpass, unit='erg/(s cm2 Hz)')[1]
-            m_sun = -2.5 * np.log10(fluxd_sun.value) - 48.60
-        elif unit.lower() == 'stmag':
-            fluxd_sun = sun.filt(bandpass, unit='erg/(s cm2 AA)')[1]
-            m_sun = -2.5 * np.log10(fluxd_sun.value) - 21.10
+        if m_sun is None and bandpass is None:
+            raise ValueError('One of `bandpass` or `m_sun` must be provided.')
+
+        if m_sun is None:
+            sun = default_sun.get()
+            if unit.lower() == 'vegamag':
+                fluxd_sun = sun.filt(bandpass, unit='W/(m2 um)')[1]
+                vega = default_vega.get()
+                fluxd_vega = vega.filt(bandpass, unit='W/(m2 um)')[1]
+                m_sun = -2.5 * np.log10(fluxd_sun / fluxd_vega).value
+            elif unit.lower() == 'abmag':
+                fluxd_sun = sun.filt(bandpass, unit='erg/(s cm2 Hz)')[1]
+                m_sun = -2.5 * np.log10(fluxd_sun.value) - 48.60
+            elif unit.lower() == 'stmag':
+                fluxd_sun = sun.filt(bandpass, unit='erg/(s cm2 AA)')[1]
+                m_sun = -2.5 * np.log10(fluxd_sun.value) - 21.10
 
         fluxd = u.Quantity(10**(-0.4 * (mag - m_sun)), 'W/(m2 um)')
         S = u.Quantity(1, 'W/(m2 um)')  # fluxd already relative to the Sun

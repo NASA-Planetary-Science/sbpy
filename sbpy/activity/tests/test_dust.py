@@ -101,7 +101,7 @@ class TestAfrho:
         ('sdss-r.fits', 12.23, 'STmag', '19.2 arcsec', 34.9,
          {'rh': 1.098 * u.au, 'delta': 0.164 * u.au}, 0.03),
     ))
-    def test_from_mag(self, filename, mag, unit, rho, afrho0, eph, unc):
+    def test_from_mag_bandpass(self, filename, mag, unit, rho, afrho0, eph, unc):
         """Magnitude to afrho conversions.
 
         HST/WFC3 photometry of C/2013 A1 (Siding Spring) (Li et
@@ -139,10 +139,20 @@ class TestAfrho:
         rho = u.Quantity(rho)
         fn = os.path.join(os.path.dirname(__file__), 'data', filename)
         bandpass = synphot.SpectralElement.from_file(fn)
-        afrho = Afrho.from_mag(bandpass, mag, unit, rho, eph)
+        afrho = Afrho.from_mag(mag, unit, rho, eph, bandpass=bandpass)
         assert np.isclose(afrho.cm, afrho0, rtol=unc)
 
+<<<<<<< HEAD
 >>>>>>> Revise dust tests.
+=======
+    def test_from_mag_m_sun(self):
+        """Verify Li et al. (2017) Afρ of 252P/LINEAR."""
+        eph = {'rh': 1.098 * u.au, 'delta': 0.164 * u.au}
+        afrho = Afrho.from_mag(11.97, 'ignored', 19.2 * u.arcsec, eph,
+                               m_sun=-26.93)
+        assert np.isclose(afrho.cm, 34.9, rtol=0.005)
+
+>>>>>>> Allow arbitrary solar apparent magnitude from user.
     def test_fluxd(self):
         afrho = Afrho(1000, 'cm')
         aper = 1 * u.arcsec
