@@ -51,9 +51,9 @@ def phase_HalleyMarcus(phase):
 
     Notes
     -----
-    The Halley phase function was first used by Schleicher and Bair
-    (2011), but only described in detail by Schleicher and Marcus (May
-    2010) online at:
+    The Halley-Marcus phase function was first used by Schleicher and
+    Bair (2011), but only described in detail by Schleicher and Marcus
+    (May 2010) online at:
 
         http://asteroid.lowell.edu/comet/dustphase.html
 
@@ -276,7 +276,8 @@ class Afrho(u.SpecificTypeQuantity):
     @classmethod
     def from_filt(cls, bandpass, fluxd, aper, eph, **kwargs):
         """
-        Initialize from filter.
+        Initialize from filter bandpass and flux density.
+
 
         Parameters
         ----------
@@ -302,16 +303,34 @@ class Afrho(u.SpecificTypeQuantity):
 
         Example
         -------
+        Using `synphot`'s built-in I-band filter:
+
         >>> import astropy.units as u
         >>> from sbpy.activity import Afrho
         >>> bp = 'cousins_r'
         >>> fluxd = 5.667958103624571e-14 * u.W / u.m**2 / u.um
         >>> aper = 1 * u.arcsec
         >>> eph = dict(rh=1.5 * u.au, delta=1.0 * u.au)
-        >>> afrho = Afrho.from_filt(bp, fluxd, aper, eph)  # doctest: +REMOTE_DATA +IGNORE_OUTPUT
+        >>> afrho = Afrho.from_filt(bp, fluxd, aper, eph)
+        ...                               # doctest: +REMOTE_DATA +IGNORE_OUTPUT
         >>> afrho.cm                      # doctest: +FLOAT_CMP +REMOTE_DATA
         1000.0
 
+<<<<<<< HEAD
+=======
+        Using Spitzer's IRAC 3.6-μm filter (online):
+
+        >>> from synphot import SpectralElement
+        >>> bp = SpectralElement.from_file('http://irsa.ipac.caltech.edu/data/SPITZER/docs/irac/calibrationfiles/spectralresponse/080924ch1trans_full.txt', wave_unit='um')
+        ...                               # doctest: +REMOTE_DATA +IGNORE_OUTPUT
+        >>> fluxd = 5.286867353823682e-16 * u.W / u.m**2 / u.um
+        >>> afrho = Afrho.from_filt(bp, fluxd, aper, eph)
+        ...                               # doctest: +REMOTE_DATA
+        >>> afrho.cm
+        1000.0
+
+
+>>>>>>> Remote tests pass.
         Notes
         -----
         Filter names can be found in the `~synphot` `documentation
@@ -378,8 +397,9 @@ class Afrho(u.SpecificTypeQuantity):
         >>> eph = {'rh': 1.45 * u.au,
         ...        'delta': 0.49 * u.au,
         ...        'phase': 17.8 * u.deg}
-        >>> afrho = Afrho.from_mag('cousins_i', 8.49, 'vegamag', aper, eph,
-        ...         phasecor=True)     # doctest: +REMOTE_DATA +IGNORE_OUTPUT
+        >>> afrho = Afrho.from_mag(8.49, 'vegamag', aper, eph,
+        ...         bandpass='cousins_i', phasecor=True)
+        ...                            # doctest: +REMOTE_DATA +IGNORE_OUTPUT
         >>> afrho.value                # doctest: +REMOTE_DATA +FLOAT_CMP
         3423.6675739077887
 
@@ -544,6 +564,8 @@ class Afrho(u.SpecificTypeQuantity):
 
         Examples
         --------
+        Using `synphot`'s built-in I-band filter:
+
         >>> import astropy.units as u
         >>> from sbpy.activity import Afrho
         >>> bp = 'cousins_r'
@@ -555,6 +577,13 @@ class Afrho(u.SpecificTypeQuantity):
         >>> fluxd.value                       # doctest: +FLOAT_CMP +REMOTE_DATA
         5.66795810362457e-14
 
+        Using Spitzer's IRAC 3.6-μm filter (online):
+
+        >>> from synphot import SpectralElement
+        >>> bp = SpectralElement.from_file('http://irsa.ipac.caltech.edu/data/SPITZER/docs/irac/calibrationfiles/spectralresponse/080924ch1trans_full.txt', wave_unit='um')   # doctest: +REMOTE_DATA +IGNORE_OUTPUT
+        >>> fluxd = afrho.filt(bp, aper, eph, unit=unit)  # doctest: +REMOTE_DATA
+        >>> fluxd.value
+        5.286867353823682e-16
 
         Returns
         -------
@@ -628,7 +657,7 @@ class Afrho(u.SpecificTypeQuantity):
         >>> eph = {'rh': 1.45 * u.au,
         ...        'delta': 0.49 * u.au,
         ...        'phase': 17.8 * u.deg}
-        >>> afrho.mag('cousins_i', 'vegamag', aper, eph,
+        >>> afrho.mag('vegamag', aper, eph, bandpass='cousins_i',
         ...           phasecor=True)       # doctest: +REMOTE_DATA +IGNORE_OUTPUT
         8.49                               # doctest: +REMOTE_DATA +FLOAT_CMP
 
