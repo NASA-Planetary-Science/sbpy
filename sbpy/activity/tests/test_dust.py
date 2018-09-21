@@ -262,3 +262,53 @@ class TestEfrho:
         Tscale = 1.1
         fluxd = efrho.fluxd(wave, aper, eph, Tscale=Tscale, unit='mJy')
         assert np.isclose(fluxd.value, 0.3197891693353106)
+
+    def test_from_mag_bandpass_fluxd0_error(self):
+        with pytest.raises(ValueError):
+            Efrho.from_mag(5, 'vegamag', 1 * u.arcsec,
+                           dict(rh=1.5 * u.au, delta=1.0 * u.au))
+
+    def test_from_mag_unit_error(self):
+        with pytest.raises(ValueError):
+            Efrho.from_mag(5, 'asdf', 1 * u.arcsec,
+                           dict(rh=1.5 * u.au, delta=1.0 * u.au))
+
+    @pytest.mark.parametrize('unit, efrho0', (
+        ('vegamag', 616.1),
+        ('abmag', 78750),  # compare with test_from_mag_fluxd0_B
+        ('stmag', 3.596e7),
+    ))
+    def test_from_mag_bandpass(self, unit, efrho0):
+        aper = 1 * u.arcsec
+        # width = 0.1 um for speed
+        bp = synphot.SpectralElement(
+            synphot.Box1D, x_0=11.7 * u.um, width=0.1 * u.um)
+        eph = dict(rh=1.0 * u.au, delta=1.0 * u.au)
+        Tscale = 1.1
+        efrho = Efrho.from_mag(5, unit, aper, eph, bandpass=bp,
+                               Tscale=Tscale)
+        assert np.isclose(efrho.cm, efrho0, rtol=0.001)
+
+    def test_from_mag_fluxd0_bandpass(self):
+        # comapre with test_from_mag_bandpass
+        aper = 1 * u.arcsec
+        # width = 0.1 um for speed
+        bp = synphot.SpectralElement(
+            synphot.Box1D, x_0=11.7 * u.um, width=0.1 * u.um)
+        eph = dict(rh=1.0 * u.au, delta=1.0 * u.au)
+        Tscale = 1.1
+        fluxd0 = u.Quantity(3631, 'Jy')
+        efrho = Efrho.from_mag(5, None, aper, eph, bandpass=bp,
+                               fluxd0=fluxd0, Tscale=Tscale)
+        assert np.isclose(efrho.cm, 78750, rtol=0.001)
+
+    def test_from_mag_fluxd0_B(self):
+        # comapre with test_from_mag_bandpass
+        from astropy.modeling.blackbody import blackbody_nu
+        aper = 1 * u.arcsec
+        eph = dict(rh=1.0 * u.au, delta=1.0 * u.au)
+        Tscale = 1.1
+        fluxd0 = u.Quantity(3631, 'Jy')
+        B = blackbody_nu(11.7 * u.um, 278 * Tscale * u.K)
+        efrho = Efrho.from_mag(5, None, aper, eph, B=B, fluxd0=fluxd0)
+        assert np.isclose(efrho.cm, 78750, rtol=0.001)
