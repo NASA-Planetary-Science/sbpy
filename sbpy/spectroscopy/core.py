@@ -207,7 +207,8 @@ class Spectrum():
 
         Examples
         --------
-        >>> spec_model = SpectralModel(type='Haser', molecule='H2O') # doctest: +SKIP
+        # doctest: +SKIP
+        >>> spec_model = SpectralModel(type='Haser', molecule='H2O')
         >>> spec.fit(spec_model) # doctest: +SKIP
         >>> print(spec.fit_info) # doctest: +SKIP
 
@@ -441,7 +442,7 @@ class SpectralStandard(ABC):
 
         return fluxd
 
-    def filt(self, bp, unit='W / (m2 um)', vegaspec=None, **kwargs):
+    def filt(self, bp, unit='W / (m2 um)', **kwargs):
         """Spectrum observed through a filter.
 
         Parameters
@@ -455,10 +456,6 @@ class SpectralStandard(ABC):
           Spectral units of the output: flux density, 'vegamag',
           'ABmag', or 'STmag'.
 
-        vegaspec : `~synphot.SourceSpectrum`
-          Use this spectrum for Vega when `unit == 'vegamag'`,
-          otherwise the default `sbpy` spectrum will be used.
-
         **kwargs
           Additional keyword arguments for
           `~synphot.observation.Observation`.
@@ -468,8 +465,8 @@ class SpectralStandard(ABC):
         wave : `~astropy.units.Quantity`
           Effective wavelength.
 
-        fluxd : `~astropy.units.Quantity`
-          The flux density.
+        fluxd : `~astropy.units.Quantity` or float
+          Flux density or magnitude.
 
 
         Notes
@@ -494,20 +491,32 @@ class SpectralStandard(ABC):
         """
 
         import synphot
-        from .vega import default_vega
+        from synphot.units import VEGAMAG
+        from .vega import Vega
 
         assert isinstance(bp, (str, synphot.SpectralElement))
 
         if isinstance(bp, str):
-            # bp = get_bandpass(bp)
-            raise NotImplementedError
+            bp = synphot.SpectralElement.from_filter(bp)
 
         obs = synphot.Observation(self.source, bp, **kwargs)
-
-        if unit == 'vegamag' and vegaspec is None:
-            vegaspec = default_vega.get().source
-
         wave = obs.effective_wavelength()
-        fluxd = obs.effstim(unit, vegaspec=vegaspec)
+
+        if isinstance(unit, str):
+            _u = unit.lower().strip()
+            if _u == 'vegamag':
+                f = obs.effstim('W/(m2 um)')
+                f0 = Vega.from_default().filt(bp, unit='W/(m2 um)')[1]
+                fluxd = -2.5 * np.log10((f / f0).value) * VEGAMAG
+            elif _u == 'abmag':
+                f = obs.effstim('erg/(s cm2 Hz)')
+                fluxd = (-2.5 * np.log10(f.value) - 48.60) * u.ABmag
+            elif _u == 'stmag':
+                f = obs.effstim('erg/(s cm2 AA)')
+                fluxd = (-2.5 * np.log10(f.value) - 21.10) * u.STmag
+            else:
+                fluxd = obs.effstim(unit)
+        else:
+            fluxd = obs.effstim(unit)
 
         return wave, fluxd

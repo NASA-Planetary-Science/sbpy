@@ -18,6 +18,6 @@ available = [
 
 Bohlin2014 = {
     'filename': 'ftp://ftp.stsci.edu/cdbs/calspec/alpha_lyr_stis_008.fits',
-    'description': 'Vega spectrum of Bohlin 2014',
+    'description': 'Spectrum of Bohlin 2014',
     'bibcode': '2014AJ....147..127B'
 }
