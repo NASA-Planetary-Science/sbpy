@@ -35,8 +35,14 @@ class TestSun:
     def test_call_single_wavelength(self):
         with default_sun.set('E490_2014'):
             sun = default_sun.get()
-            f = sun(0.5555 * u.um, unit='W/(m2 um)')
+            f = sun(0.5555 * u.um)
             assert np.isclose(f.value, 1897)
+
+    def test_call_single_frequency(self):
+        with default_sun.set('E490_2014'):
+            sun = default_sun.get()
+            f = sun(3e14 * u.Hz)
+            assert np.isclose(f.value, 2.49484251e+14)
 
     @pytest.mark.skipif('not HAS_SCIPY')
     def test_sun_wavelength_array(self):

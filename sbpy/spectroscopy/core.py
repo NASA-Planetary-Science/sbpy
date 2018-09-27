@@ -393,7 +393,7 @@ class SpectralStandard(ABC):
     def meta(self):
         self._source.meta
 
-    def __call__(self, wave_or_freq, unit='W / (m2 um)'):
+    def __call__(self, wave_or_freq, unit=None):
         """Bin the source spectrum.
 
         Parameters
@@ -406,7 +406,8 @@ class SpectralStandard(ABC):
 
         unit : string, `~astropy.units.Unit`, optional
           Spectral units of the output: flux density, 'vegamag',
-          'ABmag', or 'STmag'.
+          'ABmag', or 'STmag'.  If ``None``, return units are W/(m2
+          μm) for ``wave_or_freq`` as wavelength, otherwise return Jy.
 
         Returns
         -------
@@ -419,6 +420,12 @@ class SpectralStandard(ABC):
 
         import numpy as np
         import synphot
+
+        if unit is None:
+            if wave_or_freq.unit.is_equivalent('m'):
+                unit = u.Unit('W/(m2 um)')
+            else:
+                unit = u.Jy
 
         if np.size(wave_or_freq) > 1:
             # Method adapted from http://www.astrobetter.com/blog/2013/08/12/python-tip-re-sampling-spectra-with-pysynphot/

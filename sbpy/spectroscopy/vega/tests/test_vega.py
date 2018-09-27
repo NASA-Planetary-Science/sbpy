@@ -28,8 +28,14 @@ class TestVega:
     def test_call_single_wavelength(self):
         with default_vega.set('Bohlin2014'):
             vega = Vega.from_default()
-            f = vega(0.55 * u.um, unit='W/(m2 um)')
-            assert np.isclose(f.value, 3.546923511485616e-08)
+            f = vega(0.55 * u.um)
+            assert np.isclose(f.value, 3.546923511485616e-08)  # W/(m2 μm)
+
+    def test_call_single_frequency(self):
+        with default_vega.set('Bohlin2014'):
+            vega = Vega.from_default()
+            f = vega(3e14 * u.Hz)
+            assert np.isclose(f.value, 2129.13636259)  # Jy
 
 
 class Test_default_vega:
