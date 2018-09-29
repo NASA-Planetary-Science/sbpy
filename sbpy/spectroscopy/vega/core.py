@@ -5,9 +5,11 @@ SBPy Vega Core Module
 =====================
 """
 
+import os
 import astropy.units as u
 from astropy.utils.state import ScienceState
 from ..core import SpectralStandard
+from . import sources
 
 __doctest_requires__ = {'Sun': 'synphot'}
 
@@ -50,7 +52,7 @@ class Vega(SpectralStandard):
     Examples
     --------
     Get the default Vega spectrum:
-    >>> vega = Vega.from_default()               # doctest: +REMOTE_DATA
+    >>> vega = Vega.from_default()               # doctest: +REMOTE_DATA +IGNORE_OUTPUT
 
     Create Vega from a file:
     >>> vega = Vega.from_file('filename')        # doctest: +SKIP
@@ -78,15 +80,12 @@ class Vega(SpectralStandard):
 
         """
 
-        import os
-        from . import sources
-
         try:
             parameters = getattr(sources, name)
             vega = Vega.from_file(**parameters)
         except AttributeError:
             msg = 'Unknown Vega spectrum "{}".  Valid spectra:\n{}'.format(
-                name, sources.keys())
+                name, sources.available)
             raise ValueError(msg)
 
         return vega

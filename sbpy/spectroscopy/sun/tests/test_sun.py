@@ -25,7 +25,7 @@ class TestSun:
 
     def test_from_builtin_unknown(self):
         with pytest.raises(ValueError):
-            sun = Sun.from_builtin('not a solar spectrum')
+            Sun.from_builtin('not a solar spectrum')
 
     def test_from_default(self):
         with default_sun.set('E490_2014LR'):
@@ -70,8 +70,74 @@ class TestSun:
 
         assert np.allclose(fluxd1, fluxd2, 0.005)
 
+    @remote_data
+    def test_filt_units(self):
+        """Colina et al. V=-26.75 mag, for zero-point flux density
+           36.7e-10 ergs/s/cm2/Å.
+        """
+        sun = Sun.from_builtin('E490_2014')
+        wave, fluxd = sun.filt('johnson_v', unit='erg/(s cm2 AA)')
+        assert np.isclose(wave.value, 5502, rtol=0.001)
+        assert np.isclose(fluxd.value, 183.94, rtol=0.0003)
+
+    @remote_data
+    def test_filt_vegamag(self):
+        """Colina et al. V=-26.75 mag (Johnson system)
+
+        Convert Johnson mag to Vega mag: V=-26.75 - 0.035 = -26.79?
+
+        Not obvious we are using the same filter profile, but 0.02 mag
+        agreement is good.
+
+        Willmer 2018 using Haberreiter et al. 2017 solar spectrum and
+        Bohlin 2014 Vega spectrum find -26.76 mag.
+
+        """
+        sun = Sun.from_builtin('E490_2014')
+        wave, fluxd = sun.filt('johnson_v', unit='vegamag')
+        assert np.isclose(fluxd.value, -26.79, rtol=0.001)
+
+    @remote_data
+    def test_filt_abmag(self):
+        """Willmer 2018.
+
+        Using Haberreiter et al. 2017 solar spectrum: -26.77.
+
+        """
+        sun = Sun.from_builtin('E490_2014')
+        wave, fluxd = sun.filt('johnson_v', unit='ABmag')
+        assert np.isclose(fluxd.value, -26.77, rtol=0.001)
+
+    @remote_data
+    def test_filt_stmag(self):
+        """Willmer 2018.
+
+        Using Haberreiter et al. 2017 solar spectrum: -26.76.
+
+        """
+        sun = Sun.from_builtin('E490_2014')
+        wave, fluxd = sun.filt('johnson_v', unit='STmag')
+        assert np.isclose(fluxd.value, -26.76, rtol=0.001)
+
+    def test_meta(self):
+        sun = Sun.from_builtin('E490_2014')
+        assert sun.meta is None
+
 
 class Test_default_sun:
+    def test_validate_str(self):
+        assert isinstance(default_sun.validate('E490_2014'), Sun)
+
+    def test_validate_Sun(self):
+        wave = [1, 2] * u.um
+        fluxd = [1, 2] * u.Jy
+        sun = Sun.from_array(wave, fluxd, description='dummy source')
+        assert isinstance(default_sun.validate(sun), Sun)
+
+    def test_validate_error(self):
+        with pytest.raises(TypeError):
+            default_sun.validate(1)
+
     @pytest.mark.parametrize('name,source',
                              (('E490_2014', sources.E490_2014),
                               ('E490_2014LR', sources.E490_2014LR)))

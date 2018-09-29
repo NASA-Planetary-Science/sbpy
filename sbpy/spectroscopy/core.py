@@ -502,20 +502,10 @@ class SpectralStandard(ABC):
         obs = synphot.Observation(self.source, bp, **kwargs)
         wave = obs.effective_wavelength()
 
-        if isinstance(unit, str):
-            _u = unit.lower().strip()
-            if _u == 'vegamag':
-                f = obs.effstim('W/(m2 um)')
-                f0 = Vega.from_default().filt(bp, unit='W/(m2 um)')[1]
-                fluxd = -2.5 * np.log10((f / f0).value) * VEGAMAG
-            elif _u == 'abmag':
-                f = obs.effstim('erg/(s cm2 Hz)')
-                fluxd = (-2.5 * np.log10(f.value) - 48.60) * u.ABmag
-            elif _u == 'stmag':
-                f = obs.effstim('erg/(s cm2 AA)')
-                fluxd = (-2.5 * np.log10(f.value) - 21.10) * u.STmag
-            else:
-                fluxd = obs.effstim(unit)
+        if str(unit).lower().strip() == 'vegamag':
+            f = obs.effstim('W/(m2 um)')
+            f0 = Vega.from_default().filt(bp, unit='W/(m2 um)')[1]
+            fluxd = -2.5 * np.log10((f / f0).value) * VEGAMAG
         else:
             fluxd = obs.effstim(unit)
 

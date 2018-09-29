@@ -5,9 +5,11 @@ SBPy Sun Core Module
 ====================
 """
 
+import os
 import astropy.units as u
 from astropy.utils.state import ScienceState
 from ..core import SpectralStandard
+from . import sources
 
 __all__ = [
     'Sun',
@@ -95,9 +97,7 @@ class Sun(SpectralStandard):
 
         """
 
-        import os
         from astropy.utils.data import _is_url
-        from . import sources
 
         try:
             parameters = getattr(sources, name).copy()
@@ -106,7 +106,7 @@ class Sun(SpectralStandard):
                 # find in the module's location
                 path = os.path.dirname(__file__)
                 parameters['filename'] = os.sep.join(
-                    (path, parameters['filename']))
+                    (path, 'data', parameters['filename']))
 
             return Sun.from_file(**parameters)
         except AttributeError:
