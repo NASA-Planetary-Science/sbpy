@@ -57,6 +57,7 @@ The solar spectrum in current use is controlled with `default_sun`:
 
    >>> from sbpy.spectroscopy.sun import Sun, default_sun
    >>> default_sun.set('E490_2014')  # E490 in effect
+   <ScienceState default_sun: <Sun: E490-00a (2014) reference solar spectrum (Table 3)>>
    >>> with default_sun.set('E490_2014LR'):
    ...   # E490 low-res in effect
    ...   print(Sun.from_default())

@@ -133,14 +133,14 @@ def photo_timescale(species, source=None):
     """
 
     data = {   # (value, {key feature: ADS bibcode})
-        'H2O':   {'CS93': (5.2e4 * u.s, {'H2O photodissociation timescale': '1993Icar..105..235C'})},
-        'OH':    {'CS93': (1.6e5 * u.s, {'OH photodissociation timescale': '1993Icar..105..235C'})},
-        'HCN':   {'C94': (6.7e4 * u.s, {'HCN photodissociation timescale': '1994JGR....99.3777C'})},
+        'H2O': {'CS93': (5.2e4 * u.s, {'H2O photodissociation timescale': '1993Icar..105..235C'})},
+        'OH': {'CS93': (1.6e5 * u.s, {'OH photodissociation timescale': '1993Icar..105..235C'})},
+        'HCN': {'C94': (6.7e4 * u.s, {'HCN photodissociation timescale': '1994JGR....99.3777C'})},
         'CH3OH': {'C94': (7.7e4 * u.s, {'CH3OH photodissociation timescale': '1994JGR....99.3777C'})},
-        'H2CO':  {'C94': (5.0e3 * u.s, {'H2CO photodissociation timescale': '1994JGR....99.3777C'})},
-        'CO':    {'CE83': (1.5e6 * u.s, {'CO photodissociation timescale': '1983A%26A...126..170C'})},
-        'CO2':   {'CE83': (5.0e5 * u.s, {'CO2 photodissociation timescale': '1983A%26A...126..170C'})},
-        'CN':    {'H92': ([3.15e5, 1.35e5] * u.s, {'CN photodissociation timescale': '1992Ap%26SS.195....1H'})},
+        'H2CO': {'C94': (5.0e3 * u.s, {'H2CO photodissociation timescale': '1994JGR....99.3777C'})},
+        'CO': {'CE83': (1.5e6 * u.s, {'CO photodissociation timescale': '1983A%26A...126..170C'})},
+        'CO2': {'CE83': (5.0e5 * u.s, {'CO2 photodissociation timescale': '1983A%26A...126..170C'})},
+        'CN': {'H92': ([3.15e5, 1.35e5] * u.s, {'CN photodissociation timescale': '1992Ap%26SS.195....1H'})},
     }
 
     default_sources = {
@@ -366,7 +366,8 @@ class GasComa(ABC):
         # Using an upper limit of integration than 1e9 m makes the
         # integral divergent
         # sigma, err = quad(f, 0, np.inf, epsabs=epsabs)
-        sigma, err = quad(f, 0, np.max((1.e6, 10*rho.to(u.km).value)), epsabs=epsabs)
+        sigma, err = quad(f, 0, np.max(
+            (1.e6, 10*rho.to(u.km).value)), epsabs=epsabs)
 
         # spherically symmetric coma
         sigma *= 2

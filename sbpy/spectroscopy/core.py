@@ -207,8 +207,8 @@ class Spectrum():
 
         Examples
         --------
-        # doctest: +SKIP
-        >>> spec_model = SpectralModel(type='Haser', molecule='H2O')
+        >>> spec_model = SpectralModel(type='Haser', molecule='H2O')        # doctest: +SKIP
+
         >>> spec.fit(spec_model) # doctest: +SKIP
         >>> print(spec.fit_info) # doctest: +SKIP
 

@@ -50,13 +50,13 @@ class Vega(SpectralStandard):
     Examples
     --------
     Get the default Vega spectrum:
-    >>> vega = Vega.from_default()
+    >>> vega = Vega.from_default()               # doctest: +REMOTE_DATA
 
     Create Vega from a file:
-    >>> vega = Vega.from_file('filename')               # doctest: +SKIP
+    >>> vega = Vega.from_file('filename')        # doctest: +SKIP
 
     Evaluate Vega at 1 μm:
-    >>> print(vega(1 * u.um))                   # doctest: +SKIP
+    >>> print(vega(1 * u.um))                    # doctest: +SKIP
 
     """
 
