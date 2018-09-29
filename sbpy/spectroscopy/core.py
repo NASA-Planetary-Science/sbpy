@@ -207,7 +207,8 @@ class Spectrum():
 
         Examples
         --------
-        >>> spec_model = SpectralModel(type='Haser', molecule='H2O') # doctest: +SKIP
+        >>> spec_model = SpectralModel(type='Haser', molecule='H2O')        # doctest: +SKIP
+
         >>> spec.fit(spec_model) # doctest: +SKIP
         >>> print(spec.fit_info) # doctest: +SKIP
 
@@ -393,8 +394,8 @@ class SpectralStandard(ABC):
     def meta(self):
         self._source.meta
 
-    def __call__(self, wave_or_freq, unit='W / (m2 um)'):
-        """Bin the source spectrum.
+    def __call__(self, wave_or_freq, unit=None):
+        """Evaluate the source spectrum.
 
         Parameters
         ----------
@@ -406,7 +407,8 @@ class SpectralStandard(ABC):
 
         unit : string, `~astropy.units.Unit`, optional
           Spectral units of the output: flux density, 'vegamag',
-          'ABmag', or 'STmag'.
+          'ABmag', or 'STmag'.  If ``None``, return units are W/(m2
+          μm) for ``wave_or_freq`` as wavelength, otherwise return Jy.
 
         Returns
         -------
@@ -419,6 +421,12 @@ class SpectralStandard(ABC):
 
         import numpy as np
         import synphot
+
+        if unit is None:
+            if wave_or_freq.unit.is_equivalent('m'):
+                unit = u.Unit('W/(m2 um)')
+            else:
+                unit = u.Jy
 
         if np.size(wave_or_freq) > 1:
             # Method adapted from http://www.astrobetter.com/blog/2013/08/12/python-tip-re-sampling-spectra-with-pysynphot/
@@ -434,7 +442,7 @@ class SpectralStandard(ABC):
 
         return fluxd
 
-    def filt(self, bp, unit='W / (m2 um)', vegaspec=None, **kwargs):
+    def filt(self, bp, unit='W / (m2 um)', **kwargs):
         """Spectrum observed through a filter.
 
         Parameters
@@ -448,10 +456,6 @@ class SpectralStandard(ABC):
           Spectral units of the output: flux density, 'vegamag',
           'ABmag', or 'STmag'.
 
-        vegaspec : `~synphot.SourceSpectrum`
-          Use this spectrum for Vega when `unit == 'vegamag'`,
-          otherwise the default `sbpy` spectrum will be used.
-
         **kwargs
           Additional keyword arguments for
           `~synphot.observation.Observation`.
@@ -461,8 +465,8 @@ class SpectralStandard(ABC):
         wave : `~astropy.units.Quantity`
           Effective wavelength.
 
-        fluxd : `~astropy.units.Quantity`
-          The flux density.
+        fluxd : `~astropy.units.Quantity` or float
+          Flux density or magnitude.
 
 
         Notes
@@ -487,20 +491,22 @@ class SpectralStandard(ABC):
         """
 
         import synphot
-        from .vega import default_vega
+        from synphot.units import VEGAMAG
+        from .vega import Vega
 
         assert isinstance(bp, (str, synphot.SpectralElement))
 
         if isinstance(bp, str):
-            # bp = get_bandpass(bp)
-            raise NotImplementedError
+            bp = synphot.SpectralElement.from_filter(bp)
 
         obs = synphot.Observation(self.source, bp, **kwargs)
-
-        if unit == 'vegamag' and vegaspec is None:
-            vegaspec = default_vega.get().source
-
         wave = obs.effective_wavelength()
-        fluxd = obs.effstim(unit, vegaspec=vegaspec)
+
+        if str(unit).lower().strip() == 'vegamag':
+            f = obs.effstim('W/(m2 um)')
+            f0 = Vega.from_default().filt(bp, unit='W/(m2 um)')[1]
+            fluxd = -2.5 * np.log10((f / f0).value) * VEGAMAG
+        else:
+            fluxd = obs.effstim(unit)
 
         return wave, fluxd
