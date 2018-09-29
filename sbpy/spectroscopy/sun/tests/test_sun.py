@@ -1,6 +1,7 @@
 import pytest
 import numpy as np
 import astropy.units as u
+from astropy.tests.helper import remote_data
 from .. import *
 
 try:
@@ -145,7 +146,7 @@ class Test_default_sun:
         with default_sun.set(name):
             assert default_sun.get().description == source['description']
 
-    @pytest.mark.remote_data
+    @remote_data
     @pytest.mark.parametrize('name,source',
                              (('Kurucz1993', sources.Kurucz1993),
                               ('Castelli1996', sources.Castelli1996)))

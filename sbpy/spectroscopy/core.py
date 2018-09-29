@@ -395,7 +395,7 @@ class SpectralStandard(ABC):
         self._source.meta
 
     def __call__(self, wave_or_freq, unit=None):
-        """Bin the source spectrum.
+        """Evaluate the source spectrum.
 
         Parameters
         ----------
