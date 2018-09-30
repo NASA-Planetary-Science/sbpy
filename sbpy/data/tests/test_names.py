@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import pytest
 
-from ..names import Names, TargetNameParseError, natrual_sort_key
+from ..names import Names, TargetNameParseError, natural_sort_key
 
 # name: expected result from parse_comet()
 comets = {
