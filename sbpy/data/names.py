@@ -13,7 +13,46 @@ created on August 28, 2017
 from .core import DataClass
 from numpy import ndarray
 
-__all__ = ['Names', 'TargetNameParseError']
+__all__ = ['Names', 'TargetNameParseError', 'natural_sort_key']
+
+
+def natural_sort_key(s):
+    """List sort keys considering strings of numbers as integers.
+
+    Intended to be used with `list.sort` or the `sorted` built-in
+    function.
+
+
+    Parameters
+    ----------
+    s : string
+        String to parse into keys.
+
+
+    Returns
+    -------
+    keys : tuple
+        Keys for sorting.
+
+
+    Examples
+    --------
+    >>> from sbpy.data.names import natural_sort_key
+    >>> comets = ['9P/Tempel 1',
+    ...           '101P/Chernykh',
+    ...           '10P/Tempel 2',
+    ...           '2P/Encke']
+    >>> sorted(comets)
+    ['101P/Chernykh', '10P/Tempel 2', '2P/Encke', '9P/Tempel 1']
+    >>> sorted(comets, key=natural_sort_key)
+    ['2P/Encke', '9P/Tempel 1', '10P/Tempel 2', '101P/Chernykh']
+
+    """
+    import re
+    keys = tuple()
+    for k in re.split('([0-9]+)', s):
+        keys += (int(k) if k.isdigit() else k,)
+    return keys
 
 
 class TargetNameParseError(Exception):

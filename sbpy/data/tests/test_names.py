@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import pytest
 
-from ..names import Names, TargetNameParseError
+from ..names import Names, TargetNameParseError, natrual_sort_key
 
 # name: expected result from parse_comet()
 comets = {
@@ -61,6 +61,13 @@ asteroids = {
                                  '`O`o', 'desig': '2006 RJ110'},
     "(20123) A900 MA": {'number': 20123, 'desig': '1900 MA'}
 }
+
+
+def test_natural_sort_key():
+    items = ['1A10', '1A2', 'B3', 'B20', 'C', '4D', 'CE24', 'CC3D']
+    items = sorted(items, key=natural_sort_key)
+    test = ['1A2', '1A10', '4D', 'B3', 'B20', 'C', 'CC3D', 'CE24']
+    assert all([i == t for i, t in zip(items, test)])
 
 
 def test_asteroid_or_comet():
