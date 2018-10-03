@@ -10,10 +10,12 @@ created on June 04, 2017
 """
 import os
 
-from numpy import ndarray
+import numpy as np
 from astropy.time import Time
 from astropy.table import vstack, Column
+import astropy.units as u
 from astroquery.jplhorizons import Horizons
+from astroquery.mpc import MPC
 
 from .. import bib
 from .core import DataClass, conf
@@ -85,7 +87,7 @@ class Ephem(DataClass):
                     epochs[key] = val.value
                 else:
                     epochs[key] = epochs[key]
-        elif isinstance(epochs, (list, tuple, ndarray)):
+        elif isinstance(epochs, (list, tuple, np.ndarray)):
             new_epochs = [None] * len(epochs)
             for i in range(len(epochs)):
                 if isinstance(epochs[i], Time):
@@ -95,7 +97,7 @@ class Ephem(DataClass):
             epochs = new_epochs
 
         # if targetids is a list, run separate Horizons queries and append
-        if not isinstance(targetids, (list, ndarray, tuple)):
+        if not isinstance(targetids, (list, np.ndarray, tuple)):
             targetids = [targetids]
 
         # append ephemerides table for each targetid
@@ -127,34 +129,139 @@ class Ephem(DataClass):
         return cls.from_table(all_eph)
 
     @classmethod
-    def from_mpc(cls, targetid, epoch, observatory='500'):
-        """
-        Load ephemerides from the
+    def from_mpc(cls, targetid, epochs=None, start=None, step=None,
+                 stop=None, number=None, location='500', **kwargs):
+        """Load ephemerides from the
         `Minor Planet Center <http://minorplanetcenter.net>`_.
 
         Parameters
         ----------
-        targetid : str, mandatory
-            target identifier
-        epochs : astropy Time instance or iterable, optional, default ``None``
-            epoch of elements; if ``None`` is provided, current date is used
-        observatory : str, optional, default ``'500'`` (geocentric)
-            location of observer
+        targetid : str
+            Target identifier.  Must be resolvable by the Minor Planet
+            Ephemeris Service [MPES]_.
+
+        epochs : string, `~astropy.time.Time`, or iterable, optional
+            Request ephemerides at these specific epochs.  If neither
+            of ``epochs`` nor ``start`` is provided, the current time
+            will be used.
+
+        start : string or `~astropy.time.Time`, optional
+            Request ephemerides starting at this epoch, superceding
+            the ``epochs`` parameter.  Strings are parsed by
+            `~astropy.time.Time` assuming a UTC scale.
+
+        step : string or `~astropy.units.Quanitity`, optional
+            Specifies the ephemeris step size when ``start`` is
+            provided.  The MPES requires integer steps with units of
+            seconds, minutes, hours, or days.  Strings are parsed by
+            `~astropy.units.Quantity`.
+
+        stop : string or `~astropy.units.Time`, optional
+            Specifies the ephemeris end time when ``start`` is
+            provided.  Supercedes ``number``, requires ``step``.
+            Strings are parsed by `~astropy.time.Time` assuming a UTC
+            scale.  The stop epoch may not be included depending on
+            the step size and floating point arithmetic.
+
+        number : int, optional
+            The number of ephemeris dates to compute.  Superceded by
+            ``stop``.
+
+        location : str, array-like, or `~astropy.coordinates.EarthLocation`, optional
+            Location of the observer as an IAU observatory code
+            [OBSCODES]_, a 3-element array of Earth longitude,
+            latitude, altitude, or an
+            `~astropy.coordinates.EarthLocation`.  Longitude and
+            latitude should be parseable by
+            `~astropy.coordinates.Angle`, and altitude should be
+            parsable by `~astropy.units.Quantity` (with units of
+            length).  If ``None``, then the geocenter (code 500) is
+            used.
+
+        **kwargs
+            Additional keyword arguments are passed to
+            `~astroquery.mpc.MPC.get_ephemerides`: ``eph_type``,
+            ``ra_format``, ``dec_format``, ``proper_motion``,
+            ``proper_motion_unit``, ``suppress_daytime``,
+            ``suppress_set``, ``perturbed``, ``unc_links``, ``cache``.
 
         Returns
         -------
         `~Ephem` object
 
+
         Examples
         --------
-        >>> from sbpy.data import Ephem  # doctest: +SKIP
-        >>> from astropy.time import Time  # doctest: +SKIP
-        >>> epoch = Time('2018-05-14', scale='utc')  # doctest: +SKIP
-        >>> eph = Ephem.from_mpc('ceres', '568', epoch)  # doctest: +SKIP
+        >>> from sbpy.data import Ephem
+        >>> from astropy.time import Time
+        >>> epoch = Time('2018-05-14', scale='utc')
+        >>> eph = Ephem.from_mpc('ceres', epoch, location='568')  # doctest: +REMOTE_DATA +IGNORE_OUTPUT
 
-        not yet implemented
+        >>> eph = Ephem.from_mpc('2P', start='2019-01-01', step='1d',
+        ...         number=365, location='568')  # doctest: +REMOTE_DATA +IGNORE_OUTPUT
+
+
+        Notes
+        -----
+        See `~astroquery.mpc.MPC.get_ephemerides` and the Minor Planet
+        Ephemeris Service user's guide [MPES]_ for details, including
+        accetable target names.
+
+
+        References
+        ----------
+        .. [MPES] Wiliams, G. The Minor Planet Ephemeris Service.
+           https://minorplanetcenter.org/iau/info/MPES.pdf
+
+        .. [OBSCODES] IAU Minor Planet Center.  List of observatory
+           codes. https://minorplanetcenter.org/iau/lists/ObsCodesF.html
 
         """
+
+        # parameter check
+        if start is None:
+            if epochs is None:
+                epochs = Time.now()
+
+            if not np.iterable(epochs):
+                epochs = [epochs]
+        elif stop is not None:
+            if step is None:
+                raise ValueError(
+                    'step is required when start and stop are provided')
+
+            # start and stop both defined, estimate number of steps
+            _step = u.Quantity(step)
+            if _step.unit not in (u.d, u.h, u.m, u.s):
+                raise ValueError(
+                    'step must have units of days, hours, minutes, or seconds')
+            dt = (Time(stop).jd - Time(start).jd) * u.d
+            number = int((dt / _step).decompose())
+
+        # get ephemeris
+        if start is None:
+            eph = []
+            for i in range(len(epochs)):
+                e = MPC.get_ephemeris(targetid, location=location,
+                                      start=epochs[i], number=1, **kwargs)
+                e['Date'] = e['Date'].iso
+                eph.append(e)
+            eph = vstack(eph)
+        else:
+            eph = None
+            current = 0
+            eph = []
+            while number - current > 0:
+                n = min(1441, number - current)
+                e = MPC.get_ephemeris(targetid, location=location,
+                                      start=start, step=step, number=n,
+                                      **kwargs)
+                e['Date'] = e['Date'].iso
+                eph.append(e)
+                current += len(e)
+            eph = vstack(eph)
+
+        return cls.from_table(eph)
 
     def report_to_mpc():
         """
@@ -361,7 +468,7 @@ class Ephem(DataClass):
             epochs = [Time.now()]
         elif isinstance(epochs, Time):
             epochs = [Time(epochs)]
-        elif isinstance(epochs, (list, tuple, ndarray)):
+        elif isinstance(epochs, (list, tuple, np.ndarray)):
             new_epochs = [None] * len(epochs)
             for i in range(len(epochs)):
                 if isinstance(epochs[i], Time):
