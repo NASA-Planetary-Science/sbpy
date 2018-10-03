@@ -57,6 +57,41 @@ def test_from_horizons():
 
 
 @pytest.mark.remote_data
+class TestEphemFromMPC:
+    def test_single_epoch_now(self):
+        eph = Ephem.from_mpc('Ceres')
+        assert len(eph.table) == 1
+
+    def test_single_epoch(self):
+        eph = Ephem.from_mpc('Ceres', epochs='2018-10-01')
+        assert len(eph.table) == 1
+
+    def test_multiple_epochs(self):
+        eph = Ephem.from_mpc('Ceres', epochs=['2018-10-01', '2019-10-01'])
+        assert len(eph.table) == 2
+
+    def test_start_stop_step(self):
+        eph = Ephem.from_mpc('Ceres', start='2018-10-01', stop='2018-10-31',
+                             step='1d')
+        assert len(eph.table) == 31
+
+    def test_start_stop_no_step(self):
+        with pytest.raises(ValueError):
+            eph = Ephem.from_mpc('Ceres', start='2018-10-01',
+                                 stop='2018-10-31')
+
+    def test_start_step_number(self):
+        eph = Ephem.from_mpc('Ceres', start='2018-10-01', step='1d',
+                             number=31)
+        assert len(eph.table) == 31
+        assert eph['Date'][-1] == '2018-10-31 00:00:00.000'
+
+    def test_step_unit(self):
+        with pytest.raises(ValueError):
+            eph = Ephem.from_mpc('Ceres', start='2018-10-01', step='1yr')
+
+
+@pytest.mark.remote_data
 def test_from_oo():
     """test from_oo method"""
 

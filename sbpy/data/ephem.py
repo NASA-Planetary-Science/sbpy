@@ -219,47 +219,44 @@ class Ephem(DataClass):
         """
 
         # parameter check
-        if start is None:
-            if epochs is None:
-                epochs = Time.now()
-
-            if not np.iterable(epochs):
-                epochs = [epochs]
-        elif stop is not None:
-            if step is None:
-                raise ValueError(
-                    'step is required when start and stop are provided')
-
-            # start and stop both defined, estimate number of steps
+        if step is None:
+            _step = None
+        else:
             _step = u.Quantity(step)
             if _step.unit not in (u.d, u.h, u.m, u.s):
                 raise ValueError(
                     'step must have units of days, hours, minutes, or seconds')
+
+        if start is None:
+            if epochs is None:
+                epochs = Time.now()
+
+            if not np.iterable(epochs) or isinstance(epochs, str):
+                epochs = [epochs]
+        elif stop is not None:
+            if _step is None:
+                raise ValueError(
+                    'step is required when start and stop are provided')
+
+            # start and stop both defined, estimate number of steps
             dt = (Time(stop).jd - Time(start).jd) * u.d
-            number = int((dt / _step).decompose())
+            number = int((dt / _step).decompose()) + 1
 
         # get ephemeris
         if start is None:
             eph = []
             for i in range(len(epochs)):
+                start = Time(epochs[i], scale='utc')
                 e = MPC.get_ephemeris(targetid, location=location,
-                                      start=epochs[i], number=1, **kwargs)
-                e['Date'] = e['Date'].iso
+                                      start=start, number=1, **kwargs)
+                e['Date'] = e['Date'].iso  # for vstack to work
                 eph.append(e)
             eph = vstack(eph)
+            eph['Date'] = Time(eph['Date'], scale='utc')
         else:
-            eph = None
-            current = 0
-            eph = []
-            while number - current > 0:
-                n = min(1441, number - current)
-                e = MPC.get_ephemeris(targetid, location=location,
-                                      start=start, step=step, number=n,
-                                      **kwargs)
-                e['Date'] = e['Date'].iso
-                eph.append(e)
-                current += len(e)
-            eph = vstack(eph)
+            eph = MPC.get_ephemeris(targetid, location=location,
+                                    start=start, step=_step, number=number,
+                                    **kwargs)
 
         return cls.from_table(eph)
 
