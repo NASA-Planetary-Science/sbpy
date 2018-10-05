@@ -34,7 +34,7 @@ def register(task, citations):
             value = set()
             key.append(list(citations.keys()))
             for i in range(len(key)):
-                if list(citations.keys())[i] in _bibliography[task]: #if subtask already exists
+                if list(citations.keys())[i] in _bibliography[task]:
                     subtasks = _bibliography[task]
                     if isinstance(list(subtasks.values())[i], list):
                         for j in range(len(list(subtasks.values())[i])):
@@ -42,8 +42,8 @@ def register(task, citations):
                     else:
                         value.add(list(subtasks.values())[i])
                         value.add(list(citations.values())[i])
-                        subtasks[list(citations.keys())[i]] = value #append new citation to existing subtask
-                else: #if subtask doesn't exists
+                        subtasks[list(citations.keys())[i]] = value
+                else:
                     subtasks = _bibliography[task]
                     value.add(list(citations.values())[i])
                     subtasks[list(citations.keys())[i]] = value
@@ -131,13 +131,15 @@ def to_text():
                     elif len(paper.author) > 1:
                         author = ','.join([au.split(',')[0] for au in
                                            paper.author[:-1]])
-                        author += ' & {:s}'.format(paper.author[-1].split(',')[0])
+                        author += ' & {:s}'.format(paper.author[-1].split(',')
+                                                   [0])
                     else:
                         # single author
                         author = paper.first_author.split(',')[0]
 
                     output += '  {:s}: {:s} {:s}, {:s}\n'.format(key, author,
-                                                                 paper.year, val[i])
+                                                                 paper.year,
+                                                                 val[i])
         except AttributeError:
             pass
 
