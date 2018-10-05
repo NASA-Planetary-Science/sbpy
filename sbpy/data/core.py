@@ -396,7 +396,7 @@ class DataClass():
                 self._table.add_row(rows)
         return len(self._table)
 
-    def add_column(self, data, name):
+    def add_column(self, data, name, **kwargs):
         """Append a single column to the current data table. The lenght of
         the input list, `~numpy.ndarray`, or tuple must match the current
         number of rows in the data table.
@@ -409,6 +409,9 @@ class DataClass():
         name : str
             Name of the new column; must be different from already existing
             column names.
+        **kwargs : additional parameters 
+            Additional optional parameters will be passed on to 
+            `~astropy.table.Table.add_column`.
 
         Returns
         -------
@@ -433,7 +436,7 @@ class DataClass():
         3.0   6.0   c 30.0
         """
 
-        self._table.add_column(Column(data, name=name))
+        self._table.add_column(Column(data, name=name), **kwargs)
         return len(self.column_names)
 
     def _translate_columns(self, target_colnames):

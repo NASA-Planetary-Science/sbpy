@@ -9,8 +9,9 @@ Class for storing and querying physical properties
 created on June 04, 2017
 """
 
+from collections import OrderedDict
 
-from numpy import ndarray
+from numpy import ndarray, isnan
 from astroquery.jplsbdb import SBDB
 
 from .core import DataClass, conf
@@ -22,7 +23,7 @@ class Phys(DataClass):
     """Class for storing and querying physical properties"""
 
     @classmethod
-    def from_sbdb(cls, targetid):
+    def from_sbdb(cls, targetids, references=False, notes=False):
         """Load physical properties from JPL Small-Body Database using
         `~astroquery.jplsbdb` for one target. Builds a `~Phys` object
         from the output of `'phys_par'` from SBDB.
@@ -33,7 +34,7 @@ class Phys(DataClass):
 
         Parameters
         ----------
-        targetid : str, mandatory 
+        targetid : str, mandatory
             Target identifier to be queried; use object numbers, names, or
             designations that as unambiguous as possible.
 
@@ -46,13 +47,57 @@ class Phys(DataClass):
         >>> from sbpy.data import Phys
         >>> ceres = Phys.from_sbdb('Ceres')
         >>> print(ceres['H'])  # doctest: +SKIP
-           H    
+           H
         --------
         3.34 mag
 
         """
-        sbdb = SBDB.query(targetid, phys=True)
-        return cls.from_dict(sbdb['phys_par'])
+
+        if not isinstance(targetids, (list, ndarray, tuple)):
+            targetids = [targetids]
+
+        alldata = []
+        for targetid in targetids:
+
+            sbdb = SBDB.query(targetid, phys=True)
+
+            print(sbdb['phys_par'])
+            # print(type(sbdb['phys_par']['diameter_sig']))
+
+            data = {}
+            for key, val in sbdb['phys_par'].items():
+                if val is None or val == 'None':
+                    val = -99
+                if '_note' in key:
+                    if notes:
+                        data[key] = val
+                elif '_ref' in key:
+                    if references:
+                        data[key] = val
+                else:
+                    try:
+                        if isnan(val):
+                            val = None
+                    except TypeError:
+                        pass
+                data[key] = val
+            alldata.append(cls.from_dict(data))
+
+            alldata[-1].add_column([sbdb['object']['fullname']],
+                                   name='targetname', index=0)
+            # print(alldata[-1].table['H_sig'][0])
+
+        if len(alldata) <= 1:
+            return alldata[0]
+        else:
+            out = alldata[0]
+            for tab in alldata[1:]:
+                print(type(out.table['diameter_sig'][0]),
+                      type(tab['diameter_sig'][0]
+                           ), out.table['diameter_sig'][0],
+                      tab['diameter_sig'][0])
+                out.add_rows(tab)
+            return out
 
     @classmethod
     def from_lowell(cls, targetid):
