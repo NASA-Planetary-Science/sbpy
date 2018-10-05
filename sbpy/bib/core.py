@@ -3,7 +3,7 @@
 sbpy Bibliography Tracking Module
 
 sbpy classes and functions can automatically report citations to the
-user through a bibliography registry.  
+user through a bibliography registry.
 """
 
 __all__ = ['register', 'reset', 'status', 'stop', 'track', 'Tracking',
@@ -29,8 +29,26 @@ def register(task, citations):
     """
     global _bibliography, _track
     if _track:
-        _bibliography[task] = _bibliography.get(task, {})
-        _bibliography[task].update(citations)
+        if task in _bibliography:
+            key = []
+            value = set()
+            key.append(list(citations.keys()))
+            for i in range(len(key)):
+                if list(citations.keys())[i] in _bibliography[task]: #if subtask already exists
+                    subtasks = _bibliography[task]
+                    if isinstance(list(subtasks.values())[i], list):
+                        for j in range(len(list(subtasks.values())[i])):
+                            value.add(list(subtasks.values())[i][j])
+                    else:
+                        value.add(list(subtasks.values())[i])
+                        value.add(list(citations.values())[i])
+                        subtasks[list(citations.keys())[i]] = value #append new citation to existing subtask
+                else: #if subtask doesn't exists
+                    subtasks = _bibliography[task]
+                    value.add(list(citations.values())[i])
+                    subtasks[list(citations.keys())[i]] = value
+        else:
+            _bibliography[task] = citations
 
 
 def reset():
@@ -89,33 +107,37 @@ def to_text():
         output += '{:s}:\n'.format(task)
         try:
             for key, val in ref.items():
-                with warnings.catch_warnings():
-                    warnings.filterwarnings('error')
-                    try:
-                        # request needed fields to avoid lazy loading
-                        paper = list(
-                            ads.SearchQuery(
-                                bibcode=val,
-                                fl=['first_author', 'author', 'year']
-                            ))[0]
-                    except Warning as e:
-                        # if query failed,
-                        output += '  {:s}: {:s}\n'.format(key, val)
-                        continue
+                if isinstance(val, str):
+                    val = [val]
+                val = list(val)
+                for i in range(len(val)):
+                    with warnings.catch_warnings():
+                        warnings.filterwarnings('error')
+                        try:
+                            # request needed fields to avoid lazy loading
+                            paper = list(
+                                ads.SearchQuery(
+                                    bibcode=val[i],
+                                    fl=['first_author', 'author', 'year']
+                                ))[0]
+                        except Warning as e:
+                            # if query failed,
+                            output += '  {:s}: {:s}\n'.format(key, val[i])
+                            continue
 
-                if len(paper.author) > 4:
-                    author = '{:s} et al.'.format(
-                        paper.first_author.split(',')[0])
-                elif len(paper.author) > 1:
-                    author = ','.join([au.split(',')[0] for au in
-                                       paper.author[:-1]])
-                    author += ' & {:s}'.format(paper.author[-1].split(',')[0])
-                else:
-                    # single author
-                    author = paper.first_author.split(',')[0]
+                    if len(paper.author) > 4:
+                        author = '{:s} et al.'.format(
+                            paper.first_author.split(',')[0])
+                    elif len(paper.author) > 1:
+                        author = ','.join([au.split(',')[0] for au in
+                                           paper.author[:-1]])
+                        author += ' & {:s}'.format(paper.author[-1].split(',')[0])
+                    else:
+                        # single author
+                        author = paper.first_author.split(',')[0]
 
-                output += '  {:s}: {:s} {:s}, {:s}\n'.format(key, author,
-                                                             paper.year, val)
+                    output += '  {:s}: {:s} {:s}, {:s}\n'.format(key, author,
+                                                                 paper.year, val[i])
         except AttributeError:
             pass
 
