@@ -520,7 +520,32 @@ Note that both functions require pyoorb to be installed, which is not a requirem
     
 How to use Phys
 ---------------
-tbd
+
+`~sbpy.data.Phys` is designed to contain query physical properties for
+small bodies; functions to query these properties are
+available. `~sbpy.data.Phys.from_sbdb` queries the `JPL Small-body
+Database Browser (SBDB)<https://ssd.jpl.nasa.gov/sbdb.cgi>`_ for physical
+properties and stores the data in a `~sbpy.data.Phys` object, offering
+the same functionality as all the other `~sbpy.data` functions,
+including the use of `~astropy.units`.
+
+As an example, the following code will query the properties for a
+small number of asteroids:
+
+    >>> from sbpy.data import Phys
+    >>> phys = Phys.from_sbdb(['Ceres', '12893', '3552'])
+    >>> print(phys['targetname', 'H', 'diameter'])
+            targetname                 H          diameter
+                                      mag            km   
+    -------------------------- ------------------ --------
+                       1 Ceres               3.34    939.4
+     12893 Mommert (1998 QS55)               13.9    5.214
+    3552 Don Quixote (1983 SA) 12.800000000000002     19.0
+
+Please note that the SBDB database is not complete with respect to
+physical properties and should be considered as a sparse dataset.
+
+
 
 
 How to use Names

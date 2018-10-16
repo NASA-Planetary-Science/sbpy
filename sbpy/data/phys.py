@@ -11,10 +11,12 @@ created on June 04, 2017
 
 from collections import OrderedDict
 
-from numpy import ndarray, isnan
+from numpy import ndarray, array, isnan, nan
+import astropy.units as u
 from astroquery.jplsbdb import SBDB
 
-from .core import DataClass, conf
+from .core import DataClass
+from .. import bib
 
 __all__ = ['Phys']
 
@@ -24,19 +26,19 @@ class Phys(DataClass):
 
     @classmethod
     def from_sbdb(cls, targetids, references=False, notes=False):
-        """Load physical properties from JPL Small-Body Database using
-        `~astroquery.jplsbdb` for one target. Builds a `~Phys` object
-        from the output of `'phys_par'` from SBDB.
-
-        The current implementation of this function is limited to
-        single object queries. Future implementations will enable the
-        query of multiple objects in one call.
+        """Load physical properties from `JPL Small-Body Database (SBDB)
+        <https://ssd.jpl.nasa.gov/sbdb.cgi>`_ using
+        `~astroquery.jplsbdb` for one or more targets. Builds a
+        `~Phys` object from the output of `'phys_par'` from
+        SBDB. Units are applied, where available. Missing data are
+        filled up as nan values. Note that SBDB only serves physical
+        properties data for a limited number of objects.
 
         Parameters
         ----------
-        targetid : str, mandatory
-            Target identifier to be queried; use object numbers, names, or
-            designations that as unambiguous as possible.
+        targetids : str, int or iterable thereof
+            Target identifier(s) to be queried; use object numbers, names,
+            or designations as unambiguous as possible.
 
         Returns
         -------
@@ -45,11 +47,14 @@ class Phys(DataClass):
         Examples
         --------
         >>> from sbpy.data import Phys
-        >>> ceres = Phys.from_sbdb('Ceres')
-        >>> print(ceres['H'])  # doctest: +SKIP
-           H
-        --------
-        3.34 mag
+        >>> phys = Phys.from_sbdb(['Ceres', '12893', '3552'])
+        >>> print(phys['targetname', 'H', 'diameter'])  # doctest: +SKIP
+                targetname                 H          diameter
+                                          mag            km
+        -------------------------- ------------------ --------
+                           1 Ceres               3.34    939.4
+         12893 Mommert (1998 QS55)               13.9    5.214
+        3552 Don Quixote (1983 SA) 12.800000000000002     19.0
 
         """
 
@@ -57,17 +62,17 @@ class Phys(DataClass):
             targetids = [targetids]
 
         alldata = []
+        columnnames = ['targetname']
+        columnunits = OrderedDict([('targetname', set())])
         for targetid in targetids:
 
-            sbdb = SBDB.query(targetid, phys=True)
+            sbdb = SBDB.query(str(targetid), phys=True)
 
-            print(sbdb['phys_par'])
-            # print(type(sbdb['phys_par']['diameter_sig']))
-
-            data = {}
+            # assemble data from sbdb output
+            data = OrderedDict([('targetname', sbdb['object']['fullname'])])
             for key, val in sbdb['phys_par'].items():
                 if val is None or val == 'None':
-                    val = -99
+                    val = nan
                 if '_note' in key:
                     if notes:
                         data[key] = val
@@ -77,27 +82,76 @@ class Phys(DataClass):
                 else:
                     try:
                         if isnan(val):
-                            val = None
+                            val = nan
                     except TypeError:
                         pass
                 data[key] = val
-            alldata.append(cls.from_dict(data))
 
-            alldata[-1].add_column([sbdb['object']['fullname']],
-                                   name='targetname', index=0)
-            # print(alldata[-1].table['H_sig'][0])
+                # add to columnnames if not yet there
+                if key not in columnnames:
+                    columnnames.append(key)
+                    columnunits[key] = set()
 
-        if len(alldata) <= 1:
-            return alldata[0]
-        else:
-            out = alldata[0]
-            for tab in alldata[1:]:
-                print(type(out.table['diameter_sig'][0]),
-                      type(tab['diameter_sig'][0]
-                           ), out.table['diameter_sig'][0],
-                      tab['diameter_sig'][0])
-                out.add_rows(tab)
-            return out
+                # identify units
+                if isinstance(val, u.Quantity):
+                    columnunits[key].add(val.unit)
+                elif isinstance(val, u.CompositeUnit):
+                    for unit in val.bases:
+                        columnunits[key].add(unit)
+
+            alldata.append(data)
+
+        # re-assemble data on a per-column basis
+        coldata = []
+        for col in columnnames:
+            data = []
+
+            for obj in alldata:
+                try:
+                    data.append(obj[col])
+                except KeyError:
+                    data.append(nan)
+
+            # identify common unit (or at least any unit)
+            try:
+                unit = list(columnunits[col])[0]
+                # transform data to this unit
+                newdata = []
+                for dat in data:
+                    if isinstance(dat, (u.Quantity, u.CompositeUnit)):
+                        try:
+                            newdata.append(dat.to(unit))
+                        except u.UnitConversionError:
+                            # keep data untouched if conversion fails
+                            unit = 1
+                            newdata = data
+                            break
+                    else:
+                        newdata.append(dat)
+            except IndexError:
+                # data has no unit assigned
+                unit = 1
+                newdata = data
+
+            # convert lists of strings to floats, where possible
+            try:
+                data = array(newdata).astype(float)
+            except (ValueError, TypeError):
+                data = newdata
+
+            # apply unit, if available
+            if unit != 1:
+                coldata.append(data*unit)
+            else:
+                coldata.append(data)
+
+        if bib.status() is None or bib.status():
+            bib.register('sbpy.data.Phys.from_sbdb',
+                         {'data service url':
+                          'https://ssd.jpl.nasa.gov/sbdb.cgi'})
+
+        # assemble data as Phys object
+        return cls.from_array(coldata, names=columnnames)
 
     @classmethod
     def from_lowell(cls, targetid):

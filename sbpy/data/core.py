@@ -326,26 +326,33 @@ class DataClass():
         """Return a list of all column names in the data table."""
         return self._table.columns
 
-    def add_rows(self, rows):
+    def add_rows(self, rows, join_type='inner'):
         """Append additional rows to the existing data table. An individual
         row can be provided in list, tuple, `~numpy.ndarray`, or
         dictionary form. Multiple rows can be provided in the form of
         a list, tuple, or `~numpy.ndarray` of individual
         rows. Multiple rows can also be provided in the form of a
         `~astropy.table.QTable` or another `~sbpy.data.DataClass`
-        object. In case of a dictionary, `~astropy.table.QTable`, or
-        `~sbpy.data.DataClass`, all table column names must be
-        provided in ``row``; additional keys that are not yet column
-        names in the table will be discarded. In case of a list, the
-        list elements must be in the same order as the table
-        columns. In either case, matching `~astropy.units` must be
-        provided in ``rows`` if used in the data table.
+        object. Parameter ``join_type`` defines which columns appear
+        in the final output table: ``inner`` only keeps those columns
+        that appear in both the original table and the rows to be
+        added; ``outer`` will keep all columns and populate some with
+        placeholders, if necessary. In case of a list, the list
+        elements must be in the same order as the table columns. In
+        either case, matching `~astropy.units` must be provided in
+        ``rows`` if used in the data table.
 
         Parameters
         ----------
         rows : list, tuple, `~numpy.ndarray`, dict, or `~collections.OrderedDict`
-            data to be appended to the table; required to have the same
-            length as the existing table, as well as the same units
+            Data to be appended to the table; required to have the same
+            length as the existing table, as well as the same units.
+        join_type : str, optional
+            Defines which columns are kept in the output table: ``inner``
+            only keeps those columns that appear in both the original
+            table and the rows to be added; ``outer`` will keep all
+            columns and populate them with placeholders, if necessary.
+            Default: ``inner``
 
         Returns
         -------
@@ -374,11 +381,13 @@ class DataClass():
         6
         >>> dat.add_rows(dat)
         12
+
         """
         if isinstance(rows, QTable):
-            self._table = vstack([self._table, rows])
+            self._table = vstack([self._table, rows], join_type=join_type)
         if isinstance(rows, DataClass):
-            self._table = vstack([self._table, rows.table])
+            self._table = vstack([self._table, rows.table],
+                                 join_type=join_type)
         if isinstance(rows, (dict, OrderedDict)):
             try:
                 newrow = [rows[colname] for colname in self._table.columns]
