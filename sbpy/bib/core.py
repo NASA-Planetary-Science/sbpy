@@ -108,9 +108,9 @@ def to_text():
                                     bibcode=citation,
                                     fl=['first_author', 'author', 'year']
                                 ))[0]
-                        except Warning as e:
+                        except (IndexError, Warning) as e:
                             # if query failed,
-                            output += '  {:s}: {:s}\n'.format(key, citation)
+                            output += '      {:s}\n'.format(citation)
                             continue
 
                     if len(paper.author) > 4:
