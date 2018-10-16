@@ -12,7 +12,7 @@ __all__ = ['register', 'reset', 'status', 'stop', 'track', 'Tracking',
 from collections import OrderedDict
 
 
-def register(task, citations):
+def register(task, citation):
     """Register a citation with the `sbpy` bibliography when running a
     function
 
@@ -20,9 +20,9 @@ def register(task, citations):
     ----------
     task : string
       The name of the source module requesting a citation.
-    citations : dict
-      A dictionary of NASA Astrophysics Data System (ADS) bibcode(s)
-      to cite.  The keys reference the aspect that requires citation,
+    citation : dict
+      A dictionary of a single NASA Astrophysics Data System (ADS) bibcode
+      to cite.  The key references the aspect that requires citation,
       e.g., `{'method': '1998Icar..131..291H'}`, or
       `{'beaming parameter': '2013Icar..226.1138F'}`.
 
@@ -30,25 +30,15 @@ def register(task, citations):
     global _bibliography, _track
     if _track:
         if task in _bibliography:
-            key = []
-            value = set()
-            key.append(list(citations.keys()))
-            for i in range(len(key)):
-                if list(citations.keys())[i] in _bibliography[task]:
-                    subtasks = _bibliography[task]
-                    if isinstance(list(subtasks.values())[i], list):
-                        for j in range(len(list(subtasks.values())[i])):
-                            value.add(list(subtasks.values())[i][j])
-                    else:
-                        value.add(list(subtasks.values())[i])
-                        value.add(list(citations.values())[i])
-                        subtasks[list(citations.keys())[i]] = value
+            for newsubtask, newcitation in citation.items():
+                if newsubtask in _bibliography[task].keys():
+                    _bibliography[task][newsubtask].update([newcitation])
                 else:
-                    subtasks = _bibliography[task]
-                    value.add(list(citations.values())[i])
-                    subtasks[list(citations.keys())[i]] = value
+                    _bibliography[task][newsubtask] = set([list(citation.values())[0]])
         else:
-            _bibliography[task] = citations
+            for newsubtask, newcitation in citation.items():
+                citation[newsubtask] = set([list(citation.values())[0]])
+            _bibliography[task] = citation
 
 
 def reset():
@@ -106,23 +96,21 @@ def to_text():
     for task, ref in _bibliography.items():
         output += '{:s}:\n'.format(task)
         try:
-            for key, val in ref.items():
-                if isinstance(val, str):
-                    val = [val]
-                val = list(val)
-                for i in range(len(val)):
+            for key, value in ref.items():
+                output += '  {:s}:\n'.format(key)
+                for citation in value:
                     with warnings.catch_warnings():
                         warnings.filterwarnings('error')
                         try:
                             # request needed fields to avoid lazy loading
                             paper = list(
                                 ads.SearchQuery(
-                                    bibcode=val[i],
+                                    bibcode=citation,
                                     fl=['first_author', 'author', 'year']
                                 ))[0]
                         except Warning as e:
                             # if query failed,
-                            output += '  {:s}: {:s}\n'.format(key, val[i])
+                            output += '  {:s}: {:s}\n'.format(key, citation)
                             continue
 
                     if len(paper.author) > 4:
@@ -137,9 +125,8 @@ def to_text():
                         # single author
                         author = paper.first_author.split(',')[0]
 
-                    output += '  {:s}: {:s} {:s}, {:s}\n'.format(key, author,
-                                                                 paper.year,
-                                                                 val[i])
+                    output += '      {:s} {:s}, {:s}\n'.format(author,paper.year,
+                                                         citation)
         except AttributeError:
             pass
 
