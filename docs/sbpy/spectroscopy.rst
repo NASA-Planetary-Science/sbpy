@@ -215,15 +215,9 @@ In a similar manner, Vega spectra are accessed and controlled via `Vega` and `de
 .. doctest-requires:: synphot
 
    >>> from sbpy.spectroscopy.vega import Vega, default_vega
-<<<<<<< HEAD
    >>> print(Vega.from_default())     # doctest: +SKIP
    <Vega: Spectrum of Bohlin 2014>
    >>> with default_vega.set(Vega.from_file('vega.txt')):  # doctest: +SKIP
-=======
-   >>> print(default_vega.get().description)               # doctest: +REMOTE_DATA +IGNORE_OUTPUT
-   Vega spectrum of Bohlin 2014.
-   >>> with default_vega.set(Vega.from_file('vega.txt')):
->>>>>>> Updates on documentation
    ...   # vega.txt in effect
 
 
@@ -235,21 +229,11 @@ Observe the Sun through a filter
 Get the default solar spectrum, and observe it through the Johnson V-band filter, using `synphot`'s built-in support:
 
 .. doctest-requires:: synphot
-<<<<<<< HEAD
 
    >>> from sbpy.spectroscopy.sun import Sun
    >>> sun = Sun.from_default()
    >>> wave, mag = sun.filt('johnson_v', unit='vegamag')                                                                          # doctest: +REMOTE_DATA
    >>> print('\n{}\n- Johnson V = {:.2f} at {:.0f}'.format(sun.description, mag, wave))                                           # doctest: +REMOTE_DATA
-=======
-
-   >>> import synphot
-   >>> from sbpy.spectroscopy.sun import default_sun
-   >>> sun = default_sun.get()
-   >>> v = synphot.SpectralElement.from_filter('johnson_v')                             # doctest: +REMOTE_DATA +IGNORE_OUTPUT
-   >>> wave, mag = sun.filt(v, unit='vegamag')                                          # doctest: +REMOTE_DATA
-   >>> print('\n{}\n- Johnson V = {:.2f} at {:.0f}'.format(sun.description, mag, wave)) # doctest: +REMOTE_DATA
->>>>>>> Updated documentation to include prodrate_np and Einstein coefficient modules
    E490-00a (2014) reference solar spectrum (Table 3).
    - Johnson V = -26.77 VEGAMAG at 5502 Angstrom
 
@@ -269,11 +253,8 @@ Finally, observe the Sun through *Hubble*/WFC3's F438W and F606W filters:
 
 .. doctest-requires:: synphot
 
-<<<<<<< HEAD
    >>> import synphot
    >>> from sbpy.spectroscopy.sun import Sun
-=======
->>>>>>> Updated documentation to include prodrate_np and Einstein coefficient modules
    >>> fn = 'ftp://ftp.stsci.edu/cdbs/comp/wfc3/wfc3uvis1_f438w_mjd_006_syn.fits'
    >>> f438w = synphot.SpectralElement.from_file(fn)                                                               # doctest: +REMOTE_DATA +IGNORE_OUTPUT
    >>> fn = 'ftp://ftp.stsci.edu/cdbs/comp/wfc3/wfc3uvis1_f606w_mjd_006_syn.fits'
@@ -340,37 +321,7 @@ Solar spectra in Sun objects can be plotted at the native resolution of the data
    plt.plot(wave_binned, fluxd_binned, ls='steps-mid', color='#ff7f0e', label='C96, R~{}'.format(R))
    plt.setp(plt.gca(), xlim=wrange, xlabel='Wavelength (μm)', ylabel='Flux density (W/(m2 μm)')
    plt.legend()
-<<<<<<< HEAD
    plt.tight_layout()
-=======
-
-
-.. MM: following code blocks do not work. Please check.
-
-.. Compare Castelli 1996, Kurucz 1993, and E490_2014 spectra in the optical at a spectral resolution of ~25:
-
-..   .. doctest-skip::
-
-..      >>> import matplotlib.pyplot as plt
-..      >>> from sbpy.spectroscopy.sun import Sun
-..      >>> for source in ['Castelli1996', 'Kurucz1993', 'E490_2014']:
-..      ...     sun = Sun.from_builtin(source)
-..      ...     fluxd_binned = sun(wave_binned, unit='W / (m2 um)')
-..      ...     plt.plot(wave_binned, fluxd_binned, ls='steps-mid', label=source)
-..      >>> plt.xlim(0.3, 0.8)
-..      >>> plt.legend()
-
-..   .. plot::
-
-..      import matplotlib.pyplot as plt
-..      from sbpy.spectroscopy.sun import Sun
-..      for source in ['Castelli1996', 'Kurucz1993', 'E490_2014']:
-..	  sun = Sun.from_builtin(source)
-..	  fluxd_binned = sun(wave_binned, unit='W / (m2 um)')
-..	  plt.plot(wave_binned, fluxd_binned, ls='steps-mid', label=source)
-..      plt.xlim(0.3, 0.8)
-..      plt.legend()
->>>>>>> Updated documentation to include prodrate_np and Einstein coefficient modules
 
 
 Reference/API
