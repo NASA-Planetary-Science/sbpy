@@ -39,11 +39,16 @@ def test_Tracking():
     reset()
 
     with Tracking():
-        register('test', {'track_this': 'bibcode'})
+        register('test1', {'track_this': 'bibcode1'})
+        register('test1', {'track_this': 'bibcode2'})
+        register('test1', {'track_this_too': 'bibcode'})
+        register('test2', {'track_this': 'bibcode'})
 
     register('test', {'do not track this': 'bibcode'})
-
-    assert ['test:', 'track_this:', 'bibcode'] == to_text().split()
+    assert set(['test1:', 'track_this:', 'bibcode1', 'bibcode2', 'track_this_too:',
+                'bibcode', 'test2:', 'track_this:',
+                'bibcode']) == set(to_text().split())  #different builds will have different orders for bibcode 1 and 2, to avoid the build failing because of this we use sets
+    print(to_text().split())
 
 
 def test_Tracking_issue_64():
