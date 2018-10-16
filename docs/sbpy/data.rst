@@ -534,7 +534,7 @@ small number of asteroids:
 
     >>> from sbpy.data import Phys
     >>> phys = Phys.from_sbdb(['Ceres', '12893', '3552'])
-    >>> print(phys['targetname', 'H', 'diameter'])
+    >>> print(phys['targetname', 'H', 'diameter']) # doctest: +SKIP
             targetname                 H          diameter
                                       mag            km   
     -------------------------- ------------------ --------
