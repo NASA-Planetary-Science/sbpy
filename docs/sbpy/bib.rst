@@ -30,7 +30,7 @@ queried by the `~sbpy.data.Ephem.from_horizons`
 function. `~sbpy.bib.to_text` outputs the current citation registry in
 simple text form.
 
-  
+
 Bibliography tracking can also be used in a context manager:
 
     >>> from sbpy import bib
@@ -38,10 +38,11 @@ Bibliography tracking can also be used in a context manager:
     >>> with bib.Tracking():
     ...     eph = Ephem.from_horizons('Ceres', epochs=None, location='500')
     >>> print(bib.to_text())  # doctest: +REMOTE_DATA
-    sbpy.data.Ephem:
-      data service: Giorgini et al. 1996, 1996DPS....28.2504G
+|    sbpy.data.Ephem:
+|      data service:
+|        Giorgini et al. 1996, 1996DPS....28.2504G
 
-      
+
 Output formats
 --------------
 
@@ -50,8 +51,9 @@ Bibliographies can be generated in different output formats:
 Simple text (`~sbpy.bib.to_text`)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     >>> bib.to_text()  # doctest: +REMOTE_DATA
-    sbpy.data.Ephem:
-      data service: Giorgini et al. 1996, 1996DPS....28.2504G
+|    sbpy.data.Ephem:
+|      data service:
+|        Giorgini et al. 1996, 1996DPS....28.2504G
 
 
 BibTeX (`~sbpy.bib.to_bibtex`)
