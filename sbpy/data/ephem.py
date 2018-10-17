@@ -129,8 +129,7 @@ class Ephem(DataClass):
         return cls.from_table(all_eph)
 
     @classmethod
-    def from_mpc(cls, targetid, epochs=None, start=None, step=None,
-                 stop=None, number=None, location='500', **kwargs):
+    def from_mpc(cls, targetid, epochs=None, location='500', **kwargs):
         """Load ephemerides from the
         `Minor Planet Center <http://minorplanetcenter.net>`_.
 
@@ -140,32 +139,28 @@ class Ephem(DataClass):
             Target identifier.  Must be resolvable by the Minor Planet
             Ephemeris Service [MPES]_.
 
-        epochs : string, `~astropy.time.Time`, or iterable, optional
-            Request ephemerides at these specific epochs.  If neither
-            of ``epochs`` nor ``start`` is provided, the current time
-            will be used.
+        epochs : string, `~astropy.time.Time`, array-like, or dictionary, optional
 
-        start : string or `~astropy.time.Time`, optional
-            Request ephemerides starting at this epoch, superceding
-            the ``epochs`` parameter.  Strings are parsed by
-            `~astropy.time.Time` assuming a UTC scale.
+            Request ephemerides at these epochs.  May be a single
+            epoch, an array of epochs, or a dictionary describing a
+            linearly-spaced array of epochs.  If ``None`` (default),
+            the current date and time will be used.
 
-        step : string or `~astropy.units.Quanitity`, optional
-            Specifies the ephemeris step size when ``start`` is
-            provided.  The MPES requires integer steps with units of
-            seconds, minutes, hours, or days.  Strings are parsed by
-            `~astropy.units.Quantity`.
+            For the dictionary format, the keys ``start`` (start
+            epoch), ``step`` (step size), ``stop`` (end epoch), and/or
+            ``number`` (number of epochs total) are used.  Only one of
+            ``stop`` and ``number`` may be specified at a time.
+            ``step``, ``stop``, and ``number`` are optional.  See
+            `~astroquery.mpc.MPC.get_ephemeris` for defaults.
 
-        stop : string or `~astropy.units.Time`, optional
-            Specifies the ephemeris end time when ``start`` is
-            provided.  Supercedes ``number``, requires ``step``.
-            Strings are parsed by `~astropy.time.Time` assuming a UTC
-            scale.  The stop epoch may not be included depending on
-            the step size and floating point arithmetic.
+            Epochs, including ``start`` and ``stop``, are
+            `~astropy.time.Time` objects, anything that can initialize
+            a ``Time`` object, or a float indicating a Julian date.
+            Unless otherwise specified, the UTC scale is assumed.
 
-        number : int, optional
-            The number of ephemeris dates to compute.  Superceded by
-            ``stop``.
+            ``step`` should be an integer in units of seconds,
+            minutes, hours, or days.  Anythng that can initialize an
+            `~astropy.units.Quantity` object is allowed.
 
         location : str, array-like, or `~astropy.coordinates.EarthLocation`, optional
             Location of the observer as an IAU observatory code
@@ -197,8 +192,8 @@ class Ephem(DataClass):
         >>> epoch = Time('2018-05-14', scale='utc')
         >>> eph = Ephem.from_mpc('ceres', epoch, location='568')  # doctest: +REMOTE_DATA +IGNORE_OUTPUT
 
-        >>> eph = Ephem.from_mpc('2P', start='2019-01-01', step='1d',
-        ...         number=365, location='568')  # doctest: +REMOTE_DATA +IGNORE_OUTPUT
+        >>> epochs = {'start': '2019-01-01', 'step': '1d', 'number': 365}
+        >>> eph = Ephem.from_mpc('2P', epochs=epochs, location='568')  # doctest: +REMOTE_DATA +IGNORE_OUTPUT
 
 
         Notes
@@ -219,28 +214,46 @@ class Ephem(DataClass):
         """
 
         # parameter check
-        if step is None:
-            _step = None
-        else:
-            _step = u.Quantity(step)
-            if _step.unit not in (u.d, u.h, u.m, u.s):
-                raise ValueError(
-                    'step must have units of days, hours, minutes, or seconds')
+        if isinstance(epochs, dict):
+            start = epochs['start']  # required
+            step = epochs.get('step')
+            stop = epochs.get('stop')
+            number = epochs.get('number')
 
-        if start is None:
+            if isinstance(start, (float, int)):
+                start = Time(start, format='jd', scale='utc')
+
+            if isinstance(stop, (float, int)):
+                stop = Time(stop, format='jd', scale='utc')
+
+            if step is not None:
+                step = u.Quantity(step)
+                if step.unit not in (u.d, u.h, u.m, u.s):
+                    raise ValueError(
+                        'step must have units of days, hours, minutes,'
+                        ' or seconds')
+
+            if stop is not None:
+                if step is None:
+                    raise ValueError(
+                        'step is required when start and stop are provided')
+
+                # start and stop both defined, estimate number of steps
+                dt = (Time(stop).jd - Time(start).jd) * u.d
+                number = int((dt / step).decompose()) + 1
+        else:
+            start = None
+
             if epochs is None:
                 epochs = Time.now()
 
             if not np.iterable(epochs) or isinstance(epochs, str):
                 epochs = [epochs]
-        elif stop is not None:
-            if _step is None:
-                raise ValueError(
-                    'step is required when start and stop are provided')
 
-            # start and stop both defined, estimate number of steps
-            dt = (Time(stop).jd - Time(start).jd) * u.d
-            number = int((dt / _step).decompose()) + 1
+            # check for Julian dates
+            for i in range(len(epochs)):
+                if isinstance(epochs[i], (float, int)):
+                    epochs[i] = Time(epochs[i], format='jd', scale='utc')
 
         # get ephemeris
         if start is None:
@@ -255,7 +268,7 @@ class Ephem(DataClass):
             eph['Date'] = Time(eph['Date'], scale='utc')
         else:
             eph = MPC.get_ephemeris(targetid, location=location,
-                                    start=start, step=_step, number=number,
+                                    start=start, step=step, number=number,
                                     **kwargs)
 
         return cls.from_table(eph)

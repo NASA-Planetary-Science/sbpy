@@ -71,24 +71,36 @@ class TestEphemFromMPC:
         assert len(eph.table) == 2
 
     def test_start_stop_step(self):
-        eph = Ephem.from_mpc('Ceres', start='2018-10-01', stop='2018-10-31',
-                             step='1d')
+        epochs = dict(start='2018-10-01', stop='2018-10-31', step='1d')
+        eph = Ephem.from_mpc('Ceres', epochs=epochs)
         assert len(eph.table) == 31
 
     def test_start_stop_no_step(self):
         with pytest.raises(ValueError):
-            eph = Ephem.from_mpc('Ceres', start='2018-10-01',
-                                 stop='2018-10-31')
+            eph = Ephem.from_mpc('Ceres', epochs={'start': '2018-10-01',
+                                                  'stop': '2018-10-31'})
 
     def test_start_step_number(self):
-        eph = Ephem.from_mpc('Ceres', start='2018-10-01', step='1d',
-                             number=31)
+        epochs = dict(start='2018-10-01', step='1d', number=31)
+        eph = Ephem.from_mpc('Ceres', epochs=epochs)
         assert len(eph.table) == 31
         assert eph['Date'][-1] == '2018-10-31 00:00:00.000'
 
+    def test_start_stop_jd(self):
+        epochs = {'start': 2458396.5, 'stop': 2458397.5, 'step': '1d'}
+        eph = Ephem.from_mpc('Ceres', epochs=epochs)
+        assert eph['Date'][0] == '2018-10-05 00:00:00.000'
+        assert eph['Date'][1] == '2018-10-06 00:00:00.000'
+
+    def test_epochs_jd(self):
+        epochs = ['2018-10-05', 2458397.5]
+        eph = Ephem.from_mpc('Ceres', epochs=epochs)
+        assert eph['Date'][1] == '2018-10-06 00:00:00.000'
+
     def test_step_unit(self):
         with pytest.raises(ValueError):
-            eph = Ephem.from_mpc('Ceres', start='2018-10-01', step='1yr')
+            eph = Ephem.from_mpc('Ceres', epochs={'start': '2018-10-01',
+                                                  'step': '1yr'})
 
 
 @pytest.mark.remote_data
