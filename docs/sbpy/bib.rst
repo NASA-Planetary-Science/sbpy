@@ -9,6 +9,26 @@ user through a bibliography registry. The idea behind this service is
 to make it easier to properly acknowledge and reference those who
 designed methods and tools used.
 
+ADS Query Requirements for the `sbpy.bib` Module
+------------------------------------------------
+
+In order to use the `~sbpy.bib` functionality and obtain author names from
+the bibcode provided by the user, the user has to have the `ads` module
+installed. More information on this module is found in:
+<a href="https://ads.readthedocs.io/en/latest/"> ads Docs </a>. In order
+for the ads queries, essential to `sbpy.bib`, to work the user has to have
+the module installed, and their own personal developer key.
+As stated in the documentation:
+
+1. You’ll need an API key from NASA ADS labs. Sign up for the newest version
+of ADS search at <a href="https://ui.adsabs.harvard.edu"> ADS search </a>,
+visit account settings and generate a new API token.
+
+2. When you get your API key, save it to a file called `~/.ads/dev_key` or
+save it as an environment variable named `ADS_DEV_KEY`
+
+3. From terminal type `pip install ads`
+
 How to use `~sbpy.bib`
 ----------------------
 
