@@ -38,9 +38,10 @@ def register(task, citation):
                     _bibliography[task][newsubtask] = set(
                         [list(citation.values())[0]])
         else:
+            thiscitation = OrderedDict()
             for newsubtask, newcitation in citation.items():
-                citation[newsubtask] = set([list(citation.values())[0]])
-            _bibliography[task] = citation
+                thiscitation[newsubtask] = set([list(citation.values())[0]])
+            _bibliography[task] = thiscitation
 
 
 def reset():

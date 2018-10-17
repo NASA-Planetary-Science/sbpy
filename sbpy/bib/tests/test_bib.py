@@ -72,11 +72,14 @@ def test_Tracking():
         register('test1', {'track_this': 'bibcode2'})
         register('test1', {'track_this_too': 'bibcode'})
         register('test2', {'track_this': 'bibcode'})
+        register('test3', {'track_this': 'bibcode',
+                           'and_track_that': 'bibcode'})
 
     register('test', {'do not track this': 'bibcode'})
     assert set(['test1:', 'track_this:', 'bibcode1', 'bibcode2',
                 'track_this_too:', 'bibcode', 'test2:', 'track_this:',
-                'bibcode']) == set(to_text().split())
+                'bibcode', 'test3:', 'track_this:', 'bibcode',
+                'and_track_that:', 'bibcode']) == set(to_text().split())
     # different builds will have different orders for bibcode 1 and 2, to
     # avoid the build failing because of this we use sets
 
