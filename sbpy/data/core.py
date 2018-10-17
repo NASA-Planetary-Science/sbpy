@@ -310,6 +310,9 @@ class DataClass():
         """Return columns or rows from data table (``self._table``); checks
         for and may use alternative field names."""
 
+        if isinstance(ident, (list, tuple, ndarray)):
+            newkeylist = [self._translate_columns(i)[0] for i in ident]
+            ident = newkeylist
         if isinstance(ident, str):
             if len(self._translate_columns(ident)) > 0:
                 ident = self._translate_columns(ident)[0]
