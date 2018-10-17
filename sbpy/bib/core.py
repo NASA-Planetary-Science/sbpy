@@ -7,8 +7,9 @@ user through a bibliography registry.
 """
 
 __all__ = ['register', 'reset', 'status', 'stop', 'track', 'Tracking',
-           'to_text', 'to_bibtex']
+           'to_text', 'to_bibtex', 'to_aastex', 'to_icarus', 'to_mnras']
 
+import warnings
 from collections import OrderedDict
 
 
@@ -34,7 +35,8 @@ def register(task, citation):
                 if newsubtask in _bibliography[task].keys():
                     _bibliography[task][newsubtask].update([newcitation])
                 else:
-                    _bibliography[task][newsubtask] = set([list(citation.values())[0]])
+                    _bibliography[task][newsubtask] = set(
+                        [list(citation.values())[0]])
         else:
             for newsubtask, newcitation in citation.items():
                 citation[newsubtask] = set([list(citation.values())[0]])
@@ -90,7 +92,6 @@ def to_text():
       bibcodes.
     """
     import ads
-    import warnings
 
     output = ''
     for task, ref in _bibliography.items():
@@ -100,47 +101,77 @@ def to_text():
                 output += '  {:s}:\n'.format(key)
                 for citation in value:
                     with warnings.catch_warnings():
-                        warnings.filterwarnings('error')
+                        # warnings.filterwarnings('error')
                         try:
                             # request needed fields to avoid lazy loading
                             paper = list(
                                 ads.SearchQuery(
                                     bibcode=citation,
-                                    fl=['first_author', 'author', 'year']
+                                    fl=['first_author', 'author', 'volume',
+                                        'pub', 'issue', 'page', 'year']
                                 ))[0]
                         except (IndexError, Warning, RuntimeWarning) as e:
                             # if query failed,
                             output += '      {:s}\n'.format(citation)
                             continue
 
+                    # format authors
                     if len(paper.author) > 4:
+                        # more than 3 authors
                         author = '{:s} et al.'.format(
-                            paper.first_author.split(',')[0])
+                            ', '.join([au.split(',')[0] for au in
+                                       paper.author[:3]]))
                     elif len(paper.author) > 1:
-                        author = ','.join([au.split(',')[0] for au in
-                                           paper.author[:-1]])
-                        author += ' & {:s}'.format(paper.author[-1].split(',')
-                                                   [0])
+                        # less than or equal to 3 authors
+                        author = ', '.join([au.split(',')[0] for au in
+                                            paper.author[:-1]])
+                        author += ' & {:s}'.format(paper.author[-1].
+                                                   split(',')[0])
                     else:
                         # single author
                         author = paper.first_author.split(',')[0]
 
-                    output += '      {:s} {:s}, {:s}\n'.format(author,paper.year,
-                                                         citation)
+                    # year, journal
+                    output += '      {:s} {:s}, {:s}'.format(
+                        author, paper.year, str(paper.pub))
+
+                    # volume
+                    if paper.volume is not None:
+                        output += ', Vol {:s}'.format(str(paper.volume))
+
+                    # issue
+                    if paper.issue is not None:
+                        output += ', {:s}'.format(str(paper.issue))
+
+                    # page
+                    if paper.page is not None:
+                        if len(paper.page) == 2:
+                            output += ', {:s}-{:s}'.format(
+                                str(paper.page[0]), str(paper.page[1]))
+                        else:
+                            output += ', {:s}'.format(str(paper.page[0]))
+
+                    output += '\n'
+
         except AttributeError:
             pass
 
     return output
 
 
-def to_bibtex():
-    """Convert bibcodes to LaTeX BibTeX
+def _to_format(format):
+    """Convert bibcodes to a range of different output formats
+
+    Parameters
+    ----------
+    format : string
+      Output format: ``bibtex`` | ``aastex``  | ``icarus`` | ``mnras``
 
     Returns
     -------
     text : string
-      ADS BibTex entries for all the bibliographic items.  Uses a
-      query to the export service to get the BibTeX for each
+      ADS entries for all the bibliographic items in the given format.
+      Uses a query to the export service to get the data for each
       reference.
 
     """
@@ -148,19 +179,71 @@ def to_bibtex():
 
     output = ''
     for task, ref in _bibliography.items():
-        try:
-            for key, val in ref.items():
-                # This method to get bibtex records avoids using
-                # multiple calls to the API that may impact rate
-                # limits
-                # https://github.com/adsabs/adsabs-dev-api/blob/master/export.md
-                query = ads.ExportQuery(val, format='bibtex')
-                bibtex = query.execute()
-                output += '% {:s}/{:s}:\n{:s}\n'.format(task, key, bibtex)
-        except ads.exceptions.APIResponseError:
-            pass
+        with warnings.catch_warnings():
+            # warnings.filterwarnings('error')
+            try:
+                for key, val in ref.items():
+                    # This method avoids using multiple calls to the
+                    # API that may impact rate limits
+                    # https://github.com/adsabs/adsabs-dev-api/blob/master/export.md
+                    query = ads.ExportQuery(list(val), format=format)
+                    data = query.execute()
+                    output += '% {:s}/{:s}:\n{:s}\n'.format(task, key,
+                                                            data)
+            except ads.exceptions.APIResponseError as e:
+                e = str(e)
+                if '<title>' in e:
+                    e = e[e.find('<title>')+7: e.find('</title>')]
+                warnings.warn('cannot obtain ADS data for {:s}/{:s}: ({:s})'.
+                              format(task, key, e),
+                              RuntimeWarning)
+                pass
 
     return output
+
+
+def to_bibtex():
+    """Convert bibliography to BibTeX format
+
+    Returns
+    -------
+    text : string
+       ADS data in BibTeX format.
+    """
+    return _to_format('bibtex')
+
+
+def to_aastex():
+    """Convert bibliography to AASTeX format
+
+    Returns
+    -------
+    text : string
+       ADS data in AASTeX format.
+    """
+    return _to_format('aastex')
+
+
+def to_icarus():
+    """Convert bibliography to Icarus LATeX format
+
+    Returns
+    -------
+    text : string
+       ADS data in Icarus LATeX format.
+    """
+    return _to_format('icarus')
+
+
+def to_mnras():
+    """Convert bibliography to MNRAS LATeX format
+
+    Returns
+    -------
+    text : string
+       ADS data in MNRAS LATeX format.
+    """
+    return _to_format('mnras')
 
 
 _track = False  # default is no bibliography tracking
