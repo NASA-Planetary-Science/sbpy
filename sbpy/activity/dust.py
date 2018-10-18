@@ -646,7 +646,7 @@ class Efrho(u.SpecificTypeQuantity):
         from .. import bib
 
         bib.register('activity.dust.Efrho.fluxd',
-                     {'model', '2013Icar..225..475K'})
+                     {'model': '2013Icar..225..475K'})
 
         # check aperture radius
         if isinstance(aper, Aperture):
