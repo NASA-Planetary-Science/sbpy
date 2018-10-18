@@ -202,8 +202,8 @@ class Ephem(DataClass):
         --------
         >>> from sbpy.data import Ephem
         >>> from astropy.time import Time
-        >>> epoch = Time('2018-05-14', scale='utc')  # doctest: +REMOTE_DATA +IGNORE_OUTPUT
-        >>> eph = Ephem.from_mpc('ceres', epoch, location='568')
+        >>> epoch = Time('2018-05-14', scale='utc')
+        >>> eph = Ephem.from_mpc('ceres', epoch, location='568') # doctest: +REMOTE_DATA +IGNORE_OUTPUT
         >>> epochs = {'start': '2019-01-01', 'step': '1d', 'number': 365} 
         >>> eph = Ephem.from_mpc('2P', epochs=epochs, location='568')  # doctest: +REMOTE_DATA +IGNORE_OUTPUT
 
