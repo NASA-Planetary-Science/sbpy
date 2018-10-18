@@ -16,7 +16,7 @@ class Conf():
         'targetname': ['id'],  # target identifier
         # orbital elements
         'i': ['inc', 'incl'],  # inclination
-        'epoch': ['datetime_jd'],  # epoch
+        'epoch': ['datetime_jd', 'Date', 'date'],  # epoch
         'Omega': ['longnode'],  # longitude of the ascending node
         'w': ['argper'],  # argument of periapsis
         # ephemerides
@@ -28,9 +28,9 @@ class Conf():
                     'dRA', 'dra'],  # RA rate
         'dec_rate': ['DEC_rate', 'Dec_rate', 'dec_rates', 'DEC_rates',
                      'Dec_rates', 'dDec', 'dDEC', 'ddec'],  # DEC rate
-        'alpha': ['phaseangle'],  # solar phase angle
+        'alpha': ['phaseangle', 'Phase'],  # solar phase angle
         'elong': ['solarelong', 'solarelongation',
-                  'elongation'],  # solar elongation
+                  'elongation', 'Elongation'],  # solar elongation
         'V': ['Vmag'],  # V-band magnitude
         'hlon': ['EclLon', 'ecllon',
                  'HelEclLon', 'helecllon'],  # heliocentric ecliptic longitude
