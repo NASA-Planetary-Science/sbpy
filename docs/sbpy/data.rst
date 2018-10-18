@@ -316,7 +316,7 @@ As shown above (`How to use Ephem, Orbit, and Phys objects`_),
 `~sbpy.data.Ephem` objects can be created on the fly. However,
 `~sbpy.data.Ephem` can also be used to access ephemerides information
 from remote services. For instance, the following few lines will query
-ephemerides for asteroid Ceres on a given data and for the position of
+ephemerides for asteroid Ceres on a given date and for the position of
 Mauna Kea Observatory (IAU observatory code ``568``) from the `JPL Horizons service <https://ssd.jpl.nasa.gov/horizons.cgi>`_:
 
     >>> from sbpy.data import Ephem
@@ -406,6 +406,21 @@ in mind that asteroids and comets have slightly different table
 layouts (e.g., different magnitude systems: ``T-mag`` and ``N-mag``
 instead of ``V-mag``), which will complicate the interpretation of the
 data. It might be safest to query asteroids and comets separately.
+
+Similarly, the `~sbpy.data.Ephem.from_mpc` method will retrieve
+ephemerides from the Minor Planet Center:
+
+    >>> from sbpy.data import Ephem
+    >>> eph = Ephem.from_mpc('2P', location='568', start='2018-10-22',
+    ...                      stop='2018-10-26', step='1d')
+    >>> print(eph.table)
+              Date                  RA         ... Moon distance Moon altitude
+                                   deg         ...      deg           deg     
+    ----------------------- ------------------ ... ------------- -------------
+    2018-10-22 00:00:00.000  329.9920833333333 ...          28.0         -33.0
+    2018-10-23 00:00:00.000          329.91125 ...          41.0         -41.0
+    2018-10-24 00:00:00.000            329.835 ...          54.0         -48.0
+    2018-10-25 00:00:00.000 329.76374999999996 ...          67.0         -53.0
 
 Ephemerides can also be derived from `~Orbit` objects using `sbpy`'s
 interface to `pyoorb
