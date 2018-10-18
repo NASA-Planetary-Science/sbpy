@@ -136,8 +136,9 @@ class Ephem(DataClass):
         Parameters
         ----------
         targetid : str
-            Target identifier.  Must be resolvable by the Minor Planet
-            Ephemeris Service [MPES]_.
+            Target identifier, resolvable by the Minor Planet
+            Ephemeris Service [MPES]_, e.g., 2P, C/1995 O1, P/Encke,
+            (1), 3200, Ceres, and packed designations.
 
         epochs : string, `~astropy.time.Time`, array-like, or dictionary, optional
 
