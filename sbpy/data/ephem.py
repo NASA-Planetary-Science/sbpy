@@ -280,6 +280,10 @@ class Ephem(DataClass):
         if 'dec_format' in kwargs:
             eph['Dec'].unit = None
 
+        # only UTC scale is supported
+        eph.add_column(Column(['UTC'] * len(eph), name='timescale'),
+                       index=eph.colnames.index('Date') + 1)
+
         return cls.from_table(eph)
 
     def report_to_mpc():
