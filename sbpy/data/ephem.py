@@ -272,6 +272,14 @@ class Ephem(DataClass):
                                     start=start, step=step, number=number,
                                     **kwargs)
 
+        # if ra_format or dec_format is defined, then units must be
+        # dropped or else QTable will raise an exception because
+        # strings cannot have units
+        if 'ra_format' in kwargs:
+            eph['RA'].unit = None
+        if 'dec_format' in kwargs:
+            eph['Dec'].unit = None
+
         return cls.from_table(eph)
 
     def report_to_mpc():

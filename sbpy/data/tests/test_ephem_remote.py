@@ -102,6 +102,15 @@ class TestEphemFromMPC:
             eph = Ephem.from_mpc('Ceres', epochs={'start': '2018-10-01',
                                                   'step': '1yr'})
 
+    def test_ra_dec_format(self):
+        epochs = dict(start='2018-10-01', step='1d', number=31)
+        ra_format = {'sep': ':', 'unit': 'hourangle', 'precision': 1}
+        dec_format = {'sep': ':', 'precision': 1}
+        eph = Ephem.from_mpc('Ceres', epochs=epochs, ra_format=ra_format,
+                             dec_format=dec_format)
+        assert isinstance(eph['RA'][0], str)
+        assert isinstance(eph['Dec'][0], str)
+
 
 @pytest.mark.remote_data
 def test_from_oo():
