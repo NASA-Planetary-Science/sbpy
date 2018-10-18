@@ -311,8 +311,13 @@ class DataClass():
         for and may use alternative field names."""
 
         if isinstance(ident, (list, tuple, ndarray)):
-            newkeylist = [self._translate_columns(i)[0] for i in ident]
-            ident = newkeylist
+            if all([isinstance(ident[i], str) for i in ident]):
+                # list of column names
+                newkeylist = [self._translate_columns(i)[0] for i in ident]
+                ident = newkeylist
+            if all([isinstance(ident[i], bool) for i in ident]):
+                # list of booleans
+                pass
         if isinstance(ident, str):
             if len(self._translate_columns(ident)) > 0:
                 ident = self._translate_columns(ident)[0]
