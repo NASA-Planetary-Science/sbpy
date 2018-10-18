@@ -311,11 +311,11 @@ class DataClass():
         for and may use alternative field names."""
 
         if isinstance(ident, (list, tuple, ndarray)):
-            if all([isinstance(ident[i], str) for i in ident]):
+            if all([isinstance(i, str) for i in ident]):
                 # list of column names
                 newkeylist = [self._translate_columns(i)[0] for i in ident]
                 ident = newkeylist
-            if all([isinstance(ident[i], bool) for i in ident]):
+            if all([isinstance(i, bool) for i in ident]):
                 # list of booleans
                 pass
         if isinstance(ident, str):
@@ -426,8 +426,8 @@ class DataClass():
         name : str
             Name of the new column; must be different from already existing
             column names.
-        **kwargs : additional parameters 
-            Additional optional parameters will be passed on to 
+        **kwargs : additional parameters
+            Additional optional parameters will be passed on to
             `~astropy.table.Table.add_column`.
 
         Returns
