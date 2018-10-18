@@ -10,7 +10,7 @@ created on June 04, 2017
 """
 import os
 
-from numpy import ndarray
+from numpy import ndarray, array, hstack
 from astropy.time import Time
 from astropy.table import vstack, Column
 from astroquery.jplhorizons import Horizons
@@ -119,6 +119,12 @@ class Ephem(DataClass):
                 all_eph = eph
             else:
                 all_eph = vstack([all_eph, eph])
+
+        # identify time scales returned by Horizons query
+        timescales = array(['UTC'] * len(all_eph))
+        timescales[all_eph['datetime_jd'] < 2437665.5] = 'UT1'
+        # according to Horizons documentation
+        all_eph.add_column(Column(timescales, name='timescale'))
 
         if bib.status() is None or bib.status():
             bib.register('sbpy.data.Ephem.from_horizons',
@@ -374,13 +380,13 @@ class Ephem(DataClass):
 
         if scope == 'full':
             oo_eph, err = pyoorb.pyoorb.oorb_ephemeris_full(
-                orbit._to_oo(timescale),
+                orbit._to_oo(),
                 location,
                 epochs,
                 dynmodel)
         elif scope == 'basic':
             oo_eph, err = pyoorb.pyoorb.oorb_ephemeris_basic(
-                orbit._to_oo(timescale),
+                orbit._to_oo(),
                 location,
                 epochs,
                 dynmodel)
@@ -391,7 +397,8 @@ class Ephem(DataClass):
             RuntimeError('pyoorb failed with error code {:d}'.format(err))
 
         # reorder data in Orbit object
-        ephem = self.from_array(oo_eph.transpose(),
+        ephem = self.from_array(hstack([oo_eph.transpose()[:, :, i]
+                                        for i in range(oo_eph.shape[0])]),
                                 names=conf.oorb_ephem_fields)
 
         # apply units
@@ -399,8 +406,11 @@ class Ephem(DataClass):
             ephem[col].unit = conf.oorb_ephem_units[i]
 
         # add targetname column
-        ephem.table.add_column(Column(data=[orbit['targetname'][0]] *
-                                      len(ephem.table), name='targetname'),
+        ephem.table.add_column(Column(data=sum([[orbit['targetname'][i]] *
+                                                len(epochs) for i in
+                                                range(len(orbit.table))],
+                                               []),
+                                      name='targetname'),
                                index=0)
 
         # remove trueanom column for now as it only holds a dummy value
