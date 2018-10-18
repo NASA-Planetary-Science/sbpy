@@ -100,7 +100,7 @@ from .core import (DataClass, mpc_observations, sb_search,
 from .ephem import Ephem
 from .orbit import Orbit
 from .phys import Phys
-from .names import Names
+from .names import Names, natural_sort_key
 
 __all__ = ['DataClass', 'Ephem', 'Orbit', 'Phys', 'Names', 'conf', 'Conf',
            'mpc_observations', 'sb_search', 'image_search',
