@@ -315,10 +315,10 @@ class DataClass():
                 # list of column names
                 newkeylist = [self._translate_columns(i)[0] for i in ident]
                 ident = newkeylist
-            if all([isinstance(i, bool) for i in ident]):
+            elif all([isinstance(i, bool) for i in ident]):
                 # list of booleans
                 pass
-        if isinstance(ident, str):
+        elif isinstance(ident, str):
             if len(self._translate_columns(ident)) > 0:
                 ident = self._translate_columns(ident)[0]
 
