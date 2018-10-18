@@ -215,3 +215,17 @@ def test_translate_columns():
         tab._translate_columns(['x'])
 
     conf.namealts = storage
+
+
+def test_indexing():
+    """make sure that indexing functionality is not compromised through
+    column name translation"""
+
+    tab = DataClass.from_dict(
+        [OrderedDict((('a', 1*u.m), ('b', 4*u.m/u.s), ('c', 'a'))),
+         OrderedDict((('a', 2*u.m), ('b', 5*u.m/u.s), ('c', 'b'))),
+         OrderedDict((('a', 3*u.m), ('b', 6*u.m/u.s), ('c', 'c')))])
+
+    assert list(tab['a'].data) == [1, 2, 3]
+    assert list(tab['a', 'b']['a'].data) == [1, 2, 3]
+    assert len(tab[tab['a'] < 3*u.m]) == 2
