@@ -387,7 +387,7 @@ class SpectralStandard(ABC):
     def source(self):
         from .. import bib
         if self._bibcode is not None:
-            bib.register('spectroscopy', {self._description, self._bibcode})
+            bib.register('spectroscopy', {self._description: self._bibcode})
         return self._source
 
     @property
