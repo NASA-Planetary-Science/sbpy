@@ -64,9 +64,9 @@ asteroids = {
 
 
 def test_natural_sort_key():
-    items = ['1A10', '1A2', 'B3', 'B20', 'C', '4D', 'CE24', 'CC3D']
+    items = ['1A10', '1A2', 'B3', 'B20', 'C', '4D', 'CE24', 'CC3D', 0]
     items = sorted(items, key=natural_sort_key)
-    test = ['1A2', '1A10', '4D', 'B3', 'B20', 'C', 'CC3D', 'CE24']
+    test = [0, '1A2', '1A10', '4D', 'B3', 'B20', 'C', 'CC3D', 'CE24']
     assert all([i == t for i, t in zip(items, test)])
 
 

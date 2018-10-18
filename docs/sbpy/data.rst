@@ -564,7 +564,27 @@ would be identified as an asteroid, as it lacks a comet type
 identifier. Hence, some caution is advised when using these routines -
 identification might not be unambiguous.
 
-    
+Sorting names with a natural sort order
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Sorting with Python's built-in functions might not return the desired
+order:
+
+    >>> comets = ['9P/Tempel 1',
+    ...           '101P/Chernykh',
+    ...           '10P/Tempel 2',
+    ...           '2P/Encke']
+    >>> sorted(comets)
+    ['101P/Chernykh', '10P/Tempel 2', '2P/Encke', '9P/Tempel 1']
+
+101P and 10P are placed at the start of the list because Python is
+performing a string comparison, which is character-by-character, and
+``'1' < '2'``.  With `sbpy`'s ``natural_sort_key``, numerical
+comparisons are made whenever possible:
+
+    >>> from sbpy.data import natural_sort_key
+    >>> sorted(comets, key=natural_sort_key)
+    ['2P/Encke', '9P/Tempel 1', '10P/Tempel 2', '101P/Chernykh']
 
 
 Reference/API

@@ -50,7 +50,7 @@ def natural_sort_key(s):
     """
     import re
     keys = tuple()
-    for k in re.split('([0-9]+)', s):
+    for k in re.split('([0-9]+)', str(s)):
         keys += (int(k) if k.isdigit() else k,)
     return keys
 
