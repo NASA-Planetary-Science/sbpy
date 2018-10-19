@@ -306,8 +306,7 @@ The definition of alternative field names is done in the file
 automatically tested for potential naming conflicts, i.e., different
 properties that share the same alternative field names, and a human-readable list is compiled upon building `sbpy`.
 
-The list of alternative field names is available here:
-
+The list of alternative field names is available here: :ref:`alternative_fieldnames`.
 
 
 
