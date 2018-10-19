@@ -141,27 +141,30 @@ class spline(object):
         n = len(self.y)
         h = self.x[1:]-self.x[:-1]
         r = (self.y[1:]-self.y[:-1])/(self.x[1:]-self.x[:-1])
-        B = np.zeros((n-2,n))
+        B = np.zeros((n-2, n))
         for i in range(n-2):
             k = i+1
-            B[i,i:i+3] = [h[k], 2*(h[k-1]+h[k]), h[k-1]]
-        C = np.empty((n-2,1))
+            B[i, i:i+3] = [h[k], 2*(h[k-1]+h[k]), h[k-1]]
+        C = np.empty((n-2, 1))
         for i in range(n-2):
             k = i+1
             C[i] = 3*(r[k-1]*h[k]+r[k]*h[k-1])
-        C[0] = C[0]-self.dy[0]*B[0,0]
-        C[-1] = C[-1]-self.dy[1]*B[-1,-1]
-        B = B[:,1:n-1]
+        C[0] = C[0]-self.dy[0]*B[0, 0]
+        C[-1] = C[-1]-self.dy[1]*B[-1, -1]
+        B = B[:, 1:n-1]
         dys = solve(B, C)
-        dys = np.array([self.dy[0]] + [tmp for tmp in dys.flatten()] + [self.dy[1]])
+        dys = np.array(
+            [self.dy[0]] + [tmp for tmp in dys.flatten()] + [self.dy[1]])
         A0 = self.y[:-1]
         A1 = dys[:-1]
         A2 = (3*r-2*dys[:-1]-dys[1:])/h
         A3 = (-2*r+dys[:-1]+dys[1:])/h**2
         self.coef = np.array([A0, A1, A2, A3]).T
         self.polys = [Polynomial(c) for c in self.coef]
-        self.polys.insert(0, Polynomial([self.y[0]-self.x[0]*self.dy[0],self.dy[0]]))
-        self.polys.append(Polynomial([self.y[-1]-self.x[-1]*self.dy[-1], self.dy[-1]]))
+        self.polys.insert(0, Polynomial(
+            [self.y[0]-self.x[0]*self.dy[0], self.dy[0]]))
+        self.polys.append(Polynomial(
+            [self.y[-1]-self.x[-1]*self.dy[-1], self.dy[-1]]))
 
     def __call__(self, x):
         x = np.asarray(x)
@@ -170,7 +173,7 @@ class spline(object):
         if idx.any():
             out[idx] = self.polys[0](x[idx])
         for i in range(len(self.x)-1):
-            idx = (self.x[i] <= x ) & (x < self.x[i+1])
+            idx = (self.x[i] <= x) & (x < self.x[i+1])
             if idx.any():
                 out[idx] = self.polys[i+1](x[idx]-self.x[i])
         idx = (x >= self.x[-1])
@@ -184,7 +187,7 @@ class DiskIntegratedModelClass(Fittable1DModel):
 
     Examples
     --------
-    - Define a linear phase function with phase slope 0.04 mag/deg, and
+    Define a linear phase function with phase slope 0.04 mag/deg, and
     study its properties
 
     >>> # Define a disk-integrated phase function model
@@ -355,7 +358,8 @@ class DiskIntegratedModelClass(Fittable1DModel):
         out = self(pha, **kwargs)
         if self._unit != 'mag':
             if self.radius is None:
-                raise ValueError('cannot calculate phase funciton in magnitude because the size of object is unknown')
+                raise ValueError(
+                    'cannot calculate phase funciton in magnitude because the size of object is unknown')
             out = ref2mag(out, self.radius, M_sun=self.M_sun)
         if 'r' in eph.column_names:
             rh = eph['r']
@@ -423,7 +427,8 @@ class DiskIntegratedModelClass(Fittable1DModel):
             return out
         else:
             if self.radius is None:
-                raise ValueError('cannot calculate phase function in reflectance unit because the size of object is unknown')
+                raise ValueError(
+                    'cannot calculate phase function in reflectance unit because the size of object is unknown')
             out = mag2ref(out, self.radius, M_sun=self.M_sun)
             if normalized is not None:
                 out /= mag2ref(norm, self.radius, M_sun=self.M_sun)
@@ -452,7 +457,7 @@ class DiskIntegratedModelClass(Fittable1DModel):
         0.364
 
         """
-        integrand = lambda x: 2*self.ref(x, normalized=0.)*np.sin(x)
+        def integrand(x): return 2*self.ref(x, normalized=0.)*np.sin(x)
         return integrator(integrand, 0, np.pi)[0]
 
 
@@ -491,7 +496,7 @@ class LinearPhaseFunc(DiskIntegratedModelClass):
 
     @staticmethod
     def fit_deriv(a, H, S):
-        if hasattr(a,'__iter__'):
+        if hasattr(a, '__iter__'):
             ddh = np.ones_like(a)
         else:
             ddh = 1.
@@ -539,7 +544,7 @@ class HG(DiskIntegratedModelClass):
         See Bowell et al. (1989), Eq. A4.
         """
 
-        if i not in [1,2]:
+        if i not in [1, 2]:
             raise ValueError('i needs to be 1 or 2, {0} received'.format(i))
 
         a, b, c = [3.332, 1.862], [0.631, 1.218], [0.986, 0.238]
@@ -553,16 +558,16 @@ class HG(DiskIntegratedModelClass):
 
     @staticmethod
     def evaluate(pha, hh, gg):
-        return hh-2.5*np.log10((1-gg)*HG._hgphi(pha, 1)+gg*HG._hgphi(pha,2))
+        return hh-2.5*np.log10((1-gg)*HG._hgphi(pha, 1)+gg*HG._hgphi(pha, 2))
 
     @staticmethod
     def fit_deriv(pha, hh, gg):
-        if hasattr(pha,'__iter__'):
+        if hasattr(pha, '__iter__'):
             ddh = np.ones_like(pha)
         else:
             ddh = 1.
-        phi1 = HG._hgphi(pha,1)
-        phi2 = HG._hgphi(pha,2)
+        phi1 = HG._hgphi(pha, 1)
+        phi2 = HG._hgphi(pha, 2)
         ddg = 1.085736205*(phi1-phi2)/((1-gg)*phi1+gg*phi2)
         return [ddh, ddg]
 
@@ -606,20 +611,24 @@ class HG12BaseClass(DiskIntegratedModelClass):
         """
         Define a spline class that clips negative function values
         """
+
         def __call__(self, x):
             y = super().__call__(x)
-            if hasattr(y,'__iter__'):
-                y[y<0] = 0
+            if hasattr(y, '__iter__'):
+                y[y < 0] = 0
             else:
                 if y < 0:
                     y = 0
             return y
 
-    _phi1v = np.deg2rad([7.5, 30., 60, 90, 120, 150]),[7.5e-1, 3.3486016e-1, 1.3410560e-1, 5.1104756e-2, 2.1465687e-2, 3.6396989e-3],[-1.9098593, -9.1328612e-2]
+    _phi1v = np.deg2rad([7.5, 30., 60, 90, 120, 150]), [7.5e-1, 3.3486016e-1, 1.3410560e-1,
+                                                        5.1104756e-2, 2.1465687e-2, 3.6396989e-3], [-1.9098593, -9.1328612e-2]
     _phi1 = _spline_positive(*_phi1v)
-    _phi2v = np.deg2rad([7.5, 30., 60, 90, 120, 150]),[9.25e-1, 6.2884169e-1, 3.1755495e-1, 1.2716367e-1, 2.2373903e-2, 1.6505689e-4],[-5.7295780e-1, -8.6573138e-8]
+    _phi2v = np.deg2rad([7.5, 30., 60, 90, 120, 150]), [9.25e-1, 6.2884169e-1, 3.1755495e-1,
+                                                        1.2716367e-1, 2.2373903e-2, 1.6505689e-4], [-5.7295780e-1, -8.6573138e-8]
     _phi2 = _spline_positive(*_phi2v)
-    _phi3v = np.deg2rad([0.0, 0.3, 1., 2., 4., 8., 12., 20., 30.]),[1., 8.3381185e-1, 5.7735424e-1, 4.2144772e-1, 2.3174230e-1, 1.0348178e-1, 6.1733473e-2, 1.6107006e-2, 0.],[-1.0630097, 0]
+    _phi3v = np.deg2rad([0.0, 0.3, 1., 2., 4., 8., 12., 20., 30.]), [1., 8.3381185e-1, 5.7735424e-1,
+                                                                     4.2144772e-1, 2.3174230e-1, 1.0348178e-1, 6.1733473e-2, 1.6107006e-2, 0.], [-1.0630097, 0]
     _phi3 = _spline_positive(*_phi3v)
 
 
@@ -704,7 +713,7 @@ class HG12(HG12BaseClass):
     @staticmethod
     def _G12_to_G1(g12):
         """Calculate G1 from G12"""
-        if g12<0.2:
+        if g12 < 0.2:
             return 0.7527*g12+0.06164
         else:
             return 0.9529*g12+0.02162
@@ -712,7 +721,7 @@ class HG12(HG12BaseClass):
     @staticmethod
     def _G12_to_G2(g12):
         """Calculate G2 from G12"""
-        if g12<0.2:
+        if g12 < 0.2:
             return -0.9612*g12+0.6270
         else:
             return -0.6125*g12+0.5572
@@ -735,7 +744,7 @@ class HG12(HG12BaseClass):
         phi2 = HG1G2._phi2(ph)
         phi3 = HG1G2._phi3(ph)
         dom = (g1*phi1+g2*phi2+(1-g1-g2)*phi3)
-        if g<0.2:
+        if g < 0.2:
             p1 = 0.7527
             p2 = -0.9612
         else:
@@ -753,7 +762,7 @@ class DiskFunctionModel(FittableModel):
 class LommelSeeliger(DiskFunctionModel):
     """Lommel-Seeliger model class"""
 
-    inputs = ('i','e')
+    inputs = ('i', 'e')
     outputs = ('d',)
 
     @staticmethod
@@ -833,5 +842,3 @@ class ROLO(ResolvedPhotometricModelClass):
 
 #     def diam2mag(phys, eph, model=None):
 #         """Function to calculate the apparent bightness of a body from its physical properties and ephemerides"""
-
-

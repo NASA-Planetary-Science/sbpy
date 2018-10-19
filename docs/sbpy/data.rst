@@ -53,7 +53,7 @@ arrays (`~sbpy.data.DataClass.from_array`), `~astropy.table.Table`
 objects (`~sbpy.data.DataClass.from_table`), or from data files
 (`~sbpy.data.DataClass.from_file`).
 
-Depending on how your input data are organized, you can use different
+Depending on how your input data are organized, you cean use different
 options in different cases:
 
 1. Assume that you want to build a `~sbpy.data.Orbit` object to
@@ -302,10 +302,12 @@ get a field name that is not connected to any existing field name, a
 ``KeyError`` will be raised.
 
 The definition of alternative field names is done in the file
-``sbpy/data/__init__.py``, using the dictionary ``namealts``. This
-dictionary is automatically tested for potential naming conflicts,
-i.e., different properties that share the same alternative field
-names.
+``sbpy/data/__init__.py``, using the list ``fieldnames``. This list is
+automatically tested for potential naming conflicts, i.e., different
+properties that share the same alternative field names, and a human-readable list is compiled upon building `sbpy`.
+
+The list of alternative field names is available here:
+
 
 
 
@@ -549,7 +551,7 @@ How to use Phys
 `~sbpy.data.Phys` is designed to contain query physical properties for
 small bodies; functions to query these properties are
 available. `~sbpy.data.Phys.from_sbdb` queries the `JPL Small-body
-Database Browser (SBDB)<https://ssd.jpl.nasa.gov/sbdb.cgi>`_ for physical
+Database Browser (SBDB) <https://ssd.jpl.nasa.gov/sbdb.cgi>`_ for physical
 properties and stores the data in a `~sbpy.data.Phys` object, offering
 the same functionality as all the other `~sbpy.data` functions,
 including the use of `~astropy.units`.
