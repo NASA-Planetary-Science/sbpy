@@ -3,4 +3,4 @@ astropy-helpers
 matplotlib
 ads
 synphot
-astroquery>=0.3.8
+https://github.com/astropy/astroquery.git
