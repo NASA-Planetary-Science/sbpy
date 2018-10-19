@@ -449,6 +449,7 @@ class Ephem(DataClass):
         --------
         Compute ephemerides for Ceres as seen from the Discovery Channel
         Telescope for the next 10 days at 1hr intervals:
+
         >>> import numpy as np
         >>> from sbpy.data import Orbit, Ephem
         >>> from astropy.time import Time
