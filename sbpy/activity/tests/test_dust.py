@@ -8,10 +8,12 @@ from astropy.tests.helper import remote_data
 import synphot
 from ..dust import *
 
+
 def test_phase_HalleyMarcus():
     assert np.isclose(phase_HalleyMarcus(0 * u.deg), 1.0)
     assert np.isclose(phase_HalleyMarcus(15 * u.deg), 5.8720e-01)
     assert np.isclose(phase_HalleyMarcus(14.5 * u.deg), 0.5959274462322928)
+
 
 class TestAfrho:
     def test_init(self):
@@ -47,6 +49,14 @@ class TestAfrho:
         S = 1707 * u.W / u.m**2 / u.um
         afrho = Afrho.from_fluxd(None, fluxd, aper, eph, S=S)
         assert np.isclose(afrho.cm, 1680, atol=4)
+
+    def test_from_flam_with_synphot(self):
+        wave = 0.55 * u.um
+        fluxd = 6.764172537310662e-14 * u.W / u.m**2 / u.um
+        aper = 1 * u.arcsec
+        eph = dict(rh=1.5 * u.au, delta=1.0 * u.au)
+        afrho = Afrho.from_fluxd(wave, fluxd, aper, eph)
+        assert np.isclose(afrho.cm, 1000)
 
     def test_from_fnu(self):
         fluxd = 6.161081515869728 * u.mJy
@@ -89,7 +99,7 @@ class TestAfrho:
         ('sdss-r.fits', 12.23, 'STmag', '19.2 arcsec', 34.9,
          {'rh': 1.098 * u.au, 'delta': 0.164 * u.au}, 0.03),
     ))
-    def test_from_mag(self, filename, mag, unit, rho, afrho0, eph, unc):
+    def test_from_mag_bandpass(self, filename, mag, unit, rho, afrho0, eph, unc):
         """Magnitude to afrho conversions.
 
         HST/WFC3 photometry of C/2013 A1 (Siding Spring) (Li et
@@ -127,8 +137,15 @@ class TestAfrho:
         rho = u.Quantity(rho)
         fn = os.path.join(os.path.dirname(__file__), 'data', filename)
         bandpass = synphot.SpectralElement.from_file(fn)
-        afrho = Afrho.from_mag(bandpass, mag, unit, rho, eph)
+        afrho = Afrho.from_mag(mag, unit, rho, eph, bandpass=bandpass)
         assert np.isclose(afrho.cm, afrho0, rtol=unc)
+
+    def test_from_mag_m_sun(self):
+        """Verify Li et al. (2017) Afρ of 252P/LINEAR."""
+        eph = {'rh': 1.098 * u.au, 'delta': 0.164 * u.au}
+        afrho = Afrho.from_mag(11.97, 'ignored', 19.2 * u.arcsec, eph,
+                               m_sun=-26.93)
+        assert np.isclose(afrho.cm, 34.9, rtol=0.005)
 
     def test_fluxd(self):
         afrho = Afrho(1000, 'cm')
@@ -157,10 +174,38 @@ class TestAfrho:
         fluxd = afrho.fluxd(freq, aper, eph, unit=unit)
         assert np.isclose(fluxd.value, 2.6930875895493665e-14)
 
+    @pytest.mark.parametrize('filename, mag0, unit, rho, afrho, eph, unc', (
+        ('wfc3_uvis_f606w_004_syn.fits', 16.98, 'vegamag', '5000 km', 1680,
+         {'rh': 4.582 * u.au, 'delta': 4.042 * u.au}, 0.05),
+        ('wfc3_uvis_f438w_004_syn.fits', 17.91, 'vegamag', '5000 km', 1550,
+         {'rh': 4.582 * u.au, 'delta': 4.042 * u.au}, 0.05),
+        ('cousins_i_004_syn.fits', 8.49 - 0.53, 'vegamag', '10000 km', 3188,
+         {'rh': 1.45 * u.au, 'delta': 0.49 * u.au}, 0.06),
+        ('sdss-r.fits', 11.97, 'ABmag', '19.2 arcsec', 34.9,
+         {'rh': 1.098 * u.au, 'delta': 0.164 * u.au}, 0.03),
+        ('sdss-r.fits', 12.23, 'STmag', '19.2 arcsec', 34.9,
+         {'rh': 1.098 * u.au, 'delta': 0.164 * u.au}, 0.03),
+    ))
+    def test_mag_bandpass(self, filename, mag0, unit, rho, afrho, eph, unc):
+        """Inverse of test_from_mag_bandpass."""
+        rho = u.Quantity(rho)
+        fn = os.path.join(os.path.dirname(__file__), 'data', filename)
+        bandpass = synphot.SpectralElement.from_file(fn)
+        mag = Afrho(afrho * u.cm).mag(unit, rho, eph, bandpass=bandpass)
+        assert np.isclose(mag, mag0, rtol=unc)
+
+    def test_mag_m_sun(self):
+        """Inverse of test_from_mag_m_sun."""
+        eph = {'rh': 1.098 * u.au, 'delta': 0.164 * u.au}
+        mag = Afrho(34.9 * u.cm).mag('ignored', 19.2 * u.arcsec, eph,
+                                     m_sun=-26.93)
+        assert np.isclose(mag, 11.97, rtol=0.0005)
+
     def test_to_phase(self):
         afrho = Afrho(10 * u.cm).to_phase(15 * u.deg, 0 * u.deg)
         assert np.isclose(afrho.cm, 5.8720)
-    
+
+
 class TestEfrho:
     def test_init(self):
         efrho = Efrho(1000 * u.cm)
@@ -202,7 +247,7 @@ class TestEfrho:
         eph = dict(rh=1.5 * u.au, delta=1.0 * u.au)
         fluxd = efrho.fluxd(wave, aper, eph)
         assert np.isclose(fluxd.value, 1e-16)
-    
+
     def test_fluxd_unit(self):
         efrho = Efrho(100, 'cm')
         wave = 5 * u.um
@@ -211,4 +256,53 @@ class TestEfrho:
         Tscale = 1.1
         fluxd = efrho.fluxd(wave, aper, eph, Tscale=Tscale, unit='mJy')
         assert np.isclose(fluxd.value, 0.3197891693353106)
-    
+
+    def test_from_mag_bandpass_fluxd0_error(self):
+        with pytest.raises(ValueError):
+            Efrho.from_mag(5, 'vegamag', 1 * u.arcsec,
+                           dict(rh=1.5 * u.au, delta=1.0 * u.au))
+
+    def test_from_mag_unit_error(self):
+        with pytest.raises(ValueError):
+            Efrho.from_mag(5, 'asdf', 1 * u.arcsec,
+                           dict(rh=1.5 * u.au, delta=1.0 * u.au))
+
+    @pytest.mark.parametrize('unit, efrho0', (
+        ('vegamag', 616.1),
+        ('abmag', 78750),  # compare with test_from_mag_fluxd0_B
+        ('stmag', 3.596e7),
+    ))
+    def test_from_mag_bandpass(self, unit, efrho0):
+        aper = 1 * u.arcsec
+        # width = 0.1 um for speed
+        bp = synphot.SpectralElement(
+            synphot.Box1D, x_0=11.7 * u.um, width=0.1 * u.um)
+        eph = dict(rh=1.0 * u.au, delta=1.0 * u.au)
+        Tscale = 1.1
+        efrho = Efrho.from_mag(5, unit, aper, eph, bandpass=bp,
+                               Tscale=Tscale)
+        assert np.isclose(efrho.cm, efrho0, rtol=0.001)
+
+    def test_from_mag_fluxd0_bandpass(self):
+        # comapre with test_from_mag_bandpass
+        aper = 1 * u.arcsec
+        # width = 0.1 um for speed
+        bp = synphot.SpectralElement(
+            synphot.Box1D, x_0=11.7 * u.um, width=0.1 * u.um)
+        eph = dict(rh=1.0 * u.au, delta=1.0 * u.au)
+        Tscale = 1.1
+        fluxd0 = u.Quantity(3631, 'Jy')
+        efrho = Efrho.from_mag(5, None, aper, eph, bandpass=bp,
+                               fluxd0=fluxd0, Tscale=Tscale)
+        assert np.isclose(efrho.cm, 78750, rtol=0.001)
+
+    def test_from_mag_fluxd0_B(self):
+        # comapre with test_from_mag_bandpass
+        from astropy.modeling.blackbody import blackbody_nu
+        aper = 1 * u.arcsec
+        eph = dict(rh=1.0 * u.au, delta=1.0 * u.au)
+        Tscale = 1.1
+        fluxd0 = u.Quantity(3631, 'Jy')
+        B = blackbody_nu(11.7 * u.um, 278 * Tscale * u.K)
+        efrho = Efrho.from_mag(5, None, aper, eph, B=B, fluxd0=fluxd0)
+        assert np.isclose(efrho.cm, 78750, rtol=0.001)

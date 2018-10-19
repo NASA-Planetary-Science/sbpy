@@ -119,7 +119,8 @@ class Names():
         """Parse a string as if it were a comet name.
 
         Considers IAU-formatted permanent and new-style
-        designations. Note that letter case is important.
+        designations. Note that comet types (P, D, C etc) are required
+        and letter case is important.
 
         Parameters
         ----------
@@ -169,6 +170,8 @@ class Names():
         +------------------------------+------+----+-----+----------+------------------------+
         |3D/Biela                      | 3    | D  |     |          |Biela                   |
         +------------------------------+------+----+-----+----------+------------------------+
+        |P/Encke                       |      | P  |     |          |Encke                   |
+        +------------------------------+------+----+-----+----------+------------------------+
         |9P/Tempel 1                   | 9    | P  |     |          |Tempel 1                |
         +------------------------------+------+----+-----+----------+------------------------+
         |73P/Schwassmann Wachmann 3 C  | 73   | P  |     |          |Schwassmann Wachmann 3 C|
@@ -193,6 +196,7 @@ class Names():
         +------------------------------+------+----+-----+----------+------------------------+
         |C/2015 V2 (Johnson)           |      | C  |     | 2015 V2  |Johnson                 |
         +------------------------------+------+----+-----+----------+------------------------+
+
         """
 
         import re
@@ -257,7 +261,7 @@ class Names():
                     if len(el[5]) > 1:
                         r['name'] = el[5]
 
-        if len(r) == 0:
+        if len(r) == 0 or 'type' not in r:
             raise TargetNameParseError(('{} does not appear to be a '
                                         'comet name').format(s))
         else:
@@ -344,7 +348,7 @@ class Names():
         pkd = ('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
                'abcdefghifklmnopqrstuvwxyz')
 
-        pat = ('((1[8-9][0-9]{2}[ _][A-Z]{2}[0-9]{0,3}|'
+        pat = ('(([1A][8-9][0-9]{2}[ _][A-Z]{2}[0-9]{0,3}|'
                '20[0-9]{2}[ _][A-Z]{2}[0-9]{0,3})'
                # designation [0,1]
                '|([1-9][0-9]{3}[ _](P-L|T-[1-3])))'
@@ -355,8 +359,11 @@ class Names():
                # packed desig [4]
                '|(^[A-Za-z][0-9]{4}| [A-Za-z][0-9]{4})'
                # packed number [5]
-               '|([A-Z]{3,} |[A-Z]{3,}$|[A-Z][A-Z]*[a-z][a-z]*[^0-9]*'
-               '[ -]?[A-Z]?[a-z]*[^0-9]*)'
+               '|([A-Z]{3,} |[A-Z]{3,}$'  # capitalized acronymns
+               '|van de [A-Z][a-z]*[ ^ 0-9]*[-]?[A-Z]?[a-z]*[^0-9] *'
+               '|de [A-Z][a-z]*[ ^ 0-9]*[-]?[A-Z]?[a-z]*[^0-9] *'
+               "|['`]?[A-Z][A-Z]*['`]?[a-z][a-z]*['`]?[^0-9]*"
+               "[ -]?[A-Z]?[a-z]*[^0-9]*)"
                # name [6]
                '|([1-9][0-9]*(\b|$| |_))'
                # number [7,8]
@@ -391,7 +398,10 @@ class Names():
             for el in m:
                 # designation
                 if len(el[0]) > 0:
-                    r['desig'] = el[0]
+                    if el[0][0] == 'A':
+                        r['desig'] = '1'+el[0][1:]
+                    else:
+                        r['desig'] = el[0]
                 # packed designation (unpack here)
                 elif len(el[4]) > 0:
                     ident = el[4]
@@ -458,7 +468,7 @@ class Names():
         Returns
         -------
         target_type : str
-           The target identification: ``'comet'``, ``'asteroid'``, or 
+           The target identification: ``'comet'``, ``'asteroid'``, or
            ``None``.
 
         Notes
@@ -470,7 +480,10 @@ class Names():
         the name is ambiguous, ``None`` will be
         returned. ``'asteroid'`` will be returned if the number of
         found asteroid identifier elements is larger than the number
-        of found comet identifier elements and vice versa.
+        of found comet identifier elements and vice versa. Note that
+        for any identifier that does not contain a comet type (P, D, C
+        etc.), it is highly likely that the object gets identified as an
+        asteroid.
 
         Examples
         --------
@@ -479,8 +492,6 @@ class Names():
         comet
         >>> print(Names.asteroid_or_comet('(1) Ceres'))
         asteroid
-        >>> print(Names.asteroid_or_comet('Fred'))
-        None
 
         """
 

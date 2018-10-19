@@ -7,6 +7,7 @@ from ..names import Names, TargetNameParseError
 comets = {
     '1P/Halley': {'type': 'P', 'number': 1, 'name': 'Halley'},
     '3D/Biela': {'type': 'D', 'number': 3, 'name': 'Biela'},
+    'P/Encke': {'type': 'P', 'name': 'Encke'},
     '6P/d\'Arrest': {'type': 'P', 'number': 6, 'name': 'd\'Arrest'},
     '9P/Tempel 1': {'type': 'P', 'number': 9, 'name': 'Tempel 1'},
     '73P/Schwassmann Wachmann 3 C': {'type': 'P', 'number': 73,
@@ -50,7 +51,15 @@ asteroids = {
     'PLS2040': {'desig': '2040 P-L'},
     'T1S3138': {'desig': '3138 T-1'},
     'T2S1010': {'desig': '1010 T-2'},
-    'T3S4101': {'desig': '4101 T-3'}
+    'T3S4101': {'desig': '4101 T-3'},
+    '(2413) van de Hulst': {'number': 2413, 'name': 'van de Hulst'},
+    "13474 V'yus (1973 QO1)": {'number': 13474, 'name': "V'yus",
+                               'desig': '1973 QO1'},
+    "361267 `I`iwi (2006 SV395)": {'number': 361267, 'name':
+                                   '`I`iwi', 'desig': '2006 SV395'},
+    "374710 `O`o (2006 RJ110)": {'number': 374710, 'name':
+                                 '`O`o', 'desig': '2006 RJ110'},
+    "(20123) A900 MA": {'number': 20123, 'desig': '1900 MA'}
 }
 
 
@@ -59,7 +68,6 @@ def test_asteroid_or_comet():
     for comet in comets:
         assert Names.asteroid_or_comet(comet) == 'comet', \
             'failed for {}'.format(comet)
-
     for asteroid in asteroids:
         if asteroid != '2017 U1':
             assert Names.asteroid_or_comet(asteroid) == 'asteroid', \

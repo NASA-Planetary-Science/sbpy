@@ -284,6 +284,31 @@ Writing object data to a file
 By default, the data are written in ASCII format, but other formats
 are available, too (cf. `~astropy.table.Table.write`).
 
+Alternative field names
+^^^^^^^^^^^^^^^^^^^^^^^
+
+It is common practice to use a set of different names for the same
+property. For instance, the orbital inclination can be referred to as
+``'i'``, ``'inc'``, or ``'incl'`` - it's a matter of personal
+taste. `~sbpy.data.DataClass` accounts for this fact and is able to
+provide a number of alternative field or property names, as suggested
+above.
+
+As an example, if your `~sbpy.data.Orbit` object has a column named
+``'incl'`` but you try to get column ``'i'``, the object will
+internally check if ``'i'`` is a legitimate alternative field name for
+``'incl'``. The corresponding column is then returned. If you try to
+get a field name that is not connected to any existing field name, a
+``KeyError`` will be raised.
+
+The definition of alternative field names is done in the file
+``sbpy/data/__init__.py``, using the dictionary ``namealts``. This
+dictionary is automatically tested for potential naming conflicts,
+i.e., different properties that share the same alternative field
+names.
+
+
+
 How to use Ephem
 ----------------
 
@@ -382,6 +407,42 @@ layouts (e.g., different magnitude systems: ``T-mag`` and ``N-mag``
 instead of ``V-mag``), which will complicate the interpretation of the
 data. It might be safest to query asteroids and comets separately.
 
+Ephemerides can also be derived from `~Orbit` objects using `sbpy`'s
+interface to `pyoorb
+<https://github.com/oorb/oorb/tree/master/python>`_ with the function
+`~sbpy.data.Ephem.from_oorb`. The following example computes
+ephemerides for the next ten days in steps of 1 hr for Ceres as seen
+from the Discovery Channel Telescope:
+
+     >>> import numpy as np
+     >>> from sbpy.data import Orbit, Ephem
+     >>> from astropy.time import Time
+     >>> epochs = Time.now().jd + np.arange(0, 10, 1/24)
+     >>> ceres = Orbit.from_horizons('1')
+     >>> eph = Ephem.from_oo(ceres, 'G37', epochs)  # doctest: +SKIP
+     >>> print(eph.table)  # doctest: +SKIP
+     targetname      MJD [1]       ...        obsy [1]              obsz [1]       
+                        d          ...           AU                    AU          
+     ---------- ------------------ ... --------------------- ----------------------
+        1 Ceres 58374.720415079966 ...   -0.1640418731222332 1.3660753531152814e-05
+        1 Ceres  58374.76208174648 ...  -0.16334416599555382 1.6732994041007698e-05
+        1 Ceres 58374.803748413455 ...  -0.16264729902661218 2.0200328928084155e-05
+        1 Ceres 58374.845415079966 ...  -0.16195072092478624 2.3823231905778508e-05
+        1 Ceres  58374.88708174648 ...  -0.16125385509757997  2.735153478080482e-05
+        1 Ceres 58374.928748413455 ...  -0.16055613920683476 3.0541568772989025e-05
+             ...                ... ...                   ...                    ...
+        1 Ceres 58384.428748413455 ... 0.0016096754330388497  9.924120661052244e-06
+        1 Ceres 58384.470415079966 ... 0.0023287044344341605   7.69766111133525e-06
+        1 Ceres  58384.51208174648 ... 0.0030458232636104473  6.300640241761616e-06
+        1 Ceres 58384.553748413455 ...  0.003760809893911351 5.8280310798125914e-06
+        1 Ceres 58384.595415079966 ...  0.004473588211662766  6.311456253324348e-06
+        1 Ceres  58384.63708174648 ...  0.005184233254950517  7.717021060406424e-06
+        1 Ceres 58384.678748413455 ...  0.005892966025131429  9.947635868821306e-06
+     Length = 240 rows
+
+The properties computed by pyoorb and listed in the resulting table
+are defined in the `pyoorb documentation
+<https://github.com/oorb/oorb/tree/master/python>`_. Note that this function requires pyoorb to be installed, which is not a requirement for `sbpy`.
        
 How to use Orbit
 ----------------
@@ -422,7 +483,41 @@ orbital elements for a number of targets:
     3749 Balam (1982 BG1) 2458334.097222222 ... 2.481...          1221.86...
        312497 (2009 BR60) 2458334.097222222 ... 2.481...          1221.77...
 
+       
+An existing `~Orbit` instance can be transformed to a different
+orbital element definition system (e.g., Keplerian, cometary,
+cartesian) using `~sbpy.data.Orbit.oo_transform` or it can be
+propagated into the future or past using
+`~sbpy.data.Orbit.oo_propagate`. Both functions are implemented in `sbpy` to provide an interface to `pyoorb
+<https://github.com/oorb/oorb/tree/master/python>`_, a Python module using `OpenOrb <https://github.com/oorb/oorb>`_.
 
+In order to transform some current orbits to a state vector in cartesian coordinates, one could use the following code:
+
+    >>> elem = Orbit.from_horizons(['Ceres', 'Pallas', 'Vesta'])
+    >>> statevec = elem.oo_transform('CART')  # doctest: +SKIP
+    >>> print(statevec.table)  # doctest: +SKIP
+       id             x                   y           ... epoch_scale  H    G  
+                      AU                  AU          ...             mag      
+    -------- ------------------- -------------------- ... ----------- ---- ----
+     1 Ceres -2.5244444864469164 -0.35655744512932896 ...         UTC 3.34 0.12
+    2 Pallas -1.7247978992440247   1.1268442378878316 ...         UTC 4.13 0.11
+     4 Vesta  0.9453230885641772  -1.9811261840060208 ...         UTC  3.2 0.32
+    
+Orbits can currently be transformed to the following definitions: cartesian (``'CART'``), Keplerian (``'KEP'``), and cometary (``'COM'``).
+
+Orbit propagation requires the epoch to which the orbit should be propagated to either as `~astropy.time.Time` object, or as float in terms of Julian date. The following example propagates the current orbit of Ceres back to year 2000:
+
+    >>> elem = Orbit.from_horizons('Ceres')
+    >>> epoch = Time('2000-01-01', format='iso')
+    >>> newelem = elem.oo_propagate(epoch)  # doctest: +SKIP
+    >>> print(newelem.table)  # doctest: +SKIP
+       id           a                  e          ... epoch_scale  H    G  
+                    AU                            ...             mag      
+    ------- ----------------- ------------------- ... ----------- ---- ----
+    1 Ceres 2.766494213803344 0.07837503821706865 ...         UTC 3.34 0.12
+
+Note that both functions require pyoorb to be installed, which is not a requirement for `sbpy`.
+    
 How to use Phys
 ---------------
 tbd
@@ -460,19 +555,14 @@ asteroid and comet identifiers:
     >>> print(Names.parse_comet('73P-C/Schwassmann Wachmann 3 C	')) # doctest: +SKIP
     {'type': 'P', 'number': 73, 'fragment': 'C', 'name': 'Schwassmann Wachmann 3 C'}
     
-Note that these examples are somewhat idealized. Consider the
-following query:
-
-    >>> print(Names.parse_comet('12893 Mommert (1998 QS55)')) # doctest: +SKIP
-    {'name': 'Mommert ', 'desig': '1998 QS55'}
-
-Although this target identifier clearly denotes an asteroid, the
-routine finds a comet name and a comet designation. The reason for
-this is that some comets are discovered as asteroids and hence obtain
-asteroid-like designations that stick to them; similarly, comet names
-cannot be easily distinguished from asteroids names, unless one knows
-all comet and asteroid names. Hence, some caution is advised when
-using these routines - identification might not be unambiguous.
+In order to be able to distinguish between asteroid and comet
+identifiers, `sbpy` follows the MPC guideline in that it requires
+comet identifiers to include the comet type in either in combination
+with a number (e.g., ``'259P'``), a name (e.g., ``'P/Halley'``), or
+both (e.g., ``'2P/Encke'``). For instance, the identifier ``'Halley'``
+would be identified as an asteroid, as it lacks a comet type
+identifier. Hence, some caution is advised when using these routines -
+identification might not be unambiguous.
 
     
 

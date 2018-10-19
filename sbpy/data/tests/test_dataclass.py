@@ -2,10 +2,11 @@
 import os
 from collections import OrderedDict
 import pytest
+from copy import deepcopy
 from numpy import array
 import astropy.units as u
 from astropy.table import QTable
-from ..core import DataClass
+from ..core import DataClass, conf
 
 
 def data_path(filename):
@@ -165,7 +166,9 @@ def test_add():
     tab.add_column(array([10, 20, 30, 40, 50,
                           60, 70, 80, 90, 100])*u.kg/u.um, name='d')
 
-    assert tab[0]['d'] == 10*u.kg/u.um
+    print(tab.table)
+
+    assert tab['d'][0] == 10*u.kg/u.um
 
     with pytest.raises(ValueError):
         tab.add_column(array([10, 20, 30, 40, 50,
@@ -174,15 +177,41 @@ def test_add():
     assert tab.add_rows(tab) == 20
 
 
-def test_check_columns():
-    """test function that checks the existing of a number of column names
-    provided"""
+def test_alternative_name_uniqueness():
+    """test the uniqueness of alternative field names"""
+
+    from ..core import conf
+
+    assert (len(conf.namealts.keys()) +
+            sum([len(val) for val in conf.namealts.values()]) ==
+            len(set(list(conf.namealts.keys()) +
+                    [item for sublist in list(conf.namealts.values())
+                     for item in sublist])))
+
+    with pytest.raises(AssertionError):
+        conf.namealts['dummy_variable'] = 'i'
+        assert (len(conf.namealts.keys()) +
+                sum([len(val) for val in conf.namealts.values()]) ==
+                len(set(list(conf.namealts.keys()) +
+                        [item for sublist in list(conf.namealts.values())
+                         for item in sublist])))
+
+
+def test_translate_columns():
+    """test function that translates column names"""
+
+    storage = deepcopy(conf.namealts)
+    conf.namealts = {'z': ['a']}
 
     tab = DataClass.from_dict(
         [OrderedDict((('a', 1*u.m), ('b', 4*u.m/u.s), ('c', 'a'))),
          OrderedDict((('a', 2*u.m), ('b', 5*u.m/u.s), ('c', 'b'))),
          OrderedDict((('a', 3*u.m), ('b', 6*u.m/u.s), ('c', 'c')))])
 
-    assert tab._check_columns(['a', 'b', 'c'])
-    assert tab._check_columns(['a', 'b'])
-    assert not tab._check_columns(['a', 'b', 'f'])
+    assert tab._translate_columns(['a', 'b', 'c']) == ['a', 'b', 'c']
+    assert tab._translate_columns(['z', 'b', 'c']) == ['a', 'b', 'c']
+
+    with pytest.raises(KeyError):
+        tab._translate_columns(['x'])
+
+    conf.namealts = storage

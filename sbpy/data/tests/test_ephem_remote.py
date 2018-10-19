@@ -6,8 +6,9 @@ from numpy.testing import assert_allclose
 import astropy.units as u
 from astropy.time import Time
 
-from sbpy.data import Ephem
+from sbpy.data import Ephem, Orbit
 from sbpy import bib
+from ..core import conf
 
 
 @pytest.mark.remote_data
@@ -53,3 +54,29 @@ def test_from_horizons():
     bib.track()
     data = Ephem.from_horizons(['Ceres', 'Pallas'])
     assert 'sbpy.data.Ephem' in bib.to_text()
+
+
+@pytest.mark.remote_data
+def test_from_oo():
+    """test from_oo method"""
+
+    try:
+        import pyoorb
+    except ImportError:
+        return None
+
+    orbit = Orbit.from_horizons('Ceres')
+    horizons_ephem = Ephem.from_horizons('Ceres', location='500')
+    oo_ephem = Ephem.from_oo(orbit)
+
+    u.isclose(horizons_ephem['ra'][0], oo_ephem['ra'][0])
+    u.isclose(horizons_ephem['dec'][0], oo_ephem['dec'][0])
+    u.isclose(horizons_ephem['ra_rate'][0], oo_ephem['ra_rate'][0])
+    u.isclose(horizons_ephem['dec_rate'][0], oo_ephem['dec_rate'][0])
+    u.isclose(horizons_ephem['alpha'][0], oo_ephem['alpha'][0])
+    u.isclose(horizons_ephem['r'][0], oo_ephem['r'][0])
+    u.isclose(horizons_ephem['delta'][0], oo_ephem['delta'][0])
+    u.isclose(horizons_ephem['V'][0], oo_ephem['V'][0])
+    u.isclose(horizons_ephem['hlon'][0], oo_ephem['hlon'][0])
+    u.isclose(horizons_ephem['hlat'][0], oo_ephem['hlat'][0])
+    u.isclose(horizons_ephem['EL'][0], oo_ephem['EL'][0])

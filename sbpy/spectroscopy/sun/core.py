@@ -5,8 +5,11 @@ SBPy Sun Core Module
 ====================
 """
 
+import os
+import astropy.units as u
 from astropy.utils.state import ScienceState
 from ..core import SpectralStandard
+from . import sources
 
 __all__ = [
     'Sun',
@@ -14,6 +17,7 @@ __all__ = [
 ]
 
 __doctest_requires__ = {'Sun': 'synphot'}
+
 
 class Sun(SpectralStandard):
     """Solar spectrum.
@@ -47,28 +51,31 @@ class Sun(SpectralStandard):
 
     Examples
     --------
-    Create solar standard from `synphot.SourceSpectrum`::
-      >>> import astropy.constants as const
-      >>> import synphot
-      >>> source = synphot.SourceSpectrum(synphot.BlackBody1D, temperature=5770)
-      >>> source *= (3.14159 * const.R_sun**2 / const.au**2).decompose().value
-      >>> sun = Sun(source, description='5770 K blackbody Sun')
+    Get the default solar spectrum:
+    >>> sun = Sun.from_default()
 
-    Create solar standard from an array::
-      >>> import numpy as np
-      >>> import astropy.units as u
-      >>> import astropy.constants as const
-      >>> from astropy.modeling.blackbody import blackbody_lambda
-      >>> wave = np.logspace(-1, 2) * u.um
-      >>> fluxd = blackbody_lambda(wave, 5770 * u.K) * np.pi * u.sr
-      >>> fluxd *= (const.R_sun**2 / const.au**2).decompose().value
-      >>> sun = Sun.from_array(wave, fluxd, description='5770 K blackbody Sun')
+    Create solar standard from `synphot.SourceSpectrum`:
+    >>> import astropy.constants as const
+    >>> import synphot
+    >>> source = synphot.SourceSpectrum(synphot.BlackBody1D, temperature=5770)
+    >>> source *= (3.14159 * const.R_sun**2 / const.au**2).decompose().value
+    >>> sun = Sun(source, description='5770 K blackbody Sun')
 
-    Create solar standard from a file::
-      >>> sun = Sun.from_file('filename')        # doctest: +SKIP
+    Create solar standard from an array:
+    >>> import numpy as np
+    >>> import astropy.units as u
+    >>> import astropy.constants as const
+    >>> from astropy.modeling.blackbody import blackbody_lambda
+    >>> wave = np.logspace(-1, 2) * u.um
+    >>> fluxd = blackbody_lambda(wave, 5770 * u.K) * np.pi * u.sr
+    >>> fluxd *= (const.R_sun**2 / const.au**2).decompose().value
+    >>> sun = Sun.from_array(wave, fluxd, description='5770 K blackbody Sun')
 
-    Evaluate solar standard at 1 μm::
-      >>> print(sun(1 * u.um))                   # doctest: +SKIP
+    Create solar standard from a file:
+    >>> sun = Sun.from_file('filename')        # doctest: +SKIP
+
+    Evaluate solar standard at 1 μm:
+    >>> print(sun(1 * u.um))                   # doctest: +SKIP
 
     """
 
@@ -90,10 +97,8 @@ class Sun(SpectralStandard):
 
         """
 
-        import os
         from astropy.utils.data import _is_url
-        from . import sources
-        
+
         try:
             parameters = getattr(sources, name).copy()
 
@@ -101,33 +106,39 @@ class Sun(SpectralStandard):
                 # find in the module's location
                 path = os.path.dirname(__file__)
                 parameters['filename'] = os.sep.join(
-                    (path, parameters['filename']))
-                
+                    (path, 'data', parameters['filename']))
+
             return Sun.from_file(**parameters)
         except AttributeError:
-            msg = 'Unknown solar spectrum "{}".  Valid spectra:\n{}'.format(name, sources.available)
+            msg = 'Unknown solar spectrum "{}".  Valid spectra:\n{}'.format(
+                name, sources.available)
             raise ValueError(msg)
-            
+
+    @classmethod
+    def from_default(cls):
+        """Return the `sbpy` default solar spectrum."""
+        return default_sun.get()
+
 
 class default_sun(ScienceState):
-    """The default solar spectrum to use.
+    """Get/set the `sbpy` default solar spectrum.
 
-    To retrieve the current default::
+    To retrieve the current default:
 
-      >>> sun = default_sun.get()
+    >>> sun = default_sun.get()
 
-    To change it::
+    To change it:
 
-      >>> from sbpy.spectroscopy.sun import default_sun
-      >>> with default_sun.set('E490_2014'):
-      ...     # E490_2014 in effect
-      ...     pass
+    >>> from sbpy.spectroscopy.sun import default_sun
+    >>> with default_sun.set('E490_2014'):
+    ...     # E490_2014 in effect
+    ...     pass
 
-    Or, you may use a string::
+    Or, you may use a string:
 
-      >>> with default_sun.set('E490_2014LR'):
-      ...     # E490_2014LR in effect
-      ...     pass
+    >>> with default_sun.set('E490_2014LR'):
+    ...     # E490_2014LR in effect
+    ...     pass
 
     """
     _value = 'E490_2014'
@@ -140,4 +151,3 @@ class default_sun(ScienceState):
             return value
         else:
             raise TypeError("default_sun must be a string or Sun instance.")
-
