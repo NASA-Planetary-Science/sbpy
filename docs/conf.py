@@ -180,4 +180,4 @@ github_issues_url = 'https://github.com/{0}/issues/'.format(
     setup_cfg['github_project'])
 
 # -- compile list of field names
-import compile_fieldnames
+#import compile_fieldnames
