@@ -10,7 +10,7 @@ created on June 04, 2017
 """
 import os
 
-import numpy as np
+from numpy import ndarray, array, hstack, iterable
 from astropy.time import Time
 from astropy.table import vstack, Column
 import astropy.units as u
@@ -87,7 +87,7 @@ class Ephem(DataClass):
                     epochs[key] = val.value
                 else:
                     epochs[key] = epochs[key]
-        elif isinstance(epochs, (list, tuple, np.ndarray)):
+        elif isinstance(epochs, (list, tuple, ndarray)):
             new_epochs = [None] * len(epochs)
             for i in range(len(epochs)):
                 if isinstance(epochs[i], Time):
@@ -97,7 +97,7 @@ class Ephem(DataClass):
             epochs = new_epochs
 
         # if targetids is a list, run separate Horizons queries and append
-        if not isinstance(targetids, (list, np.ndarray, tuple)):
+        if not isinstance(targetids, (list, ndarray, tuple)):
             targetids = [targetids]
 
         # append ephemerides table for each targetid
@@ -107,7 +107,13 @@ class Ephem(DataClass):
             # load ephemerides using astroquery.jplhorizons
             obj = Horizons(id=targetid, id_type=id_type,
                            location=location, epochs=epochs)
-            eph = obj.ephemerides(**kwargs)
+            try:
+                eph = obj.ephemerides(**kwargs)
+            except ValueError as e:
+                raise RuntimeError(
+                    ('Error raised by astroquery.jplhorizons: {:s}\n'
+                     'The following query was attempted: {:s}').format(
+                         str(e), obj.uri))
 
             # workaround for current version of astroquery to make
             # column units compatible with astropy.table.QTable
@@ -121,6 +127,12 @@ class Ephem(DataClass):
                 all_eph = eph
             else:
                 all_eph = vstack([all_eph, eph])
+
+        # identify time scales returned by Horizons query
+        timescales = array(['UTC'] * len(all_eph))
+        timescales[all_eph['datetime_jd'] < 2437665.5] = 'UT1'
+        # according to Horizons documentation
+        all_eph.add_column(Column(timescales, name='timescale'))
 
         if bib.status() is None or bib.status():
             bib.register('sbpy.data.Ephem.from_horizons',
@@ -191,9 +203,8 @@ class Ephem(DataClass):
         >>> from sbpy.data import Ephem
         >>> from astropy.time import Time
         >>> epoch = Time('2018-05-14', scale='utc')
-        >>> eph = Ephem.from_mpc('ceres', epoch, location='568')  # doctest: +REMOTE_DATA +IGNORE_OUTPUT
-
-        >>> epochs = {'start': '2019-01-01', 'step': '1d', 'number': 365}
+        >>> eph = Ephem.from_mpc('ceres', epoch, location='568') # doctest: +REMOTE_DATA +IGNORE_OUTPUT
+        >>> epochs = {'start': '2019-01-01', 'step': '1d', 'number': 365} 
         >>> eph = Ephem.from_mpc('2P', epochs=epochs, location='568')  # doctest: +REMOTE_DATA +IGNORE_OUTPUT
 
 
@@ -248,7 +259,7 @@ class Ephem(DataClass):
             if epochs is None:
                 epochs = Time.now()
 
-            if not np.iterable(epochs) or isinstance(epochs, str):
+            if not iterable(epochs) or isinstance(epochs, str):
                 epochs = [epochs]
 
             # check for Julian dates
@@ -442,8 +453,8 @@ class Ephem(DataClass):
         >>> from sbpy.data import Orbit, Ephem
         >>> from astropy.time import Time
         >>> epochs = Time.now().jd + np.arange(0, 10, 1/24)
-        >>> ceres = Orbit.from_horizons('1')
-        >>> eph = Ephem.from_oo(ceres, epochs=epochs, location='G37')  # doctest: +SKIP
+        >>> ceres = Orbit.from_horizons('1')  # doctest: +SKIP
+        >>> eph = Ephem.from_oo(ceres, epochs=epochs, location='G37') # doctest: +SKIP
         >>> print(eph.table)  # doctest: +SKIP
         targetname      MJD [1]       ...        obsy [1]              obsz [1]
                            d          ...           AU                    AU
@@ -491,7 +502,7 @@ class Ephem(DataClass):
             epochs = [Time.now()]
         elif isinstance(epochs, Time):
             epochs = [Time(epochs)]
-        elif isinstance(epochs, (list, tuple, np.ndarray)):
+        elif isinstance(epochs, (list, tuple, ndarray)):
             new_epochs = [None] * len(epochs)
             for i in range(len(epochs)):
                 if isinstance(epochs[i], Time):
@@ -504,13 +515,13 @@ class Ephem(DataClass):
 
         if scope == 'full':
             oo_eph, err = pyoorb.pyoorb.oorb_ephemeris_full(
-                orbit._to_oo(timescale),
+                orbit._to_oo(),
                 location,
                 epochs,
                 dynmodel)
         elif scope == 'basic':
             oo_eph, err = pyoorb.pyoorb.oorb_ephemeris_basic(
-                orbit._to_oo(timescale),
+                orbit._to_oo(),
                 location,
                 epochs,
                 dynmodel)
@@ -521,7 +532,8 @@ class Ephem(DataClass):
             RuntimeError('pyoorb failed with error code {:d}'.format(err))
 
         # reorder data in Orbit object
-        ephem = self.from_array(oo_eph.transpose(),
+        ephem = self.from_array(hstack([oo_eph.transpose()[:, :, i]
+                                        for i in range(oo_eph.shape[0])]),
                                 names=conf.oorb_ephem_fields)
 
         # apply units
@@ -529,8 +541,11 @@ class Ephem(DataClass):
             ephem[col].unit = conf.oorb_ephem_units[i]
 
         # add targetname column
-        ephem.table.add_column(Column(data=[orbit['targetname'][0]] *
-                                      len(ephem.table), name='targetname'),
+        ephem.table.add_column(Column(data=sum([[orbit['targetname'][i]] *
+                                                len(epochs) for i in
+                                                range(len(orbit.table))],
+                                               []),
+                                      name='targetname'),
                                index=0)
 
         # remove trueanom column for now as it only holds a dummy value

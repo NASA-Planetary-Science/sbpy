@@ -7,6 +7,7 @@ sbpy Data Module
 created on June 22, 2017
 """
 
+from copy import deepcopy
 from collections import OrderedDict
 from numpy import ndarray, array
 from astropy.table import QTable, Column, vstack
@@ -311,14 +312,14 @@ class DataClass():
         for and may use alternative field names."""
 
         if isinstance(ident, (list, tuple, ndarray)):
-            if all([isinstance(ident[i], str) for i in ident]):
+            if all([isinstance(i, str) for i in ident]):
                 # list of column names
                 newkeylist = [self._translate_columns(i)[0] for i in ident]
                 ident = newkeylist
-            if all([isinstance(ident[i], bool) for i in ident]):
+            elif all([isinstance(i, bool) for i in ident]):
                 # list of booleans
                 pass
-        if isinstance(ident, str):
+        elif isinstance(ident, str):
             if len(self._translate_columns(ident)) > 0:
                 ident = self._translate_columns(ident)[0]
 
@@ -426,8 +427,8 @@ class DataClass():
         name : str
             Name of the new column; must be different from already existing
             column names.
-        **kwargs : additional parameters 
-            Additional optional parameters will be passed on to 
+        **kwargs : additional parameters
+            Additional optional parameters will be passed on to
             `~astropy.table.Table.add_column`.
 
         Returns
@@ -467,23 +468,15 @@ class DataClass():
         if not isinstance(target_colnames, (list, ndarray, tuple)):
             target_colnames = [target_colnames]
 
-        translated_colnames = []
-        for colname in target_colnames:
-            if colname in self._table.columns:
-                # colname already in self._table
-                translated_colnames.append(colname)
-            elif colname in conf.namealts.keys():
-                # colname already default name (conf.namealts key)
-                for translation in conf.namealts[colname]:
-                    if translation in self.column_names:
-                        translated_colnames.append(translation)
-            else:
-                # colname is alternative name (conf.altnames key)
-                if colname in conf.altnames.keys():
-                    translated_colnames.append(conf.altnames[colname])
-                else:
-                    raise KeyError('column \"{:s}\" not available'.format(
-                        colname))
+        translated_colnames = deepcopy(target_colnames)
+        for idx, colname in enumerate(target_colnames):
+            # colname is a column name
+            if colname in self.column_names:
+                continue
+            # colname requires translation
+            for alt in conf.fieldnames[conf.fieldname_idx[colname]]:
+                if alt in self.column_names:
+                    translated_colnames[idx] = alt
 
         return translated_colnames
 

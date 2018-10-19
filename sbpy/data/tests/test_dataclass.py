@@ -28,7 +28,7 @@ def test_get_set():
 
     data['a'][:] = [0, 0, 0]
 
-    with pytest.raises(AttributeError):
+    with pytest.raises(KeyError):
         data.d
 
     with pytest.raises(KeyError):
@@ -182,26 +182,25 @@ def test_alternative_name_uniqueness():
 
     from ..core import conf
 
-    assert (len(conf.namealts.keys()) +
-            sum([len(val) for val in conf.namealts.values()]) ==
-            len(set(list(conf.namealts.keys()) +
-                    [item for sublist in list(conf.namealts.values())
-                     for item in sublist])))
+    assert (len(sum(conf.fieldnames, [])) ==
+            len(set(sum(conf.fieldnames, []))))
 
     with pytest.raises(AssertionError):
-        conf.namealts['dummy_variable'] = 'i'
-        assert (len(conf.namealts.keys()) +
-                sum([len(val) for val in conf.namealts.values()]) ==
-                len(set(list(conf.namealts.keys()) +
-                        [item for sublist in list(conf.namealts.values())
-                         for item in sublist])))
+        # repeat existing fieldname should raise Error
+        conf.fieldnames.append(['i'])
+        assert (len(sum(conf.fieldnames, [])) ==
+                len(set(sum(conf.fieldnames, []))))
 
 
 def test_translate_columns():
     """test function that translates column names"""
 
-    storage = deepcopy(conf.namealts)
-    conf.namealts = {'z': ['a']}
+    storage = (deepcopy(conf.fieldnames), deepcopy(conf.fieldname_idx))
+    conf.fieldnames = [['z', 'a']]
+    conf.fieldname_idx = {}
+    for idx, field in enumerate(conf.fieldnames):
+        for alt in field:
+            conf.fieldname_idx[alt] = idx
 
     tab = DataClass.from_dict(
         [OrderedDict((('a', 1*u.m), ('b', 4*u.m/u.s), ('c', 'a'))),
@@ -214,4 +213,20 @@ def test_translate_columns():
     with pytest.raises(KeyError):
         tab._translate_columns(['x'])
 
-    conf.namealts = storage
+    # revert changes to conf.fieldnames
+    conf.fieldnames = storage[0]
+    conf.fieldname_idx = storage[1]
+
+
+def test_indexing():
+    """make sure that indexing functionality is not compromised through
+    column name translation"""
+
+    tab = DataClass.from_dict(
+        [OrderedDict((('a', 1*u.m), ('b', 4*u.m/u.s), ('c', 'a'))),
+         OrderedDict((('a', 2*u.m), ('b', 5*u.m/u.s), ('c', 'b'))),
+         OrderedDict((('a', 3*u.m), ('b', 6*u.m/u.s), ('c', 'c')))])
+
+    assert list(tab['a'].data) == [1, 2, 3]
+    assert list(tab['a', 'b']['a'].data) == [1, 2, 3]
+    assert len(tab[tab['a'] < 3*u.m]) == 2
