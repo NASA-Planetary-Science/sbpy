@@ -13,4 +13,4 @@ dependencies:
     - synphot
     - pip
     - pip:
-      - git+https://github.com/astropy/astroquery.git
+      - "git+https://github.com/astropy/astroquery.git"
