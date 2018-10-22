@@ -295,7 +295,34 @@ class Orbit(DataClass):
 
     def oo_transform(self, orbittype, timescale=None, ephfile='de430'):
         """Uses pyoorb to transform this orbit object to a different
-        orbit type definition.
+        orbit type definition. Required fields are:
+
+        * target identifier (``'targetname'``)
+        * semi-major axis (``'a'``, for Keplerian orbit) or perihelion
+          distance (``'q'``, for cometary orbit), typically in au or
+          or x-component of state vector (``'x'``, for cartesian orbit),
+          typically in au
+        * eccentricity (``'e'``, for Keplerian or cometary orbit) or
+          y-component of state vector (``'y'``, for cartesian orbit) in
+          au
+        * inclination (``'i'``, for Keplerian or cometary orbit) in
+          degrees or z-component of state vector (``'z'``, for cartesian
+          orbit) in au
+        * longitude of the ascending node (``'Omega'``, for Keplerian or
+          cometary orbit) in degrees or x-component of velocity vector
+          (``'vx'``, for cartesian orbit), au/day
+        * argument of the periapsis (``'w'``, for Keplerian or cometary
+          orbit) in degrees or y-component of velocity vector (``'vy'``,
+          for cartesian orbit) in au/day
+        * mean anomaly (``'M'``, for Keplerian orbits) in degrees or
+          perihelion epoch (``'Tp_jd'``, for cometary orbits) in JD or
+          z-component of velocity vector (``'vz'``, for cartesian orbit)
+          in au/day
+        * epoch (``'epoch'``) in JD
+        * epoch time scale (``'epoch_scale'``) either one of:
+          ``'UTC'`` | ``'UT1'`` | ``'TT'`` | ``'TAI'``
+        * absolute magnitude (``'H'``) in mag
+        * photometric phase slope (``'G'``)
 
         Parameters
         ----------
@@ -341,6 +368,21 @@ class Orbit(DataClass):
         if timescale is None:
             timescale = self.table['timescale'][0]
 
+        # derive and apply default units
+        default_units = {}
+        for idx, field in enumerate(conf.oorb_orbit_fields[orbittype]):
+            try:
+                default_units[self._translate_columns(
+                    field)[0]] = conf.oorb_orbit_units[orbittype][idx]
+            except KeyError:
+                pass
+        for colname in self.column_names:
+            if (colname in default_units.keys() and
+                not isinstance(self[colname],
+                               (u.Quantity, u.CompositeUnit))):
+                self[colname].unit = \
+                    default_units[colname]
+
         oo_orbits, err = pyoorb.pyoorb.oorb_element_transformation(
             in_orbits=self._to_oo(timescale),
             in_element_type={'CART': 1, 'COM': 2, 'KEP': 3,
@@ -380,7 +422,34 @@ class Orbit(DataClass):
 
     def oo_propagate(self, epoch, timescale='UTC',
                      dynmodel='N', ephfile='de430'):
-        """Uses pyoorb to propagate this `~Orbit` object.
+        """Uses pyoorb to propagate this `~Orbit` object. Required fields are:
+
+        * target identifier (``'targetname'``)
+        * semi-major axis (``'a'``, for Keplerian orbit) or perihelion
+          distance (``'q'``, for cometary orbit), typically in au or
+          or x-component of state vector (``'x'``, for cartesian orbit),
+          typically in au
+        * eccentricity (``'e'``, for Keplerian or cometary orbit) or
+          y-component of state vector (``'y'``, for cartesian orbit) in
+          au
+        * inclination (``'i'``, for Keplerian or cometary orbit) in
+          degrees or z-component of state vector (``'z'``, for cartesian
+          orbit) in au
+        * longitude of the ascending node (``'Omega'``, for Keplerian or
+          cometary orbit) in degrees or x-component of velocity vector
+          (``'vx'``, for cartesian orbit), au/day
+        * argument of the periapsis (``'w'``, for Keplerian or cometary
+          orbit) in degrees or y-component of velocity vector (``'vy'``,
+          for cartesian orbit) in au/day
+        * mean anomaly (``'M'``, for Keplerian orbits) in degrees or
+          perihelion epoch (``'Tp_jd'``, for cometary orbits) in JD or
+          z-component of velocity vector (``'vz'``, for cartesian orbit)
+          in au/day
+        * epoch (``'epoch'``) in JD
+        * epoch time scale (``'epoch_scale'``) either one of:
+          ``'UTC'`` | ``'UT1'`` | ``'TT'`` | ``'TAI'``
+        * absolute magnitude (``'H'``) in mag
+        * photometric phase slope (``'G'``)
 
         Parameters
         ----------
@@ -439,6 +508,21 @@ class Orbit(DataClass):
         if orbittype is None:
             raise ValueError(
                 'orbit type cannot be determined from elements')
+
+        # derive and apply default units
+        default_units = {}
+        for idx, field in enumerate(conf.oorb_orbit_fields[orbittype]):
+            try:
+                default_units[self._translate_columns(
+                    field)[0]] = conf.oorb_orbit_units[orbittype][idx]
+            except KeyError:
+                pass
+        for colname in self.column_names:
+            if (colname in default_units.keys() and
+                not isinstance(self[colname],
+                               (u.Quantity, u.CompositeUnit))):
+                self[colname].unit = \
+                    default_units[colname]
 
         if isinstance(epoch, Time):
             ooepoch = [epoch.jd-2400000.5, conf.oorb_timeScales[timescale]]
