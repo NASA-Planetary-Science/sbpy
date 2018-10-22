@@ -56,52 +56,7 @@ class Conf():
         for alt in field:
             fieldname_idx[alt] = idx
 
-    # property name alternatives for Orbit, Ephem, Phys
-    # default name: [list of alternative names]
-    # namealts = {
-        #     'targetname': ['id'],  # target identifier
-        #     # orbital elements
-        #     'i': ['inc', 'incl'],  # inclination
-        #     'epoch': ['datetime_jd', 'Date', 'date'],  # epoch
-        #     'Omega': ['longnode'],  # longitude of the ascending node
-        #     'w': ['argper'],  # argument of periapsis
-        #     # ephemerides
-        #     'r': ['r_hel', 'heldist'],  # heliocentric distance
-        #     'delta': ['Delta', 'obsdist'],  # distance to observer
-        #     'ra': ['RA'],  # right ascension
-        #     'dec': ['DEC', 'Dec'],  # declination
-        #     'ra_rate': ['RA_rate', 'ra_rates', 'RA_rates',
-        #                 'dRA', 'dra'],  # RA rate
-        #     'dec_rate': ['DEC_rate', 'Dec_rate', 'dec_rates', 'DEC_rates',
-        #                  'Dec_rates', 'dDec', 'dDEC', 'ddec'],  # DEC rate
-        #     'alpha': ['phaseangle', 'Phase'],  # solar phase angle
-        #     'elong': ['solarelong', 'solarelongation',
-        #               'elongation', 'Elongation'],  # solar elongation
-        #     'V': ['Vmag'],  # V-band magnitude
-        #     'hlon': ['EclLon', 'ecllon',
-        #              'HelEclLon', 'helecllon'],  # heliocentric ecliptic longitude
-        #     'hlat': ['EclLat', 'ecllat',
-        #              'HelEclLat', 'helecllat'],  # heliocentric ecliptic latitude
-        #     'el': ['EL', 'elevation', 'alt', 'altitude'],  # topocentric elevation
-        #     'lunar_elong': ['elong_moon', 'elongation_moon',
-        #                     'lunar_elongation', 'lunarelong'],  # lunar elongation
-        #     'vx': ['dx', 'dx/dt'],  # x velocity component
-        #     'vy': ['dy', 'dy/dt'],  # x velocity component
-        #     'vz': ['dz', 'dz/dt'],  # x velocity component
-
-        #     # physical properties
-        #     'd': ['D', 'diam'],  # diameter
-        #     'pv': ['pV', 'p_v', 'p_V'],  # V-band geometric albedo
-        # }
-
-        # # reverse namealts for dict of alternative names pointing to
-        # # default names
-        # altnames = {}
-        # for key, vals in namealts.items():
-        #     for val in vals:
-        #         altnames[val] = key
-
-        # definitions for use of pyoorb in Orbits
+    # definitions for use of pyoorb in Orbits
     oorb_timeScales = {'UTC': 1, 'UT1': 2, 'TT': 3, 'TAI': 4}
     oorb_elemType = {'CART': 1, 'COM': 2, 'KEP': 3, 'DEL': 4, 'EQX': 5}
 

@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import pytest
+from copy import deepcopy
 
 from numpy.testing import assert_allclose
 import astropy.units as u
@@ -124,6 +125,34 @@ def test_from_oo():
     orbit = Orbit.from_horizons('Ceres')
     horizons_ephem = Ephem.from_horizons('Ceres', location='500')
     oo_ephem = Ephem.from_oo(orbit)
+
+    u.isclose(horizons_ephem['ra'][0], oo_ephem['ra'][0])
+    u.isclose(horizons_ephem['dec'][0], oo_ephem['dec'][0])
+    u.isclose(horizons_ephem['ra_rate'][0], oo_ephem['ra_rate'][0])
+    u.isclose(horizons_ephem['dec_rate'][0], oo_ephem['dec_rate'][0])
+    u.isclose(horizons_ephem['alpha'][0], oo_ephem['alpha'][0])
+    u.isclose(horizons_ephem['r'][0], oo_ephem['r'][0])
+    u.isclose(horizons_ephem['delta'][0], oo_ephem['delta'][0])
+    u.isclose(horizons_ephem['V'][0], oo_ephem['V'][0])
+    u.isclose(horizons_ephem['hlon'][0], oo_ephem['hlon'][0])
+    u.isclose(horizons_ephem['hlat'][0], oo_ephem['hlat'][0])
+    u.isclose(horizons_ephem['EL'][0], oo_ephem['EL'][0])
+
+    # test manual orbit definition lacking units
+    manorbit = Orbit.from_dict({
+        'targetname': orbit.table['targetname'],
+        'a': orbit['a'].value[0],
+        'e': orbit['e'],
+        'i': orbit['i'].value[0],
+        'w': orbit['w'].value[0],
+        'Omega': orbit['Omega'].value[0],
+        'datetime_jd': orbit['datetime_jd'],
+        'M': orbit['M'].value[0],
+        'H': orbit['H'].value[0],
+        'G': orbit['G'],
+        'timescale': orbit['timescale']})
+
+    oo_ephem = Ephem.from_oo(manorbit)
 
     u.isclose(horizons_ephem['ra'][0], oo_ephem['ra'][0])
     u.isclose(horizons_ephem['dec'][0], oo_ephem['dec'][0])
