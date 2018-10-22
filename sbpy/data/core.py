@@ -59,7 +59,7 @@ class DataClass():
                 # check if val is already list-like
                 try:
                     val[0]
-                except TypeError:
+                except (TypeError, IndexError):
                     val = [val]
 
                 self._table[key] = Column(val, unit=unit)
