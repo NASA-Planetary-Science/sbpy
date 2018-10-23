@@ -230,7 +230,7 @@ class DataClass():
         Examples
         --------
         >>> from sbpy.data import DataClass
-        >>> dat = DataClass.from_file('data.txt', format='ascii')  # doctest: +SKIP
+        >>> dat = DataClass.from_file('data.txt', format='ascii') # doctest: +SKIP
         """
 
         data = QTable.read(filename, **kwargs)
@@ -320,8 +320,7 @@ class DataClass():
                 # list of booleans
                 pass
         elif isinstance(ident, str):
-            if len(self._translate_columns(ident)) > 0:
-                ident = self._translate_columns(ident)[0]
+            ident = self._translate_columns(ident)[0]
 
         return self._table[ident]
 
@@ -473,10 +472,44 @@ class DataClass():
             # colname is a column name
             if colname in self.column_names:
                 continue
-            # colname requires translation
-            for alt in conf.fieldnames[conf.fieldname_idx[colname]]:
-                if alt in self.column_names:
-                    translated_colnames[idx] = alt
+
+            # try-except block to ignore missing colname in conf.fieldnames
+            # try:
+            #     for alt in conf.fieldnames[conf.fieldname_idx[colname]]:
+            #         if alt in self.column_names:
+            #             translated_colnames[idx] = alt
+            # except KeyError:
+            #     # colname requires conversion; create a new column
+            #     convname = list(conf.field_eq[colname].keys())[0]
+            #     convfunc = list(conf.field_eq[colname].values())[0]
+            #     # create new column for the converted field
+            #     self.add_column(convfunc(self[convname]), colname)
+            #     translated_colnames[idx] = colname
+            if (colname in sum(conf.fieldnames, []) or
+                    colname in list(conf.field_eq.keys())):
+                for alt in (conf.fieldnames[conf.fieldname_idx[colname]] +
+                            list(conf.field_eq.keys())):
+                    # translation available for colname
+                    if alt in self.column_names:
+                        translated_colnames[idx] = alt
+                        break
+                    elif alt in list(conf.field_eq.keys()):
+                        # colname requires conversion; create a new column
+                        convname = list(conf.field_eq[alt].keys())[0]
+                        convfunc = list(conf.field_eq[alt].values())[0]
+                        if convname in self.column_names:
+                            # create new column for the converted field
+                            self.add_column(convfunc(self[convname]),
+                                            colname)
+                            translated_colnames[idx] = colname
+                            break
+                        else:
+                            raise KeyError(
+                                'field {:s} not available in table'.format(
+                                    colname))
+            else:
+                raise KeyError('field {:s} not available in table'.format(
+                    colname))
 
         return translated_colnames
 

@@ -308,8 +308,28 @@ properties that share the same alternative field names, and a human-readable lis
 
 The list of alternative field names is available here: :ref:`alternative_fieldnames`.
 
+Field conversions
+^^^^^^^^^^^^^^^^^
 
+There are parameters and properties that can be used synonymously, a
+good example for which are an object's radius and diameter. `sbpy`
+acknowledges identities like this by providing internal conversions
+for such properties. Consider the following example:
 
+    >>> from sbpy.data import Phys
+    >>> import astropy.units as u
+    >>> data = Phys.from_dict({'d': 10*u.km})
+    >>> print(data['d'])  # get the diameter
+    [10.] km
+    >>> print(data['radius'])  # get the radius
+    [5.] km
+
+Note that the radius is not explicitly defined in ``data``, but
+derived internally upon querying it and added to the internal data table:
+
+    >>> print(data.column_names)
+    <TableColumns names=('d','radius')>
+    
 How to use Ephem
 ----------------
 

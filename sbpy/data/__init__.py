@@ -47,7 +47,8 @@ class Conf():
         ['vz', 'dz', 'dz/dt', 'z Velocity Component'],
 
         # physical properties
-        ['d', 'D', 'diam', 'Diameter'],
+        ['d', 'D', 'diam', 'diameter', 'Diameter'],
+        ['R', 'radius', 'Radius'],
         ['pv', 'pV', 'p_v', 'p_V', 'V-band Geometric Albedo'],
     ]
 
@@ -55,6 +56,18 @@ class Conf():
     for idx, field in enumerate(fieldnames):
         for alt in field:
             fieldname_idx[alt] = idx
+
+    # field equivalencies defining conversions
+    # key defines target quantity; dict with source quantity and function
+    # for conversion
+    # conversions considered as part of DataClass._translate_columns
+    field_eq = {'R': {'d': lambda r: r/2},
+                # diameter to radius}
+                'd': {'R': lambda d: d*2}
+                }
+    field_eq_inv = dict(zip(sum([list(f.keys()) for f in field_eq.values()],
+                                []),
+                            list(field_eq.keys())))  # invert field_eq
 
     # definitions for use of pyoorb in Orbits
     oorb_timeScales = {'UTC': 1, 'UT1': 2, 'TT': 3, 'TAI': 4}
