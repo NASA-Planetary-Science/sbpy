@@ -212,7 +212,7 @@ class Orbit(DataClass):
         Parameters
         ----------
         timescale : str (``UTC``|``UT1``|``TT``|``TAI``)
-            overrides timescale provided in `~Orbit` object; Default: 
+            overrides timescale provided in `~Orbit` object; Default:
             ``None``.
         """
 
@@ -331,10 +331,10 @@ class Orbit(DataClass):
             definitions are ``KEP`` (Keplerian elements), ``CART``
             (cartesian elements), ``COM`` (cometary elements).
         timescale : str
-            Overrides time scale to be used in the transformation; 
+            Overrides time scale to be used in the transformation;
             the following
             values are allowed: ``'UTC'``, ``'UT1'``, ``'TT'``,
-            ``'TAI'``. If ``None`` is used, the same time scale as in the 
+            ``'TAI'``. If ``None`` is used, the same time scale as in the
             existing orbit is used. Default: ``None``
         ephfile : str, optional
             Planet and Lunar ephemeris file version as provided by JPL

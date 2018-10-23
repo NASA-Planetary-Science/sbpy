@@ -303,7 +303,7 @@ class DataClass():
                 self._table[field] = value
             else:
                 super().__setattr__(field, value)
-        except:
+        except KeyError:
             # if, not set it for self
             super().__setattr__(field, value)
 
