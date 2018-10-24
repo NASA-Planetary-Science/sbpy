@@ -392,7 +392,7 @@ class DataClass():
                         if convname in self.column_names:
                             # create new column for the converted field
                             self.add_column(convfunc(self[convname]),
-                                            alt)
+                                            colname)
                             break
             except KeyError:
                 continue
