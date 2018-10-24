@@ -28,7 +28,7 @@ def test_get_set():
 
     data['a'][:] = [0, 0, 0]
 
-    with pytest.raises(KeyError):
+    with pytest.raises(AttributeError):
         data.d
 
     with pytest.raises(KeyError):

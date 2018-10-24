@@ -65,9 +65,6 @@ class Conf():
                 # diameter to radius}
                 'd': {'R': lambda d: d*2}
                 }
-    field_eq_inv = dict(zip(sum([list(f.keys()) for f in field_eq.values()],
-                                []),
-                            list(field_eq.keys())))  # invert field_eq
 
     # definitions for use of pyoorb in Orbits
     oorb_timeScales = {'UTC': 1, 'UT1': 2, 'TT': 3, 'TAI': 4}
