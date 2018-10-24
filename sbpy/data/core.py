@@ -281,6 +281,10 @@ class DataClass():
 
         self._table.write(filename, format=format, **kwargs)
 
+    def __len__(self):
+        """Get number of data elements in _table"""
+        return len(self._table)
+
     def __getattr__(self, field):
         """Get attribute from ``self._table` (columns, rows); checks
         for and may use alternative field names."""
@@ -333,7 +337,11 @@ class DataClass():
 
         # ignore integers and slices as they do not refer to columns
 
-        return self._table[ident]
+        if (isinstance(self._table[ident], u.Quantity) and
+                len(self._table[ident]) == 1):
+            return self._table[ident][0]
+        else:
+            return self._table[ident]
 
     def _translate_columns(self, target_colnames):
         """Translate target_colnames to the corresponding column names
@@ -391,7 +399,7 @@ class DataClass():
                         convfunc = list(conf.field_eq[alt].values())[0]
                         if convname in self.column_names:
                             # create new column for the converted field
-                            self.add_column(convfunc(self[convname]),
+                            self.add_column(convfunc(self.table[convname]),
                                             colname)
                             break
             except KeyError:
