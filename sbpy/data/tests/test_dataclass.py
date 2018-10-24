@@ -28,7 +28,7 @@ def test_get_set():
 
     data['a'][:] = [0, 0, 0]
 
-    with pytest.raises(KeyError):
+    with pytest.raises(AttributeError):
         data.d
 
     with pytest.raises(KeyError):
@@ -230,3 +230,37 @@ def test_indexing():
     assert list(tab['a'].data) == [1, 2, 3]
     assert list(tab['a', 'b']['a'].data) == [1, 2, 3]
     assert len(tab[tab['a'] < 3*u.m]) == 2
+
+
+def test_field_conversion():
+    """test field conversion functions"""
+
+    tab = DataClass.from_dict(OrderedDict((('d', 1*u.m),
+                                           ('b', 4*u.m/u.s),
+                                           ('c', 'a'))))
+
+    assert tab['d'] == 1*u.m
+    assert tab['diameter'] == 1*u.m
+    assert tab['R'] == 0.5*u.m
+    assert tab['radius'] == 0.5*u.m
+
+    tab = DataClass.from_dict(OrderedDict((('R', 1*u.m),
+                                           ('b', 4*u.m/u.s),
+                                           ('c', 'a'))))
+
+    assert tab['d'] == 2*u.m
+    assert tab['R'] == 1*u.m
+
+    # test something that is not defined anywhere in data.conf
+    with pytest.raises(KeyError):
+        tab = DataClass.from_dict(OrderedDict((('a', 1*u.m),
+                                               ('b', 4*u.m/u.s),
+                                               ('c', 'a'))))
+        tab['bullpoop']
+
+    # test something that is defined anywhere in data.conf
+    with pytest.raises(KeyError):
+        tab = DataClass.from_dict(OrderedDict((('a', 1*u.m),
+                                               ('b', 4*u.m/u.s),
+                                               ('c', 'a'))))
+        tab['radius']

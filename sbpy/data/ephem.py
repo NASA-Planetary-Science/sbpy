@@ -204,8 +204,8 @@ class Ephem(DataClass):
         >>> from astropy.time import Time
         >>> epoch = Time('2018-05-14', scale='utc')
         >>> eph = Ephem.from_mpc('ceres', epoch, location='568') # doctest: +REMOTE_DATA +IGNORE_OUTPUT
-        >>> epochs = {'start': '2019-01-01', 'step': '1d', 'number': 365} 
-        >>> eph = Ephem.from_mpc('2P', epochs=epochs, location='568')  # doctest: +REMOTE_DATA +IGNORE_OUTPUT
+        >>> epochs = {'start': '2019-01-01', 'step': '1d', 'number': 365}
+        >>> eph = Ephem.from_mpc('2P', epochs=epochs, location='568') # doctest: +REMOTE_DATA +IGNORE_OUTPUT
 
 
         Notes
@@ -415,7 +415,36 @@ class Ephem(DataClass):
         Parameters
         ----------
         orbit : `~Orbit` object
-            orbit can contain any number of orbits. Required fields are XXX.
+            Can contain any number of orbits, ephemerides will be calculated
+            for each orbit. Required fields are:
+
+            * target identifier (``'targetname'``)
+            * semi-major axis (``'a'``, for Keplerian orbit) or perihelion
+              distance (``'q'``, for cometary orbit), typically in au or
+              or x-component of state vector (``'x'``, for cartesian orbit),
+              typically in au
+            * eccentricity (``'e'``, for Keplerian or cometary orbit) or
+              y-component of state vector (``'y'``, for cartesian orbit) in
+              au
+            * inclination (``'i'``, for Keplerian or cometary orbit) in
+              degrees or z-component of state vector (``'z'``, for cartesian
+              orbit) in au
+            * longitude of the ascending node (``'Omega'``, for Keplerian or
+              cometary orbit) in degrees or x-component of velocity vector
+              (``'vx'``, for cartesian orbit), au/day
+            * argument of the periapsis (``'w'``, for Keplerian or cometary
+              orbit) in degrees or y-component of velocity vector (``'vy'``,
+              for cartesian orbit) in au/day
+            * mean anomaly (``'M'``, for Keplerian orbits) in degrees or
+              perihelion epoch (``'Tp_jd'``, for cometary orbits) in JD or
+              z-component of velocity vector (``'vz'``, for cartesian orbit)
+              in au/day
+            * epoch (``'epoch'``) in JD
+            * epoch time scale (``'epoch_scale'``) either one of:
+              ``'UTC'`` | ``'UT1'`` | ``'TT'`` | ``'TAI'``
+            * absolute magnitude (``'H'``) in mag
+            * photometric phase slope (``'G'``)
+
         epochs : `~astropy.time.Time` object or iterable thereof, optional
             Epochs of elements to be queried; a list, tuple or
             `~numpy.ndarray` of `~astropy.time.Time` objects or Julian
@@ -497,6 +526,24 @@ class Ephem(DataClass):
         if orbittype is None:
             raise ValueError(
                 'orbit type cannot be determined from elements')
+
+        # add orbittype column
+        orbit.add_column([orbittype] * len(orbit.table), name='orbittype')
+
+        # derive and apply default units
+        default_units = {}
+        for idx, field in enumerate(conf.oorb_orbit_fields[orbittype]):
+            try:
+                default_units[orbit._translate_columns(
+                    field)[0]] = conf.oorb_orbit_units[orbittype][idx]
+            except KeyError:
+                pass
+        for colname in orbit.column_names:
+            if (colname in default_units.keys() and
+                not isinstance(orbit[colname],
+                               (u.Quantity, u.CompositeUnit))):
+                orbit[colname].unit = \
+                    default_units[colname]
 
         # modify epochs input to make it work with pyoorb
         if epochs is None:

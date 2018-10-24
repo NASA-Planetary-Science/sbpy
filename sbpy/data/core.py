@@ -59,7 +59,7 @@ class DataClass():
                 # check if val is already list-like
                 try:
                     val[0]
-                except TypeError:
+                except (TypeError, IndexError):
                     val = [val]
 
                 self._table[key] = Column(val, unit=unit)
@@ -230,7 +230,9 @@ class DataClass():
         Examples
         --------
         >>> from sbpy.data import DataClass
-        >>> dat = DataClass.from_file('data.txt', format='ascii')  # doctest: +SKIP
+
+        >>> dat = DataClass.from_file('data.txt',
+        ...                           format='ascii') # doctest: +SKIP
         """
 
         data = QTable.read(filename, **kwargs)
@@ -279,6 +281,10 @@ class DataClass():
 
         self._table.write(filename, format=format, **kwargs)
 
+    def __len__(self):
+        """Get number of data elements in _table"""
+        return len(self._table)
+
     def __getattr__(self, field):
         """Get attribute from ``self._table` (columns, rows); checks
         for and may use alternative field names."""
@@ -286,44 +292,120 @@ class DataClass():
         if field in dir(self):
             return self.field
         else:
-            if len(self._translate_columns(field)) > 0:
+            try:
                 field = self._translate_columns(field)[0]
                 return self._table[field]
-            else:
+            except (KeyError, IndexError, AttributeError):
                 raise AttributeError('Attribute {:s} not available.'.format(
                     field))
 
-    def __setattr__(self, field, value):
-        """Modify attribute in ``self._table``, if it already exists there,
-        or set it in ``self``."""
-        try:
-            # if self._table exists ...
-            if field in self._table.columns:
-                # set value there...
-                self._table[field] = value
-            else:
-                super().__setattr__(field, value)
-        except:
-            # if, not set it for self
-            super().__setattr__(field, value)
+    # def __setattr__(self, field, value):
+    #     """Modify attribute in ``self._table``, if it already exists there,
+    #     or set it in ``self``."""
+    #     try:
+    #         # if self._table exists ...
+    #         if field in self._table.columns:
+    #             # set value there...
+    #             self._table[field] = value
+    #         else:
+    #             super().__setattr__(field, value)
+    #     except (KeyError, IndexError):
+    #         # if, not set it for self
+    #         super().__setattr__(field, value)
 
     def __getitem__(self, ident):
         """Return columns or rows from data table (``self._table``); checks
         for and may use alternative field names."""
 
+        # iterable
         if isinstance(ident, (list, tuple, ndarray)):
             if all([isinstance(i, str) for i in ident]):
                 # list of column names
+                self = self._convert_columns(ident)
                 newkeylist = [self._translate_columns(i)[0] for i in ident]
                 ident = newkeylist
+            # ignore lists of boolean (masks)
             elif all([isinstance(i, bool) for i in ident]):
-                # list of booleans
                 pass
+            # ignore lists of integers
+            elif all([isinstance(i, int) for i in ident]):
+                pass
+        # individual strings
         elif isinstance(ident, str):
-            if len(self._translate_columns(ident)) > 0:
-                ident = self._translate_columns(ident)[0]
+            self = self._convert_columns(ident)
+            ident = self._translate_columns(ident)[0]
 
-        return self._table[ident]
+        # ignore integers and slices as they do not refer to columns
+
+        if (isinstance(self._table[ident], u.Quantity) and
+                len(self._table[ident]) == 1):
+            return self._table[ident][0]
+        else:
+            return self._table[ident]
+
+    def _translate_columns(self, target_colnames):
+        """Translate target_colnames to the corresponding column names
+        present in this object's table. Returns a list of actual column
+        names present in this object that corresponds to target_colnames
+        (order is preserved). Raises KeyError if not all columns are
+        present or one or more columns could not be translated.
+        """
+
+        if not isinstance(target_colnames, (list, ndarray, tuple)):
+            target_colnames = [target_colnames]
+
+        translated_colnames = deepcopy(target_colnames)
+        for idx, colname in enumerate(target_colnames):
+            # colname is already a column name in self.table
+            if colname in self.column_names:
+                continue
+            # colname is an alternative column name
+            elif colname in sum(conf.fieldnames, []):
+                for alt in conf.fieldnames[conf.fieldname_idx[colname]]:
+                    # translation available for colname
+                    if alt in self.column_names:
+                        translated_colnames[idx] = alt
+                        break
+            # colname is unknown, raise a KeyError
+            else:
+                raise KeyError('field {:s} not available in '.format(
+                    colname))
+
+        return translated_colnames
+
+    def _convert_columns(self, target_colnames):
+        """Convert target_colnames, if necessary. Converted columns will be
+        added as columns to ``self`` using the field names provided in
+        target_colnames. No error is returned by this function if a
+        field could not be converted.
+        """
+
+        if not isinstance(target_colnames, (list, ndarray, tuple)):
+            target_colnames = [target_colnames]
+
+        for colname in target_colnames:
+            # ignore, if colname is unknown (KeyError)
+            try:
+                # ignore if colname has already been converted
+                if any([alt in self.column_names for alt
+                        in conf.fieldnames[conf.fieldname_idx[colname]]]):
+                    continue
+                # consider alternative names for colname -> alt
+                for alt in conf.fieldnames[conf.fieldname_idx[colname]]:
+                    if alt in list(conf.field_eq.keys()):
+                        # conversion identified
+                        convname = self._translate_columns(
+                            list(conf.field_eq[alt].keys())[0])[0]
+                        convfunc = list(conf.field_eq[alt].values())[0]
+                        if convname in self.column_names:
+                            # create new column for the converted field
+                            self.add_column(convfunc(self.table[convname]),
+                                            colname)
+                            break
+            except KeyError:
+                continue
+
+        return self
 
     @property
     def table(self):
@@ -456,29 +538,6 @@ class DataClass():
 
         self._table.add_column(Column(data, name=name), **kwargs)
         return len(self.column_names)
-
-    def _translate_columns(self, target_colnames):
-        """Translate target_colnames to the corresponding column names
-        present in this object's table. Returns a list of actual column
-        names present in this object that corresponds to target_colnames
-        (order is preserved). Raises ValueError if not all columns are
-        present or one or more columns could not be translated
-        """
-
-        if not isinstance(target_colnames, (list, ndarray, tuple)):
-            target_colnames = [target_colnames]
-
-        translated_colnames = deepcopy(target_colnames)
-        for idx, colname in enumerate(target_colnames):
-            # colname is a column name
-            if colname in self.column_names:
-                continue
-            # colname requires translation
-            for alt in conf.fieldnames[conf.fieldname_idx[colname]]:
-                if alt in self.column_names:
-                    translated_colnames[idx] = alt
-
-        return translated_colnames
 
 
 def mpc_observations(targetid):
