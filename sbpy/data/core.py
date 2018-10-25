@@ -337,11 +337,12 @@ class DataClass():
 
         # ignore integers and slices as they do not refer to columns
 
-        if (isinstance(self._table[ident], u.Quantity) and
-                len(self._table[ident]) == 1):
-            return self._table[ident][0]
-        else:
-            return self._table[ident]
+        # if (isinstance(self._table[ident], u.Quantity) and
+        #         len(self._table[ident]) == 1):
+        #     return self._table[ident][0]
+        # else:
+        #     return self._table[ident]
+        return self._table[ident]
 
     def _translate_columns(self, target_colnames):
         """Translate target_colnames to the corresponding column names

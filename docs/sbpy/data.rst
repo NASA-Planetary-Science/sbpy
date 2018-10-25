@@ -319,9 +319,9 @@ for such properties. Consider the following example:
     >>> from sbpy.data import Phys
     >>> import astropy.units as u
     >>> data = Phys.from_dict({'d': 10*u.km})
-    >>> print('{:.1f}'.format(data['d']))
+    >>> print('{:.1f}'.format(data['d'][0]))
     10.0 km
-    >>> print('{:.1f}'.format(data['radius']))
+    >>> print('{:.1f}'.format(data['radius'][0]))
     5.0 km
 
 Note that the radius is not explicitly defined in ``data``, but
