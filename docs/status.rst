@@ -23,7 +23,7 @@ maintainer: MM
 
     * `~sbpy.data.DataClass` 2018/09: basic functionality established, alternative property names implemented; tests and documentation available
     * `~sbpy.data.Names` 2018/09: asteroid and comet name parsing established, asteroid_or_comet implemented; `~sbpy.data.Names.altident` not yet implemented
-    * `~sbpy.data.Ephem` 2018/09: jplhorizons query implemented, OpenOrb ephemeris computation available; mpc, imcce, lowell queries tbd
+    * `~sbpy.data.Ephem` 2018/10: jplhorizons and Minor Planet Center queries implemented, OpenOrb ephemeris computation available; imcce, lowell queries tbd
     * `~sbpy.data.Orbit` 2018/09: jplhorizons query implemented, OpenOrb orbit transformations and orbit propagation implemented; mpc, imcce, lowell queries tbd
     * `~sbpy.data.Phys` 2018/09: crude jplsbdb query implemented, no tests or documentation available; lowell query tbd
       
@@ -34,8 +34,8 @@ maintainer: MSK
     * `~sbpy.activity.dust` 2018/09:
       
       * Halley-Marcus phase function implemented
-      * Afρ class: conversion to/from flux density for a specific wavelength is implemented, using a filter bandpass is in development; conversion to/from magnitudes is in development.
-      * εfρ class: conversion to/from flux density implemented for a specific wavelength, using a filter bandpass is TBD; to/from magnitudes is TBD.
+      * Afρ class: conversion to/from flux density for a specific wavelength is implemented, using a filter bandpass and conversion to/from magnitudes is in development.
+      * εfρ class: conversion to/from flux density implemented for a specific wavelength, using a filter bandpass and conversion to/from magnitudes is in development.
       * Syndynes and synchrones are TBD.
 	
     * `~sbpy.activity.gas` 2018/09:
@@ -64,7 +64,7 @@ maintainer: MdVB
 
     * 2018/09: JPL molecular spectral database interface implemented as astroquery.jplspec 
     * 2018/09: some methods preliminarily implemented
-    * 2018/09: `~sbpy.spectroscopy.sun` and `~sbpy.spectroscopy.vega` spectral models implemented.  Tests are TBD.
+    * 2018/10: `~sbpy.spectroscopy.sun` and `~sbpy.spectroscopy.vega` spectral models implemented and fully tested.
 
 `sbpy.thermal`
 ~~~~~~~~~~~~~~
