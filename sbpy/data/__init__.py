@@ -22,12 +22,12 @@ class Conf():
         ['w', 'argper', 'Argument of the Periapsis'],
 
         # ephemerides
-        ['r', 'r_hel', 'heldist', 'Heliocentric Distance'],
+        ['r', 'rh', 'r_hel', 'heldist', 'Heliocentric Distance'],
         ['delta', 'Delta', 'obsdist', 'Distance to the Observer'],
         ['ra', 'RA', 'Right Ascension'],
         ['dec', 'DEC', 'Dec', 'Declination'],
         ['ra_rate', 'RA_rate', 'ra_rates', 'RA_rates', 'dRA',
-         'dra', 'RA Rate'],
+         'dra', 'RA Rate', 'dRA cos(Dec)'],
         ['dec_rate', 'DEC_rate', 'Dec_rate', 'dec_rates', 'DEC_rates',
          'Dec_rates', 'dDec', 'dDEC', 'ddec', 'Dec Rate'],
         ['alpha', 'phaseangle', 'Phase', 'Solar Phase Angle'],
