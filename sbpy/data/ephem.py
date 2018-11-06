@@ -153,7 +153,6 @@ class Ephem(DataClass):
             (1), 3200, Ceres, and packed designations.
 
         epochs : string, `~astropy.time.Time`, array-like, or dictionary, optional
-
             Request ephemerides at these epochs.  May be a single
             epoch, an array of epochs, or a dictionary describing a
             linearly-spaced array of epochs.  If ``None`` (default),
@@ -240,7 +239,7 @@ class Ephem(DataClass):
 
             if step is not None:
                 step = u.Quantity(step)
-                if step.unit not in (u.d, u.h, u.m, u.s):
+                if step.unit not in (u.d, u.h, u.min, u.s):
                     raise ValueError(
                         'step must have units of days, hours, minutes,'
                         ' or seconds')
