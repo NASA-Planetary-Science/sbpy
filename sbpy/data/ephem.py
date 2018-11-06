@@ -152,11 +152,12 @@ class Ephem(DataClass):
             Ephemeris Service [MPES]_, e.g., 2P, C/1995 O1, P/Encke,
             (1), 3200, Ceres, and packed designations.
 
-        epochs : string, `~astropy.time.Time`, array-like, or dictionary, optional
+        epochs : various, optional
             Request ephemerides at these epochs.  May be a single
-            epoch, an array of epochs, or a dictionary describing a
-            linearly-spaced array of epochs.  If ``None`` (default),
-            the current date and time will be used.
+            epoch as a string or `~astropy.time.Time`, an array of
+            epochs, or a dictionary describing a linearly-spaced array
+            of epochs.  If ``None`` (default), the current date and
+            time will be used.
 
             For the dictionary format, the keys ``start`` (start
             epoch), ``step`` (step size), ``stop`` (end epoch), and/or
@@ -174,10 +175,10 @@ class Ephem(DataClass):
             minutes, hours, or days.  Anythng that can initialize an
             `~astropy.units.Quantity` object is allowed.
 
-        location : str, array-like, or `~astropy.coordinates.EarthLocation`, optional
+        location : various, optional
             Location of the observer as an IAU observatory code
-            [OBSCODES]_, a 3-element array of Earth longitude,
-            latitude, altitude, or an
+            [OBSCODES]_ (string), a 3-element array of Earth
+            longitude, latitude, altitude, or an
             `~astropy.coordinates.EarthLocation`.  Longitude and
             latitude should be parseable by
             `~astropy.coordinates.Angle`, and altitude should be
@@ -202,9 +203,11 @@ class Ephem(DataClass):
         >>> from sbpy.data import Ephem
         >>> from astropy.time import Time
         >>> epoch = Time('2018-05-14', scale='utc')
-        >>> eph = Ephem.from_mpc('ceres', epoch, location='568') # doctest: +REMOTE_DATA +IGNORE_OUTPUT
+        >>> eph = Ephem.from_mpc('ceres', epoch, location='568'
+        ...     ) # doctest: +REMOTE_DATA +IGNORE_OUTPUT
         >>> epochs = {'start': '2019-01-01', 'step': '1d', 'number': 365}
-        >>> eph = Ephem.from_mpc('2P', epochs=epochs, location='568') # doctest: +REMOTE_DATA +IGNORE_OUTPUT
+        >>> eph = Ephem.from_mpc('2P', epochs=epochs, location='568'
+        ...     ) # doctest: +REMOTE_DATA +IGNORE_OUTPUT
 
 
         Notes

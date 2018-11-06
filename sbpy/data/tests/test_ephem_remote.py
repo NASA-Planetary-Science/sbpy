@@ -76,6 +76,12 @@ class TestEphemFromMPC:
         eph = Ephem.from_mpc('Ceres', epochs=epochs)
         assert len(eph.table) == 31
 
+    def test_minute_steps_pr88(self):
+        """https://github.com/NASA-Planetary-Science/sbpy/pull/88"""
+        epochs = dict(start='2018-10-01', step='1min', number=10)
+        eph = Ephem.from_mpc('Ceres', epochs=epochs)
+        assert len(eph.table) == 10
+
     def test_start_stop_no_step(self):
         with pytest.raises(ValueError):
             eph = Ephem.from_mpc('Ceres', epochs={'start': '2018-10-01',
