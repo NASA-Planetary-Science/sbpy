@@ -14,6 +14,7 @@ from astropy.time import Time
 from astroquery.jplspec import JPLSpec
 from astroquery.jplhorizons import Horizons, conf
 from ..activity.gas import photo_timescale
+from ..bib import register
 
 conf.horizons_server = 'https://ssd.jpl.nasa.gov/horizons_batch.cgi'
 
@@ -272,7 +273,7 @@ def total_number(integrated_line, temp_estimate, transition_freq, mol_tag,
 
     not implemented
     """
-
+    register('Spectroscopy', {'Total Number (eq. 10)': '2004come.book..391B'})
     cdensity = integrated_line
     cdensity *= (8*np.pi*con.k_B*transition_freq**2 /
                  (con.h*con.c**3 * einstein_coeff(temp_estimate,
@@ -563,6 +564,9 @@ class Spectrum():
         Issue 1.
 
         """
+
+        register('Spectroscopy', {'Production Rate (No photodissociation)':
+                                  '2012ApJ...756...80D'})
 
         assert isinstance(temp_estimate, u.Quantity)
         assert isinstance(vgas, u.Quantity)
