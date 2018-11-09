@@ -8,11 +8,20 @@ import sys
 import ah_bootstrap
 from setuptools import setup
 
-# A dirty hack to get around some early import/configurations ambiguities
+
+# # A dirty hack to get around some early import/configurations ambiguities
+# if sys.version_info[0] >= 3:
+#     import builtins
+# else:
+#     raise ImportError('sbpy requires Python 3.')
+# builtins._ASTROPY_SETUP_ = True
+
+
+# require Python 3
 if sys.version_info[0] >= 3:
     import builtins
 else:
-    import __builtin__ as builtins
+    raise ImportError('sbpy requires Python 3.')
 builtins._ASTROPY_SETUP_ = True
 
 from astropy_helpers.setup_helpers import (register_commands, get_debug_option,
@@ -133,6 +142,7 @@ setup(name=PACKAGENAME,
       scripts=scripts,
       install_requires=metadata.get(
           'install_requires', 'astropy').strip().split(','),
+      python_requires='>=3',
       include_package_data=True,
       author=AUTHOR,
       author_email=AUTHOR_EMAIL,

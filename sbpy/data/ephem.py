@@ -10,10 +10,12 @@ created on June 04, 2017
 """
 import os
 
-from numpy import ndarray
+from numpy import ndarray, array, hstack, iterable
 from astropy.time import Time
 from astropy.table import vstack, Column
+import astropy.units as u
 from astroquery.jplhorizons import Horizons
+from astroquery.mpc import MPC
 
 from .. import bib
 from .core import DataClass, conf
@@ -105,7 +107,13 @@ class Ephem(DataClass):
             # load ephemerides using astroquery.jplhorizons
             obj = Horizons(id=targetid, id_type=id_type,
                            location=location, epochs=epochs)
-            eph = obj.ephemerides(**kwargs)
+            try:
+                eph = obj.ephemerides(**kwargs)
+            except ValueError as e:
+                raise RuntimeError(
+                    ('Error raised by astroquery.jplhorizons: {:s}\n'
+                     'The following query was attempted: {:s}').format(
+                         str(e), obj.uri))
 
             # workaround for current version of astroquery to make
             # column units compatible with astropy.table.QTable
@@ -120,6 +128,12 @@ class Ephem(DataClass):
             else:
                 all_eph = vstack([all_eph, eph])
 
+        # identify time scales returned by Horizons query
+        timescales = array(['UTC'] * len(all_eph))
+        timescales[all_eph['datetime_jd'] < 2437665.5] = 'UT1'
+        # according to Horizons documentation
+        all_eph.add_column(Column(timescales, name='timescale'))
+
         if bib.status() is None or bib.status():
             bib.register('sbpy.data.Ephem.from_horizons',
                          {'data service': '1996DPS....28.2504G'})
@@ -127,34 +141,163 @@ class Ephem(DataClass):
         return cls.from_table(all_eph)
 
     @classmethod
-    def from_mpc(cls, targetid, epoch, observatory='500'):
-        """
-        Load ephemerides from the
+    def from_mpc(cls, targetid, epochs=None, location='500', **kwargs):
+        """Load ephemerides from the
         `Minor Planet Center <http://minorplanetcenter.net>`_.
 
         Parameters
         ----------
-        targetid : str, mandatory
-            target identifier
-        epochs : astropy Time instance or iterable, optional, default ``None``
-            epoch of elements; if ``None`` is provided, current date is used
-        observatory : str, optional, default ``'500'`` (geocentric)
-            location of observer
+        targetid : str
+            Target identifier, resolvable by the Minor Planet
+            Ephemeris Service [MPES]_, e.g., 2P, C/1995 O1, P/Encke,
+            (1), 3200, Ceres, and packed designations.
+
+        epochs : various, optional
+            Request ephemerides at these epochs.  May be a single
+            epoch as a string or `~astropy.time.Time`, an array of
+            epochs, or a dictionary describing a linearly-spaced array
+            of epochs.  If ``None`` (default), the current date and
+            time will be used.
+
+            For the dictionary format, the keys ``start`` (start
+            epoch), ``step`` (step size), ``stop`` (end epoch), and/or
+            ``number`` (number of epochs total) are used.  Only one of
+            ``stop`` and ``number`` may be specified at a time.
+            ``step``, ``stop``, and ``number`` are optional.  See
+            `~astroquery.mpc.MPC.get_ephemeris` for defaults.
+
+            Epochs, including ``start`` and ``stop``, are
+            `~astropy.time.Time` objects, anything that can initialize
+            a ``Time`` object, or a float indicating a Julian date.
+            Unless otherwise specified, the UTC scale is assumed.
+
+            ``step`` should be an integer in units of seconds,
+            minutes, hours, or days.  Anythng that can initialize an
+            `~astropy.units.Quantity` object is allowed.
+
+        location : various, optional
+            Location of the observer as an IAU observatory code
+            [OBSCODES]_ (string), a 3-element array of Earth
+            longitude, latitude, altitude, or an
+            `~astropy.coordinates.EarthLocation`.  Longitude and
+            latitude should be parseable by
+            `~astropy.coordinates.Angle`, and altitude should be
+            parsable by `~astropy.units.Quantity` (with units of
+            length).  If ``None``, then the geocenter (code 500) is
+            used.
+
+        **kwargs
+            Additional keyword arguments are passed to
+            `~astroquery.mpc.MPC.get_ephemerides`: ``eph_type``,
+            ``ra_format``, ``dec_format``, ``proper_motion``,
+            ``proper_motion_unit``, ``suppress_daytime``,
+            ``suppress_set``, ``perturbed``, ``unc_links``, ``cache``.
 
         Returns
         -------
         `~Ephem` object
 
+
         Examples
         --------
-        >>> from sbpy.data import Ephem  # doctest: +SKIP
-        >>> from astropy.time import Time  # doctest: +SKIP
-        >>> epoch = Time('2018-05-14', scale='utc')  # doctest: +SKIP
-        >>> eph = Ephem.from_mpc('ceres', '568', epoch)  # doctest: +SKIP
+        >>> from sbpy.data import Ephem
+        >>> from astropy.time import Time
+        >>> epoch = Time('2018-05-14', scale='utc')
+        >>> eph = Ephem.from_mpc('ceres', epoch, location='568'
+        ...     ) # doctest: +REMOTE_DATA +IGNORE_OUTPUT
+        >>> epochs = {'start': '2019-01-01', 'step': '1d', 'number': 365}
+        >>> eph = Ephem.from_mpc('2P', epochs=epochs, location='568'
+        ...     ) # doctest: +REMOTE_DATA +IGNORE_OUTPUT
 
-        not yet implemented
+
+        Notes
+        -----
+        See `~astroquery.mpc.MPC.get_ephemerides` and the Minor Planet
+        Ephemeris Service user's guide [MPES]_ for details, including
+        accetable target names.
+
+
+        References
+        ----------
+        .. [MPES] Wiliams, G. The Minor Planet Ephemeris Service.
+           https://minorplanetcenter.org/iau/info/MPES.pdf
+
+        .. [OBSCODES] IAU Minor Planet Center.  List of observatory
+           codes. https://minorplanetcenter.org/iau/lists/ObsCodesF.html
 
         """
+
+        # parameter check
+        if isinstance(epochs, dict):
+            start = epochs['start']  # required
+            step = epochs.get('step')
+            stop = epochs.get('stop')
+            number = epochs.get('number')
+
+            if isinstance(start, (float, int)):
+                start = Time(start, format='jd', scale='utc')
+
+            if isinstance(stop, (float, int)):
+                stop = Time(stop, format='jd', scale='utc')
+
+            if step is not None:
+                step = u.Quantity(step)
+                if step.unit not in (u.d, u.h, u.min, u.s):
+                    raise ValueError(
+                        'step must have units of days, hours, minutes,'
+                        ' or seconds')
+
+            if stop is not None:
+                if step is None:
+                    raise ValueError(
+                        'step is required when start and stop are provided')
+
+                # start and stop both defined, estimate number of steps
+                dt = (Time(stop).jd - Time(start).jd) * u.d
+                number = int((dt / step).decompose()) + 1
+        else:
+            start = None
+
+            if epochs is None:
+                epochs = Time.now()
+
+            if not iterable(epochs) or isinstance(epochs, str):
+                epochs = [epochs]
+
+            # check for Julian dates
+            for i in range(len(epochs)):
+                if isinstance(epochs[i], (float, int)):
+                    epochs[i] = Time(epochs[i], format='jd', scale='utc')
+
+        # get ephemeris
+        if start is None:
+            eph = []
+            for i in range(len(epochs)):
+                start = Time(epochs[i], scale='utc')
+                e = MPC.get_ephemeris(targetid, location=location,
+                                      start=start, number=1, **kwargs)
+                e['Date'] = e['Date'].iso  # for vstack to work
+                eph.append(e)
+            eph = vstack(eph)
+            eph['Date'] = Time(eph['Date'], scale='utc')
+        else:
+            eph = MPC.get_ephemeris(targetid, location=location,
+                                    start=start, step=step, number=number,
+                                    **kwargs)
+
+        # if ra_format or dec_format is defined, then units must be
+        # dropped or else QTable will raise an exception because
+        # strings cannot have units
+        if 'ra_format' in kwargs:
+            eph['RA'].unit = None
+        if 'dec_format' in kwargs:
+            eph['Dec'].unit = None
+
+        # only UTC scale is supported
+        eph.add_column(Column(['UTC'] * len(eph), name='timescale'),
+                       index=eph.colnames.index('Date') + 1)
+
+        return cls.from_table(eph)
 
     def report_to_mpc():
         """
@@ -274,7 +417,36 @@ class Ephem(DataClass):
         Parameters
         ----------
         orbit : `~Orbit` object
-            orbit can contain any number of orbits. Required fields are XXX.
+            Can contain any number of orbits, ephemerides will be calculated
+            for each orbit. Required fields are:
+
+            * target identifier (``'targetname'``)
+            * semi-major axis (``'a'``, for Keplerian orbit) or perihelion
+              distance (``'q'``, for cometary orbit), typically in au or
+              or x-component of state vector (``'x'``, for cartesian orbit),
+              typically in au
+            * eccentricity (``'e'``, for Keplerian or cometary orbit) or
+              y-component of state vector (``'y'``, for cartesian orbit) in
+              au
+            * inclination (``'i'``, for Keplerian or cometary orbit) in
+              degrees or z-component of state vector (``'z'``, for cartesian
+              orbit) in au
+            * longitude of the ascending node (``'Omega'``, for Keplerian or
+              cometary orbit) in degrees or x-component of velocity vector
+              (``'vx'``, for cartesian orbit), au/day
+            * argument of the periapsis (``'w'``, for Keplerian or cometary
+              orbit) in degrees or y-component of velocity vector (``'vy'``,
+              for cartesian orbit) in au/day
+            * mean anomaly (``'M'``, for Keplerian orbits) in degrees or
+              perihelion epoch (``'Tp_jd'``, for cometary orbits) in JD or
+              z-component of velocity vector (``'vz'``, for cartesian orbit)
+              in au/day
+            * epoch (``'epoch'``) in JD
+            * epoch time scale (``'epoch_scale'``) either one of:
+              ``'UTC'`` | ``'UT1'`` | ``'TT'`` | ``'TAI'``
+            * absolute magnitude (``'H'``) in mag
+            * photometric phase slope (``'G'``)
+
         epochs : `~astropy.time.Time` object or iterable thereof, optional
             Epochs of elements to be queried; a list, tuple or
             `~numpy.ndarray` of `~astropy.time.Time` objects or Julian
@@ -308,12 +480,13 @@ class Ephem(DataClass):
         --------
         Compute ephemerides for Ceres as seen from the Discovery Channel
         Telescope for the next 10 days at 1hr intervals:
+
         >>> import numpy as np
         >>> from sbpy.data import Orbit, Ephem
         >>> from astropy.time import Time
         >>> epochs = Time.now().jd + np.arange(0, 10, 1/24)
-        >>> ceres = Orbit.from_horizons('1')
-        >>> eph = Ephem.from_oo(ceres, epochs=epochs, location='G37')  # doctest: +SKIP
+        >>> ceres = Orbit.from_horizons('1')  # doctest: +SKIP
+        >>> eph = Ephem.from_oo(ceres, epochs=epochs, location='G37') # doctest: +SKIP
         >>> print(eph.table)  # doctest: +SKIP
         targetname      MJD [1]       ...        obsy [1]              obsz [1]
                            d          ...           AU                    AU
@@ -356,6 +529,24 @@ class Ephem(DataClass):
             raise ValueError(
                 'orbit type cannot be determined from elements')
 
+        # add orbittype column
+        orbit.add_column([orbittype] * len(orbit.table), name='orbittype')
+
+        # derive and apply default units
+        default_units = {}
+        for idx, field in enumerate(conf.oorb_orbit_fields[orbittype]):
+            try:
+                default_units[orbit._translate_columns(
+                    field)[0]] = conf.oorb_orbit_units[orbittype][idx]
+            except KeyError:
+                pass
+        for colname in orbit.column_names:
+            if (colname in default_units.keys() and
+                not isinstance(orbit[colname],
+                               (u.Quantity, u.CompositeUnit))):
+                orbit[colname].unit = \
+                    default_units[colname]
+
         # modify epochs input to make it work with pyoorb
         if epochs is None:
             epochs = [Time.now()]
@@ -374,13 +565,13 @@ class Ephem(DataClass):
 
         if scope == 'full':
             oo_eph, err = pyoorb.pyoorb.oorb_ephemeris_full(
-                orbit._to_oo(timescale),
+                orbit._to_oo(),
                 location,
                 epochs,
                 dynmodel)
         elif scope == 'basic':
             oo_eph, err = pyoorb.pyoorb.oorb_ephemeris_basic(
-                orbit._to_oo(timescale),
+                orbit._to_oo(),
                 location,
                 epochs,
                 dynmodel)
@@ -391,7 +582,8 @@ class Ephem(DataClass):
             RuntimeError('pyoorb failed with error code {:d}'.format(err))
 
         # reorder data in Orbit object
-        ephem = self.from_array(oo_eph.transpose(),
+        ephem = self.from_array(hstack([oo_eph.transpose()[:, :, i]
+                                        for i in range(oo_eph.shape[0])]),
                                 names=conf.oorb_ephem_fields)
 
         # apply units
@@ -399,8 +591,11 @@ class Ephem(DataClass):
             ephem[col].unit = conf.oorb_ephem_units[i]
 
         # add targetname column
-        ephem.table.add_column(Column(data=[orbit['targetname'][0]] *
-                                      len(ephem.table), name='targetname'),
+        ephem.table.add_column(Column(data=sum([[orbit['targetname'][i]] *
+                                                len(epochs) for i in
+                                                range(len(orbit.table))],
+                                               []),
+                                      name='targetname'),
                                index=0)
 
         # remove trueanom column for now as it only holds a dummy value

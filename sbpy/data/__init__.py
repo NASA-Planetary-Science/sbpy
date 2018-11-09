@@ -10,50 +10,61 @@ sbpy.data
 
 class Conf():
 
-    # property name alternatives for Orbit, Ephem, Phys
-    # default name: [list of alternative names]
-    namealts = {
-        'targetname': ['id'],  # target identifier
+    # alternative field names for DataClass
+    # append field description as final item in the list (for documentation)
+    fieldnames = [
+        ['targetname', 'id', 'Target Identifier'],
+
         # orbital elements
-        'i': ['inc', 'incl'],  # inclination
-        'epoch': ['datetime_jd'],  # epoch
-        'Omega': ['longnode'],  # longitude of the ascending node
-        'w': ['argper'],  # argument of periapsis
+        ['i', 'inc', 'incl', 'Inclination'],
+        ['epoch', 'datetime_jd', 'Date', 'date', 'Epoch'],
+        ['Omega', 'longnode', 'Longitude of the Ascending Node'],
+        ['w', 'argper', 'Argument of the Periapsis'],
+
         # ephemerides
-        'r': ['r_hel', 'heldist'],  # heliocentric distance
-        'delta': ['Delta', 'obsdist'],  # distance to observer
-        'ra': ['RA'],  # right ascension
-        'dec': ['DEC', 'Dec'],  # declination
-        'ra_rate': ['RA_rate', 'ra_rates', 'RA_rates',
-                    'dRA', 'dra'],  # RA rate
-        'dec_rate': ['DEC_rate', 'Dec_rate', 'dec_rates', 'DEC_rates',
-                     'Dec_rates', 'dDec', 'dDEC', 'ddec'],  # DEC rate
-        'alpha': ['phaseangle'],  # solar phase angle
-        'elong': ['solarelong', 'solarelongation',
-                  'elongation'],  # solar elongation
-        'V': ['Vmag'],  # V-band magnitude
-        'hlon': ['EclLon', 'ecllon',
-                 'HelEclLon', 'helecllon'],  # heliocentric ecliptic longitude
-        'hlat': ['EclLat', 'ecllat',
-                 'HelEclLat', 'helecllat'],  # heliocentric ecliptic latitude
-        'el': ['EL', 'elevation', 'alt', 'altitude'],  # topocentric elevation
-        'lunar_elong': ['elong_moon', 'elongation_moon',
-                        'lunar_elongation', 'lunarelong'],  # lunar elongation
-        'vx': ['dx', 'dx/dt'],  # x velocity component
-        'vy': ['dy', 'dy/dt'],  # x velocity component
-        'vz': ['dz', 'dz/dt'],  # x velocity component
+        ['r', 'r_hel', 'heldist', 'Heliocentric Distance'],
+        ['delta', 'Delta', 'obsdist', 'Distance to the Observer'],
+        ['ra', 'RA', 'Right Ascension'],
+        ['dec', 'DEC', 'Dec', 'Declination'],
+        ['ra_rate', 'RA_rate', 'ra_rates', 'RA_rates', 'dRA',
+         'dra', 'RA Rate'],
+        ['dec_rate', 'DEC_rate', 'Dec_rate', 'dec_rates', 'DEC_rates',
+         'Dec_rates', 'dDec', 'dDEC', 'ddec', 'Dec Rate'],
+        ['alpha', 'phaseangle', 'Phase', 'Solar Phase Angle'],
+        ['elong', 'solarelong', 'solarelongation', 'elongation',
+         'Elongation', 'Solar Elongation'],
+        ['V', 'Vmag', 'V-band Magnitude'],
+        ['hlon', 'EclLon', 'ecllon', 'HelEclLon',
+         'helecllon', 'Heliocentric Ecliptic Longitude'],
+        ['hlat', 'EclLat', 'ecllat', 'HelEclLat', 'helecllat',
+         'Heliocentric Ecliptic Latitude'],
+        ['el', 'EL', 'elevation', 'alt',
+         'altitude', 'Elevation'],
+        ['lunar_elong', 'elong_moon', 'elongation_moon',
+         'lunar_elongation', 'lunarelong', 'Lunar Elongation'],
+        ['vx', 'dx', 'dx/dt', 'x Velocity Component'],
+        ['vy', 'dy', 'dy/dt',  'y Velocity Component'],
+        ['vz', 'dz', 'dz/dt', 'z Velocity Component'],
 
         # physical properties
-        'd': ['D', 'diam'],  # diameter
-        'pv': ['pV', 'p_v', 'p_V'],  # V-band geometric albedo
-    }
+        ['d', 'D', 'diam', 'diameter', 'Diameter'],
+        ['R', 'radius', 'Radius'],
+        ['pv', 'pV', 'p_v', 'p_V', 'V-band Geometric Albedo'],
+    ]
 
-    # reverse namealts for dict of alternative names pointing to
-    # default names
-    altnames = {}
-    for key, vals in namealts.items():
-        for val in vals:
-            altnames[val] = key
+    fieldname_idx = {}
+    for idx, field in enumerate(fieldnames):
+        for alt in field:
+            fieldname_idx[alt] = idx
+
+    # field equivalencies defining conversions
+    # key defines target quantity; dict with source quantity and function
+    # for conversion
+    # conversions considered as part of DataClass._translate_columns
+    field_eq = {'R': {'d': lambda r: r/2},
+                # diameter to radius}
+                'd': {'R': lambda d: d*2}
+                }
 
     # definitions for use of pyoorb in Orbits
     oorb_timeScales = {'UTC': 1, 'UT1': 2, 'TT': 3, 'TAI': 4}
@@ -100,7 +111,7 @@ from .core import (DataClass, mpc_observations, sb_search,
 from .ephem import Ephem
 from .orbit import Orbit
 from .phys import Phys
-from .names import Names
+from .names import Names, natural_sort_key
 
 __all__ = ['DataClass', 'Ephem', 'Orbit', 'Phys', 'Names', 'conf', 'Conf',
            'mpc_observations', 'sb_search', 'image_search',

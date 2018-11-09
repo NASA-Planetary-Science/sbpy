@@ -10,7 +10,7 @@ dependencies:
     - Cython
     - matplotlib
     - ads
-    - astroquery
     - synphot
-#   - pip:
-#       - dependency_from_pip
+    - pip
+    - pip:
+      - "git+https://github.com/astropy/astroquery.git"

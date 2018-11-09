@@ -233,8 +233,8 @@ Get the default solar spectrum, and observe it through the Johnson V-band filter
    >>> from sbpy.spectroscopy.sun import Sun
    >>> sun = Sun.from_default()
    >>> wave, mag = sun.filt('johnson_v', unit='vegamag')                                                                          # doctest: +REMOTE_DATA
-   >>> print('\n{}\n- Johnson V = {:.2f} at {:.0f}'.format(sun.description, mag, wave))                                           # doctest: +REMOTE_DATA
-   E490-00a (2014) reference solar spectrum (Table 3).
+   >>> print('{}\n- Johnson V = {:.2f} at {:.0f}'.format(sun.description, mag, wave))                                           # doctest: +REMOTE_DATA
+   E490-00a (2014) reference solar spectrum (Table 3)
    - Johnson V = -26.77 VEGAMAG at 5502 Angstrom
 
 Repeat with the Castelli 1996 solar spectrum:
@@ -245,8 +245,8 @@ Repeat with the Castelli 1996 solar spectrum:
    >>> with default_sun.set('Castelli1996'):
    ...   sun = Sun.from_default()                                                                                                 # doctest: +REMOTE_DATA
    ...   wave, mag = sun.filt('johnson_v', unit='vegamag')                                                                        # doctest: +REMOTE_DATA
-   ...   print('\n{}\n- Johnson V = {:.2f} at {:.0f}'.format(sun.description, mag, wave))                                         # doctest: +REMOTE_DATA
-   Castelli model, scaled and presented by Colina et al. (1996).
+   ...   print('{}\n- Johnson V = {:.2f} at {:.0f}'.format(sun.description, mag, wave))                                         # doctest: +REMOTE_DATA
+   Castelli model, scaled and presented by Colina et al. (1996)
    - Johnson V = -26.78 VEGAMAG at 5502 Angstrom
 
 Finally, observe the Sun through *Hubble*/WFC3's F438W and F606W filters:
@@ -270,7 +270,7 @@ Finally, observe the Sun through *Hubble*/WFC3's F438W and F606W filters:
      -26.24 mag(AB) at 4351 Angstrom
      1799.80 W / (m2 um) at 4351 Angstrom
    F606W
-     -27.94 VEGAMAG at 5957 Angstrom
+     -26.94 VEGAMAG at 5957 Angstrom
      -26.88 mag(AB) at 5957 Angstrom
      1707.19 W / (m2 um) at 5957 Angstrom
 

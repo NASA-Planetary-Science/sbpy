@@ -134,6 +134,7 @@ Reference/API
 .. toctree::
    :maxdepth: 1
 
+   fieldnames.rst
    sbpy/data.rst	     
    sbpy/activity.rst
    sbpy/photometry.rst
