@@ -97,7 +97,7 @@ options in different cases:
     >>> dec = [-12.42123, -12.41562, -12.40435]*u.deg
     >>> epoch = (2451523.5 + array([0.1234, 0.2345, 0.3525]))*u.d
     >>> obs = Ephem.from_array([ra, dec, epoch], names=['ra', 'dec', 't'])
-    >>> print(obs)  # doctest:+ELLIPSIS   
+    >>> print(obs)  # doctest:+ELLIPSIS
     <sbpy.data.ephem.Ephem object at ...>
 
 3. If your data are already available as a `~astropy.table.Table` or
@@ -116,7 +116,7 @@ options in different cases:
    >>> from sbpy.data import Ephem
    >>> data = Ephem.from_file('data.txt', format='ascii') # doctest: +SKIP
 
-   Please not that `~sbpy.data.DataClass.from_file` is not able to
+   Please note that `~sbpy.data.DataClass.from_file` is not able to
    identify units automatically. If you want to take advantage for
    `~astropy.units` you will have to assign these units manually later
    on.
@@ -139,8 +139,8 @@ Similarly, if you are interested in the first set of observations in
 ``obs``, you can use:
 
     >>> print(obs[0])
-        ra       dec         t      
-       deg       deg         d      
+        ra       dec         t
+       deg       deg         d
     --------- --------- ------------
     10.223423 -12.42123 2451523.6234
 
@@ -158,20 +158,20 @@ an attribute:
     [10.223423 10.233453 10.243452] deg
     >>> print(obs.ra[1])
     10.233453 deg
-    
+
 Just like in any `~astropy.table.Table` or `~astropy.table.QTable` object, you can use slicing to obtain subset tables from your data, for instance:
 
     >>> print(obs['ra', 'dec'])
-        ra       dec   
-       deg       deg   
+        ra       dec
+       deg       deg
     --------- ---------
     10.223423 -12.42123
     10.233453 -12.41562
     10.243452 -12.40435
 
     >>> print(obs[obs['ra'] <= 10.233453*u.deg])
-        ra       dec         t      
-       deg       deg         d      
+        ra       dec         t
+       deg       deg         d
     --------- --------- ------------
     10.223423 -12.42123 2451523.6234
     10.233453 -12.41562 2451523.7345
@@ -184,13 +184,13 @@ compared against) but selects all the columns in the original table.
 If you ever need to access the actual `~astropy.table.QTable` object
 that is inside each `~sbpy.data.DataClass` object, you can access it
 as ``obs.table``.
-    
+
 Modifying an object
 ^^^^^^^^^^^^^^^^^^^
 
 `~sbpy.data.DataClass` offers some convenience functions for object
 modifications. It is trivial to add additional rows and columns to
-these objects in the form of lists, arrays, or dictionaries. 
+these objects in the form of lists, arrays, or dictionaries.
 
 Let's assume you want to add some more observations to your ``obs``
 object:
@@ -199,8 +199,8 @@ object:
     ...               [10.265425*u.deg, -12.38246*u.deg, 2451524.0673*u.d]])
     5
     >>> print(obs.table)
-        ra       dec          t      
-       deg       deg          d      
+        ra       dec          t
+       deg       deg          d
     --------- --------- -------------
     10.223423 -12.42123  2451523.6234
     10.233453 -12.41562  2451523.7345
@@ -214,14 +214,14 @@ or if you want to add a column to your object:
     4
     >>> print(obs.table)
         ra       dec          t       filter
-       deg       deg          d             
+       deg       deg          d
     --------- --------- ------------- ------
     10.223423 -12.42123  2451523.6234      V
     10.233453 -12.41562  2451523.7345      V
     10.243452 -12.40435  2451523.8525      R
      10.25546  -12.3946 2451523.94653      i
     10.265425 -12.38246  2451524.0673      g
-    
+
 A few things to be mentioned here:
 
 * Note how both functions return the number of rows or columns in the
@@ -241,7 +241,7 @@ If you are trying to add a single row to your object data table, using a diction
     ...               't': 2451524.14653*u.d, 'filter': 'z'})
     6
 
-    
+
 When adding a large number of rows to your object, it might be most
 convenient to first convert all the new rows into new
 `~sbpy.data.DataClass` object and then append that using
@@ -269,7 +269,7 @@ directly addressing them:
 Note the specific syntax in this case (``obs['ra'][:] = ...``) that
 is required by `~astropy.table.Table` if you want to replace
 an entire column.
-    
+
 More complex data table modifications are possible by directly
 accessing the underlying `~astropy.table.QTable` object.
 
@@ -329,7 +329,7 @@ derived internally upon querying it and added to the internal data table:
 
     >>> print(data.column_names)
     <TableColumns names=('d','radius')>
-    
+
 How to use Ephem
 ----------------
 
@@ -353,6 +353,7 @@ Mauna Kea Observatory (IAU observatory code ``568``) from the `JPL Horizons serv
                                                 d         ...  deg
     ---------- ------------------------ ----------------- ... ------ ---------
        1 Ceres 2018-Aug-03 14:20:00.000 2458334.097222222 ... 9.3473       UTC
+
     >>> print(eph.column_names)
     <TableColumns names=('targetname','datetime_str','datetime_jd','H','G','solar_presence','flags','RA','DEC','RA_app','DEC_app','RA_rate','DEC_rate','AZ','EL','AZ_rate','EL_rate','sat_X','sat_Y','sat_PANG','siderealtime','airmass','magextinct','V','surfbright','illumination','illum_defect','sat_sep','sat_vis','ang_width','PDObsLon','PDObsLat','PDSunLon','PDSunLat','SubSol_ang','SubSol_dist','NPole_ang','NPole_dist','EclLon','EclLat','r','r_rate','delta','delta_rate','lighttime','vel_sun','vel_obs','elong','elongFlag','alpha','lunar_elong','lunar_illum','sat_alpha','sunTargetPA','velocityPA','OrbPlaneAng','constellation','TDB-UT','ObsEclLon','ObsEclLat','NPole_RA','NPole_DEC','GlxLon','GlxLat','solartime','earth_lighttime','RA_3sigma','DEC_3sigma','SMAA_3sigma','SMIA_3sigma','Theta_3sigma','Area_3sigma','RSS_3sigma','r_3sigma','r_rate_3sigma','SBand_3sigma','XBand_3sigma','DoppDelay_3sigma','true_anom','hour_angle','alpha_true','PABLon','PABLat','timescale')>
 
@@ -364,7 +365,7 @@ service. Due to different requirements of the JPL Horizons service for
 the epoch format, we recommend to use `~astropy.time.Time`
 objects. The column names in the data table can be inquired using
 `~sbpy.data.DataClass.column_names`.
-    
+
 `~sbpy.data.Ephem.from_horizons` is actually a wrapper around
 `~astroquery.jplhorizons.HorizonsClass.ephemerides`. This function
 conveniently combines the creation of a
@@ -409,7 +410,7 @@ full flexibility of the latter function:
        1 Ceres 2018-Aug-04 07:20 2458334.805555556 ... 171.5171 9.3365       UTC
        1 Ceres 2018-Aug-04 07:30      2458334.8125 ... 171.5195 9.3364       UTC
     Length = 26 rows
-    
+
 Note that ``skip_daylight`` is an optional parameter of
 `~astroquery.jplhorizons.HorizonsClass.ephemerides` and it can be used
 here as well. An additional feature of
@@ -429,6 +430,7 @@ concatenate queries for a number of objects:
     3552 Don Quixote (1983 SA) 2018-Aug-03 14:20:00.000 ...  13.3365       UTC
 
 
+
 Please be aware that these queries are not simultaneous. The more
 targets you query, the longer the query will take. Furthermore, keep
 in mind that asteroids and comets have slightly different table
@@ -445,7 +447,7 @@ ephemerides from the Minor Planet Center:
     ...                              'step': '1d'})
     >>> print(eph.table)
               Date          timescale ... Moon distance Moon altitude
-                                      ...      deg           deg     
+                                      ...      deg           deg
     ----------------------- --------- ... ------------- -------------
     2018-10-22 00:00:00.000       UTC ...          28.0         -33.0
     2018-10-23 00:00:00.000       UTC ...          41.0         -41.0
@@ -467,8 +469,8 @@ from the Discovery Channel Telescope:
      >>> ceres = Orbit.from_horizons('1')
      >>> eph = Ephem.from_oo(ceres, 'G37', epochs)  # doctest: +SKIP
      >>> print(eph.table) # doctest: +SKIP
-     targetname      MJD [1]       ...        obsy [1]              obsz [1]       
-                        d          ...           AU                    AU          
+     targetname      MJD [1]       ...        obsy [1]              obsz [1]
+                        d          ...           AU                    AU
      ---------- ------------------ ... --------------------- ----------------------
         1 Ceres 58374.720415079966 ...   -0.1640418731222332 1.3660753531152814e-05
         1 Ceres  58374.76208174648 ...  -0.16334416599555382 1.6732994041007698e-05
@@ -489,7 +491,7 @@ from the Discovery Channel Telescope:
 The properties computed by pyoorb and listed in the resulting table
 are defined in the `pyoorb documentation
 <https://github.com/oorb/oorb/tree/master/python>`_. Note that this function requires pyoorb to be installed, which is not a requirement for `sbpy`.
-       
+
 How to use Orbit
 ----------------
 
@@ -522,14 +524,13 @@ orbital elements for a number of targets:
     >>> elem = Orbit.from_horizons(['3749', '2009 BR60'],
     ...                            epochs=epoch,
     ...                            refplane='earth')
-    >>> print(elem.table) # doctest:+ELLIPSIS
-          targetname         datetime_jd    ...         P         timescale
-                                  d         ...         d
-    --------------------- ----------------- ... ----------------- ---------
-    3749 Balam (1982 BG1) 2458334.097222222 ... 1221.865723736672        TT
-       312497 (2009 BR60) 2458334.097222222 ... 1221.776912893334        TT
+    >>> print(elem.table) # doctest:+SKIP
+          targetname         datetime_jd    ...         Q                 P
+                                  d         ...         AU                d
+    --------------------- ----------------- ... ----------------- -----------------
+    3749 Balam (1982 BG1) 2458334.097222222 ... 2.481...          1221.86...
+       312497 (2009 BR60) 2458334.097222222 ... 2.481...          1221.77...
 
-       
 An existing `~Orbit` instance can be transformed to a different
 orbital element definition system (e.g., Keplerian, cometary,
 cartesian) using `~sbpy.data.Orbit.oo_transform` or it can be
@@ -542,13 +543,13 @@ In order to transform some current orbits to a state vector in cartesian coordin
     >>> elem = Orbit.from_horizons(['Ceres', 'Pallas', 'Vesta'])
     >>> statevec = elem.oo_transform('CART')  # doctest: +SKIP
     >>> print(statevec.table)  # doctest: +SKIP
-       id             x                   y           ... epoch_scale  H    G  
-                      AU                  AU          ...             mag      
+       id             x                   y           ... epoch_scale  H    G
+                      AU                  AU          ...             mag
     -------- ------------------- -------------------- ... ----------- ---- ----
      1 Ceres -2.5244444864469164 -0.35655744512932896 ...         UTC 3.34 0.12
     2 Pallas -1.7247978992440247   1.1268442378878316 ...         UTC 4.13 0.11
      4 Vesta  0.9453230885641772  -1.9811261840060208 ...         UTC  3.2 0.32
-    
+
 Orbits can currently be transformed to the following definitions: cartesian (``'CART'``), Keplerian (``'KEP'``), and cometary (``'COM'``).
 
 Orbit propagation requires the epoch to which the orbit should be propagated to either as `~astropy.time.Time` object, or as float in terms of Julian date. The following example propagates the current orbit of Ceres back to year 2000:
@@ -557,13 +558,13 @@ Orbit propagation requires the epoch to which the orbit should be propagated to 
     >>> epoch = Time('2000-01-01', format='iso')
     >>> newelem = elem.oo_propagate(epoch)  # doctest: +SKIP
     >>> print(newelem.table)  # doctest: +SKIP
-       id           a                  e          ... epoch_scale  H    G  
-                    AU                            ...             mag      
+       id           a                  e          ... epoch_scale  H    G
+                    AU                            ...             mag
     ------- ----------------- ------------------- ... ----------- ---- ----
     1 Ceres 2.766494213803344 0.07837503821706865 ...         UTC 3.34 0.12
 
 Note that both functions require pyoorb to be installed, which is not a requirement for `sbpy`.
-    
+
 How to use Phys
 ---------------
 
@@ -582,7 +583,7 @@ small number of asteroids:
     >>> phys = Phys.from_sbdb(['Ceres', '12893', '3552'])
     >>> print(phys['targetname', 'H', 'diameter']) # doctest: +SKIP
             targetname                 H          diameter
-                                      mag            km   
+                                      mag            km
     -------------------------- ------------------ --------
                        1 Ceres               3.34    939.4
      12893 Mommert (1998 QS55)               13.9    5.214
@@ -625,7 +626,7 @@ asteroid and comet identifiers:
     ... sbpy.data.names.TargetNameParseError: 12893 does not appear to be a comet name
     >>> print(Names.parse_comet('73P-C/Schwassmann Wachmann 3 C	')) # doctest: +SKIP
     {'type': 'P', 'number': 73, 'fragment': 'C', 'name': 'Schwassmann Wachmann 3 C'}
-    
+
 In order to be able to distinguish between asteroid and comet
 identifiers, `sbpy` follows the MPC guideline in that it requires
 comet identifiers to include the comet type in either in combination
@@ -662,7 +663,3 @@ Reference/API
 -------------
 .. automodapi:: sbpy.data
     :no-heading:
-		
-
-
- 

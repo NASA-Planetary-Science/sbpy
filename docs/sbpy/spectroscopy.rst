@@ -1,3 +1,5 @@
+.. doctest-skip-all
+
 Spectroscopy Module (`sbpy.spectroscopy`)
 =========================================
 
@@ -5,6 +7,138 @@ Introduction
 ------------
 
 `~sbpy.spectroscopy` provides routines for the modeling and analysis of emission spectra of gas in comets and reflection spectra of asteroid surfaces.  Sub-modules `sun` and `vega` control `sbpy`'s photometric calibration.
+
+JPLSpec Constants and Line Intensity Integral Conversion
+--------------------------------------------------------
+
+`sbpy.spectroscopy` has a function called ``molecular_data`` which takes care of
+querying the JPL Molecular Spectral Catalog through the use of
+`astroquery.jplspec` and calculates all the necessary constants needed for both
+production rate and Einstein coefficient calculations. The function
+``intensity_conversion`` takes care of converting the intensity line integral at
+300 K found in JPL Spec catalog and convert it closer to the temperature given
+by the user.
+
+.. code-block:: python
+
+   >>> from sbpy.spectroscopy import molecular_data, intensity_conversion
+   >>> import astropy.units as u
+   >>> temp_estimate = 33. * u.K
+   >>> vgas = 0.8 * u.km / u.s
+   >>> mol_tag = 27001
+   >>> transition_freq = 265.886434 * u.MHz
+   >>> mol_data = molecular_data(temp_estimate, transition_freq, mol_tag, vgas)
+   >>> intl = intensity_conversion(temp_estimate, transition_freq, mol_tag, vgas)
+   >>> co
+     [<Quantity 265886.18 MHz>,
+      <Quantity 37.5 K>,
+      <Quantity 0.08412014 MHz nm2>,
+      424.32634842758375,
+      53.91380704697852,
+      1.7317,
+      <Quantity 6.62607004e-34 J s>,
+      <Quantity 1.38064852e-23 J / K>,
+      <Quantity 2.99792458e+08 m / s>,
+      <Quantity 800. m / s>,
+      <Quantity 3.52359898e-22 J>,
+      <Quantity 1.76181853e-22 J>]
+
+   >>> intl
+      <Quantity 3.99731047636546 MHz nm2>
+
+
+Einstein coefficient
+--------------------
+
+`sbpy.spectroscopy` offers a function to calculate the Einstein coefficient
+for a specific molecule and transition frequency.
+
+.. code-block:: python
+
+   >>> from sbpy.spectroscopy import einstein_coeff
+   >>> e = einstein_coeff(temp_estimate, transition_freq, mol_tag, vgas)
+   >>> e
+      <Quantity 0.0008601294364222543 1 / s>
+
+
+Production Rate Calculations
+----------------------------
+
+`sbpy.spectroscopy` provides several models to calculate production rates in comets.
+One of the models followed by this module is based on the following paper:
+
+| Drahus et al. September 2012. The Sources of HCN and CH3OH and the
+| Rotational Temperature in Comet 103P/Hartley 2 from Time-resolved
+| Millimeter Spectroscopy. The Astrophysical Journal, Volume 756,
+| Issue 1.
+
+This model does not include photodissociation. The model uses the functions for
+constants, conversion, and Einstein coefficients as well as a JPLHorizons
+lookup to obtain the distance to the comet at observation time. The following
+example shows the usage of the module. For more information on the parameters
+that are optional or needed for the module follow the link under Reference/API
+section.
+
+.. code-block:: python
+
+  >>> from sbpy.spectroscopy import prodrate_np
+  >>> temp_estimate = 33. * u.K
+  >>> target = '900918'
+  >>> vgas = 0.8 * u.km / u.s
+  >>> aper = 30 * u.m
+  >>> b = 1.13
+  >>> mol_tag = 27001
+  >>> transition_freq = 265.886434 * u.MHz
+  >>> spectra = 1.22 * u.K * u.km / u.s
+  >>> time = '2010-11-3 00:48:06'
+  >>> q = prodrate_np(spectra, temp_estimate, transition_freq,
+                            mol_tag, time, target, vgas, aper,
+                            b=b, id_type='id')
+
+  >>> q
+  <Quantity 1.0432591198553935e+25 1 / s>
+
+Another model included in the module is based off of the model in the following
+literature:
+
+| Haser 1957, Bulletin de la Societe Royale des Sciences de Liege 43, 740.
+| Newburn and Johnson 1978, Icarus 35, 360-368.
+
+This model takes in an initial guess for the production rate, and uses the
+module found in ``sbpy.activity.gas`` to find a ratio between the model model
+total number of molecules and the number of molecules calculated from the data
+to scale the model Q and output the new production rate from the result. This
+model does account for the effects of photolysis.
+
+.. code-block:: python
+
+  >>> from sbpy.activity.gas import Haser
+  >>> coma = Haser(Q, v, parent)
+  >>> Q = spec.production_rate(coma, molecule='H2O')
+
+  >>> Q_estimate = 2.8*10**(28) / u.s
+  >>> transition_freq = (230.53799 * u.GHz).to('MHz')
+  >>> aper = 10 * u.m
+  >>> mol_tag = 28001
+  >>> temp_estimate = 25. * u.K
+  >>> target = 'C/2016 R2'
+  >>> b = 0.74
+  >>> vgas = 0.5 * u.km / u.s
+
+  >>> time = '2017-12-22 05:24:20'
+  >>> spectra = 0.26 * u.K * u.km / u.s
+
+  >>> parent = photo_timescale('CO') * vgas
+
+  >>> coma = Haser(Q_estimate, vgas, parent)
+
+  >>> Q = spec.production_rate(coma, spectra, temp_estimate,
+                               transition_freq, mol_tag, time, target,
+                               aper=aper, b=b)
+
+  >>> print(Q)
+      <Quantity [1.64403219e+28] 1 / s>
+
 
 Spectral standards and photometric calibration
 ----------------------------------------------
@@ -40,9 +174,9 @@ The names of the built-in sources are stored as an internal array.  Any built-in
    <Sun: E490-00a (2014) low resolution reference solar spectrum (Table 4)>
 
 The solar spectrum in current use is controlled with `default_sun`:
-  
+
 .. doctest-requires:: synphot
-		      
+
    >>> from sbpy.spectroscopy.sun import Sun, default_sun
    >>> default_sun.set('E490_2014LR')
    <ScienceState default_sun: <Sun: E490-00a (2014) low resolution reference solar spectrum (Table 4)>>
@@ -95,7 +229,7 @@ Observe the Sun through a filter
 Get the default solar spectrum, and observe it through the Johnson V-band filter, using `synphot`'s built-in support:
 
 .. doctest-requires:: synphot
-		      
+
    >>> from sbpy.spectroscopy.sun import Sun
    >>> sun = Sun.from_default()
    >>> wave, mag = sun.filt('johnson_v', unit='vegamag')                                                                          # doctest: +REMOTE_DATA
@@ -130,7 +264,7 @@ Finally, observe the Sun through *Hubble*/WFC3's F438W and F606W filters:
    ...     print(name)
    ...     for unit in ('vegamag', 'ABmag', 'W/(m2 um)'):
    ...         wave, obs = sun.filt(bp, unit=unit)
-   ...         print('  {:.2f} at {:.0f}'.format(obs, wave)) 
+   ...         print('  {:.2f} at {:.0f}'.format(obs, wave))
    F438W
      -26.08 VEGAMAG at 4351 Angstrom
      -26.24 mag(AB) at 4351 Angstrom
