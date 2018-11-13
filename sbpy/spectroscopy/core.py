@@ -271,7 +271,6 @@ def total_number(integrated_line, temp_estimate, transition_freq, mol_tag,
     total_number : float
         Total number of molecules within the aperture
 
-    not implemented
     """
     register('Spectroscopy', {'Total Number (eq. 10)': '2004come.book..391B'})
     cdensity = integrated_line

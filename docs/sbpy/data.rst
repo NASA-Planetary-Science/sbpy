@@ -116,7 +116,7 @@ options in different cases:
    >>> from sbpy.data import Ephem
    >>> data = Ephem.from_file('data.txt', format='ascii') # doctest: +SKIP
 
-   Please not that `~sbpy.data.DataClass.from_file` is not able to
+   Please note that `~sbpy.data.DataClass.from_file` is not able to
    identify units automatically. If you want to take advantage for
    `~astropy.units` you will have to assign these units manually later
    on.
@@ -329,7 +329,7 @@ derived internally upon querying it and added to the internal data table:
 
     >>> print(data.column_names)
     <TableColumns names=('d','radius')>
-    
+
 How to use Ephem
 ----------------
 
@@ -349,12 +349,11 @@ Mauna Kea Observatory (IAU observatory code ``568``) from the `JPL Horizons serv
     >>> print(eph) # doctest: +ELLIPSIS
     <sbpy.data.ephem.Ephem object at ...>
     >>> print(eph.table)
-
     targetname       datetime_str          datetime_jd    ... PABLat timescale
                                                 d         ...  deg
     ---------- ------------------------ ----------------- ... ------ ---------
        1 Ceres 2018-Aug-03 14:20:00.000 2458334.097222222 ... 9.3473       UTC
-       
+
     >>> print(eph.column_names)
     <TableColumns names=('targetname','datetime_str','datetime_jd','H','G','solar_presence','flags','RA','DEC','RA_app','DEC_app','RA_rate','DEC_rate','AZ','EL','AZ_rate','EL_rate','sat_X','sat_Y','sat_PANG','siderealtime','airmass','magextinct','V','surfbright','illumination','illum_defect','sat_sep','sat_vis','ang_width','PDObsLon','PDObsLat','PDSunLon','PDSunLat','SubSol_ang','SubSol_dist','NPole_ang','NPole_dist','EclLon','EclLat','r','r_rate','delta','delta_rate','lighttime','vel_sun','vel_obs','elong','elongFlag','alpha','lunar_elong','lunar_illum','sat_alpha','sunTargetPA','velocityPA','OrbPlaneAng','constellation','TDB-UT','ObsEclLon','ObsEclLat','NPole_RA','NPole_DEC','GlxLon','GlxLat','solartime','earth_lighttime','RA_3sigma','DEC_3sigma','SMAA_3sigma','SMIA_3sigma','Theta_3sigma','Area_3sigma','RSS_3sigma','r_3sigma','r_rate_3sigma','SBand_3sigma','XBand_3sigma','DoppDelay_3sigma','true_anom','hour_angle','alpha_true','PABLon','PABLat','timescale')>
 
@@ -386,7 +385,6 @@ full flexibility of the latter function:
     ...                                   'step': '10m'},
     ...                           skip_daylight=True)
     >>> print(eph.table)
-
     targetname    datetime_str      datetime_jd    ...  PABLon  PABLat timescale
                                          d         ...   deg     deg
     ---------- ----------------- ----------------- ... -------- ------ ---------
@@ -412,7 +410,7 @@ full flexibility of the latter function:
        1 Ceres 2018-Aug-04 07:20 2458334.805555556 ... 171.5171 9.3365       UTC
        1 Ceres 2018-Aug-04 07:30      2458334.8125 ... 171.5195 9.3364       UTC
     Length = 26 rows
-    
+
 Note that ``skip_daylight`` is an optional parameter of
 `~astroquery.jplhorizons.HorizonsClass.ephemerides` and it can be used
 here as well. An additional feature of
@@ -423,7 +421,6 @@ concatenate queries for a number of objects:
     ...                           location='568',
     ...                           epochs=epoch)
     >>> print(eph.table)
-
             targetname               datetime_str       ...  PABLat  timescale
                                                         ...   deg
     -------------------------- ------------------------ ... -------- ---------
@@ -450,7 +447,7 @@ ephemerides from the Minor Planet Center:
     ...                              'step': '1d'})
     >>> print(eph.table)
               Date          timescale ... Moon distance Moon altitude
-                                      ...      deg           deg     
+                                      ...      deg           deg
     ----------------------- --------- ... ------------- -------------
     2018-10-22 00:00:00.000       UTC ...          28.0         -33.0
     2018-10-23 00:00:00.000       UTC ...          41.0         -41.0
@@ -472,8 +469,8 @@ from the Discovery Channel Telescope:
      >>> ceres = Orbit.from_horizons('1')
      >>> eph = Ephem.from_oo(ceres, 'G37', epochs)  # doctest: +SKIP
      >>> print(eph.table) # doctest: +SKIP
-     targetname      MJD [1]       ...        obsy [1]              obsz [1]       
-                        d          ...           AU                    AU          
+     targetname      MJD [1]       ...        obsy [1]              obsz [1]
+                        d          ...           AU                    AU
      ---------- ------------------ ... --------------------- ----------------------
         1 Ceres 58374.720415079966 ...   -0.1640418731222332 1.3660753531152814e-05
         1 Ceres  58374.76208174648 ...  -0.16334416599555382 1.6732994041007698e-05
@@ -586,7 +583,7 @@ small number of asteroids:
     >>> phys = Phys.from_sbdb(['Ceres', '12893', '3552'])
     >>> print(phys['targetname', 'H', 'diameter']) # doctest: +SKIP
             targetname                 H          diameter
-                                      mag            km   
+                                      mag            km
     -------------------------- ------------------ --------
                        1 Ceres               3.34    939.4
      12893 Mommert (1998 QS55)               13.9    5.214
