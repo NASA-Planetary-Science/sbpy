@@ -28,11 +28,12 @@ class Conf():
         ['dec', 'DEC', 'Dec', 'Declination'],
         ['ra_rate', 'RA_rate', 'ra_rates', 'RA_rates', 'dRA',
          'dra', 'RA Rate'],
-        ['dra cos(dec)', 'dRA cos(Dec)', 'RA*cos(Dec) Rate'],
+        ['RA*cos(Dec)_rate', 'dra cos(dec)', 'dRA cos(Dec)',
+         'dra*cos(dec)', 'dRA*cos(Dec)', 'RA*cos(Dec) Rate'],
         ['dec_rate', 'DEC_rate', 'Dec_rate', 'dec_rates', 'DEC_rates',
          'Dec_rates', 'dDec', 'dDEC', 'ddec', 'Dec Rate'],
         ['mu', 'Proper motion', 'Proper Motion'],
-        ['Direction', 'Proper Motion Direction'],
+        ['Direction', 'directin', 'Proper Motion Direction'],
         ['alpha', 'phaseangle', 'Phase', 'Solar Phase Angle'],
         ['elong', 'solarelong', 'solarelongation', 'elongation',
          'Elongation', 'Solar Elongation'],
@@ -91,7 +92,7 @@ class Conf():
                         'CART': [None, 'au', 'au', 'au', 'au/d', 'au/d',
                                  'au/d', None, 'd', None, 'mag', None]}
 
-    oorb_ephem_fields = ['MJD', 'RA', 'DEC', 'RA_rate', 'DEC_rate', 'alpha',
+    oorb_ephem_fields = ['MJD', 'RA', 'DEC', 'RA*cos(Dec)_rate', 'DEC_rate', 'alpha',
                          'elong', 'r', 'Delta', 'V', 'pa', 'TopEclLon',
                          'TopEclLat', 'OppTopEclLon', 'OppTopEclLat',
                          'HelEclLon', 'HelEclLat', 'OppHelEclLon',

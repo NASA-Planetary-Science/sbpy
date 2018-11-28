@@ -123,6 +123,12 @@ class Ephem(DataClass):
                 if eph[column_name].unit == '---':
                     eph[column_name].unit = None
 
+            # workaround for astroquery 0.3.9.dev5056 and earlier,
+            # Horizons column named RA_rate always includes the
+            # cos(Dec) term:
+            if 'RA_rate' in eph.colnames:
+                eph['RA_rate'].name = 'RA*cos(Dec)_rate'
+
             if all_eph is None:
                 all_eph = eph
             else:

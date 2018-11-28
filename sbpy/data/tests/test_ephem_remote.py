@@ -134,7 +134,8 @@ def test_from_oo():
 
     u.isclose(horizons_ephem['ra'][0], oo_ephem['ra'][0])
     u.isclose(horizons_ephem['dec'][0], oo_ephem['dec'][0])
-    u.isclose(horizons_ephem['ra_rate'][0], oo_ephem['ra_rate'][0])
+    u.isclose(horizons_ephem['RA*cos(Dec)_rate'][0],
+              oo_ephem['RA*cos(Dec)_rate'][0])
     u.isclose(horizons_ephem['dec_rate'][0], oo_ephem['dec_rate'][0])
     u.isclose(horizons_ephem['alpha'][0], oo_ephem['alpha'][0])
     u.isclose(horizons_ephem['r'][0], oo_ephem['r'][0])
@@ -162,7 +163,8 @@ def test_from_oo():
 
     u.isclose(horizons_ephem['ra'][0], oo_ephem['ra'][0])
     u.isclose(horizons_ephem['dec'][0], oo_ephem['dec'][0])
-    u.isclose(horizons_ephem['ra_rate'][0], oo_ephem['ra_rate'][0])
+    u.isclose(horizons_ephem['RA*cos(Dec)_rate'][0],
+              oo_ephem['RA*cos(Dec)_rate'][0])
     u.isclose(horizons_ephem['dec_rate'][0], oo_ephem['dec_rate'][0])
     u.isclose(horizons_ephem['alpha'][0], oo_ephem['alpha'][0])
     u.isclose(horizons_ephem['r'][0], oo_ephem['r'][0])
