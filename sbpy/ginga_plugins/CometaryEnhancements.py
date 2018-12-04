@@ -5,12 +5,36 @@ With sbpy installed, this plugin should be automatically discovered by
 Ginga and available in the Operations menu.
 
 """
+import os
+from warnings import warn
 
-from ginga import GingaPlugin
-from ginga.gw import Widgets
+import numpy as np
+from astropy.utils.exceptions import AstropyWarning
+
+try:
+    from ginga import GingaPlugin
+    from ginga.gw import Widgets
+except ImportError:
+    warn(AstropyWarning(
+        'ginga is not present: CometaryEnhancements will not run.'
+    ))
+    GingaPlugin = None
+    Widgets = None
+
+try:
+    import photutils
+except ImportError:
+    warn(AstropyWarning(
+        'photutils is not present: CometaryEnhancements centroiding disabled.'
+    ))
+    photutils = None
+
+from sbpy.imageanalysis import CometaryEnhancement
+
 
 class CometaryEnhancements(GingaPlugin.LocalPlugin):
     """Ginga plugin for on-the-fly cometary image enhancements."""
+
     def __init__(self, fv, fitsimage):
         """
         This method is called when the plugin is loaded for the  first
@@ -79,20 +103,19 @@ class CometaryEnhancements(GingaPlugin.LocalPlugin):
         )
         b.use_fov_center.add_callback('activated', self.use_fov_center_cb)
         # centroiding requires photutils
-        try:
-            import photutils
+        if photutils:
             b.centroid.add_callback('activated', self.centroid_cb)
             b.centroid_box.set_text('11')
-        except ImportError:
+        else:
             b.centroid.set_enabled(False)
             b.centroid_box.set_enabled(False)
-        
+
         self.w.update(b)
         hbox.add_widget(w)
 
         frame.set_widget(hbox)
         vbox.add_widget(frame)
-        
+
         # Enhancement tabs
         tabw = Widgets.TabWidget()
         self.w.tabw = tabw
@@ -108,10 +131,10 @@ class CometaryEnhancements(GingaPlugin.LocalPlugin):
         tabw.add_widget(rho_vbox, title='1/rho')
 
         vbox.add_widget(tabw)
-        
+
         # scroll bars will allow lots of content to be accessed
         top.add_widget(sw, stretch=1)
-        
+
         # A button box that is always visible at the bottom
         btns = Widgets.HBox()
         btns.set_spacing(3)
@@ -133,9 +156,6 @@ class CometaryEnhancements(GingaPlugin.LocalPlugin):
         #cw.addWidget(widget, stretch=1)
 
     def rho_cb(self, w):
-        import numpy as np
-        from sbpy.imageanalysis import CometaryEnhancement
-
         try:
             xc = float(self.w.x_center.get_text())
             yc = float(self.w.y_center.get_text())
@@ -144,7 +164,7 @@ class CometaryEnhancements(GingaPlugin.LocalPlugin):
 
         original = self.fitsimage.get_image()
         new_image = original.copy()
-        
+
         try:
             bg = float(self.w.background.get_text())
         except ValueError:
@@ -155,11 +175,8 @@ class CometaryEnhancements(GingaPlugin.LocalPlugin):
 
         chname = self.fv.get_current_channel().name + '(1/rho)'
         self.fv.add_image('1/rho enhanced', new_image, chname=chname)
-        
+
     def centroid_cb(self, w):
-        import numpy as np
-        from photutils import centroid_2dg
-        
         im = self.fitsimage.get_image().get_data()
 
         try:
@@ -180,7 +197,7 @@ class CometaryEnhancements(GingaPlugin.LocalPlugin):
         y0 = yc - box // 2
 
         subim = im[y0:y0+box+1, x0:x0+box+1]
-        cxy = centroid_2dg(subim)
+        cxy = photutils.centroid_2dg(subim)
         self.w.x_center.set_text('{:.2f}'.format(cxy[0] + x0))
         self.w.y_center.set_text('{:.2f}'.format(cxy[1] + y0))
 
@@ -189,7 +206,7 @@ class CometaryEnhancements(GingaPlugin.LocalPlugin):
         xy = self.fv.get_viewer(self.chname).get_pan()
         self.w.x_center.set_text('{:.2f}'.format(xy[0]))
         self.w.y_center.set_text('{:.2f}'.format(xy[1]))
-        
+
     def close(self):
         """
         Example close method.  You can use this method and attach it as a
