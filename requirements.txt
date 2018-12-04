@@ -3,5 +3,4 @@ astropy-helpers
 matplotlib
 ads
 synphot
-ginga
 git+git://github.com/astropy/astroquery.git@master#egg=astroquery
