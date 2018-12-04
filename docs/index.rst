@@ -40,6 +40,20 @@ your default Python (this will be asked during the installation process).
 Requirements
 ^^^^^^^^^^^^
 
+`sbpy` has the following requirements (incomplete):
+
+* Python 3
+* `numpy <https://www.numpy.org/>` 1.4.0 or later
+* pytest 3.1 or later
+* `astropy <https://www.astropy.org/>`
+
+`sbpy` also depends on the following packages for optional features (incomplete list):
+* `astroquery <https://astroquery.readthedocs.io/en/latest/>` 0.3.9.dev5089 or later: For retrieval of online data, e.g., ephemerides and orbits.
+* `scipy <https://scipy.org/>`: For numerical integration of `activity.GasComa` distributions, e.g., in order to compute gas column density.
+* `synphot <https://github.com/spacetelescope/synphot_refactor>`: For calibration to Sun and Vega.
+* `ginga <https://ejeschke.github.io/ginga/>`: To use the ``CometaryEnhancements`` Ginga plug-in.
+* `photutils <https://photutils.readthedocs.io/en/stable/>`: For centroiding within ``CometaryEnhancements``.
+
 Most requirements should be resolved during the installation process. However, we recommend to install the latest development version of `astroquery` using
 
 .. code-block:: bash
@@ -49,7 +63,7 @@ Most requirements should be resolved during the installation process. However, w
 Also, if you want to use `pyoorb
 <https://github.com/oorb/oorb/tree/master/python>`_, you will have to
 install it using the instructions provided on that page.
-    
+
 
 Using pip
 ^^^^^^^^^
