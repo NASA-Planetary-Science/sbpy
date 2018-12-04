@@ -36,18 +36,22 @@ List of Alternative Field Names
                           **Epoch**                                                                      ``epoch``, ``datetime_jd``, ``Date``, ``date``
 **Longitude of the Ascending Node**                                                                                             ``Omega``, ``longnode``
       **Argument of the Periapsis**                                                                                                   ``w``, ``argper``
-          **Heliocentric Distance**                                                                                       ``r``, ``r_hel``, ``heldist``
+          **Heliocentric Distance**                                                                               ``r``, ``rh``, ``r_hel``, ``heldist``
        **Distance to the Observer**                                                                                   ``delta``, ``Delta``, ``obsdist``
                 **Right Ascension**                                                                                                      ``ra``, ``RA``
                     **Declination**                                                                                           ``dec``, ``DEC``, ``Dec``
                         **RA Rate**                                              ``ra_rate``, ``RA_rate``, ``ra_rates``, ``RA_rates``, ``dRA``, ``dra``
+               **RA*cos(Dec) Rate**                        ``RA*cos(Dec)_rate``, ``dra*cos(dec)``, ``dRA*cos(Dec)``, ``dra cos(dec)``, ``dRA cos(Dec)``
                        **Dec Rate** ``dec_rate``, ``DEC_rate``, ``Dec_rate``, ``dec_rates``, ``DEC_rates``, ``Dec_rates``, ``dDec``, ``dDEC``, ``ddec``
+                  **Proper Motion**                                                                                           ``mu``, ``Proper motion``
+        **Proper Motion Direction**                                                                                        ``direction``, ``Direction``
               **Solar Phase Angle**                                                                                ``alpha``, ``phaseangle``, ``Phase``
                **Solar Elongation**                                      ``elong``, ``solarelong``, ``solarelongation``, ``elongation``, ``Elongation``
                **V-band Magnitude**                                                                                                     ``V``, ``Vmag``
 **Heliocentric Ecliptic Longitude**                                                      ``hlon``, ``EclLon``, ``ecllon``, ``HelEclLon``, ``helecllon``
  **Heliocentric Ecliptic Latitude**                                                      ``hlat``, ``EclLat``, ``ecllat``, ``HelEclLat``, ``helecllat``
-                      **Elevation**                                                                ``el``, ``EL``, ``elevation``, ``alt``, ``altitude``
+                      **Elevation**                                                  ``el``, ``EL``, ``elevation``, ``alt``, ``altitude``, ``Altitude``
+		        **Azimuth**                                                                                         ``az``, ``AZ``, ``azimuth``
                **Lunar Elongation**                          ``lunar_elong``, ``elong_moon``, ``elongation_moon``, ``lunar_elongation``, ``lunarelong``
            **x Velocity Component**                                                                                           ``vx``, ``dx``, ``dx/dt``
            **y Velocity Component**                                                                                           ``vy``, ``dy``, ``dy/dt``

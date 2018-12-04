@@ -13,23 +13,27 @@ class Conf():
     # alternative field names for DataClass
     # append field description as final item in the list (for documentation)
     fieldnames = [
-        ['targetname', 'id', 'Target Identifier'],
+        ['targetname', 'id', 'Object', 'Target Identifier'],
 
         # orbital elements
         ['i', 'inc', 'incl', 'Inclination'],
-        ['epoch', 'datetime_jd', 'Date', 'date', 'Epoch'],
+        ['epoch', 'datetime_jd', 'JD', 'Date', 'date', 'Epoch'],
         ['Omega', 'longnode', 'Longitude of the Ascending Node'],
         ['w', 'argper', 'Argument of the Periapsis'],
 
         # ephemerides
-        ['r', 'r_hel', 'heldist', 'Heliocentric Distance'],
+        ['r', 'rh', 'r_hel', 'heldist', 'Heliocentric Distance'],
         ['delta', 'Delta', 'obsdist', 'Distance to the Observer'],
         ['ra', 'RA', 'Right Ascension'],
         ['dec', 'DEC', 'Dec', 'Declination'],
         ['ra_rate', 'RA_rate', 'ra_rates', 'RA_rates', 'dRA',
          'dra', 'RA Rate'],
+        ['RA*cos(Dec)_rate', 'dra cos(dec)', 'dRA cos(Dec)',
+         'dra*cos(dec)', 'dRA*cos(Dec)', 'RA*cos(Dec) Rate'],
         ['dec_rate', 'DEC_rate', 'Dec_rate', 'dec_rates', 'DEC_rates',
          'Dec_rates', 'dDec', 'dDEC', 'ddec', 'Dec Rate'],
+        ['mu', 'Proper motion', 'Proper Motion'],
+        ['Direction', 'directin', 'Proper Motion Direction'],
         ['alpha', 'phaseangle', 'Phase', 'Solar Phase Angle'],
         ['elong', 'solarelong', 'solarelongation', 'elongation',
          'Elongation', 'Solar Elongation'],
@@ -38,8 +42,9 @@ class Conf():
          'helecllon', 'Heliocentric Ecliptic Longitude'],
         ['hlat', 'EclLat', 'ecllat', 'HelEclLat', 'helecllat',
          'Heliocentric Ecliptic Latitude'],
-        ['el', 'EL', 'elevation', 'alt',
-         'altitude', 'Elevation'],
+        ['el', 'EL', 'elevation', 'alt', 'altitude', 'Altitude',
+         'Elevation'],
+        ['az', 'AZ', 'azimuth', 'Azimuth'],
         ['lunar_elong', 'elong_moon', 'elongation_moon',
          'lunar_elongation', 'lunarelong', 'Lunar Elongation'],
         ['vx', 'dx', 'dx/dt', 'x Velocity Component'],
@@ -87,7 +92,7 @@ class Conf():
                         'CART': [None, 'au', 'au', 'au', 'au/d', 'au/d',
                                  'au/d', None, 'd', None, 'mag', None]}
 
-    oorb_ephem_fields = ['MJD', 'RA', 'DEC', 'RA_rate', 'DEC_rate', 'alpha',
+    oorb_ephem_fields = ['MJD', 'RA', 'DEC', 'RA*cos(Dec)_rate', 'DEC_rate', 'alpha',
                          'elong', 'r', 'Delta', 'V', 'pa', 'TopEclLon',
                          'TopEclLat', 'OppTopEclLon', 'OppTopEclLat',
                          'HelEclLon', 'HelEclLat', 'OppHelEclLon',
