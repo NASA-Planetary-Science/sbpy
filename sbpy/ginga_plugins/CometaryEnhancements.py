@@ -12,13 +12,15 @@ import numpy as np
 from astropy.utils.exceptions import AstropyWarning
 
 try:
-    from ginga import GingaPlugin
+    from ginga.GingaPlugin import LocalPlugin
     from ginga.gw import Widgets
 except ImportError:
     warn(AstropyWarning(
         'ginga is not present: CometaryEnhancements will not run.'
     ))
-    GingaPlugin = None
+
+    class LocalPlugin:
+        pass
     Widgets = None
 
 try:
@@ -32,7 +34,7 @@ except ImportError:
 from sbpy.imageanalysis import CometaryEnhancement
 
 
-class CometaryEnhancements(GingaPlugin.LocalPlugin):
+class CometaryEnhancements(LocalPlugin):
     """Ginga plugin for on-the-fly cometary image enhancements."""
 
     def __init__(self, fv, fitsimage):
@@ -152,8 +154,8 @@ class CometaryEnhancements(GingaPlugin.LocalPlugin):
         # (e.g. Qt) GUI calls, you need to extract the widget or layout
         # from the non-toolkit specific container wrapper and call on that
         # to pack your widget, e.g.:
-        #cw = container.get_widget()
-        #cw.addWidget(widget, stretch=1)
+        # cw = container.get_widget()
+        # cw.addWidget(widget, stretch=1)
 
     def rho_cb(self, w):
         try:
