@@ -72,7 +72,7 @@ The `Afrho` class may be converted to a flux density, and the original value is 
   F_λ = 1.0232929922807537e-14 erg / (Angstrom cm2 s)
   log(F_λ) = -13.99
 
-The `fluxd` and `from_fluxd` methods work with units of flux density per wavelength or frequency, and mag and from_mag methods are provided for working with apparent magnitudes.
+The `fluxd` and `from_fluxd` methods work with units of flux density per wavelength or frequency.
 
   >>> fnu = flam.to('Jy', u.spectral_density(wave))
   >>> print(fnu)
@@ -118,6 +118,28 @@ Reproduce the εfρ of 246P/NEAT from Kelley et al. (2013).
   421.2 cm at 22.3 um
 
 Compare to 397.0 cm and 424.6 cm listed in Kelley et al. (2013).
+
+
+Magnitudes
+^^^^^^^^^^
+
+`Afrho` and `Efrho` provide `mag` and `from_mag` methods for working with apparent magnitudes.  The default behavior is to use `sbpy`'s calibration framework.
+
+.. doctest-requires:: synphot
+
+  >>> m = 8.49
+  >>> aper = 10000 * u.km
+  >>> eph = {'rh': 1.45 * u.au,
+  ...        'delta': 0.49 * u.au,
+  ...        'phase': 17.8 * u.deg}
+  >>> afrho = Afrho.from_mag(m, 'vegamag', aper, eph, bandpass='cousins_i',
+  ...     phasecor=True)      # doctest: +REMOTE_DATA +IGNORE_OUTPUT
+  >>> afrho.value             # doctest: +REMOTE_DATA +FLOAT_CMP
+  3423.6675739077887
+  >>> afrho.mag('vegamag', aper, eph, bandpass='cousins_i',
+  ...     phasecor=True)      # doctest: +REMOTE_DATA +FLOAT_CMP
+  8.49
+
 
 Phase angles and functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
