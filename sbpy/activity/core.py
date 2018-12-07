@@ -41,9 +41,10 @@ def rho_as_angle(rho, eph):
 
     if rho.unit.is_equivalent(u.m):
         rho_a = np.arctan(rho / eph['delta'].to(u.m))
-    else:
-        assert rho.unit.is_equivalent(u.rad)
+    elif rho.unit.is_equivalent(u.rad):
         rho_a = rho
+    else:
+        raise ValueError('rho must have units of length or angle')
 
     return rho_a
 
@@ -67,9 +68,10 @@ def rho_as_length(rho, eph):
 
     if rho.unit.is_equivalent(u.rad):
         rho_l = eph['delta'].to(u.m) * np.tan(rho)
-    else:
-        assert rho.unit.is_equivalent(u.m)
+    elif rho.unit.is_equivalent(u.m):
         rho_l = rho
+    else:
+        raise ValueError('rho must have units of length or angle.')
 
     return rho_l
 
@@ -83,8 +85,10 @@ class Aperture(ABC):
     """
 
     def __init__(self, dim):
-        assert isinstance(dim, u.Quantity)
-        assert dim.unit.is_equivalent((u.radian, u.meter))
+        if not dim.unit.is_equivalent((u.radian, u.meter)):
+            raise ValueError(
+                'aperture must be defined with angles or lengths.')
+
         self.dim = dim
 
     @abstractmethod
@@ -165,7 +169,7 @@ class CircularAperture(Aperture):
     """
 
     def __init__(self, radius):
-        super(CircularAperture, self).__init__(radius)
+        super().__init__(radius)
 
     def __str__(self):
         return "Circular aperture, radius {}".format(self.dim)
@@ -190,8 +194,9 @@ class AnnularAperture(Aperture):
     """
 
     def __init__(self, shape):
-        assert len(shape) == 2
-        super(AnnularAperture, self).__init__(shape)
+        if len(shape) != 2:
+            raise ValueError('shape must be 2-elements')
+        super().__init__(shape)
 
     def __str__(self):
         return "Annular aperture, radii {0[0].value:}–{0[1]:}".format(self.dim)
@@ -217,8 +222,9 @@ class RectangularAperture(Aperture):
     """
 
     def __init__(self, shape):
-        assert len(shape) == 2
-        super(RectangularAperture, self).__init__(shape)
+        if len(shape) != 2:
+            raise ValueError('shape must be 2-elements')
+        super().__init__(shape)
 
     def __str__(self):
         return "Rectangular aperture, dimensions {0[0].value:}×{0[1]:}".format(self.dim)
@@ -281,13 +287,13 @@ class GaussianAperture(Aperture):
     """
 
     def __init__(self, sigma=None, fwhm=None):
-        assert (sigma is not None) or (
-            fwhm is not None), "One of `sigma` or `fwhm` must be defined."
+        if (sigma is None) and (fwhm is None):
+            raise ValueError('One of `sigma` or `fwhm` must be defined')
 
         if sigma is not None:
-            super(GaussianAperture, self).__init__(sigma)
+            super().__init__(sigma)
         else:
-            super(GaussianAperture, self).__init__(fwhm / 2.3548200450309493)
+            super().__init__(fwhm / 2.3548200450309493)
 
     def __str__(self):
         return "Gaussian aperture, 1-σ width {}".format(self.dim)
