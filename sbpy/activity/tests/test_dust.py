@@ -301,8 +301,50 @@ class TestEfrho:
         from astropy.modeling.blackbody import blackbody_nu
         aper = 1 * u.arcsec
         eph = dict(rh=1.0 * u.au, delta=1.0 * u.au)
-        Tscale = 1.1
         fluxd0 = u.Quantity(3631, 'Jy')
+        Tscale = 1.1
         B = blackbody_nu(11.7 * u.um, 278 * Tscale * u.K)
         efrho = Efrho.from_mag(5, None, aper, eph, B=B, fluxd0=fluxd0)
         assert np.isclose(efrho.cm, 78750, rtol=0.001)
+
+    @pytest.mark.parametrize('unit, efrho0', (
+        ('vegamag', 616.1),
+        ('abmag', 78750),  # compare with test_from_mag_fluxd0_B
+        ('stmag', 3.596e7),
+    ))
+    def test_mag_bandpass(self, unit, efrho0):
+        aper = 1 * u.arcsec
+        # width = 0.1 um for speed
+        bp = synphot.SpectralElement(
+            synphot.Box1D, x_0=11.7 * u.um, width=0.1 * u.um)
+        eph = dict(rh=1.0 * u.au, delta=1.0 * u.au)
+        Tscale = 1.1
+        efrho = Efrho(efrho0, 'cm')
+        mag = efrho.mag(unit, aper, eph, bandpass=bp, Tscale=Tscale)
+        assert np.isclose(mag, 5, rtol=0.001)
+
+    def test_mag_fluxd0_bandpass(self):
+        # comapre with test_mag_bandpass
+        aper = 1 * u.arcsec
+        # width = 0.1 um for speed
+        bp = synphot.SpectralElement(
+            synphot.Box1D, x_0=11.7 * u.um, width=0.1 * u.um)
+        eph = dict(rh=1.0 * u.au, delta=1.0 * u.au)
+        Tscale = 1.1
+        fluxd0 = u.Quantity(3631, 'Jy')
+        efrho = Efrho(78750, 'cm')
+        mag = efrho.mag(None, aper, eph, bandpass=bp,
+                        fluxd0=fluxd0, Tscale=Tscale)
+        assert np.isclose(mag, 5, rtol=0.001)
+
+    def test_mag_fluxd0_B(self):
+        # comapre with test_mag_bandpass
+        from astropy.modeling.blackbody import blackbody_nu
+        aper = 1 * u.arcsec
+        eph = dict(rh=1.0 * u.au, delta=1.0 * u.au)
+        Tscale = 1.1
+        fluxd0 = u.Quantity(3631, 'Jy')
+        B = blackbody_nu(11.7 * u.um, 278 * Tscale * u.K)
+        efrho = Efrho(78750, 'cm')
+        mag = efrho.mag(None, aper, eph, B=B, fluxd0=fluxd0)
+        assert np.isclose(mag, 5, rtol=0.001)

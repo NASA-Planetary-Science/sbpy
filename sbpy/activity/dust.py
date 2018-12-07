@@ -650,8 +650,6 @@ class Afrho(u.SpecificTypeQuantity):
             Any other `Afrho.fluxd` keyword argument except ``S``.
 
 
-        **kwargs :
-            Any other `Afrho.fluxd` keyword argument except ``S``.
         Returns
         -------
         mag : float
@@ -918,7 +916,7 @@ class Efrho(u.SpecificTypeQuantity):
 
     @classmethod
     def from_mag(cls, mag, unit, aper, eph, bandpass=None, fluxd0=None,
-                 Tscale=1.1, T=None, B=None, verbose=True):
+                 Tscale=1.1, verbose=True, **kwargs):
         """Initialize from filter and magnitude.
 
 
@@ -938,8 +936,7 @@ class Efrho(u.SpecificTypeQuantity):
 
         eph : dictionary-like or `~sbpy.data.Ephem`
             Ephemerides of the comet, describing heliocentric and
-            geocentric distances as `~astropy.units.Quantity` via
-            keywords ``rh`` and ``delta``.
+            geocentric distances.
 
         bandpass : `~synphot.SpectralElement`, optional
             The filter bandpass for ``mag``.
@@ -947,13 +944,8 @@ class Efrho(u.SpecificTypeQuantity):
         fluxd0 : float, optional
             Spectral flux density for 0th mag.
 
-        Tscale : float, optional
-            Blackbody temperature scale factor.  Ignored if ``T`` or
-            ``B`` is provided.
-
-        T : `~astropy.units.Quantity`, optional
-            Use this temperature for the Planck function.  Ignored if
-            ``B`` is provided.
+        **kwargs :
+            Any other `Efrho.fluxd` keyword argument except ``S``.
 
 
         Examples
@@ -1004,11 +996,12 @@ class Efrho(u.SpecificTypeQuantity):
                 print('Using fluxd0 = {:.4g}'.format(fluxd0))
 
         fluxd = fluxd0 * 10**(-0.4 * mag)
-        if B is None:
-            return cls.from_filt(bandpass, fluxd, aper, eph, Tscale=Tscale, T=T)
+        if kwargs.get('B') is None:
+            return cls.from_filt(bandpass, fluxd, aper, eph, Tscale=Tscale,
+                                 **kwargs)
         else:
-            return cls.from_fluxd(None, fluxd, aper, eph, Tscale=Tscale, T=T,
-                                  B=B)
+            return cls.from_fluxd(None, fluxd, aper, eph, Tscale=Tscale,
+                                  **kwargs)
 
     def fluxd(self, wave_or_freq, aper, eph, Tscale=1.1, T=None, unit=None,
               B=None):
@@ -1167,6 +1160,81 @@ class Efrho(u.SpecificTypeQuantity):
             B = self._observe_through_filter(
                 bandpass, self._planck(Tscale, T, eph), unit) / u.sr
         return self.fluxd(None, aper, eph, B=B)
+
+    def mag(self, unit, aper, eph, bandpass=None, fluxd0=None, Tscale=1.1,
+            **kwargs):
+        """Coma apparent magnitude.
+
+
+        Parameters
+        ----------
+        unit : string
+            Name of magnitude system: 'vegamag', 'ABmag', or 'STmag'.
+            Ignored if ``fluxd0`` is provided.
+
+        aper : `~astropy.units.Quantity` or `~sbpy.activity.Aperture`
+            Aperture of the observation as a circular radius (length
+            or angular units), or as an sbpy `~sbpy.activity.Aperture`
+            class.
+
+        eph : dictionary-like or `~sbpy.data.Ephem`, optional
+            Ephemerides of the comet, describing heliocentric and
+            geocentric distances.
+
+        bandpass : string or `~synphot.SpectralElement`, optional
+            Compute the 0-mag flux density in this bandpass.  Provide
+            either the name of a `~synphot` filter, or a transmission
+            spectrum.  Ignored if ``fluxd0`` is provided.
+
+        fluxd0 : float, optional
+            Spectral flux density for 0th mag.
+
+        **kwargs :
+            Any other `Efrho.fluxd` keyword argument.
+
+
+        Returns
+        -------
+        mag : float
+
+
+        Examples
+        --------
+        Reverse of Efrho.from_mag test
+        >>> import astropy.units as u
+        >>> from synphot import SpectralElement
+        >>> from sbpy.activity import Efrho
+        >>> bp = SpectralElement.from_file('https://irsa.ipac.caltech.edu/'
+        ... 'data/SPITZER/docs/files/spitzer/redPUtrans.txt', wave_unit='um',
+        ... comment=';')               # doctest: +REMOTE_DATA +IGNORE_OUTPUT
+        >>> efrho = Efrho(3423.67, u.cm)
+        >>> aper = 10000 * u.km
+        >>> eph = {'rh': 1.45 * u.au,
+        ...        'delta': 0.49 * u.au}
+        >>> efrho.mag('vegamag', aper, eph, bandpass=bp)
+        ...                                # doctest: +REMOTE_DATA +IGNORE_OUTPUT
+        10.0                               # doctest: +REMOTE_DATA +FLOAT_CMP
+
+
+        Notes
+        -----
+        See :ref:`sbpy_spectral_standards` for calibration notes.
+
+        Filter names can be found in the `synphot` `documentation
+        <http://synphot.readthedocs.io/en/stable/synphot/bandpass.html#synphot-predefined-filter>`_.
+
+        A discussion of magnitude zero points can be found in the
+        `synphot` `documentation
+        <http://synphot.readthedocs.io/en/latest/synphot/units.html#counts-and-magnitudes>`_.
+
+        """
+
+        if fluxd0 is None and bandpass is None:
+            raise ValueError('One of `bandpass` or `fluxd0` must be provided.')
+
+        efrho0 = Efrho.from_mag(0, unit, aper, eph, bandpass=bandpass,
+                                fluxd0=fluxd0, Tscale=Tscale, **kwargs)
+        return -2.5 * np.log10(self.cm / efrho0.cm)
 
 
 class Syndynes:
