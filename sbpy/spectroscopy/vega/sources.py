@@ -1,8 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-=======================
+========================
 SBPy Vega Sources Module
-=======================
+========================
 
 Descriptions of source Vega spectra.
 
@@ -17,7 +17,7 @@ available = [
 ]
 
 Bohlin2014 = {
-    'filename': 'ftp://ftp.stsci.edu/cdbs/calspec/alpha_lyr_stis_008.fits',
+    'filename': 'alpha_lyr_stis_008-edit.fits',
     'description': 'Spectrum of Bohlin 2014',
     'bibcode': '2014AJ....147..127B'
 }
