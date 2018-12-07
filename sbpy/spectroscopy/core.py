@@ -985,7 +985,8 @@ class SpectralStandard(ABC):
 
         unit : string, `~astropy.units.Unit`, optional
           Spectral units of the output: flux density, 'vegamag',
-          'ABmag', or 'STmag'.
+          'ABmag', or 'STmag'.  See :ref:`sbpy_spectral_standards`
+          for calibration notes.
 
         **kwargs
           Additional keyword arguments for
@@ -1025,10 +1026,12 @@ class SpectralStandard(ABC):
         from synphot.units import VEGAMAG
         from .vega import Vega
 
-        assert isinstance(bp, (str, synphot.SpectralElement))
-
         if isinstance(bp, str):
             bp = synphot.SpectralElement.from_filter(bp)
+
+        if not isinstance(bp, synphot.SpectralElement):
+            raise ValueError(
+                '`bp` must be a string (filter name) or `synphot.SpectralElement`.')
 
         obs = synphot.Observation(self.source, bp, **kwargs)
         wave = obs.effective_wavelength()

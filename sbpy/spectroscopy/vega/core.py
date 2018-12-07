@@ -80,8 +80,17 @@ class Vega(SpectralStandard):
 
         """
 
+        from astropy.utils.data import _is_url
+
         try:
-            parameters = getattr(sources, name)
+            parameters = getattr(sources, name).copy()
+
+            if not _is_url(parameters['filename']):
+                # find in the module's location
+                path = os.path.dirname(__file__)
+                parameters['filename'] = os.sep.join(
+                    (path, 'data', parameters['filename']))
+
             vega = Vega.from_file(**parameters)
         except AttributeError:
             msg = 'Unknown Vega spectrum "{}".  Valid spectra:\n{}'.format(
