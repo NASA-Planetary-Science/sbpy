@@ -521,8 +521,11 @@ class Afrho(u.SpecificTypeQuantity):
             sun = default_sun.get()
             S = sun(wave_or_freq, unit=unit)
         else:
-            assert (S.unit.is_equivalent(u.W / u.m**2 / u.um)
-                    or S.unit.is_equivalent(u.W / u.m**2 / u.Hz))
+            if not (S.unit.is_equivalent(u.W / u.m**2 / u.um)
+                    or S.unit.is_equivalent(u.W / u.m**2 / u.Hz)):
+                raise ValueError(
+                    'S must have units of spectral flux density, '
+                    'e.g., W/m2/μm or W/m2/Hz')
 
         if phasecor:
             afrho = self.to_phase(eph['phase'], 0 * u.deg)

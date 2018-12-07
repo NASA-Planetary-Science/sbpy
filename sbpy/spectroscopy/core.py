@@ -771,7 +771,8 @@ class Spectrum():
 
         from ..activity.gas import GasComa
 
-        assert isinstance(coma, GasComa)
+        if not isinstance(coma, GasComa):
+            raise ValueError('coma must be a GasComa instance.')
 
         # integrated_line = self.integrated_flux(transition_freq) - not yet implemented
 
@@ -853,7 +854,7 @@ class SpectralStandard(ABC):
         return cls(source, **kwargs)
 
     @classmethod
-    def from_file(cls, filename=None, wave_unit=None, flux_unit=None,
+    def from_file(cls, filename, wave_unit=None, flux_unit=None,
                   cache=True, **kwargs):
         """Load the source spectrum from a file.
 
@@ -878,8 +879,6 @@ class SpectralStandard(ABC):
         from astropy.utils.data import _is_url
         import synphot
         from synphot.specio import read_fits_spec, read_ascii_spec
-
-        assert filename is not None, "File name required."
 
         # URL cache because synphot.SourceSpectrum.from_file does not
         if _is_url(filename):

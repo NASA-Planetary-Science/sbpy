@@ -7,6 +7,7 @@ SBPy Imageanalysis Module Utilities
 created on July 02, 2017
 """
 
+
 def rarray(shape, yx=None, subsample=0):
     """2D array of distances from a point.
 
@@ -59,6 +60,7 @@ def rarray(shape, yx=None, subsample=0):
                 f = refine_pixel(rarray, subsample, (y, x), yx) * subsample
                 r[y, x] = f
     return r
+
 
 def rebin(a, factor, flux=False, trim=False):
     """Rebin a 1, 2, or 3 dimensional array by integer amounts.
@@ -127,9 +129,10 @@ def rebin(a, factor, flux=False, trim=False):
                 if r != 0:
                     _a = np.rollaxis(np.rollaxis(_a, i)[:-r], 0, i + 1)
 
-            assert (_a.shape[i] % factor) == 0, (
-                "Axis {0} must be an integer multiple of "
-                "the minification factor.".format(i))
+            if (_a.shape[i] % factor) != 0:
+                raise ValueError(
+                    "Axis {0} must be an integer multiple of "
+                    "the minification factor.".format(i))
         f = mini
     else:
         f = magni
@@ -140,6 +143,7 @@ def rebin(a, factor, flux=False, trim=False):
         b = np.rollaxis(c, 0, i + 2)
 
     return b
+
 
 def refine_pixel(func, subsample, yx_pixel, yx, **kwargs):
     """Subsample an array-generating function over a pixel.
@@ -184,6 +188,7 @@ def refine_pixel(func, subsample, yx_pixel, yx, **kwargs):
     f = func((subsample, subsample), yx=yx_s, **kwargs) / subsample**2
     return f.mean()
 
+
 def xarray(shape, yx=[0, 0], th=None):
     """2D array of x values.
 
@@ -213,7 +218,7 @@ def xarray(shape, yx=[0, 0], th=None):
 
     import numpy as np
     import astropy.units as u
-    
+
     y, x = np.indices(shape)[-2:]
     y = y - yx[0]
     x = x - yx[1]
@@ -222,6 +227,7 @@ def xarray(shape, yx=[0, 0], th=None):
         x = x * np.cos(th.to(u.rad).value) + y * np.sin(th.to(u.rad).value)
 
     return x
+
 
 def yarray(shape, yx=[0, 0], th=None):
     """2D array of y values.
@@ -250,7 +256,7 @@ def yarray(shape, yx=[0, 0], th=None):
 
     import numpy as np
     import astropy.units as u
-    
+
     y, x = np.indices(shape)[-2:]
     y = y - yx[0]
     x = x - yx[1]
@@ -259,4 +265,3 @@ def yarray(shape, yx=[0, 0], th=None):
         y = -x * np.sin(th.to(u.rad).value) + y * np.cos(th.to(u.rad).value)
 
     return y
-

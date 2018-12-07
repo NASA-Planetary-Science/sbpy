@@ -76,14 +76,18 @@ def photo_lengthscale(species, source=None):
         'OH': 'CS93',
     }
 
-    assert species.upper() in data, "No timescale available for {}.  Choose from: {}".format(
-        species, ', '.join(data.keys()))
+    if species.upper() not in data:
+        raise ValueError(
+            'No timescale available for {}.  Choose from: {}'
+            .format(species, ', '.join(data.keys())))
 
     gas = data[species.upper()]
     source = default_sources[species.upper()] if source is None else source
 
-    assert source.upper() in gas, 'Source key {} not available for {}.  Choose from: {}'.format(
-        source, species, ', '.join(gas.keys()))
+    if source.upper() not in gas:
+        raise ValueError(
+            'Source key {} not available for {}.  Choose from: {}'
+            .format(source, species, ', '.join(gas.keys())))
 
     gamma, bibcode = gas[source.upper()]
     bib.register('activity.gas.photo_lengthscale', bibcode)
@@ -181,14 +185,18 @@ def photo_timescale(species, source=None):
         tab.pprint(max_lines=-1, max_width=-1)
         return
 
-    assert species.upper() in data, "No timescale available for {}.  Choose from: {}".format(
-        species, ', '.join(data.keys()))
+    if species.upper() not in data:
+        raise ValueError(
+            "No timescale available for {}.  Choose from: {}"
+            .format(species, ', '.join(data.keys())))
 
     gas = data[species.upper()]
     source = default_sources[species.upper()] if source is None else source
 
-    assert source.upper() in gas, 'Source key {} not available for {}.  Choose from: {}'.format(
-        source, species, ', '.join(gas.keys()))
+    if source.upper() not in gas:
+        raise ValueError(
+            'Source key {} not available for {}.  Choose from: {}'
+            .format(source, species, ', '.join(gas.keys())))
 
     tau, bibcode = gas[source.upper()]
     bib.register('activity.gas.photo_timescale', bibcode)
@@ -249,13 +257,17 @@ def fluorescence_band_strength(species, rdot=0 * u.km / u.s,
         'OH 0-0': ('model', 'SA88'),
     }
 
-    assert species.upper() in data, 'No data available for {}.  Choose one of: {}'.format(
-        species, ', '.join(data.keys()))
+    if species.upper() not in data:
+        raise ValueError(
+            'No data available for {}.  Choose one of: {}'
+            .format(species, ', '.join(data.keys())))
 
     band = data[species.upper()]
 
-    assert source.upper() in band, 'No source {} for {}.  Choose one of: {}'.format(
-        source, species, ', '.join(band.keys()))
+    if source.upper() not in band:
+        raise ValueError(
+            'No source {} for {}.  Choose one of: {}'
+            .format(source, species, ', '.join(band.keys())))
 
     LN, bibcode = band[source.upper()]
     bib.register('activity.gas.fluorescence_band_strength', bibcode)
@@ -279,12 +291,12 @@ class GasComa(ABC):
     """
 
     def __init__(self, Q, v):
-        assert isinstance(Q, u.Quantity)
-        assert Q.unit.is_equivalent((u.s**-1, u.mol / u.s))
+        if not Q.unit.is_equivalent((u.s**-1, u.mol / u.s)):
+            raise ValueError('Q must have units equivalent to 1/s or mol/s')
         self.Q = Q
 
-        assert isinstance(v, u.Quantity)
-        assert v.unit.is_equivalent(u.m / u.s)
+        if not v.unit.is_equivalent(u.m / u.s):
+            raise ValueError('v must have units of length/time')
         self.v = v
 
     @abstractmethod
@@ -356,7 +368,8 @@ class GasComa(ABC):
                 'scipy is not present, cannot integrate volume density.'))
             return None
 
-        assert rho.unit.is_equivalent(u.m)
+        if not rho.unit.is_equivalent(u.m):
+            raise ValueError('rho must have units of length.')
 
         def f(s):
             r = np.sqrt(rho.to(u.km).value**2 + s**2)
@@ -423,8 +436,8 @@ class GasComa(ABC):
                 'scipy is not present, cannot integrate column density.'))
             return None
 
-        assert aper.dim.unit.is_equivalent(
-            u.m), 'GasComa._integrate_column_density requires `aper` in units of length.'
+        if not aper.dim.unit.is_equivalent(u.m):
+            raise ValueError('aper must have units of length')
 
         if isinstance(aper, CircularAperture):
             # integrate in polar coordinates
@@ -511,20 +524,20 @@ class Haser(GasComa):
 
         bib.register('activity.gas.Haser', {'model': '1957BSRSL..43..740H'})
 
-        assert isinstance(parent, u.Quantity)
-        assert parent.unit.is_equivalent(u.m)
+        if not parent.unit.is_equivalent(u.m):
+            raise ValueError('parent must have units of length')
         self.parent = parent
 
         if daughter is None:
             self.daughter = None
         else:
-            assert isinstance(daughter, u.Quantity)
-            assert daughter.unit.is_equivalent(u.m)
+            if not daughter.unit.is_equivalent(u.m):
+                raise ValueError('daugher must have units of length')
             self.daughter = daughter
 
     def volume_density(self, r):
-        assert isinstance(r, u.Quantity)
-        assert r.unit.is_equivalent(u.m)
+        if not r.unit.is_equivalent(u.m):
+            raise ValueError('r must have units of length')
 
         n = self.Q / 4 / np.pi / r**2 / self.v
         if self.daughter is None or self.daughter == 0:
@@ -565,8 +578,6 @@ class Haser(GasComa):
 
         bib.register('activity.gas.Haser.column_density',
                      {'model': '1978Icar...35..360N'})
-
-        assert isinstance(rho, u.Quantity)
 
         r = rho_as_length(rho, eph=eph)
         x = 0 if self.parent is None else (r / self.parent).decompose()
