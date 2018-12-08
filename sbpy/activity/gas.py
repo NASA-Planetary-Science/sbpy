@@ -1,8 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-========================
-SBPy Activity Gas Module
-========================
+==================
+SBPy Activity: Gas
+==================
+
 
 Functions
 ---------
@@ -10,6 +11,7 @@ photo_lengthscale          - Photodissociation lengthscale.
 photo_timescale            - Photodissociation timescale.
 fluorescence_band_strength - Fluorescence band efficiency of a specific
                              species and transition.
+
 
 Classes
 -------
@@ -20,12 +22,6 @@ Vectorial           - Vectorial coma model for gas (Festou 1981).
 
 """
 
-from abc import ABC, abstractmethod
-import numpy as np
-import astropy.units as u
-from .. import bib
-
-
 __all__ = [
     'photo_lengthscale',
     'photo_timescale',
@@ -35,40 +31,71 @@ __all__ = [
     'Vectorial',
 ]
 
+from warnings import warn
+from abc import ABC, abstractmethod
+
+import numpy as np
+import astropy.units as u
+
+try:
+    import scipy
+    from scipy import special
+    from scipy.integrate import quad, dblquad
+except ImportError:
+    scipy = None
+
+from astropy.table import Table
+from astropy.utils.exceptions import AstropyWarning
+from .. import bib
+from .core import (Aperture, RectangularAperture, GaussianAperture,
+                   AnnularAperture, CircularAperture)
+from .core import rho_as_length
+
 
 def photo_lengthscale(species, source=None):
     """Photodissociation lengthscale for a gas species.
 
+
     Parameters
     ----------
     species : string
-      The species to look up.
+        The species to look up.
+
     source : string, optional
-      Retrieve values from this source (case insensitive).  See
-      references for keys.
+        Retrieve values from this source (case insensitive).  See
+        references for keys.
+
 
     Returns
     -------
-    gamma : astropy Quantity
+    gamma : `~astropy.units.Quantity`
       The lengthscale at 1 au.
+
 
     Examples
     --------
     >>> from sbpy.activity import photo_lengthscale
     >>> gamma = photo_lengthscale('OH')
 
+
     References
     ----------
-
     [CS93] H2O and OH from Table IV of Cochran & Schleicher 1993,
     Icarus 105, 235-253.  Quoted for intermediate solar activity.
 
     """
 
     data = {   # (value, {key feature: ADS bibcode})
-        'H2O': {'CS93': (2.4e4 * u.km, {'H2O photodissociation lengthscale': '1993Icar..105..235C'})},
-        'OH': {'CS93': (1.6e5 * u.km, {'OH photodissociation lengthscale': '1993Icar..105..235C'})},
-
+        'H2O': {
+            'CS93': (2.4e4 * u.km,
+                     {'H2O photodissociation lengthscale':
+                      '1993Icar..105..235C'})
+        },
+        'OH': {
+            'CS93': (1.6e5 * u.km,
+                     {'OH photodissociation lengthscale':
+                      '1993Icar..105..235C'})
+        },
     }
 
     default_sources = {
@@ -98,10 +125,11 @@ def photo_lengthscale(species, source=None):
 def photo_timescale(species, source=None):
     """Photodissociation timescale for a gas species.
 
+
     Parameters
     ----------
-    species : string or None
-      The species to look up, or `None` to summarize available
+    species : string, ``None``
+      The species to look up, or ``None`` to summarize available
       species.
 
     source : string, optional
@@ -111,7 +139,7 @@ def photo_timescale(species, source=None):
 
     Returns
     -------
-    tau : astropy Quantity
+    tau : `~astropy.units.Quantity`
       The timescale at 1 au.  May be a two-element array: (quiet Sun,
       active Sun).
 
@@ -124,7 +152,6 @@ def photo_timescale(species, source=None):
 
     References
     ----------
-
     [CS93] Table IV of Cochran & Schleicher 1993, Icarus 105, 235-253.
     Quoted for intermediate solar activity.
 
@@ -137,14 +164,46 @@ def photo_timescale(species, source=None):
     """
 
     data = {   # (value, {key feature: ADS bibcode})
-        'H2O': {'CS93': (5.2e4 * u.s, {'H2O photodissociation timescale': '1993Icar..105..235C'})},
-        'OH': {'CS93': (1.6e5 * u.s, {'OH photodissociation timescale': '1993Icar..105..235C'})},
-        'HCN': {'C94': (6.7e4 * u.s, {'HCN photodissociation timescale': '1994JGR....99.3777C'})},
-        'CH3OH': {'C94': (7.7e4 * u.s, {'CH3OH photodissociation timescale': '1994JGR....99.3777C'})},
-        'H2CO': {'C94': (5.0e3 * u.s, {'H2CO photodissociation timescale': '1994JGR....99.3777C'})},
-        'CO': {'CE83': (1.5e6 * u.s, {'CO photodissociation timescale': '1983A%26A...126..170C'})},
-        'CO2': {'CE83': (5.0e5 * u.s, {'CO2 photodissociation timescale': '1983A%26A...126..170C'})},
-        'CN': {'H92': ([3.15e5, 1.35e5] * u.s, {'CN photodissociation timescale': '1992Ap%26SS.195....1H'})},
+        'H2O': {
+            'CS93': (5.2e4 * u.s,
+                     {'H2O photodissociation timescale':
+                      '1993Icar..105..235C'})
+        },
+        'OH': {
+            'CS93': (1.6e5 * u.s,
+                     {'OH photodissociation timescale':
+                      '1993Icar..105..235C'})
+        },
+        'HCN': {
+            'C94': (6.7e4 * u.s,
+                    {'HCN photodissociation timescale':
+                     '1994JGR....99.3777C'})
+        },
+        'CH3OH': {
+            'C94': (7.7e4 * u.s,
+                    {'CH3OH photodissociation timescale':
+                     '1994JGR....99.3777C'})
+        },
+        'H2CO': {
+            'C94': (5.0e3 * u.s,
+                    {'H2CO photodissociation timescale':
+                     '1994JGR....99.3777C'})
+        },
+        'CO': {
+            'CE83': (1.5e6 * u.s,
+                     {'CO photodissociation timescale':
+                      '1983A%26A...126..170C'})
+        },
+        'CO2': {
+            'CE83': (5.0e5 * u.s,
+                     {'CO2 photodissociation timescale':
+                      '1983A%26A...126..170C'})
+        },
+        'CN': {
+            'H92': ([3.15e5, 1.35e5] * u.s,
+                    {'CN photodissociation timescale':
+                     '1992Ap%26SS.195....1H'})
+        },
     }
 
     default_sources = {
@@ -159,8 +218,6 @@ def photo_timescale(species, source=None):
     }
 
     if species is None:
-        from astropy.table import Table
-
         tab = Table(
             names=('Species', 'Source', 'Default', 'Lifetime_1 (s)',
                    'Lifetime_2 (s)', 'Bibcode'),
@@ -178,7 +235,7 @@ def photo_timescale(species, source=None):
                     tau2 = 0
                     mask = [False, False, False, False, True, False]
 
-                default = True if default_sources[species] == source else False
+                default = default_sources[species] == source
                 tab.add_row((species, source, default, tau1, tau2, bibcode),
                             mask=mask)
 
@@ -204,31 +261,32 @@ def photo_timescale(species, source=None):
     return tau
 
 
-def fluorescence_band_strength(species, rdot=0 * u.km / u.s,
-                               eph=None, source=None):
-    """Fluorescence band efficiency of a specific species and transition.
+def fluorescence_band_strength(species, eph=None, source=None):
+    """Fluorescence band strength.
+
 
     Parameters
     ----------
     species : string
-      The species to look up.
-    rdot : astropy Quantity, optional
-      Heliocentric radial speed, required for some species.
-    eph : sbpy Ephem, optional
-      The target ephemeris.  Must include heliocentric radial
-      velocity.
+        The species to look up.
+
+    rdot : `~astropy.units.Quantity`, optional
+        Heliocentric radial speed, required for some species.
+
+    eph : `~sbpy.data.Ephem`, optional
+        The target ephemeris for species that require heliocentric
+        radial velocity ('rdot').
+
     source : string, optional
-      Retrieve values from this source (case insensitive).  See
-      references for keys.
+        Retrieve values from this source (case insensitive).  See
+        references for keys.
+
 
     Returns
     -------
-    tau : astropy Quantity
-      The timescale, scaled to `rh` or `eph['rh']`.
+    tau : `~astropy.units.Quantity`
+        The timescale, scaled to `rh` or `eph['rh']`.
 
-    Notes
-    -----
-    One of `rdot` or `eph` is required for some species.
 
     Examples
     --------
@@ -247,14 +305,33 @@ def fluorescence_band_strength(species, rdot=0 * u.km / u.s,
     # implement list treatment
 
     data = {   # (value, {key feature: bibcode})
-        'OH 0-0': {'SA88': ('XXX', {'OH 0-0 fluorescence band efficiency': '1988ApJ...331.1058S'})},
-        'OH 1-0': {'SA88': ('XXX', {'OH 1-0 fluorescence band efficiency': '1988ApJ...331.1058S'})},
-        'OH 1-1': {'SA88': ('XXX', {'OH 1-1 fluorescence band efficiency': '1988ApJ...331.1058S'})},
-        'OH 2-2': {'SA88': ('XXX', {'OH 2-2 fluorescence band efficiency': '1988ApJ...331.1058S'})},
+        'OH 0-0': {
+            'SA88': (func0_0,
+                     {'OH 0-0 fluorescence band efficiency':
+                      '1988ApJ...331.1058S'})
+        },
+        'OH 1-0': {
+            'SA88': (func1_0,
+                     {'OH 1-0 fluorescence band efficiency':
+                      '1988ApJ...331.1058S'})
+        },
+        'OH 1-1': {
+            'SA88': (func1_1,
+                     {'OH 1-1 fluorescence band efficiency':
+                      '1988ApJ...331.1058S'})
+        },
+        'OH 2-2': {
+            'SA88': (func2_2,
+                     {'OH 2-2 fluorescence band efficiency':
+                      '1988ApJ...331.1058S'})
+        },
     }
 
     default_sources = {
-        'OH 0-0': ('model', 'SA88'),
+        'OH 0-0': 'SA88',
+        'OH 1-0': 'SA88',
+        'OH 1-1': 'SA88',
+        'OH 2-2': 'SA88',
     }
 
     if species.upper() not in data:
@@ -280,13 +357,14 @@ def fluorescence_band_strength(species, rdot=0 * u.km / u.s,
 class GasComa(ABC):
     """Abstract base class for gas coma models.
 
+
     Parameters
     ----------
     Q : `~astropy.units.Quantity`
-      Production rate, number per time.
+        Production rate, number per time.
 
     v : `~astropy.units.Quantity`
-      Radial outflow speed, distance per time.
+        Radial outflow speed, distance per time.
 
     """
 
@@ -303,10 +381,11 @@ class GasComa(ABC):
     def volume_density(self, r):
         """Coma volume density.
 
+
         Parameters
         ----------
         r : `~astropy.units.Quantity`
-          Linear distance to the nucleus.
+            Linear distance to the nucleus.
 
 
         Returns
@@ -320,53 +399,51 @@ class GasComa(ABC):
     def column_density(self, rho, eph=None):
         """Coma column density at a projected distance from nucleus.
 
+
         Parameters
         ----------
         rho : `~astropy.units.Quantity`
-          Projected distance of the region of interest on the plane of
-          the sky in units of length or angle.
+            Projected distance of the region of interest on the plane
+            of the sky in units of length or angle.
 
-        eph : dictionary-like or `~sbpy.data.Ephem`
-          Ephemerides at epoch; requires geocentric distance as
-          `delta` keyword if aperture has angular units.
+        eph : dictionary-like, `~sbpy.data.Ephem`
+            Ephemerides at epoch; requires geocentric distance as
+            `delta` keyword if aperture has angular units.
 
 
         Returns
         -------
         sigma : float
-          Coma column density along the line of sight at a distance rho.
+            Coma column density along the line of sight at a distance
+            rho.
 
         """
         pass
 
     def _integrate_volume_density(self, rho, epsabs=1.49e-8):
-        """
-        Integrate volume density along the line of sight.
+        """Integrate volume density along the line of sight.
 
         Parameters
         ----------
         rho : `~astropy.units.Quantity`
             Projected distance of the region of interest on the plane of
             the sky in units of length.
-        epsabs : float or int, optional
+
+        epsabs : float, int, optional
             Absolute and relative error tolerance for integrals.  See
             `scipy.integrate.quad`.
 
         Returns
         -------
         sigma : float
-          Coma column density along the line of sight at a distance rho.
+            Coma column density along the line of sight at a distance
+            rho.
 
         """
 
-        try:
-            from scipy.integrate import quad
-        except ImportError:
-            from astropy.utils.exceptions import AstropyWarning
-            from warnings import warn
-            warn(AstropyWarning(
-                'scipy is not present, cannot integrate volume density.'))
-            return None
+        if not scipy:
+            raise AstropyWarning(
+                'scipy is required for integrating volume density.')
 
         if not rho.unit.is_equivalent(u.m):
             raise ValueError('rho must have units of length.')
@@ -391,21 +468,22 @@ class GasComa(ABC):
     def total_number(self, aper, eph=None):
         """Total number of molecules in aperture.
 
+
         Parameters
         ----------
-        aper : `~astropy.units.Quantity` or `~sbpy.activity.Aperture`
-          Observation aperture as a radius for a circular aperture
-          (projected length, or angle) or an `Aperture` instance.
+        aper : `~astropy.units.Quantity`, `~sbpy.activity.Aperture`
+            Observation aperture.  May be a circular aperture radius
+            with units of length or angle.
 
-        eph : dictionary-like or `~sbpy.data.Ephem`, optional
-          Ephemerides at epoch; requires geocentric distance as
-          `delta` keyword if aperture has angular units.
+        eph : dictionary-like, `~sbpy.data.Ephem`, optional
+            Ephemerides at epoch; requires geocentric distance as
+            `delta` keyword if aperture has angular units.
 
 
         Returns
         -------
         N : float
-          Total number of molecules within the aperture.
+            Total number of molecules within the aperture.
 
         """
         pass
@@ -413,28 +491,22 @@ class GasComa(ABC):
     def _integrate_column_density(self, aper, epsabs=1.49e-8):
         """Integrate column density over an aperture.
 
+
         Parameters
         ----------
         aper : `~sbpy.activity.Aperture`
-          Aperture, in units of length.
+            Aperture, in units of length.
 
-        epsabs : float or int, optional
-          Absolute and relative error tolerance for integrals.  See
-          `scipy.integrate.quad` (circular, annular, Gaussian) and
-          `scipy.integrate.dblquad` (rectangular) for details.
+        epsabs : float, int, optional
+            Absolute and relative error tolerance for integrals.  See
+            `~scipy.integrate.quad` (circular, annular, Gaussian) and
+            `~scipy.integrate.dblquad` (rectangular) for details.
 
         """
 
-        from .core import RectangularAperture, GaussianAperture, AnnularAperture, CircularAperture
-
-        try:
-            from scipy.integrate import quad, dblquad
-        except ImportError as e:
-            from astropy.utils.exceptions import AstropyWarning
-            from warnings import warn
-            warn(AstropyWarning(
-                'scipy is not present, cannot integrate column density.'))
-            return None
+        if not scipy:
+            raise AstropyWarning(
+                'scipy is required for integrating column density')
 
         if not aper.dim.unit.is_equivalent(u.m):
             raise ValueError('aper must have units of length')
@@ -466,16 +538,22 @@ class GasComa(ABC):
 
             # first "octant"; g and h are the limits of the
             # integration of rho
-            def g(th): return 0
+            def g(th):
+                return 0
 
-            def h(th): return shape[0] / 2 / np.cos(th)
+            def h(th):
+                return shape[0] / 2 / np.cos(th)
+
             th = np.arctan(shape[1] / shape[0])
             N1, err1 = dblquad(f, 0, th, g, h, epsabs=epsabs)
 
             # second "octant"
-            def g(th): return 0
+            def g(th):
+                return 0
 
-            def h(th): return shape[1] / 2 / np.cos(th)
+            def h(th):
+                return shape[1] / 2 / np.cos(th)
+
             th = np.arctan(shape[0] / shape[1])
             N2, err2 = dblquad(f, 0, th, g, h, epsabs=epsabs)
 
@@ -483,8 +561,9 @@ class GasComa(ABC):
             N = 4 * (N1 + N2)
         elif isinstance(aper, GaussianAperture):
             # integrate in polar coordinates
-            def f(rho): return (rho * aper(rho * u.km).value
-                                * self.column_density(rho * u.km).to(u.km**-2).value)
+            def f(rho):
+                return (rho * aper(rho * u.km).value
+                        * self.column_density(rho * u.km).to(u.km**-2).value)
             N, err = quad(f, 0, np.inf, epsabs=epsabs)
             N *= 2 * np.pi
 
@@ -496,31 +575,33 @@ class Haser(GasComa):
 
     Some functions require `scipy`.
 
+
     Parameters
     ----------
     Q : `~astropy.units.Quantity`
-      Production rate, per time.
+        Production rate, per time.
 
     v : `~astropy.units.Quantity`
-      Radial outflow speed, distance per time.
+        Radial outflow speed, distance per time.
 
     parent : `~astropy.units.Quantity`
-      Coma lengthscale of the parent species.
+        Coma lengthscale of the parent species.
 
     daughter : `~astropy.units.Quantity`, optional
-      Coma lengthscale of the daughter species.
+        Coma lengthscale of the daughter species.
 
 
     References
     ----------
     Haser 1957, Bulletin de la Societe Royale des Sciences de Liege
     43, 740.
+
     Newburn and Johnson 1978, Icarus 35, 360-368.
 
     """
 
     def __init__(self, Q, v, parent, daughter=None):
-        super(Haser, self).__init__(Q, v)
+        super().__init__(Q, v)
 
         bib.register('activity.gas.Haser', {'model': '1957BSRSL..43..740H'})
 
@@ -548,34 +629,21 @@ class Haser(GasComa):
                   * (np.exp(-r / self.parent) - np.exp(-r / self.daughter)))
 
         return n.decompose()
+    volume_density.__doc__ = GasComa.volume_density.__doc__
 
     def _iK0(self, x):
         """Integral of the modified Bessel function of 2nd kind, 0th order."""
-        try:
-            from scipy.special import iti0k0
-        except ImportError as e:
-            from astropy.utils.exceptions import AstropyWarning
-            from warnings import warn
-            warn(AstropyWarning('scipy is not present, cannot continue.'))
-            return None
-
-        return iti0k0(x.decompose().value)[1]
+        if not scipy:
+            raise AstropyWarning('scipy is not present, cannot continue.')
+        return special.iti0k0(x.decompose().value)[1]
 
     def _K1(self, x):
         """Modified Bessel function of 2nd kind, 1st order."""
-        try:
-            from scipy.special import k1
-        except ImportError as e:
-            from astropy.utils.exceptions import AstropyWarning
-            from warnings import warn
-            warn(AstropyWarning('scipy is not present, cannot continue.'))
-            return None
-
-        return k1(x.decompose().value)
+        if not scipy:
+            raise AstropyWarning('scipy is not present, cannot continue.')
+        return scipy.k1(x.decompose().value)
 
     def column_density(self, rho, eph=None):
-        from .core import rho_as_length
-
         bib.register('activity.gas.Haser.column_density',
                      {'model': '1978Icar...35..360N'})
 
@@ -592,11 +660,9 @@ class Haser(GasComa):
                       * (self._iK0(y) - self._iK0(x)))
 
         return sigma.decompose()
+    column_density.__doc__ = GasComa.column_density.__doc__
 
     def total_number(self, aper, eph=None):
-        from .core import rho_as_length, Aperture
-        from .core import RectangularAperture, GaussianAperture, AnnularAperture, CircularAperture
-
         bib.register('activity.gas.Haser.total_number',
                      {'model': '1978Icar...35..360N'})
 
@@ -606,12 +672,15 @@ class Haser(GasComa):
             if isinstance(aper, (RectangularAperture, GaussianAperture)):
                 return self._integrate_column_density(aper)
             elif isinstance(aper, AnnularAperture):
-                return self.total_number(aper.shape[1]) - self.total_number(aper.shape[0])
+                N0 = self.total_number(aper.shape[0])
+                N1 = self.total_number(aper.shape[1])
+                return N1 - N0
             elif isinstance(aper, CircularAperture):
                 rho = aper.radius
             else:
                 raise NotImplemented(
-                    "Integration of {} apertures is not implemented.".format(type(aper)))
+                    "Integration of {} apertures is not implemented."
+                    .format(type(aper)))
         else:
             rho = rho_as_length(aper, eph)
 
@@ -630,29 +699,26 @@ class Haser(GasComa):
                      + self._K1(y) - self._K1(x)))
 
         return N.decompose().value
+    total_number.__doc__ = GasComa.total_number.__doc__
 
 
 class Vectorial(GasComa):
-    """Vectorial model implementation"""
+    """Vectorial model for cometary gas.
+
+    Not yet implemented.
+
+
+    Parameters
+    ----------
+    Q : `~astropy.units.Quanitity`
+        Gas production rate with units equivalent to 1/s or mol/s.
+
+
+    Examples
+    --------
+    TBD
+
+    """
 
     def __init__(self, Q, species):
-        """Parameters
-        ----------
-        Q : `Astropy.units` quantity or iterable, mandatory
-            production rate usually in units of `u.molecule / u.s`
-        species : dictionary or list of dictionaries, mandatory
-            defines gas velocity, lifetimes, disassociative lifetimes
-
-        Returns
-        -------
-        Vectorial instance
-
-        Examples
-        --------
-        TBD
-
-        not yet implemented
-
-        """
-
-        pass
+        raise NotImplemented

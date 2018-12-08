@@ -1,26 +1,25 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-==========================
-SBPy Activity: Dust Module
-==========================
+===================
+SBPy Activity: Dust
+===================
 
 All things dust coma related.
+
 
 Functions
 ---------
 phase_HalleyMarcus - Halley-Marcus composite dust phase function.
 
+
 Classes
 -------
-Afrho     - Coma dust quantity of A'Hearn et al. (1984).
-Efrho     - Thermal emission equivalent of Afrho.
+Afrho     - Coma dust quantity for scattered light.
+Efrho     - Coma dust quantity for thermal emission.
 Syndynes  - Dust dynamical model for zero-ejection velocities.
 
 
 """
-
-import numpy as np
-import astropy.units as u
 
 __all__ = [
     'phase_HalleyMarcus',
@@ -30,9 +29,33 @@ __all__ = [
 ]
 
 
+from warnings import warn
+
+import numpy as np
+import astropy.units as u
+
+try:
+    import scipy
+    from scipy.interpolate import splrep, splev
+except ImportError:
+    scipy = None
+
+try:
+    import synphot
+    from synphot import SourceSpectrum, Observation
+    from synphot.models import BlackBody1D
+except ImportError:
+    synphot = None
+
+from astropy.utils.exceptions import AstropyWarning
+from .. import bib
+from ..spectroscopy.sun import Sun
+from ..spectroscopy.vega import Vega
+from .core import Aperture, rho_as_length
+
+
 def phase_HalleyMarcus(phase):
-    """
-    Halley-Marcus composite dust phase function.
+    """Halley-Marcus composite dust phase function.
 
     Uses `~scipy.interpolate` for spline interpolation, otherwise uses
     linear interpolation from `~numpy.interp`.
@@ -40,13 +63,13 @@ def phase_HalleyMarcus(phase):
 
     Parameters
     ----------
-    phase : `~astropy.units.Quantity`
+    phase : `~astropy.units.Quantity`, `~astropy.coordinate.Angle`
         Phase angle.
 
 
     Returns
     -------
-    Phi : float or `~np.ndarray`
+    Phi : float, `~np.ndarray`
 
 
     Notes
@@ -80,14 +103,13 @@ def phase_HalleyMarcus(phase):
     --------
     >>> from sbpy.activity import phase_HalleyMarcus
     >>> import astropy.units as u
-    >>> phase_HalleyMarcus(0 * u.deg)                    # doctest: +FLOAT_CMP
+    >>> phase_HalleyMarcus(0 * u.deg)                 # doctest: +FLOAT_CMP
     1.0
-    >>> phase_HalleyMarcus(15 * u.deg)                   # doctest: +FLOAT_CMP
+    >>> phase_HalleyMarcus(15 * u.deg)                # doctest: +FLOAT_CMP
     5.8720e-01
 
     """
 
-    from .. import bib
     bib.register(
         'activity.dust.phase_HalleyMarcus',
         {
@@ -145,17 +167,17 @@ def phase_HalleyMarcus(phase):
          7.1363e+02, 8.8448e+02, 1.0533e+03, 1.1822e+03,
          1.2312e+03])
 
-    try:
-        from scipy.interpolate import splrep, splev
-        Phi = splev(np.abs(phase), splrep(th, ph))
-    except ImportError as e:
-        from astropy.utils.exceptions import AstropyWarning
-        from warnings import warn
-        warn(AstropyWarning('scipy is not present, using linear interpolation.'))
-        Phi = np.interp(np.abs(phase), th, ph)
+    _phase = np.abs(u.Quantity(phase, 'deg').value)
 
-    if np.iterable(phase):
-        Phi = np.array(Phi).reshape(np.shape(phase))
+    if scipy:
+        Phi = splev(_phase, splrep(th, ph))
+    else:
+        warn(AstropyWarning(
+            'scipy is not present, using linear interpolation.'))
+        Phi = np.interp(_phase, th, ph)
+
+    if np.iterable(_phase):
+        Phi = np.array(Phi).reshape(np.shape(_phase))
     else:
         Phi = float(Phi)
 
@@ -163,21 +185,20 @@ def phase_HalleyMarcus(phase):
 
 
 class Afrho(u.SpecificTypeQuantity):
-    """
-    Coma dust quantity for scattered light.
+    """Coma dust quantity for scattered light.
 
-    ``Afrho`` objects behave like astropy `~astropy.units.Quantity`
-    objects with units of length.
+    ``Afrho`` objects behave like `~astropy.units.Quantity` objects
+    with units of length.
 
 
     Parameters
     ----------
-    value : number, astropy `~astropy.units.Quantity`
+    value : number, `~astropy.units.Quantity`
         The value(s).
 
-    unit : string, astropy `~Unit`
-        The unit of the input value, if ``value`` is a number.  If a
-        string, it must be parseable by :mod:`~astropy.units` package.
+    unit : string, `~astropy.units.Unit`, optional
+        The unit of the input value.  Strings must be parseable by
+        :mod:`~astropy.units` package.
 
     dtype : `~numpy.dtype`, optional
         See `~astropy.units.Quantity`.
@@ -217,8 +238,7 @@ class Afrho(u.SpecificTypeQuantity):
     @classmethod
     def from_fluxd(cls, wave_or_freq, fluxd, aper, eph, phasecor=False,
                    Phi=None, S=None, unit=None):
-        """
-        Initialize from flux density.
+        """Initialize from flux density.
 
         Parameters
         ----------
@@ -232,7 +252,7 @@ class Afrho(u.SpecificTypeQuantity):
             Aperture of the observation as a circular radius (length
             or angular units), or as an `~sbpy.activity.Aperture`.
 
-        eph : dictionary-like or `~sbpy.data.Ephem`
+        eph : dictionary-like, `~sbpy.data.Ephem`
             Ephemerides of the comet, describing heliocentric and
             geocentric distances as a `~astropy.units.Quantity` via
             keywords ``rh`` and ``delta``.  Phase angle, ``phase``, is
@@ -280,7 +300,7 @@ class Afrho(u.SpecificTypeQuantity):
 
         Parameters
         ----------
-        bandpass : string or `~synphot.SpectralElement`
+        bandpass : string, `~synphot.SpectralElement`
             The bandpass for ``fluxd`` as the name of a filter, or a
             transmission spectrum as a `~synphot.SpectralElement`.
             See :ref:`sbpy_spectral_standards` for calibration notes.
@@ -292,7 +312,7 @@ class Afrho(u.SpecificTypeQuantity):
             Aperture of the observation as a circular radius(length
             or angular units), or as an `~sbpy.activity.Aperture`.
 
-        eph: dictionary-like or `~sbpy.data.Ephem`
+        eph: dictionary-like, `~sbpy.data.Ephem`
             Ephemerides of the comet, describing heliocentric and
             geocentric distances as `~astropy.units.Quantity` via
             keywords ``rh`` and ``delta``.  Phase angle, ``phase``, is
@@ -331,15 +351,13 @@ class Afrho(u.SpecificTypeQuantity):
 
         Notes
         -----
-        Filter names can be found in the `~synphot` `documentation
+        Filter names can be found in the :mod:`~synphot` `documentation
         # synphot-predefined-filter>`_.
         <http: // synphot.readthedocs.io/en/stable/synphot/bandpass.html
 
         """
 
-        from ..spectroscopy.sun import default_sun
-
-        sun = default_sun.get()
+        sun = Sun.from_default()
         wave, S = sun.filt(bandpass, unit=fluxd.unit)
         return cls.from_fluxd(None, fluxd, aper, eph, S=S, **kwargs)
 
@@ -347,6 +365,7 @@ class Afrho(u.SpecificTypeQuantity):
     def from_mag(cls, mag, unit, aper, eph, bandpass=None, m_sun=None,
                  verbose=True, **kwargs):
         """Initialize from filter and magnitude.
+
 
         Parameters
         ----------
@@ -361,15 +380,15 @@ class Afrho(u.SpecificTypeQuantity):
             Aperture of the observation as a circular radius(length
             or angular units), or as an `~sbpy.activity.Aperture`.
 
-        eph: dictionary-like or `~sbpy.data.Ephem`
+        eph: dictionary-like, `~sbpy.data.Ephem`
             Ephemerides of the comet, describing heliocentric and
             geocentric distances as `~astropy.units.Quantity` via
             keywords ``rh`` and ``delta``.  Phase angle, ``phase``, is
             required if ``phasecor`` is enabled.
 
-        bandpass : string or `~synphot.SpectralElement`
+        bandpass : string, `~synphot.SpectralElement`
             Compute the apparent magnitude of the Sun though this
-            bandpass: the name of a `~synphot` filter, or a
+            bandpass: the name of a :mod:`~synphot` filter, or a
             transmission spectrum as a `~synphot.SpectralElement`.
             Ignored if ``m_sun`` is defined.  See
             :ref:`sbpy_spectral_standards` for calibration notes.
@@ -386,6 +405,7 @@ class Afrho(u.SpecificTypeQuantity):
             Additional keyword arguments for `~Afrho.from_fluxd`,
             except ``S``.
 
+
         Examples
         --------
         >>> import astropy.units as u
@@ -401,28 +421,27 @@ class Afrho(u.SpecificTypeQuantity):
         >>> afrho.value                # doctest: +REMOTE_DATA +FLOAT_CMP
         3423.6675739077887
 
+
         Notes
         -----
-        Filter names can be found in the `~synphot` `documentation
+        Filter names can be found in the :mod:`~synphot` `documentation
         <http://synphot.readthedocs.io/en/stable/synphot/bandpass.html#synphot-predefined-filter>`_.
 
         A discussion of magnitude zero points can be found in the
-        `~synphot` `documentation
+        :mod:`~synphot` `documentation
         <http://synphot.readthedocs.io/en/latest/synphot/units.html#counts-and-magnitudes>`_.
 
         """
 
-        from ..spectroscopy.sun import default_sun
-        from ..spectroscopy.vega import default_vega
-
         if m_sun is None and bandpass is None:
-            raise ValueError('One of `bandpass` or `m_sun` must be provided.')
+            raise TypeError(
+                'One of `bandpass` or `m_sun` must be provided.')
 
         if m_sun is None:
-            sun = default_sun.get()
+            sun = Sun.from_default()
             if unit.lower() == 'vegamag':
                 fluxd_sun = sun.filt(bandpass, unit='W/(m2 um)')[1]
-                vega = default_vega.get()
+                vega = Vega.from_default()
                 fluxd_vega = vega.filt(bandpass, unit='W/(m2 um)')[1]
                 m_sun = -2.5 * np.log10(fluxd_sun / fluxd_vega).value
             elif unit.lower() == 'abmag':
@@ -433,7 +452,8 @@ class Afrho(u.SpecificTypeQuantity):
                 m_sun = -2.5 * np.log10(fluxd_sun.value) - 21.10
             else:
                 raise ValueError(
-                    'Magnitude system must be one of vegamag, abmag, or stmag.')
+                    'Magnitude system must be one of vegamag, abmag, '
+                    'or stmag.')
             if verbose:
                 print('Using m_sun = {:.4f}'.format(m_sun))
 
@@ -443,10 +463,10 @@ class Afrho(u.SpecificTypeQuantity):
 
     def fluxd(self, wave_or_freq, aper, eph, phasecor=False, Phi=None,
               S=None, unit='W/(m2 um)'):
-        """
-        Coma flux density.
+        """Coma flux density.
 
         Assumes the small angle approximation.
+
 
         Parameters
         ----------
@@ -455,10 +475,10 @@ class Afrho(u.SpecificTypeQuantity):
             `S` is provided.
 
         aper: `~astropy.units.Quantity`, `~sbpy.activity.Aperture`
-            Aperture of the observation as a circular radius(length
+            Aperture of the observation as a circular radius (length
             or angular units), or as an sbpy `~sbpy.activity.Aperture`.
 
-        eph: dictionary-like or `~sbpy.data.Ephem`
+        eph: dictionary-like, `~sbpy.data.Ephem`
             Ephemerides of the comet, describing heliocentric and
             geocentric distances as `~astropy.units.Quantity` via
             keywords ``rh`` and ``delta``.  Phase angle, ``phase``, is
@@ -476,7 +496,7 @@ class Afrho(u.SpecificTypeQuantity):
             then the default solar spectrum will be used via
             `~sbpy.spectroscopy.sun.default_sun`.
 
-        unit : string or `~astropy.units.Unit`, optional
+        unit : string, `~astropy.units.Unit`, optional
             The flux density unit for the output, ignored if ``S`` is
             provided.
 
@@ -501,10 +521,6 @@ class Afrho(u.SpecificTypeQuantity):
 
         """
 
-        from .core import Aperture, rho_as_length
-        from ..spectroscopy.sun import default_sun
-        from .. import bib
-
         bib.register('activity.dust.Afrho.fluxd', {
                      'model': '1984AJ.....89..579A'})
 
@@ -518,7 +534,7 @@ class Afrho(u.SpecificTypeQuantity):
 
         # check solar flux density
         if S is None:
-            sun = default_sun.get()
+            sun = Sun.from_default()
             S = sun(wave_or_freq, unit=unit)
         else:
             if not (S.unit.is_equivalent(u.W / u.m**2 / u.um)
@@ -543,10 +559,10 @@ class Afrho(u.SpecificTypeQuantity):
 
         Parameters
         ----------
-        bandpass : string or `~synphot.SpectralElement`
+        bandpass : string, `~synphot.SpectralElement`
             Compute the coma flux density through this bandpass: the
-            name of a `~synphot` filter, or a transmission spectrum as
-            a `~synphot.SpectralElement`.  See
+            name of a :mod:`~synphot` filter, or a transmission
+            spectrum as a `~synphot.SpectralElement`.  See
             :ref:`sbpy_spectral_standards` for calibration notes.
 
         aper : `~astropy.units.Quantity`, `~sbpy.activity.Aperture`
@@ -554,13 +570,13 @@ class Afrho(u.SpecificTypeQuantity):
             or angular units), or as an sbpy `~sbpy.activity.Aperture`
             class.
 
-        eph : dictionary-like or `~sbpy.data.Ephem`
+        eph : dictionary-like, `~sbpy.data.Ephem`
             Ephemerides of the comet, describing heliocentric and
             geocentric distances as `~astropy.units.Quantity` via
             keywords ``rh`` and ``delta``.  Phase angle, ``phase``, is
             required if `phasecor` is enabled.
 
-        unit : string or `~astropy.units.Unit`, optional
+        unit : string, `~astropy.units.Unit`, optional
             The spectral unit for the output.
 
         **kwargs
@@ -608,9 +624,7 @@ class Afrho(u.SpecificTypeQuantity):
 
         """
 
-        from ..spectroscopy.sun import default_sun
-
-        sun = default_sun.get()
+        sun = Sun.from_default()
         wave, S = sun.filt(bandpass, unit=unit)
         return self.fluxd(None, aper, eph, S=S, unit=unit, **kwargs)
 
@@ -626,19 +640,19 @@ class Afrho(u.SpecificTypeQuantity):
             Ignored if ``m_sun`` is provided.  See
             :ref:`sbpy_spectral_standards` for calibration notes.
 
-        aper : `~astropy.units.Quantity` or `~sbpy.activity.Aperture`
+        aper : `~astropy.units.Quantity`, `~sbpy.activity.Aperture`
             Aperture of the observation as a circular radius (length
             or angular units), or as an sbpy `~sbpy.activity.Aperture`
             class.
 
-        eph : dictionary-like or `~sbpy.data.Ephem`, optional
+        eph : dictionary-like, `~sbpy.data.Ephem`, optional
             Ephemerides of the comet, describing heliocentric and
             geocentric distances as `~astropy.units.Quantity` via
             keywords ``rh`` and ``delta``.
 
-        bandpass : string or `~synphot.SpectralElement`, optional
+        bandpass : string, `~synphot.SpectralElement`, optional
             Compute the apparent mangitude of the Sun in this
-            bandpass: the name of a `~synphot` filter, or a
+            bandpass: the name of a :mod:`~synphot` filter, or a
             transmission spectrum as a `~synphot.SpectralElement`.
             Ignored if ``m_sun`` is provided.  See
             :ref:`sbpy_spectral_standards` for calibration notes.
@@ -685,15 +699,14 @@ class Afrho(u.SpecificTypeQuantity):
         """
 
         if m_sun is None and bandpass is None:
-            raise ValueError('One of `bandpass` or `m_sun` must be provided.')
+            raise TypeError('One of `bandpass` or `m_sun` must be provided.')
 
         afrho0 = Afrho.from_mag(0, unit, aper, eph, bandpass=bandpass,
                                 m_sun=m_sun, verbose=verbose, **kwargs)
         return -2.5 * np.log10(self.cm / afrho0.cm)
 
     def to_phase(self, to_phase, from_phase, Phi=None):
-        """
-        Scale Afρ to another phase angle.
+        """Scale Afρ to another phase angle.
 
 
         Parameters
@@ -704,7 +717,7 @@ class Afrho(u.SpecificTypeQuantity):
         from_phase : `~astropy.units.Quantity`
             Current target phase angle.
 
-        Phi : callable or `None`
+        Phi : callable, optional
             Phase function, a callable object that takes a single
             parameter, phase angle as a `~astropy.units.Quantity`, and
             returns a scale factor.  If ``None``,
@@ -734,21 +747,20 @@ class Afrho(u.SpecificTypeQuantity):
 
 
 class Efrho(u.SpecificTypeQuantity):
-    """
-    Coma dust quantity for thermal emission.
+    """Coma dust quantity for thermal emission.
 
-    ``Efrho`` objects are Astropy `~astropy.units.Quantity`s with
-    units of length.
+    ``Efrho`` behave like `~astropy.units.Quantity` objects with units
+    of length.
 
 
     Parameters
     ----------
-    value : number, astropy `~astropy.units.Quantity`
-      The value(s).
+    value : number, `~astropy.units.Quantity`
+        The value(s).
 
-    unit : str, `~astropy.units.Unit`
-      The unit of the input value, if `value` is a number.  If a
-      string, it must be parseable by :mod:`~astropy.units` package.
+    unit : str, `~astropy.units.Unit`, optional
+        The unit of the input value.  Strings must be parseable by
+        :mod:`~astropy.units` package.
 
     dtype : `~numpy.dtype`, optional
         See `~astropy.units.Quantity`.
@@ -772,7 +784,6 @@ class Efrho(u.SpecificTypeQuantity):
     Kelley et al. 2013, Icarus 225, 475-494.
 
 
-
     Examples
     --------
     >>> from sbpy.activity import Efrho
@@ -791,8 +802,10 @@ class Efrho(u.SpecificTypeQuantity):
     @staticmethod
     def _planck(Tscale, T, eph):
         """Planck function and temperature for dust thermal emission."""
-        from synphot import SourceSpectrum
-        from synphot.models import BlackBody1D
+        if not synphot:
+            raise AstropyWarning(
+                'synphot is required for blackbody calculations')
+
         if T is None:
             T = Tscale * 278 / np.sqrt(eph['rh'] / u.au) * u.K
         # Does not include the factor of pi:
@@ -800,8 +813,8 @@ class Efrho(u.SpecificTypeQuantity):
 
     @staticmethod
     def _observe_through_filter(bp, B, unit):
-        from synphot import Observation
-        from ..spectroscopy.vega import default_vega
+        if not synphot:
+            raise AstropyWarning('synphot is required for bandpass filtering.')
         obs = Observation(B, bp)
         wave = obs.effective_wavelength()
         fluxd = obs.effstim(unit)
@@ -829,7 +842,7 @@ class Efrho(u.SpecificTypeQuantity):
             or angular units), or as an sbpy `~sbpy.activity.Aperture`
             class.
 
-        eph : dictionary-like or `~sbpy.data.Ephem`
+        eph : dictionary-like, `~sbpy.data.Ephem`
             Ephemerides of the comet, describing heliocentric and
             geocentric distances as `~astropy.units.Quantity` via
             keywords ``rh`` and ``delta``.
@@ -875,7 +888,7 @@ class Efrho(u.SpecificTypeQuantity):
 
         Parameters
         ----------
-        bandpass : string or `~synphot.SpectralElement`
+        bandpass : string, `~synphot.SpectralElement`
             The filter bandpass for ``fluxd`` as the name of a filter,
             or a transmission spectrum as a
             `~synphot.SpectralElement`.  See
@@ -888,7 +901,7 @@ class Efrho(u.SpecificTypeQuantity):
             Aperture of the observation as a circular radius (length
             or angular units), or as an `~sbpy.activity.Aperture`.
 
-        eph : dictionary-like or `~sbpy.data.Ephem`
+        eph : dictionary-like, `~sbpy.data.Ephem`
             Ephemerides of the comet, describing heliocentric and
             geocentric distances as `~astropy.units.Quantity` via
             keywords ``rh`` and ``delta``.  Phase angle, ``phase``, is
@@ -908,7 +921,7 @@ class Efrho(u.SpecificTypeQuantity):
 
         Notes
         -----
-        Built-in filter names can be found in the `~synphot` `documentation
+        Built-in filter names can be found in the :mod:`~synphot` `documentation
         <http://synphot.readthedocs.io/en/stable/synphot/bandpass.html#synphot-predefined-filter>`_.
 
         """
@@ -937,7 +950,7 @@ class Efrho(u.SpecificTypeQuantity):
             Aperture of the observation as a circular radius (length
             or angular units), or as an `~sbpy.activity.Aperture`.
 
-        eph : dictionary-like or `~sbpy.data.Ephem`
+        eph : dictionary-like, `~sbpy.data.Ephem`
             Ephemerides of the comet, describing heliocentric and
             geocentric distances.
 
@@ -975,18 +988,17 @@ class Efrho(u.SpecificTypeQuantity):
         Notes
         -----
         A discussion of magnitude zero points can be found in the
-        `~synphot` `documentation
+        :mod:`~synphot` `documentation
         <http://synphot.readthedocs.io/en/latest/synphot/units.html#counts-and-magnitudes>`_.
 
         """
-        from ..spectroscopy.vega import default_vega
 
         if bandpass is None and fluxd0 is None:
-            raise ValueError('One of `bandpass` or `fluxd0` must be provided.')
+            raise TypeError('One of `bandpass` or `fluxd0` must be provided.')
 
         if fluxd0 is None:
             if unit.lower() == 'vegamag':
-                vega = default_vega.get()
+                vega = Vega.from_default()
                 fluxd0 = vega.filt(bandpass, unit='W/(m2 um)')[1]
             elif unit.lower() == 'abmag':
                 fluxd0 = u.Quantity(10**(-0.4 * 48.60), 'erg/(s cm2 Hz)')
@@ -1022,7 +1034,7 @@ class Efrho(u.SpecificTypeQuantity):
             Aperture of the observation as a circular radius(length or
             angular units), or as an sbpy `~sbpy.activity.Aperture` class.
 
-        eph : dictionary-like or `~sbpy.data.Ephem`
+        eph : dictionary-like, `~sbpy.data.Ephem`
             Ephemerides of the comet, describing heliocentric and
             geocentric distances as `~astropy.units.Quantity` via
             keywords ``rh`` and ``delta``.  ``rh`` is not required
@@ -1036,7 +1048,7 @@ class Efrho(u.SpecificTypeQuantity):
             Use this temperature for the Planck function.  Ignored if
             ``B`` is provided.
 
-        unit : `~astropy.units.Unit` or string, optional
+        unit : `~astropy.units.Unit`, string, optional
             Return quantity with this unit.  The default behavior is
             to inspect ``wave_or_freq`` and return W / (m2 μm) for
             wavelengths, Jy for frequency.
@@ -1066,9 +1078,6 @@ class Efrho(u.SpecificTypeQuantity):
         0.006519545281786034
 
         """
-
-        from .core import rho_as_length, Aperture
-        from .. import bib
 
         bib.register('activity.dust.Efrho.fluxd',
                      {'model': '2013Icar..225..475K'})
@@ -1109,10 +1118,10 @@ class Efrho(u.SpecificTypeQuantity):
 
         Parameters
         ----------
-        bandpass : string or `~synphot.SpectralElement`
+        bandpass : string, `~synphot.SpectralElement`
             Compute the coma flux density through this bandpass: the
-            name of a `~synphot` filter, or a transmission spectrum as
-            a `~synphot.SpectralElement`.  See
+            name of a :mod:`~synphot` filter, or a transmission
+            spectrum as a `~synphot.SpectralElement`.  See
             :ref:`sbpy_spectral_standards` for calibration notes.
 
         aper : `~astropy.units.Quantity`, `~sbpy.activity.Aperture`
@@ -1120,7 +1129,7 @@ class Efrho(u.SpecificTypeQuantity):
             or angular units), or as an sbpy `~sbpy.activity.Aperture`
             class.
 
-        eph : dictionary-like or `~sbpy.data.Ephem`
+        eph : dictionary-like, `~sbpy.data.Ephem`
             Ephemerides of the comet, describing heliocentric and
             geocentric distances as `~astropy.units.Quantity` via
             keywords ``rh`` and ``delta``.  Phase angle, ``phase``, is
@@ -1139,12 +1148,13 @@ class Efrho(u.SpecificTypeQuantity):
             units).  Overrides ``T`` and ``Tscale``, ``eph['rh']`` is
             ignored.
 
-        unit : string or `~astropy.units.Unit`, optional
+        unit : string, `~astropy.units.Unit`, optional
             The spectral unit for the output.
 
 
         Examples
         --------
+
 
         Returns
         -------
@@ -1175,19 +1185,19 @@ class Efrho(u.SpecificTypeQuantity):
             Name of magnitude system: 'vegamag', 'ABmag', or 'STmag'.
             Ignored if ``fluxd0`` is provided.
 
-        aper : `~astropy.units.Quantity` or `~sbpy.activity.Aperture`
+        aper : `~astropy.units.Quantity`, `~sbpy.activity.Aperture`
             Aperture of the observation as a circular radius (length
             or angular units), or as an sbpy `~sbpy.activity.Aperture`
             class.
 
-        eph : dictionary-like or `~sbpy.data.Ephem`, optional
+        eph : dictionary-like, `~sbpy.data.Ephem`, optional
             Ephemerides of the comet, describing heliocentric and
             geocentric distances.
 
-        bandpass : string or `~synphot.SpectralElement`, optional
+        bandpass : string, `~synphot.SpectralElement`, optional
             Compute the 0-mag flux density in this bandpass.  Provide
-            either the name of a `~synphot` filter, or a transmission
-            spectrum.  Ignored if ``fluxd0`` is provided.
+            either the name of a :mod:`~synphot` filter, or a
+            transmission spectrum.  Ignored if ``fluxd0`` is provided.
 
         fluxd0 : float, optional
             Spectral flux density for 0th mag.
@@ -1233,7 +1243,7 @@ class Efrho(u.SpecificTypeQuantity):
         """
 
         if fluxd0 is None and bandpass is None:
-            raise ValueError('One of `bandpass` or `fluxd0` must be provided.')
+            raise TypeError('One of `bandpass` or `fluxd0` must be provided.')
 
         efrho0 = Efrho.from_mag(0, unit, aper, eph, bandpass=bandpass,
                                 fluxd0=fluxd0, Tscale=Tscale, **kwargs)
@@ -1241,26 +1251,41 @@ class Efrho(u.SpecificTypeQuantity):
 
 
 class Syndynes:
-    """Syndynes and Synchrones"""
+    """Syndyne and synchrone generator.
 
-    def __init__(self, orb, date):
+
+    Parameters
+    ----------
+    orbit : `~sbpy.data.Orbit`
+        Comet orbital parameters.
+
+    date : `~astropy.time.Time`
+        Date of observation.
+
+    location : various, optional
+        IAU observatory code as a string; a location on the Earth as
+        an `~astropy.coordinates.EarthLocation`; or, a location in the
+        Solar System via :mod"`~astropy.coordinates` objects, e.g.,
+        `~astropy.coordinates.HeliocentricTrueEcliptic`.
+
+    """
+
+    def __init__(self, orb, date, location='500'):
         self.orb = orb
         self.date = date
         raise NotImplemented
 
-    def plot_syndynes(self, betas, ages, location='500'):
-        """
-        Plot syndynes for an observer.
+    def plot_syndynes(self, beta, age):
+        """Plot syndynes for an observer.
 
 
         Parameters
         ----------
-        betas: array, mandatory
-            beta values
-        ages: array, mandatory
-            synchrone ages
-        location: str, optional, default: '500' (geocentric)
-            observer location MPC code
+        beta: array-like
+            Test particle β values.
+
+        age: `~astropy.units.Quantity`
+            Test particle ages.
 
 
         Returns

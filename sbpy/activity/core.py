@@ -8,6 +8,7 @@ geometries.
 created on June 23, 2017
 """
 
+
 __all__ = [
     'rho_as_angle',
     'rho_as_length',
@@ -17,7 +18,9 @@ __all__ = [
     'GaussianAperture',
 ]
 
+
 from abc import ABC, abstractmethod
+
 import numpy as np
 import astropy.units as u
 
@@ -25,13 +28,15 @@ import astropy.units as u
 def rho_as_angle(rho, eph):
     """Projected linear distance to angular distance.
 
+
     Parameters
     ----------
     rho : `~astropy.units.Quantity`
-      Projected distance in units of length.
+        Projected distance in units of length.
 
-    eph : dictionary-like or `~sbpy.data.Ephem`
-      Ephemerides; requires geocentric distance as `delta`.
+    eph : dictionary-like, `~sbpy.data.Ephem`
+        Ephemerides; requires geocentric distance as `delta`.
+
 
     Returns
     -------
@@ -52,13 +57,15 @@ def rho_as_angle(rho, eph):
 def rho_as_length(rho, eph):
     """Angular distance to projected linear distance.
 
+
     Parameters
     ----------
     rho : `~astropy.units.Quantity`
-      Projected distance in units of angle.
+        Projected distance in units of angle.
 
-    eph : dictionary-like or `~sbpy.data.Ephem`
-      Ephemerides; requires geocentric distance as `delta`.
+    eph : dictionary-like, `~sbpy.data.Ephem`
+        Ephemerides; requires geocentric distance as `delta`.
+
 
     Returns
     -------
@@ -77,8 +84,11 @@ def rho_as_length(rho, eph):
 
 
 class Aperture(ABC):
-    """Abstract base class for photometric apertures.
+    """
+    Abstract base class for photometric apertures.
 
+    Notes
+    -----
     The shape of the aperture must be passed as the first argument of
     `__init__`, or else `as_length` and `as_angle` must be overridden.
 
@@ -98,12 +108,14 @@ class Aperture(ABC):
     def as_angle(self, eph):
         """This aperture in units of angle.
 
+
         Parameters
         ----------
-        eph : dictionary-like or `~sbpy.data.Ephem`, optional
-          Ephemerides at epoch; requires geocentric distance as
-          `delta` keyword.  Ignored if the aperture is already in
-          units of angle.
+        eph : dictionary-like, `~sbpy.data.Ephem`, optional
+            Ephemerides at epoch; requires geocentric distance as
+            `delta` keyword.  Ignored if the aperture is already in
+            units of angle.
+
 
         Returns
         -------
@@ -117,12 +129,14 @@ class Aperture(ABC):
     def as_length(self, eph):
         """This aperture in units of length.
 
+
         Parameters
         ----------
-        eph : dictionary-like or `~sbpy.data.Ephem`, optional
-          Ephemerides at epoch; requires geocentric distance as
-          `delta` keyword.  Ignored if the aperture is already in
-          units of length.
+        eph : dictionary-like, `~sbpy.data.Ephem`, optional
+            Ephemerides at epoch; requires geocentric distance as
+            `delta` keyword.  Ignored if the aperture is already in
+            units of length.
+
 
         Returns
         -------
@@ -149,6 +163,7 @@ class Aperture(ABC):
     def coma_equivalent_radius(self):
         """Circular aperture radius that yields same flux for a 1/ρ coma.
 
+
         Returns
         -------
         rap : `~astropy.units.Quantity`
@@ -159,12 +174,13 @@ class Aperture(ABC):
 
 
 class CircularAperture(Aperture):
-    """A circular aperture projected at the distance of the target.
+    """Circular aperture projected at the distance of the target.
+
 
     Parameters
     ----------
     radius : `~astropy.units.Quantity`
-      Angular or projected linear radius for the aperture.
+        Angular or projected linear radius for the aperture.
 
     """
 
@@ -176,20 +192,24 @@ class CircularAperture(Aperture):
 
     @property
     def radius(self):
+        """Aperture radius."""
         return self.dim
 
     def coma_equivalent_radius(self):
         return self.radius
+    coma_equivalent_radius.__doc__ = Aperture.coma_equivalent_radius.__doc__
 
 
 class AnnularAperture(Aperture):
     """Annular aperture projected at the distance of the target.
 
+
     Parameters
     ----------
     shape : `~astropy.units.Quantity`
-      A two-element `~astropy.units.Quantity` of angular or projected
-      linear size for the inner and outer radius of the aperture.
+        A two-element `~astropy.units.Quantity` of angular or
+        projected linear size for the inner and outer radius of the
+        aperture.
 
     """
 
@@ -199,14 +219,17 @@ class AnnularAperture(Aperture):
         super().__init__(shape)
 
     def __str__(self):
-        return "Annular aperture, radii {0[0].value:}–{0[1]:}".format(self.dim)
+        return ("Annular aperture, radii {0[0].value:}–{0[1]:}"
+                .format(self.dim))
 
     @property
     def shape(self):
+        """Annulus inner and outer radii."""
         return self.dim
 
     def coma_equivalent_radius(self):
         return max(self.dim) - min(self.dim)
+    coma_equivalent_radius.__doc__ = Aperture.coma_equivalent_radius.__doc__
 
 
 class RectangularAperture(Aperture):
@@ -215,9 +238,9 @@ class RectangularAperture(Aperture):
     Parameters
     ----------
     shape : `~astropy.units.Quantity`
-      A two-element `~astropy.units.Quantity` of angular or projected
-      linear size for the width and height of the aperture.  The order
-      is not significant.
+        A two-element `~astropy.units.Quantity` of angular or
+        projected linear size for the width and height of the
+        aperture.  The order is not significant.
 
     """
 
@@ -227,10 +250,12 @@ class RectangularAperture(Aperture):
         super().__init__(shape)
 
     def __str__(self):
-        return "Rectangular aperture, dimensions {0[0].value:}×{0[1]:}".format(self.dim)
+        return ("Rectangular aperture, dimensions {0[0].value:}×{0[1]:}"
+                .format(self.dim))
 
     @property
     def shape(self):
+        """Rectangle dimensions."""
         return self.dim
 
     def coma_equivalent_radius(self):
@@ -266,19 +291,23 @@ class RectangularAperture(Aperture):
         I1 = x * np.log(y / x + np.sqrt(1 + (y / x)**2))
         I2 = y * np.log(x / y + np.sqrt(1 + (x / y)**2))
         return (I1 + I2) / np.pi
+    coma_equivalent_radius.__doc__ = Aperture.coma_equivalent_radius.__doc__
 
 
 class GaussianAperture(Aperture):
-    """A Gaussian-shaped aperture, e.g., for radio observations.
+    """Gaussian-shaped aperture, e.g., for radio observations.
+
 
     Parameters
     ----------
     sigma : `~astropy.units.Quantity`, optional
-      The width of the Gaussian beam (square-root of the variance) as
-      an angular or projected size.
+        The width of the Gaussian beam (square-root of the variance)
+        as an angular or projected size.
+
     fwhm : `~astropy.units.Quantity`, optional
-      The full-width at half-maximum of the Gaussian beam as an
-      angular or projected size.
+        The full-width at half-maximum of the Gaussian beam as an
+        angular or projected size.
+
 
     Notes
     -----
@@ -288,7 +317,7 @@ class GaussianAperture(Aperture):
 
     def __init__(self, sigma=None, fwhm=None):
         if (sigma is None) and (fwhm is None):
-            raise ValueError('One of `sigma` or `fwhm` must be defined')
+            raise TypeError('One of `sigma` or `fwhm` must be defined')
 
         if sigma is not None:
             super().__init__(sigma)
@@ -300,10 +329,12 @@ class GaussianAperture(Aperture):
 
     @property
     def sigma(self):
+        """Beam Gaussian width."""
         return self.dim
 
     @property
     def fwhm(self):
+        """Beam full-width at half-maximum."""
         return self.dim * 2.3548200450309493
 
     def __call__(self, rho, eph=None):
@@ -312,19 +343,21 @@ class GaussianAperture(Aperture):
         Parameters
         ----------
         rho : `~astropy.units.Quantity`
-          Position to evaluate, in units of length or angle.
-        eph : dictionary-like or `~sbpy.data.Ephem`, optional
-          Ephemerides at epoch; requires geocentric distance as
-          `delta` keyword if the aperture's units and `rho`'s units do
-          not match.
+            Position to evaluate, in units of length or angle.
+
+        eph : dictionary-like, `~sbpy.data.Ephem`, optional
+            Ephemerides at epoch; requires geocentric distance as
+            `delta` keyword if the aperture's units and `rho`'s units
+            do not match.
 
         """
 
         x = self._convert_unit(rho, eph)
 
-        # normalize to 1.0 at the center?
+        # normalize to 1.0 at the center
         return np.exp(-x**2 / self.sigma**2 / 2)
 
     def coma_equivalent_radius(self):
-        # This beam is normalized to 1.0 at the center, is that correct?
+        # This beam is normalized to 1.0 at the center.
         return np.sqrt(np.pi / 2) * self.sigma
+    coma_equivalent_radius.__doc__ = Aperture.coma_equivalent_radius.__doc__
