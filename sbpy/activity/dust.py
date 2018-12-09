@@ -333,19 +333,22 @@ class Afrho(u.SpecificTypeQuantity):
         >>> aper = 1 * u.arcsec
         >>> eph = dict(rh=1.5 * u.au, delta=1.0 * u.au)
         >>> afrho = Afrho.from_filt(bp, fluxd, aper, eph)
-        ...                               # doctest: +REMOTE_DATA +IGNORE_OUTPUT
-        >>> afrho.cm                      # doctest: +FLOAT_CMP +REMOTE_DATA
+        ...                           # doctest: +REMOTE_DATA +IGNORE_OUTPUT
+        >>> afrho.cm                  # doctest: +FLOAT_CMP +REMOTE_DATA
         1000.0
 
         Using Spitzer's IRAC 3.6-μm filter (online):
 
         >>> from synphot import SpectralElement
         >>> fluxd = 5.286867353823682e-16 * u.W / u.m**2 / u.um
-        >>> bp = SpectralElement.from_file('http://irsa.ipac.caltech.edu/data/SPITZER/docs/irac/calibrationfiles/spectralresponse/080924ch1trans_full.txt', wave_unit='um')
-        ...                               # doctest: +REMOTE_DATA +IGNORE_OUTPUT
+        >>> bp = SpectralElement.from_file(
+        ...   'http://irsa.ipac.caltech.edu/data/SPITZER/'
+        ...   'docs/irac/calibrationfiles/spectralresponse/'
+        ...   '080924ch1trans_full.txt', wave_unit='um')
+        ...                          # doctest: +REMOTE_DATA +IGNORE_OUTPUT
         >>> afrho = Afrho.from_filt(bp, fluxd, aper, eph)
-        ...                               # doctest: +REMOTE_DATA
-        >>> afrho.cm                      # doctest: +REMOTE_DATA
+        ...                          # doctest: +REMOTE_DATA
+        >>> afrho.cm                 # doctest: +REMOTE_DATA
         1000.0
 
 
@@ -683,8 +686,8 @@ class Afrho(u.SpecificTypeQuantity):
         ...        'delta': 0.49 * u.au,
         ...        'phase': 17.8 * u.deg}
         >>> afrho.mag('vegamag', aper, eph, bandpass='cousins_i',
-        ...           phasecor=True)       # doctest: +REMOTE_DATA +IGNORE_OUTPUT
-        8.49                               # doctest: +REMOTE_DATA +FLOAT_CMP
+        ...           phasecor=True)  # doctest: +REMOTE_DATA +IGNORE_OUTPUT
+        8.49                          # doctest: +REMOTE_DATA +FLOAT_CMP
 
 
         Notes
@@ -921,7 +924,8 @@ class Efrho(u.SpecificTypeQuantity):
 
         Notes
         -----
-        Built-in filter names can be found in the :mod:`~synphot` `documentation
+        Built-in filter names can be found in the :mod:`~synphot`
+        `documentation
         <http://synphot.readthedocs.io/en/stable/synphot/bandpass.html#synphot-predefined-filter>`_.
 
         """
@@ -1006,7 +1010,8 @@ class Efrho(u.SpecificTypeQuantity):
                 fluxd0 = u.Quantity(10**(-0.4 * 21.10), 'erg/(s cm2 AA)')
             else:
                 raise ValueError(
-                    'Magnitude system must be one of vegamag, abmag, or stmag.')
+                    'Magnitude system must be one of vegamag, abmag, '
+                    'or stmag.')
             if verbose:
                 print('Using fluxd0 = {:.4g}'.format(fluxd0))
 
@@ -1219,14 +1224,14 @@ class Efrho(u.SpecificTypeQuantity):
         >>> from sbpy.activity import Efrho
         >>> bp = SpectralElement.from_file('https://irsa.ipac.caltech.edu/'
         ... 'data/SPITZER/docs/files/spitzer/redPUtrans.txt', wave_unit='um',
-        ... comment=';')               # doctest: +REMOTE_DATA +IGNORE_OUTPUT
+        ... comment=';')             # doctest: +REMOTE_DATA +IGNORE_OUTPUT
         >>> efrho = Efrho(3423.67, u.cm)
         >>> aper = 10000 * u.km
         >>> eph = {'rh': 1.45 * u.au,
         ...        'delta': 0.49 * u.au}
         >>> efrho.mag('vegamag', aper, eph, bandpass=bp)
-        ...                                # doctest: +REMOTE_DATA +IGNORE_OUTPUT
-        10.0                               # doctest: +REMOTE_DATA +FLOAT_CMP
+        ...                          # doctest: +REMOTE_DATA +IGNORE_OUTPUT
+        10.0                         # doctest: +REMOTE_DATA +FLOAT_CMP
 
 
         Notes
