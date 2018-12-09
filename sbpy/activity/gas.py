@@ -641,7 +641,7 @@ class Haser(GasComa):
         """Modified Bessel function of 2nd kind, 1st order."""
         if not scipy:
             raise AstropyWarning('scipy is not present, cannot continue.')
-        return scipy.k1(x.decompose().value)
+        return special.k1(x.decompose().value)
 
     def column_density(self, rho, eph=None):
         bib.register('activity.gas.Haser.column_density',

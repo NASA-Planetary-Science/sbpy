@@ -258,13 +258,15 @@ class TestEfrho:
         assert np.isclose(fluxd.value, 0.3197891693353106)
 
     def test_from_mag_bandpass_fluxd0_error(self):
-        with pytest.raises(ValueError):
+        with pytest.raises(TypeError):
             Efrho.from_mag(5, 'vegamag', 1 * u.arcsec,
                            dict(rh=1.5 * u.au, delta=1.0 * u.au))
 
     def test_from_mag_unit_error(self):
+        bp = synphot.SpectralElement(
+            synphot.Box1D, x_0=11.7 * u.um, width=0.1 * u.um)
         with pytest.raises(ValueError):
-            Efrho.from_mag(5, 'asdf', 1 * u.arcsec,
+            Efrho.from_mag(5, 'asdf', 1 * u.arcsec, bp,
                            dict(rh=1.5 * u.au, delta=1.0 * u.au))
 
     @pytest.mark.parametrize('unit, efrho0', (
