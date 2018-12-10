@@ -84,6 +84,24 @@ def test_Tracking():
     # avoid the build failing because of this we use sets
 
 
+def test_to_text_filter():
+
+    with Tracking():
+        register('test1', {'track_this': 'bibcode1'})
+        register('test1', {'software': 'bibcode2'})
+        register('test1', {'track_this_too': 'bibcode'})
+        register('test2', {'software': 'bibcode'})
+        register('test3', {'track_this': 'bibcode',
+                           'software': 'bibcode'})
+
+    assert set(['test1:', 'software:', 'bibcode2',
+                'test2:', 'software:', 'bibcode',
+                'test3:', 'software:',
+                'bibcode']) == set(to_text(filter='software').split())
+    # different builds will have different orders for bibcode 1 and 2, to
+    # avoid the build failing because of this we use sets
+
+
 def test_Tracking_issue_64():
     from sbpy.activity import photo_lengthscale
     reset()
