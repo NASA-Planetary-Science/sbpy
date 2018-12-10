@@ -13,7 +13,6 @@ import astropy.units as u
 from astropy.time import Time
 from astroquery.jplspec import JPLSpec
 from astroquery.jplhorizons import Horizons, conf
-from ..activity.gas import photo_timescale
 from ..bib import register
 
 conf.horizons_server = 'https://ssd.jpl.nasa.gov/horizons_batch.cgi'
@@ -23,7 +22,6 @@ __all__ = ['Spectrum', 'SpectralModel', 'molecular_data', 'einstein_coeff',
 
 
 def molecular_data(temp_estimate, transition_freq, mol_tag):
-
     """
     Returns relevant constants from JPLSpec catalog and energy calculations
 
@@ -60,7 +58,8 @@ def molecular_data(temp_estimate, transition_freq, mol_tag):
 
     freq_list = query['FREQ']
 
-    t_freq = min(list(freq_list.quantity), key=lambda x: abs(x-transition_freq))
+    t_freq = min(list(freq_list.quantity),
+                 key=lambda x: abs(x-transition_freq))
 
     data = query[query['FREQ'] == t_freq.value]
 
@@ -108,7 +107,6 @@ def molecular_data(temp_estimate, transition_freq, mol_tag):
 
 
 def intensity_conversion(temp_estimate, transition_freq, mol_tag):
-
     """
     Returns conversion of integrated line intensity at designated temperature.
 
@@ -142,8 +140,8 @@ def intensity_conversion(temp_estimate, transition_freq, mol_tag):
 
     k = con.k_B.to('J/K')  # boltzman constant
 
-    if ((energy_J-elo_J).value/(k*temp).value) and ((energy_J-elo_J).value /
-                                                    (k*300 * u.K).value) < 1:
+    if (((energy_J - elo_J).value / (k * temp).value) and
+            ((energy_J - elo_J).value / (k * 300 * u.K).value) < 1):
 
         if df == 0 or 2:
 
@@ -159,13 +157,12 @@ def intensity_conversion(temp_estimate, transition_freq, mol_tag):
 
         intl = lgint*(part300/partition)*(np.exp(-elo_J/(k*temp)) -
                                           np.exp(-energy_J/(k*temp))) / \
-               (np.exp(-elo_J/(k*300 * u.K)) - np.exp(-energy_J/(k*300*u.K)))
+            (np.exp(-elo_J/(k*300 * u.K)) - np.exp(-energy_J/(k*300*u.K)))
 
     return intl
 
 
 def einstein_coeff(temp_estimate, transition_freq, mol_tag):
-
     """
     Einstein coefficient from molecular data
 
@@ -222,6 +219,8 @@ def einstein_coeff(temp_estimate, transition_freq, mol_tag):
 
 def photod_rate(time, time_scale, target, id_type, observatory, time_format,
                 mol_tag):
+    # imported here to avoid circular dependency with activity.gas
+    from ..activity.gas import photo_timescale
 
     epoch = Time(time, scale=time_scale, format=time_format)
     obj = Horizons(id=target, epochs=epoch.jd, location=observatory,
@@ -453,7 +452,6 @@ class Spectrum():
                     aper=25 * u.m, observatory='500', b=1.2,
                     time_format='iso', time_scale='utc',
                     id_type='designation'):
-
         """
         | Returns production rate based on Drahus 2012 model referenced. Includes
         | no photodissociation
@@ -635,7 +633,7 @@ class Spectrum():
 
             q = spectra*(calc * b * delta / aper)
 
-            q = q.decompose().to(u.Hz, equivalencies=u.spectral()).decompose()[0]
+            q = q.to(u.Hz, equivalencies=u.spectral()).decompose()[0]
 
         else:
 
@@ -665,7 +663,7 @@ class Spectrum():
 
             q = spectra*(calc * b * delta / aper)
 
-            q = q.decompose().to(u.Hz, equivalencies=u.spectral()).decompose()[0]
+            q = q.to(u.Hz, equivalencies=u.spectral()).decompose()[0]
 
         return q
 
