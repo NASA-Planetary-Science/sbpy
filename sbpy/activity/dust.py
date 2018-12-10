@@ -49,8 +49,6 @@ except ImportError:
 
 from astropy.utils.exceptions import AstropyWarning
 from .. import bib
-from ..spectroscopy.sun import Sun
-from ..spectroscopy.vega import Vega
 from .core import Aperture, rho_as_length
 
 
@@ -360,6 +358,8 @@ class Afrho(u.SpecificTypeQuantity):
 
         """
 
+        from ..spectroscopy.sun import Sun
+
         sun = Sun.from_default()
         wave, S = sun.filt(bandpass, unit=fluxd.unit)
         return cls.from_fluxd(None, fluxd, aper, eph, S=S, **kwargs)
@@ -435,6 +435,9 @@ class Afrho(u.SpecificTypeQuantity):
         <http://synphot.readthedocs.io/en/latest/synphot/units.html#counts-and-magnitudes>`_.
 
         """
+
+        from ..spectroscopy.sun import Sun
+        from ..spectroscopy.vega import Vega
 
         if m_sun is None and bandpass is None:
             raise TypeError(
@@ -523,6 +526,8 @@ class Afrho(u.SpecificTypeQuantity):
         6.730018324465526e-14
 
         """
+
+        from ..spectroscopy.sun import Sun
 
         bib.register('activity.dust.Afrho.fluxd', {
                      'model': '1984AJ.....89..579A'})
@@ -627,6 +632,7 @@ class Afrho(u.SpecificTypeQuantity):
 
         """
 
+        from ..spectroscopy.sun import Sun
         sun = Sun.from_default()
         wave, S = sun.filt(bandpass, unit=unit)
         return self.fluxd(None, aper, eph, S=S, unit=unit, **kwargs)
@@ -996,6 +1002,8 @@ class Efrho(u.SpecificTypeQuantity):
         <http://synphot.readthedocs.io/en/latest/synphot/units.html#counts-and-magnitudes>`_.
 
         """
+
+        from ..spectroscopy.vega import Vega
 
         if bandpass is None and fluxd0 is None:
             raise TypeError('One of `bandpass` or `fluxd0` must be provided.')

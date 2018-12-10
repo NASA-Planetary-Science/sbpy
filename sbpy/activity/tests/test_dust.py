@@ -99,7 +99,8 @@ class TestAfrho:
         ('sdss-r.fits', 12.23, 'STmag', '19.2 arcsec', 34.9,
          {'rh': 1.098 * u.au, 'delta': 0.164 * u.au}, 0.03),
     ))
-    def test_from_mag_bandpass(self, filename, mag, unit, rho, afrho0, eph, unc):
+    def test_from_mag_bandpass(self, filename, mag, unit, rho, afrho0,
+                               eph, unc):
         """Magnitude to afrho conversions.
 
         HST/WFC3 photometry of C/2013 A1 (Siding Spring) (Li et
