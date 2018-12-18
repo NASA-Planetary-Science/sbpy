@@ -181,9 +181,6 @@ def test_alternative_name_uniqueness():
     """test the uniqueness of alternative field names"""
     from ..core import conf
 
-    print(len(sum(conf.fieldnames, [])))
-    print(len(set(sum(conf.fieldnames, []))))
-
     assert (len(sum(conf.fieldnames, [])) ==
             len(set(sum(conf.fieldnames, []))))
 
