@@ -179,17 +179,25 @@ def test_add():
 
 def test_alternative_name_uniqueness():
     """test the uniqueness of alternative field names"""
-
     from ..core import conf
+
+    print(len(sum(conf.fieldnames, [])))
+    print(len(set(sum(conf.fieldnames, []))))
 
     assert (len(sum(conf.fieldnames, [])) ==
             len(set(sum(conf.fieldnames, []))))
+
+    storage = (deepcopy(conf.fieldnames), deepcopy(conf.fieldname_idx))
 
     with pytest.raises(AssertionError):
         # repeat existing fieldname should raise Error
         conf.fieldnames.append(['i'])
         assert (len(sum(conf.fieldnames, [])) ==
                 len(set(sum(conf.fieldnames, []))))
+
+    # revert changes to conf.fieldnames
+    conf.fieldnames = storage[0]
+    conf.fieldname_idx = storage[1]
 
 
 def test_translate_columns():
