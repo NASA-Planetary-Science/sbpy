@@ -99,7 +99,8 @@ class TestAfrho:
         ('sdss-r.fits', 12.23, 'STmag', '19.2 arcsec', 34.9,
          {'rh': 1.098 * u.au, 'delta': 0.164 * u.au}, 0.03),
     ))
-    def test_from_mag_bandpass(self, filename, mag, unit, rho, afrho0, eph, unc):
+    def test_from_mag_bandpass(self, filename, mag, unit, rho, afrho0,
+                               eph, unc):
         """Magnitude to afrho conversions.
 
         HST/WFC3 photometry of C/2013 A1 (Siding Spring) (Li et
@@ -258,13 +259,15 @@ class TestEfrho:
         assert np.isclose(fluxd.value, 0.3197891693353106)
 
     def test_from_mag_bandpass_fluxd0_error(self):
-        with pytest.raises(ValueError):
+        with pytest.raises(TypeError):
             Efrho.from_mag(5, 'vegamag', 1 * u.arcsec,
                            dict(rh=1.5 * u.au, delta=1.0 * u.au))
 
     def test_from_mag_unit_error(self):
+        bp = synphot.SpectralElement(
+            synphot.Box1D, x_0=11.7 * u.um, width=0.1 * u.um)
         with pytest.raises(ValueError):
-            Efrho.from_mag(5, 'asdf', 1 * u.arcsec,
+            Efrho.from_mag(5, 'asdf', 1 * u.arcsec, bp,
                            dict(rh=1.5 * u.au, delta=1.0 * u.au))
 
     @pytest.mark.parametrize('unit, efrho0', (
