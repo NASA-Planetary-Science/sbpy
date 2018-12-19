@@ -759,7 +759,7 @@ class HG12(HG12BaseClass):
         else:
             p1 = 0.9529
             p2 = -0.6125
-        ddg = 1.085736205*((phi3-phi1)*p1+(phi3-phi1)*p2)/dom
+        ddg = 1.085736205*((phi3-phi1)*p1+(phi3-phi2)*p2)/dom
         return [ddh, ddg]
 
 
