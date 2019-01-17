@@ -555,6 +555,9 @@ class Orbit(DataClass):
         orbits.table.replace_column('epoch_scale',
                                     [timescale] * len(orbits.table))
 
+        # adjust epochs to standard jd
+        orbits.table['epoch'] = orbits.table['epoch'] + 2400000.5*u.d
+
         # identify time scales returned by Horizons query
         timescales = [timescale] * len(orbits.table)
         orbits.table.add_column(Column(timescales, name='timescale'))
