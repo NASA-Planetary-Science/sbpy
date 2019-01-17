@@ -19,14 +19,27 @@ def test_get_set():
 
     data = DataClass.from_dict(
         [OrderedDict((('a', 1), ('b', 4), ('c', 'a'))),
-         OrderedDict((('a', 2), ('b', 5), ('c', 'b)'))),
+         OrderedDict((('a', 2), ('b', 5), ('c', 'b'))),
          OrderedDict((('a', 3), ('b', 6), ('c', 'c')))])
 
+    # get a single column
     assert len(data['a']) == 3
 
+    # mask rows
+    masked = data[[True, False, False]]
+    assert len(masked) == 1
+    assert masked['b'][0] == 4
+
+    # get list of rows
+    shortened = data[[0, 1]]
+    assert len(shortened) == 2
+
+    # get a single column as an attribute
     assert len(data.a == 3)
 
+    # modify an existing column
     data['a'][:] = [0, 0, 0]
+    assert data['a'][0] == 0
 
     with pytest.raises(AttributeError):
         data.d

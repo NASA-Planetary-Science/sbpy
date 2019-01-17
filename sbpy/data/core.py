@@ -101,7 +101,12 @@ class DataClass():
         ...                                    ('e', 0.0756),
         ...                                    ('i', 10.59321*u.deg)]))
         >>> print(orb)
-        <sbpy.data.orbit.Orbit object at 0x...>
+        <QTable length=1>
+           a       e       i    
+           AU             deg   
+        float64 float64 float64 
+        ------- ------- --------
+         2.7674  0.0756 10.59321
         >>> print(orb.column_names) # doctest: +SKIP
         <TableColumns names=('a','e','i')>
         >>> print(orb.table['a', 'e', 'i'])
@@ -299,19 +304,10 @@ class DataClass():
                 raise AttributeError('Attribute {:s} not available.'.format(
                     field))
 
-    # def __setattr__(self, field, value):
-    #     """Modify attribute in ``self._table``, if it already exists there,
-    #     or set it in ``self``."""
-    #     try:
-    #         # if self._table exists ...
-    #         if field in self._table.columns:
-    #             # set value there...
-    #             self._table[field] = value
-    #         else:
-    #             super().__setattr__(field, value)
-    #     except (KeyError, IndexError):
-    #         # if, not set it for self
-    #         super().__setattr__(field, value)
+    def __repr__(self):
+        """Return representation of the underlying data table 
+        (``self._table.__repr__()``)"""
+        return self._table.__repr__()
 
     def __getitem__(self, ident):
         """Return columns or rows from data table (``self._table``); checks
@@ -324,6 +320,8 @@ class DataClass():
                 self = self._convert_columns(ident)
                 newkeylist = [self._translate_columns(i)[0] for i in ident]
                 ident = newkeylist
+                # return as new DataClass object
+                return self.from_table(self._table[ident])
             # ignore lists of boolean (masks)
             elif all([isinstance(i, bool) for i in ident]):
                 pass
@@ -335,13 +333,7 @@ class DataClass():
             self = self._convert_columns(ident)
             ident = self._translate_columns(ident)[0]
 
-        # ignore integers and slices as they do not refer to columns
-
-        # if (isinstance(self._table[ident], u.Quantity) and
-        #         len(self._table[ident]) == 1):
-        #     return self._table[ident][0]
-        # else:
-        #     return self._table[ident]
+        # return as element from self_table
         return self._table[ident]
 
     def _translate_columns(self, target_colnames):
