@@ -135,6 +135,11 @@ Each of these columns can be accessed easily, for instance:
     >>> print(obs['ra']) # doctest: +SKIP
     [10.223423 10.233453 10.243452] deg
 
+which will return an `astropy.units.quantity.Quantity` object if that
+column has an `astropy.unit` attached to it, or an
+`astropy.table.column.Column` object if not. Both objects can be used
+just like `numpy.ndarray` objects.
+
 Similarly, if you are interested in the first set of observations in
 ``obs``, you can use:
 
@@ -176,14 +181,17 @@ Just like in any `~astropy.table.Table` or `~astropy.table.QTable` object, you c
     10.223423 -12.42123 2451523.6234
     10.233453 -12.41562 2451523.7345
 
-The latter uses a condition to filter data (only those observations
-with RA less than or equal to 10.233453 degrees; note that it is
-necessary here to apply ``u.deg`` to the value that all the RAs are
-compared against) but selects all the columns in the original table.
+The results of these examples will be of the same data type as `obs`
+(any type derived from `~sbpy.data.DataClass`, e.g.,
+`~sbpy.data.Ephem`, `~sbpy.data.Orbit`, ...)  The latter example shown
+here uses a condition to filter data (only those observations with RA
+less than or equal to 10.233453 degrees; note that it is necessary
+here to apply ``u.deg`` to the value that all the RAs are compared
+against) but selects all the columns in the original table.
 
 If you ever need to access the actual `~astropy.table.QTable` object
 that is inside each `~sbpy.data.DataClass` object, you can access it
-as ``obs.table``.
+as ``obs.table``, although this should usually not be necessary.
 
 Modifying an object
 ^^^^^^^^^^^^^^^^^^^
