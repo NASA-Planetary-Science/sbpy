@@ -361,7 +361,7 @@ class DataClass():
                         break
             # colname is unknown, raise a KeyError
             else:
-                raise KeyError('field {:s} not available in '.format(
+                raise KeyError('field {:s} not available.'.format(
                     colname))
 
         return translated_colnames

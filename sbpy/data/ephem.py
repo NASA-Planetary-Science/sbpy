@@ -9,6 +9,7 @@ Class for storing and querying ephemerides
 created on June 04, 2017
 """
 import os
+from copy import deepcopy
 
 from numpy import ndarray, array, hstack, iterable
 from astropy.time import Time
@@ -516,6 +517,10 @@ class Ephem(DataClass):
 
         import pyoorb
 
+        # create a copy of orbit
+        from . import Orbit
+        orb = Orbit.from_table(orbit.table)
+
         # initialize pyoorb
         ephfile = os.path.join(os.getenv('OORB_DATA'), ephfile+'.dat')
         pyoorb.pyoorb.oorb_init(ephfile)
@@ -524,7 +529,7 @@ class Ephem(DataClass):
         orbittype = None
         for testtype in ['KEP', 'COM', 'CART']:
             try:
-                orbit._translate_columns(
+                orb._translate_columns(
                     conf.oorb_orbit_fields[testtype][1:6])
                 orbittype = testtype
                 break
@@ -535,22 +540,25 @@ class Ephem(DataClass):
             raise ValueError(
                 'orbit type cannot be determined from elements')
 
-        # add orbittype column
-        orbit.add_column([orbittype] * len(orbit.table), name='orbittype')
+        # add/update orbittype column
+        if 'orbittype' in orb.column_names:
+            orb['orbittype'] = [orbittype] * len(orb)
+        else:
+            orb.add_column([orbittype] * len(orb), name='orbittype')
 
         # derive and apply default units
         default_units = {}
         for idx, field in enumerate(conf.oorb_orbit_fields[orbittype]):
             try:
-                default_units[orbit._translate_columns(
+                default_units[orb._translate_columns(
                     field)[0]] = conf.oorb_orbit_units[orbittype][idx]
             except KeyError:
                 pass
-        for colname in orbit.column_names:
+        for colname in orb.column_names:
             if (colname in default_units.keys() and
-                not isinstance(orbit[colname],
+                not isinstance(orb[colname],
                                (u.Quantity, u.CompositeUnit))):
-                orbit[colname].unit = \
+                orb[colname].unit = \
                     default_units[colname]
 
         # modify epochs input to make it work with pyoorb
@@ -571,13 +579,13 @@ class Ephem(DataClass):
 
         if scope == 'full':
             oo_eph, err = pyoorb.pyoorb.oorb_ephemeris_full(
-                orbit._to_oo(),
+                orb._to_oo(),
                 location,
                 epochs,
                 dynmodel)
         elif scope == 'basic':
             oo_eph, err = pyoorb.pyoorb.oorb_ephemeris_basic(
-                orbit._to_oo(),
+                orb._to_oo(),
                 location,
                 epochs,
                 dynmodel)
@@ -597,9 +605,9 @@ class Ephem(DataClass):
             ephem[col].unit = conf.oorb_ephem_units[i]
 
         # add targetname column
-        ephem.table.add_column(Column(data=sum([[orbit['targetname'][i]] *
+        ephem.table.add_column(Column(data=sum([[orb['targetname'][i]] *
                                                 len(epochs) for i in
-                                                range(len(orbit.table))],
+                                                range(len(orb.table))],
                                                []),
                                       name='targetname'),
                                index=0)
