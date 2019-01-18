@@ -522,8 +522,12 @@ class Ephem(DataClass):
         orb = Orbit.from_table(orbit.table)
 
         # initialize pyoorb
-        ephfile = os.path.join(os.getenv('OORB_DATA'), ephfile+'.dat')
-        pyoorb.pyoorb.oorb_init(ephfile)
+        if os.getenv('OORB_DATA') is None:
+            # oorb installed using conda
+            pyoorb.pyoorb.oorb_init()
+        else:
+            ephfile = os.path.join(os.getenv('OORB_DATA'), ephfile+'.dat')
+            pyoorb.pyoorb.oorb_init(ephfile)
 
         # identify orbit type based on available table columns
         orbittype = None
