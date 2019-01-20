@@ -6,18 +6,36 @@ created on June 23, 2017
 
 """
 
-__all__ = ['ref2mag', 'mag2ref', 'spline',
+__all__ = ['ref2mag', 'mag2ref', 'spline', 'SpectralGradient',
            'DiskIntegratedModelClass', 'LinearPhaseFunc', 'HG', 'HG12', 'HG1G2',
            'DiskFunctionModel', 'LommelSeeliger', 'Lambert', 'LunarLambert',
            'PhaseFunctionModel', 'ROLOPhase',
            'ResolvedPhotometricModelClass', 'ROLO']
 
+from warnings import warn
+
 import numpy as np
 from scipy.integrate import quad
-from astropy.modeling import (FittableModel, Fittable1DModel,
-                              Fittable2DModel, Parameter)
-from astropy import units
+from astropy.modeling import FittableModel, Fittable1DModel, Fittable2DModel, Parameter
+import astropy.units as u
+from astropy.utils.exceptions import AstropyWarning
+
+try:
+    import synphot
+except ImportError:
+    synphot = None
+    raise warn(AstropyWarning('synphot is not present, photometric filter'
+                              ' conversions will be limited.'))
+
 from ..data import Ephem
+from ..spectroscopy.sun import Sun
+from ..spectroscopy.vega import Vega
+
+VegaFluxd = u.def_unit(
+    'fluxd(Vega)',
+    doc='Represents the flux density of Vega at any wavelength.')
+VegaMag = u.mag(VegaFluxd)
+hundred_nm = u.def_unit('100 nm', represents=100 * u.nm)
 
 
 def ref2mag(ref, radius, M_sun=None):
@@ -51,19 +69,19 @@ def ref2mag(ref, radius, M_sun=None):
     if M_sun is None:
         M_sun = -26.74
     Q = False
-    if isinstance(ref, units.Quantity):
+    if isinstance(ref, u.Quantity):
         ref = ref.value
         Q = True
-    if isinstance(radius, units.Quantity):
+    if isinstance(radius, u.Quantity):
         radius = radius.to('km').value
         Q = True
-    if isinstance(M_sun, units.Quantity):
+    if isinstance(M_sun, u.Quantity):
         M_sun = M_sun.to('mag').value
         Q = True
 
-    mag = M_sun-2.5*np.log10(ref*np.pi*radius*radius*units.km.to('au')**2)
+    mag = M_sun-2.5*np.log10(ref*np.pi*radius*radius*u.km.to('au')**2)
     if Q:
-        return mag*units.mag
+        return mag*u.mag
     else:
         return mag
 
@@ -73,9 +91,9 @@ def mag2ref(mag, radius, M_sun=None):
 
     Parameters
     ----------
-    mag : float, astropy.units.Quantity
+    mag : float, astropy.u.Quantity
         Reduced magnitude
-    radius : float, astropy.units.Quantity
+    radius : float, astropy.u.Quantity
         Radius of object
     M_sun : float, optional
         The magnitude of the Sun, default is -26.74
@@ -86,7 +104,7 @@ def mag2ref(mag, radius, M_sun=None):
 
     Examples
     --------
-    >>> from astropy import units as u
+    >>> from astropy import u as u
     >>> from sbpy.photometry import mag2ref
     >>> ref = mag2ref(2.08, 460)
     >>> print('{0:.4}'.format(ref))
@@ -99,24 +117,301 @@ def mag2ref(mag, radius, M_sun=None):
     if M_sun is None:
         M_sun = -26.74
     Q = False
-    if isinstance(mag, units.Quantity):
+    if isinstance(mag, u.Quantity):
         mag = mag.value
         Q = True
-    if isinstance(radius, units.Quantity):
+    if isinstance(radius, u.Quantity):
         radius = radius.to('km').value
         Q = True
-    if isinstance(M_sun, units.Quantity):
+    if isinstance(M_sun, u.Quantity):
         M_sun = M_sun.to('mag').value
         Q = True
 
-    ref = 10**((M_sun-mag)*0.4)/(np.pi*radius*radius*units.km.to('au')**2)
+    ref = 10**((M_sun-mag)*0.4)/(np.pi*radius*radius*u.km.to('au')**2)
     if Q:
-        return ref/units.sr
+        return ref/u.sr
     else:
         return ref
 
 
+class SpectralGradient(u.SpecificTypeQuantity):
+    """Convert between magnitude and spectral gradient.
+
+    ``SpectralGradient`` is a `~astropy.units.Quantity` object with
+    units of percent change per wavelength.
+
+    Spectral gradient is with respect to the flux density at a
+    particular wavelength.  By convention this is the mean flux
+    between the two filters, assuming the reflectance spectrum is
+    linear with wavelength.  Eq. 1 of A'Hearn et al. (1984, AJ 89,
+    579):
+
+                R(λ1) - R(λ0)  2 
+        slope = ------------- ---
+                R(λ1) + R(λ0) Δλ 
+
+    Δλ is typically measured in units of 100 nm.
+
+
+    Parameters                                                             
+    ----------                                                             
+    value : number, `~astropy.units.Quantity`                              
+        The value(s).
+
+    unit : string, `~astropy.units.Unit`, optional                         
+        The unit of the input value.  Strings must be parseable by
+        :mod:`~astropy.units` package.
+
+    wave : `~astropy.units.Quantity`, optional
+        Effective wavelengths of the measurement for a solar spectral
+        energy distribution.  Required for conversion to other
+        wavelengths.
+
+    wave0 : `~astropy.units.Quantity`, optional
+        Normalization point.  If ``None``, the mean of ``wave``
+        will be assumed.
+
+    dtype : `~numpy.dtype`, optional
+        See `~astropy.units.Quantity`.
+
+    copy : bool, optional
+        See `~astropy.units.Quantity`.
+
+
+    Examples
+    --------
+
+    >>> S = SpectralGradient(1 / u.um, wave=(4702, 6176) * u.AA)
+    >>> print(S)
+
+    >>> S = SpectralGradient.from_filters(
+    ...       ('johnson_v', 'cousins_r'), 15.0, 16.0, unit=VegaMag)
+    >>> print(S)
+
+    """
+
+    _equivalent_unit = u.meter**-1
+    _include_easy_conversion_members = False
+
+    def __new__(cls, value, unit=None, wave=None, wave0=None,
+                dtype=None, copy=None):
+        S = super().__new__(cls, value, unit=unit, dtype=dtype,
+                            copy=copy)
+
+        if wave is not None:
+            if len(wave) != 2:
+                raise ValueError(
+                    'Two wavelengths must be provided, got {}'
+                    .format(len(wave)))
+        S.wave = wave
+
+        if wave0 is None and wave is not None:
+            S.wave0 = wave.mean()
+        else:
+            S.wave0 = wave0
+
+        return S
+
+    @staticmethod
+    def _validate_mag(m):
+        # If m is not a magnitude, then return it as a generic
+        # magnitude.  This also handles synphot's VEGAMAG, which
+        # is not compatible with astropy's Magnitude.
+        new_mag = None
+        if isinstance(m, u.Quantity):
+            if m.unit.is_equivalent(VegaMag):
+                new_mag = m
+            elif m.unit.is_equivalent((u.mag, u.ABmag, u.STmag)):
+                new_mag = m
+            elif synphot:
+                if m.unit == synphot.units.VEGAMAG:
+                    # use sbpy's VegaMag
+                    new_mag = m.value * u.mag(VegaFluxd)
+
+            if new_mag is None:
+                raise ValueError('units are not magnitudes, found '
+                                 + str(m.unit))
+        else:
+            # make a generic magnitude
+            new_mag = m * u.mag
+
+        return new_mag
+
+    @classmethod
+    def from_color(cls, wave, solar_index, color_index):
+        """Initialize from observed color index.
+
+        Parameters
+        ----------
+        wave : two-element `~astropy.units.Quantity`
+            Effective wavelengths of the magnitudes given for a solar
+            spectral energy distribution.
+
+        solar_index : float, array, or `~astropy.units.Quantity`
+            Solar color index in magnitudes, (blue - red) filter.
+            Must have same units as ``color_index``.
+
+        color_index : float, array, or `~astropy.units.Quantity`
+            Observed color index, (blue - red) filter.  Must have same
+            units as ``solar_index``.
+
+        """
+
+        si = cls._validate_mag(solar_index)
+        ci = cls._validate_mag(color_index)
+
+        if si.unit != ci.unit:
+            raise ValueError('If magnitudes are provided, all parameters'
+                             ' must use the same magnitude system')
+
+        alpha = 10**(0.4 * (ci - si).value)
+        s = ((2 / wave.ptp() * (alpha - 1) / (alpha + 1))
+             .to(u.percent / hundred_nm))
+        return SpectralGradient(s, wave=wave)
+
+    @classmethod
+    def from_filters(cls, bp0, bp1, m0, m1):
+        """Initialize from filter bandpasses and observed magnitudes.
+
+        Computes spectral gradient from ``m0 - m1``.  Typically
+        ``bp0``/``m0`` is the blue-ward of the two measuremnts:
+
+                  R(λ1) - R(λ0)  2    α - 1  2
+          slope = ------------- --- = ----- ---
+                  R(λ1) + R(λ0) Δλ    α + 1 Δλ
+
+        where R(λ) is the reflectivity, and
+
+          α = 10**(0.4 * (Δm - C_sun))
+
+        Δλ is typically measured in units of 100 nm.
+
+
+        Parameters
+        ----------
+        bp0, bp1 : string or `~synphot.SpectralElement`
+            Bandpasses of the two filters as filter names or
+            transmission profiles.  See
+            `~sbpy.spectroscopy.sun.Sun.filt` for acceptable filter
+            names.
+
+
+        m0, m1 : `~astropy.units.Quantity`
+            Observed magnitudes.
+
+        .. note:
+            Uses ``SpectralGradient.solar_index`` to compute the color
+            of the Sun and bandpass effective wavelengths.
+
+        .. note:
+            Vega-based magnitude systems can use sbpy's `~VegaMag` or
+            synphot's `synphot.unit.VEGAMAG`.
+
+
+        Examples
+        --------
+
+        """
+
+        if m0.unit != m1.unit:
+            raise ValueError('Magnitudes must use the same system.')
+
+        wave, si = cls.solar_index(bp0, bp1, m0.unit)
+        ci = m0 - m1
+
+        alpha = 10**(0.4 * (ci - si).value)
+        dw = wave[1] - wave[0]
+        S = ((alpha - 1) / (alpha + 1) * 2 / dw).to(u.percent / hundred_nm)
+
+        return cls(S, wave=wave)
+
+    def renormalize(self, wave0):
+        """Re-normalize to another wavelength.
+
+        The slope is linearly extrapolated to the new normalization
+        point.  Requires the `wave` attribute to be defined, see
+        `~SpectralGradient`.
+
+        Parameters
+        ----------
+        wave0 : `~astropy.units.Quantity`
+            Wavelength.
+
+        Returns
+        -------
+        S : ``SpectralGradient``
+            Renormalized gradient.
+
+        """
+
+        if self.wave is None:
+            raise ValueError('wave attribute must be defined.')
+
+        delta = wave0 - self.wave0
+        S0 = 1 + self.to(delta.unit**-1) * delta
+        S = self / S0
+        S.wave0 = wave0
+        return S
+
+    @staticmethod
+    def solar_index(bp0, bp1, unit):
+        """Solar color index and effective wavelengths.
+
+
+        Parameters
+        ----------
+        bp0, bp1 : string or `~synphot.SpectralElement`
+            Bandpasses of the two filters as filter names or
+            transmission profiles.  See
+            `~sbpy.spectroscopy.sun.Sun.filt` for acceptable filter
+            names.
+
+        unit : string or `~astropy.unit.Unit`
+            Magnitude system to use.
+
+
+        Returns
+        -------
+        eff_wave : `~astropy.unit.Quantity`
+            Effective wavelengths for each bandpass.
+
+        solar_index : `~astropy.unit.Quantity`
+            Solar color index.
+
+        """
+
+        if synphot:
+            VEGAMAG = synphot.units.VEGAMAG
+        else:
+            VEGAMAG = None
+
+        sun = Sun.from_default()
+
+        wave, fluxd_sun = zip(sun.filt(bp0), sun.filt(bp1))
+        wave = u.Quantity(wave)
+        fluxd_sun = u.Quantity(fluxd_sun)
+
+        if (synphot and unit == VEGAMAG) or unit == VegaMag:
+            vega = Vega.from_default()
+            zp = u.Quantity((vega.filt(bp0)[1], vega.filt(bp1)[1]))
+        elif unit == u.ABmag:
+            zp = ([0, 0] * u.ABmag)
+        elif unit == u.STmag:
+            zp = ([0, 0] * u.STmag)
+        else:
+            raise ValueError('Unrecognized magnitude: {}'.format(unit))
+
+        zp = zp.to(fluxd_sun.unit, u.spectral_density(wave))
+
+        solar_index = (-2.5 * np.log10(
+            zp[1] / zp[0] * fluxd_sun[0] / fluxd_sun[1])
+            .decompose().value) * unit
+
+        return wave, solar_index
+
+
 class spline(object):
+
     """Cubic spline class
 
     Spline function is defined by function values at nodes and the first
@@ -251,7 +546,7 @@ class DiskIntegratedModelClass(Fittable1DModel):
         """Geometric albedo"""
         alb = np.pi*self.ref(0)
         if hasattr(alb, 'unit'):
-            alb = alb*units.sr
+            alb = alb*u.sr
         return alb
 
     @property
@@ -355,7 +650,7 @@ class DiskIntegratedModelClass(Fittable1DModel):
         else:
             eph = Ephem({'alpha': eph})
         pha = eph['alpha']
-        if isinstance(pha, units.Quantity):
+        if isinstance(pha, u.Quantity):
             pha = pha.to('rad').value
         out = self(pha, **kwargs)
         if self._unit != 'mag':
@@ -365,12 +660,12 @@ class DiskIntegratedModelClass(Fittable1DModel):
             out = ref2mag(out, self.radius, M_sun=self.M_sun)
         if 'r' in eph.column_names:
             rh = eph['r']
-            if isinstance(rh, units.Quantity):
+            if isinstance(rh, u.Quantity):
                 rh = rh.to('au').value
             out += 5*np.log10(rh)
         if 'delta' in eph.column_names:
             delta = eph['delta']
-            if isinstance(delta, units.Quantity):
+            if isinstance(delta, u.Quantity):
                 delta = delta.to('au').value
             out += 5*np.log10(delta)
         return out
@@ -416,11 +711,11 @@ class DiskIntegratedModelClass(Fittable1DModel):
             pha = eph['alpha']
         else:
             pha = eph
-        if isinstance(pha, units.Quantity):
+        if isinstance(pha, u.Quantity):
             pha = pha.to('rad').value
         out = self(pha, **kwargs)
         if normalized is not None:
-            if isinstance(normalized, units.Quantity):
+            if isinstance(normalized, u.Quantity):
                 normalized = normalized.to('rad').value
             norm = self(normalized, **kwargs)
         if self._unit == 'ref':
