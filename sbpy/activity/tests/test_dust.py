@@ -81,7 +81,8 @@ class TestAfrho:
         fluxd = 4.68e-15 * u.W / u.m**2 / u.um
         aper = 5000 * u.km
         eph = {'rh': 4.582 * u.au, 'delta': 4.042 * u.au}
-        fn = os.path.join(os.path.dirname(__file__), 'data',
+        fn = os.path.join(os.path.dirname(__file__), '..', '..',
+                          'photometry', 'tests', 'data',
                           'wfc3_uvis_f606w_004_syn.fits')
         bandpass = synphot.SpectralElement.from_file(fn)
         afrho = Afrho.from_filt(bandpass, fluxd, aper, eph)
@@ -136,7 +137,8 @@ class TestAfrho:
 
         """
         rho = u.Quantity(rho)
-        fn = os.path.join(os.path.dirname(__file__), 'data', filename)
+        fn = os.path.join(os.path.dirname(__file__), '..', '..',
+                          'photometry', 'tests', 'data', filename)
         bandpass = synphot.SpectralElement.from_file(fn)
         afrho = Afrho.from_mag(mag, unit, rho, eph, bandpass=bandpass)
         assert np.isclose(afrho.cm, afrho0, rtol=unc)
@@ -190,7 +192,8 @@ class TestAfrho:
     def test_mag_bandpass(self, filename, mag0, unit, rho, afrho, eph, unc):
         """Inverse of test_from_mag_bandpass."""
         rho = u.Quantity(rho)
-        fn = os.path.join(os.path.dirname(__file__), 'data', filename)
+        fn = os.path.join(os.path.dirname(__file__), '..', '..',
+                          'photometry', 'tests', 'data', filename)
         bandpass = synphot.SpectralElement.from_file(fn)
         mag = Afrho(afrho * u.cm).mag(unit, rho, eph, bandpass=bandpass)
         assert np.isclose(mag, mag0, rtol=unc)
