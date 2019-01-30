@@ -79,7 +79,13 @@ class Ephem(DataClass):
         if epochs is None:
             epochs = [Time.now().jd]
         elif isinstance(epochs, Time):
-            epochs = [Time(epochs).jd]
+            epochs = epochs.jd
+            if isinstance(epochs, float):
+                epochs = [epochs]
+            new_epochs = [None] * len(epochs)
+            for i in range(len(epochs)):
+                new_epochs[i] = epochs[i]
+            epochs = new_epochs
         elif isinstance(epochs, dict):
             for key, val in epochs.items():
                 if isinstance(val, Time):
