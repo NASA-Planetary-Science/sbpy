@@ -41,6 +41,11 @@ def test_from_horizons():
     data = Ephem.from_horizons('Ceres', epochs=epochs)
     assert len(data.table) == 2
 
+    # astropy.time.Time object with list of Dates
+    epochs = Time(['2018-01-01', '2018-01-02'])
+    data = Ephem.from_horizons('Ceres', epochs=epochs)
+    assert len(data.table) == 2
+
     # discrete epochs - Julian Dates
     epochs = [Time('2018-01-02', format='iso').jd,
               Time('2018-01-05', format='iso').jd]
