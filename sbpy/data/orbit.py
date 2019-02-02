@@ -362,8 +362,12 @@ class Orbit(DataClass):
         import pyoorb
 
         # initialize pyoorb
-        ephfile = os.path.join(os.getenv('OORB_DATA'), ephfile+'.dat')
-        pyoorb.pyoorb.oorb_init(ephfile)
+        if os.getenv('OORB_DATA') is None:
+            # oorb installed using conda
+            pyoorb.pyoorb.oorb_init()
+        else:
+            ephfile = os.path.join(os.getenv('OORB_DATA'), ephfile+'.dat')
+            pyoorb.pyoorb.oorb_init(ephfile)
 
         if timescale is None:
             timescale = self.table['timescale'][0]
@@ -491,8 +495,12 @@ class Orbit(DataClass):
         import pyoorb
 
         # initialize pyoorb
-        ephfile = os.path.join(os.getenv('OORB_DATA'), ephfile+'.dat')
-        pyoorb.pyoorb.oorb_init(ephfile)
+        if os.getenv('OORB_DATA') is None:
+            # oorb installed using conda
+            pyoorb.pyoorb.oorb_init()
+        else:
+            ephfile = os.path.join(os.getenv('OORB_DATA'), ephfile+'.dat')
+            pyoorb.pyoorb.oorb_init(ephfile)
 
         # identify orbit type based on available table columns
         orbittype = None
@@ -554,6 +562,9 @@ class Orbit(DataClass):
                                     [orbittype] * len(orbits.table))
         orbits.table.replace_column('epoch_scale',
                                     [timescale] * len(orbits.table))
+
+        # adjust epochs to standard jd
+        orbits.table['epoch'] = orbits.table['epoch'] + 2400000.5*u.d
 
         # identify time scales returned by Horizons query
         timescales = [timescale] * len(orbits.table)
