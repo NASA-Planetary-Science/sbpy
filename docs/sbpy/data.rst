@@ -178,17 +178,16 @@ an attribute:
 
 Just like in any `~astropy.table.Table` or `~astropy.table.QTable` object, you can use slicing to obtain subset tables from your data, for instance:
 
-    >>> print(obs['ra', 'dec'])
+    >>> print(obs['ra', 'dec']) # doctest: +SKIP
     <QTable length=3>
 	ra       dec   
        deg       deg   
-     float64   float64 
     --------- ---------
     10.223423 -12.42123
     10.233453 -12.41562
     10.243452 -12.40435
 
-    >>> print(obs[obs['ra'] <= 10.233453*u.deg])
+    >>> print(obs[obs['ra'] <= 10.233453*u.deg]) # doctest: +SKIP
         ra       dec         t
        deg       deg         d
     --------- --------- ------------
