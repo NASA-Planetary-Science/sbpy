@@ -351,13 +351,14 @@ class Orbit(DataClass):
 
         >>> from sbpy.data import Orbit
         >>> ceres = Orbit.from_horizons('Ceres')
-        >>> statevec = ceres.oo_transform('CART')  # doctest: +SKIP
-        >>> print(statevec.table)  # doctest: +SKIP
-           id           x                   y           ... epoch_scale  H    G
-                        AU                  AU          ...             mag
-        ------- ------------------ -------------------- ... ----------- ---- ----
-        1 Ceres -2.525066589355839 -0.34964875372044524 ...         UTC 3.34 0.12
-
+        >>> statevec = ceres.oo_transform('CART')
+        >>> print(statevec)
+        <QTable length=1>
+           id           x                   y          ...    H       G    timescale
+                        AU                  AU         ...   mag                    
+          str7       float64             float64       ... float64 float64    str2  
+        ------- ------------------ ------------------- ... ------- ------- ---------
+        1 Ceres -1.967176101061908 -1.7891189971612211 ...    3.34    0.12        TT
         """
         import pyoorb
 
@@ -487,13 +488,14 @@ class Orbit(DataClass):
         >>> from astropy.time import Time
         >>> epoch = Time.now().jd + 100
         >>> ceres = Orbit.from_horizons('Ceres')
-        >>> future_ceres = ceres.oo_propagate(epoch)  # doctest: +SKIP
-        >>> print(future_ceres.table)  # doctest: +SKIP
-           id           a                  e          ... epoch_scale  H    G
-                        AU                            ...             mag
-        ------- ----------------- ------------------- ... ----------- ---- ----
-        1 Ceres 2.767911178119476 0.07574650026062148 ...         UTC 3.34 0.12
-        """
+        >>> future_ceres = ceres.oo_propagate(epoch)
+        >>> print(future_ceres)
+        <QTable length=1>
+           id           a                  e          ...    H       G    timescale
+                        AU                            ...   mag                    
+          str7       float64            float64       ... float64 float64    str3  
+        ------- ----------------- ------------------- ... ------- ------- ---------
+        1 Ceres 2.769331727251861 0.07605371361208543 ...    3.34    0.12       UTC        """
 
         import pyoorb
 

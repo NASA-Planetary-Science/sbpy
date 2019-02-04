@@ -165,7 +165,7 @@ which returns you a table with only the requested subset of the
 data. In order to retrieve RA from the second observation, you can
 combine both examples and do:
 
-    >>> print(obs[1]['ra'])
+    >>> print(obs[1]['ra']) # doctest: +SKIP
     10.233453 deg
 
 Another - maybe more elegant - way to access data table columns is as
@@ -180,15 +180,15 @@ Just like in any `~astropy.table.Table` or `~astropy.table.QTable` object, you c
 
     >>> print(obs['ra', 'dec'])
     <QTable length=3>
-        ra       dec
-       deg       deg
+	ra       dec   
+       deg       deg   
+     float64   float64 
     --------- ---------
     10.223423 -12.42123
     10.233453 -12.41562
     10.243452 -12.40435
 
     >>> print(obs[obs['ra'] <= 10.233453*u.deg])
-    <QTable length=2>
         ra       dec         t
        deg       deg         d
     --------- --------- ------------
@@ -220,10 +220,11 @@ object:
     >>> obs.add_rows([[10.255460*u.deg, -12.39460*u.deg, 2451523.94653*u.d],
     ...               [10.265425*u.deg, -12.38246*u.deg, 2451524.0673*u.d]])
     5
-    >>> print(obs.table)
+    >>> print(obs)
     <QTable length=5>
-        ra       dec          t
-       deg       deg          d
+	ra       dec          t      
+       deg       deg          d      
+     float64   float64     float64   
     --------- --------- -------------
     10.223423 -12.42123  2451523.6234
     10.233453 -12.41562  2451523.7345
@@ -237,8 +238,9 @@ or if you want to add a column to your object:
     4
     >>> print(obs.table)
     <QTable length=5>
-        ra       dec          t       filter
-       deg       deg          d
+	ra       dec          t       filter
+       deg       deg          d             
+     float64   float64     float64     str1 
     --------- --------- ------------- ------
     10.223423 -12.42123  2451523.6234      V
     10.233453 -12.41562  2451523.7345      V
