@@ -544,7 +544,7 @@ orbital elements for a number of targets:
     >>> elem = Orbit.from_horizons(['3749', '2009 BR60'],
     ...                            epochs=epoch,
     ...                            refplane='earth')
-    >>> print(elem)
+    >>> print(elem) # doctest: +SKIP
     <QTable length=2>
 	  targetname         datetime_jd    ...         P         timescale
 				  d         ...         d                  
@@ -567,7 +567,7 @@ cartesian coordinates, one could use the following code:
 
     >>> elem = Orbit.from_horizons(['Ceres', 'Pallas', 'Vesta'])
     >>> statevec = elem.oo_transform('CART') # doctest: +SKIP 
-    >>> print(statevec)
+    >>> print(statevec) # doctest: +SKIP
     <QTable length=3>
        id             x                   y           ...    H       G    timescale
 		      AU                  AU          ...   mag                    
@@ -589,7 +589,7 @@ orbit of Ceres back to year 2000:
     >>> elem = Orbit.from_horizons('Ceres')
     >>> epoch = Time('2000-01-01', format='iso')
     >>> newelem = elem.oo_propagate(epoch) # doctest: +SKIP 
-    >>> print(newelem)
+    >>> print(newelem) # doctest: +SKIP
     <QTable length=1>
        id           a                   e          ...    H       G    timescale
 		    AU                             ...   mag                    
