@@ -351,7 +351,7 @@ class Orbit(DataClass):
 
         >>> from sbpy.data import Orbit
         >>> ceres = Orbit.from_horizons('Ceres')
-        >>> statevec = ceres.oo_transform('CART')
+        >>> statevec = ceres.oo_transform('CART')  # doctest: +SKIP
         >>> print(statevec)  # doctest: +SKIP
         <QTable length=1>
            id           x                   y          ...    H       G    timescale
@@ -488,7 +488,7 @@ class Orbit(DataClass):
         >>> from astropy.time import Time
         >>> epoch = Time.now().jd + 100
         >>> ceres = Orbit.from_horizons('Ceres')
-        >>> future_ceres = ceres.oo_propagate(epoch)
+        >>> future_ceres = ceres.oo_propagate(epoch) # doctest: +SKIP
         >>> print(future_ceres)  # doctest: +SKIP
         <QTable length=1>
            id           a                  e          ...    H       G    timescale
