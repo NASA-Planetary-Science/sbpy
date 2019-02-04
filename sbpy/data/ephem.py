@@ -494,7 +494,7 @@ class Ephem(DataClass):
         >>> epochs = Time.now().jd + np.arange(0, 10, 1/24)
         >>> ceres = Orbit.from_horizons('1')
         >>> eph = Ephem.from_oo(ceres, epochs=epochs, location='G37') # doctest: +SKIP
-        >>> print(eph)  
+        >>> print(eph)  # doctest: +SKIP
         <QTable length=240>
         targetname       epoch        ...           obsz               trueanom    
                            d          ...            AU                  deg       

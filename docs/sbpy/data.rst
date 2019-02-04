@@ -523,8 +523,8 @@ body osculating elements from the `JPL Horizons service
     >>> from astropy.time import Time
     >>> epoch = Time('2018-05-14', scale='utc')
     >>> elem = Orbit.from_horizons('Ceres', epochs=epoch)
-    >>> print(elem)
-    <QTable length=1>
+    >>> print(elem)  # doctest: +SKIP
+    <QTable masked=True length=1>
     targetname datetime_jd ...         P         timescale
 		    d      ...         d                  
        str7      float64   ...      float64         str2  
