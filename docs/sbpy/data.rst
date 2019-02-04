@@ -56,7 +56,7 @@ objects (`~sbpy.data.DataClass.from_table`), or from data files
 Depending on how your input data are organized, you cean use different
 options in different cases:
 
-1. Assume that you want to build a `~sbpy.data.Orbit` object to
+1. Assume that you want to build an `~sbpy.data.Orbit` object to
    propagate this orbit and obtain ephemerides. Since you are dealing
    with a single orbit, the most convenient solution might be to use a
    dictionary to build your object:
@@ -67,8 +67,13 @@ options in different cases:
     ...             'argper': 123.4*u.deg, 'node': 45.2*u.deg,
     ...             'epoch': 2451200.5*u.d, 'true_anom':23.1*u.deg}
     >>> orb = Orbit.from_dict(elements)
-    >>> print(orb)  # doctest:+ELLIPSIS
-    <sbpy.data.orbit.Orbit object at ...>
+    >>> print(orb)
+    <QTable length=1>
+       a       e       i     argper   node    epoch   true_anom
+       AU             deg     deg     deg       d        deg   
+    float64 float64 float64 float64 float64  float64   float64 
+    ------- ------- ------- ------- ------- --------- ---------
+      1.234  0.1234   12.34   123.4    45.2 2451200.5      23.1
 
    One quick note on building `~sbpy.data.DataClass` objects from
    dictionaries: dictionaries have no intrinsic order. In dictionary
