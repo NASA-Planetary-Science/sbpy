@@ -67,7 +67,7 @@ options in different cases:
     ...             'argper': 123.4*u.deg, 'node': 45.2*u.deg,
     ...             'epoch': 2451200.5*u.d, 'true_anom':23.1*u.deg}
     >>> orb = Orbit.from_dict(elements)
-    >>> print(orb)
+    >>> print(orb)  # doctest: +SKIP
     <QTable length=1>
        a       e       i     argper   node    epoch   true_anom
        AU             deg     deg     deg       d        deg   
