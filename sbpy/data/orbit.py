@@ -9,7 +9,7 @@ Class for querying, manipulating, integrating, and fitting orbital elements.
 created on June 04, 2017
 """
 import os
-from numpy import array, ndarray, double, arange
+from numpy import array, ndarray, double, arange, rad2deg
 from astropy.time import Time
 from astropy.table import vstack, Column
 from astroquery.jplhorizons import Horizons
@@ -400,8 +400,11 @@ class Orbit(DataClass):
 
         orbits = self.from_array(oo_orbits.transpose(), names=columns)
 
-        # apply units
         for i, col in enumerate(orbits.column_names):
+            # convert from radians to degrees where unit == deg
+            if conf.oorb_orbit_units[orbittype][i] == 'deg':
+                orbits._table[col] = rad2deg(orbits[col])
+            # apply units
             orbits[col].unit = conf.oorb_orbit_units[orbittype][i]
 
         # replace id column with actual target names from original orbits
@@ -550,8 +553,11 @@ class Orbit(DataClass):
 
         orbits = self.from_array(oo_orbits.transpose(), names=columns)
 
-        # apply units
         for i, col in enumerate(orbits.column_names):
+            # convert from radians to degrees where unit == deg
+            if conf.oorb_orbit_units[orbittype][i] == 'deg':
+                orbits._table[col] = rad2deg(orbits[col])
+            # apply units
             orbits[col].unit = conf.oorb_orbit_units[orbittype][i]
 
         # replace id column with actual target names from original orbits
