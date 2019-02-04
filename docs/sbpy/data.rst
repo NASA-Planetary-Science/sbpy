@@ -236,7 +236,7 @@ or if you want to add a column to your object:
 
     >>> obs.add_column(['V', 'V', 'R', 'i', 'g'], name='filter')
     4
-    >>> print(obs.table)
+    >>> print(obs)
     <QTable length=5>
 	ra       dec          t       filter
        deg       deg          d             
