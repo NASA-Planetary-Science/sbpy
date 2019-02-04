@@ -493,10 +493,11 @@ class Ephem(DataClass):
         >>> from astropy.time import Time
         >>> epochs = Time.now().jd + np.arange(0, 10, 1/24)
         >>> ceres = Orbit.from_horizons('1')  # doctest: +SKIP
-        >>> eph = Ephem.from_oo(ceres, epochs=epochs, location='G37') # doctest: +SKIP
+        # doctest: +SKIP
+        >>> eph = Ephem.from_oo(ceres, epochs=epochs, location='G37')
         >>> print(eph.table)  # doctest: +SKIP
-        targetname       epoch        ...           obsz               trueanom    
-                           d          ...            AU                  deg       
+        targetname       epoch        ...           obsz               trueanom
+                           d          ...            AU                  deg
         ---------- ------------------ ... ----------------------- -----------------
            1 Ceres 2458519.2183772307 ...   7.298732644489547e-06 68.06409688782502
            1 Ceres  2458519.260043897 ...   6.141945994242448e-06  68.0736068654519
@@ -570,6 +571,10 @@ class Ephem(DataClass):
             epochs = [Time.now()]
         elif isinstance(epochs, Time):
             epochs = [Time(epochs)]
+        elif isinstance(epochs, (float, int)):
+            epochs = [Time(epochs, format='jd')]
+        elif isinstance(epochs, str):
+            epochs = [Time(epochs, format='iso')]
         elif isinstance(epochs, (list, tuple, ndarray)):
             new_epochs = [None] * len(epochs)
             for i in range(len(epochs)):

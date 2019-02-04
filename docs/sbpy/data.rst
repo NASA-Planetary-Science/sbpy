@@ -179,6 +179,7 @@ an attribute:
 Just like in any `~astropy.table.Table` or `~astropy.table.QTable` object, you can use slicing to obtain subset tables from your data, for instance:
 
     >>> print(obs['ra', 'dec'])
+    <QTable length=3>
         ra       dec
        deg       deg
     --------- ---------
@@ -187,6 +188,7 @@ Just like in any `~astropy.table.Table` or `~astropy.table.QTable` object, you c
     10.243452 -12.40435
 
     >>> print(obs[obs['ra'] <= 10.233453*u.deg])
+    <QTable length=2>
         ra       dec         t
        deg       deg         d
     --------- --------- ------------
@@ -219,6 +221,7 @@ object:
     ...               [10.265425*u.deg, -12.38246*u.deg, 2451524.0673*u.d]])
     5
     >>> print(obs.table)
+    <QTable length=5>
         ra       dec          t
        deg       deg          d
     --------- --------- -------------
@@ -233,6 +236,7 @@ or if you want to add a column to your object:
     >>> obs.add_column(['V', 'V', 'R', 'i', 'g'], name='filter')
     4
     >>> print(obs.table)
+    <QTable length=5>
         ra       dec          t       filter
        deg       deg          d
     --------- --------- ------------- ------
@@ -404,32 +408,25 @@ full flexibility of the latter function:
     ...                                   'stop': epoch2,
     ...                                   'step': '10m'},
     ...                           skip_daylight=True)
-    >>> print(eph.table)
-    targetname    datetime_str      datetime_jd    ...  PABLon  PABLat timescale
-                                         d         ...   deg     deg
-    ---------- ----------------- ----------------- ... -------- ------ ---------
-       1 Ceres 2018-Aug-03 14:20 2458334.097222222 ...  171.275 9.3473       UTC
-       1 Ceres 2018-Aug-03 14:30 2458334.104166667 ... 171.2774 9.3472       UTC
-       1 Ceres 2018-Aug-03 14:40 2458334.111111111 ... 171.2798 9.3471       UTC
-       1 Ceres 2018-Aug-03 14:50 2458334.118055556 ... 171.2822  9.347       UTC
-       1 Ceres 2018-Aug-03 15:00       2458334.125 ... 171.2846 9.3469       UTC
-       1 Ceres 2018-Aug-03 15:10 2458334.131944444 ... 171.2869 9.3468       UTC
-       1 Ceres 2018-Aug-03 15:20 2458334.138888889 ... 171.2893 9.3467       UTC
-       1 Ceres 2018-Aug-03 15:30 2458334.145833333 ... 171.2917 9.3466       UTC
-       1 Ceres 2018-Aug-03 15:40 2458334.152777778 ... 171.2941 9.3465       UTC
-       1 Ceres 2018-Aug-03 15:50 2458334.159722222 ... 171.2965 9.3464       UTC
-           ...               ...               ... ...      ...    ...       ...
-       1 Ceres 2018-Aug-04 06:00        2458334.75 ... 171.4981 9.3373       UTC
-       1 Ceres 2018-Aug-04 06:10 2458334.756944444 ... 171.5004 9.3372       UTC
-       1 Ceres 2018-Aug-04 06:20 2458334.763888889 ... 171.5028 9.3371       UTC
-       1 Ceres 2018-Aug-04 06:30 2458334.770833333 ... 171.5052  9.337       UTC
-       1 Ceres 2018-Aug-04 06:40 2458334.777777778 ... 171.5076 9.3369       UTC
-       1 Ceres 2018-Aug-04 06:50 2458334.784722222 ... 171.5099 9.3368       UTC
-       1 Ceres 2018-Aug-04 07:00 2458334.791666667 ... 171.5123 9.3367       UTC
-       1 Ceres 2018-Aug-04 07:10 2458334.798611111 ... 171.5147 9.3366       UTC
-       1 Ceres 2018-Aug-04 07:20 2458334.805555556 ... 171.5171 9.3365       UTC
-       1 Ceres 2018-Aug-04 07:30      2458334.8125 ... 171.5195 9.3364       UTC
-    Length = 26 rows
+    >>> print(eph)
+    <QTable masked=True length=26>
+    targetname    datetime_str      datetime_jd    ...  PABLon   PABLat timescale
+					 d         ...   deg      deg            
+       str7          str17            float64      ... float64  float64    str3  
+    ---------- ----------------- ----------------- ... -------- ------- ---------
+       1 Ceres 2018-Aug-03 14:20 2458334.097222222 ...  171.275  9.3473       UTC
+       1 Ceres 2018-Aug-03 14:30 2458334.104166667 ... 171.2774  9.3472       UTC
+       1 Ceres 2018-Aug-03 14:40 2458334.111111111 ... 171.2798  9.3471       UTC
+       1 Ceres 2018-Aug-03 14:50 2458334.118055556 ... 171.2822   9.347       UTC
+       1 Ceres 2018-Aug-03 15:00       2458334.125 ... 171.2846  9.3469       UTC
+       1 Ceres 2018-Aug-03 15:10 2458334.131944444 ... 171.2869  9.3468       UTC
+	   ...               ...               ... ...      ...     ...       ...
+       1 Ceres 2018-Aug-04 06:40 2458334.777777778 ... 171.5076  9.3369       UTC
+       1 Ceres 2018-Aug-04 06:50 2458334.784722222 ... 171.5099  9.3368       UTC
+       1 Ceres 2018-Aug-04 07:00 2458334.791666667 ... 171.5123  9.3367       UTC
+       1 Ceres 2018-Aug-04 07:10 2458334.798611111 ... 171.5147  9.3366       UTC
+       1 Ceres 2018-Aug-04 07:20 2458334.805555556 ... 171.5171  9.3365       UTC
+       1 Ceres 2018-Aug-04 07:30      2458334.8125 ... 171.5195  9.3364       UTC
 
 Note that ``skip_daylight`` is an optional parameter of
 `~astroquery.jplhorizons.HorizonsClass.ephemerides` and it can be used
@@ -439,17 +436,17 @@ concatenate queries for a number of objects:
 
     >>> eph = Ephem.from_horizons(['Ceres', 'Pallas', 12893, '1983 SA'],
     ...                           location='568',
-    ...                           epochs=epoch)
-    >>> print(eph.table)
-            targetname               datetime_str       ...  PABLat  timescale
-                                                        ...   deg
+    ...                           epochs=epoch1)
+    >>> print(eph)
+    <QTable masked=True length=4>
+	    targetname               datetime_str       ...  PABLat  timescale
+							...   deg             
+	      str26                     str24           ... float64     str3  
     -------------------------- ------------------------ ... -------- ---------
-                       1 Ceres 2018-Aug-03 14:20:00.000 ...   9.3473       UTC
-                      2 Pallas 2018-Aug-03 14:20:00.000 ... -20.1396       UTC
+		       1 Ceres 2018-Aug-03 14:20:00.000 ...   9.3473       UTC
+		      2 Pallas 2018-Aug-03 14:20:00.000 ... -20.1396       UTC
      12893 Mommert (1998 QS55) 2018-Aug-03 14:20:00.000 ...  -2.0567       UTC
     3552 Don Quixote (1983 SA) 2018-Aug-03 14:20:00.000 ...  13.3365       UTC
-
-
 
 Please be aware that these queries are not simultaneous. The more
 targets you query, the longer the query will take. Furthermore, keep
@@ -465,9 +462,11 @@ ephemerides from the Minor Planet Center:
     ...                      epochs={'start': '2018-10-22',
     ...                              'stop': '2018-10-26',
     ...                              'step': '1d'})
-    >>> print(eph.table)
-              Date          timescale ... Moon distance Moon altitude
-                                      ...      deg           deg
+    >>> print(eph)
+    <QTable length=5>
+	      Date          timescale ... Moon distance Moon altitude
+				      ...      deg           deg     
+	     object            str3   ...    float64       float64   
     ----------------------- --------- ... ------------- -------------
     2018-10-22 00:00:00.000       UTC ...          28.0         -33.0
     2018-10-23 00:00:00.000       UTC ...          41.0         -41.0
@@ -487,27 +486,27 @@ from the Discovery Channel Telescope:
      >>> from astropy.time import Time
      >>> epochs = Time.now().jd + np.arange(0, 10, 1/24)
      >>> ceres = Orbit.from_horizons('1')
-     >>> eph = Ephem.from_oo(ceres, 'G37', epochs)  # doctest: +SKIP
-     >>> print(eph.table) # doctest: +SKIP
-     targetname      MJD [1]       ...        obsy [1]              obsz [1]
-                        d          ...           AU                    AU
-     ---------- ------------------ ... --------------------- ----------------------
-        1 Ceres 58374.720415079966 ...   -0.1640418731222332 1.3660753531152814e-05
-        1 Ceres  58374.76208174648 ...  -0.16334416599555382 1.6732994041007698e-05
-        1 Ceres 58374.803748413455 ...  -0.16264729902661218 2.0200328928084155e-05
-        1 Ceres 58374.845415079966 ...  -0.16195072092478624 2.3823231905778508e-05
-        1 Ceres  58374.88708174648 ...  -0.16125385509757997  2.735153478080482e-05
-        1 Ceres 58374.928748413455 ...  -0.16055613920683476 3.0541568772989025e-05
-             ...                ... ...                   ...                    ...
-        1 Ceres 58384.428748413455 ... 0.0016096754330388497  9.924120661052244e-06
-        1 Ceres 58384.470415079966 ... 0.0023287044344341605   7.69766111133525e-06
-        1 Ceres  58384.51208174648 ... 0.0030458232636104473  6.300640241761616e-06
-        1 Ceres 58384.553748413455 ...  0.003760809893911351 5.8280310798125914e-06
-        1 Ceres 58384.595415079966 ...  0.004473588211662766  6.311456253324348e-06
-        1 Ceres  58384.63708174648 ...  0.005184233254950517  7.717021060406424e-06
-        1 Ceres 58384.678748413455 ...  0.005892966025131429  9.947635868821306e-06
-     Length = 240 rows
-
+     >>> eph = Ephem.from_oo(ceres, epochs, 'G37')
+     >>> print(eph)
+     <QTable length=240>
+     targetname       epoch        ...           obsz               trueanom    
+			d          ...            AU                  deg       
+	str7         float64       ...         float64              float64     
+     ---------- ------------------ ... ----------------------- -----------------
+	1 Ceres 2458519.2878717002 ...   4.886414464166933e-06 68.07980642088688
+	1 Ceres 2458519.3295383668 ...  2.3814767035612583e-06  68.0893160393968
+	1 Ceres 2458519.3712050337 ...  -7.136200919632962e-07 68.09882544202566
+	1 Ceres 2458519.4128717002 ...   -4.18340743346679e-06 68.10833462855386
+	1 Ceres 2458519.4545383668 ...  -7.786747377891423e-06 68.11784359908062
+	1 Ceres 2458519.4962050337 ... -1.1273355301266719e-05 68.12735235370518
+	    ...                ... ...                     ...               ...
+	1 Ceres 2458529.0378717002 ...   1.093565783852335e-05 70.29915515170745
+	1 Ceres 2458529.0795383668 ...  1.3089531693877277e-05  70.3086140523456
+	1 Ceres 2458529.1212050337 ...  1.4402894355114437e-05 70.31807273565124
+	1 Ceres 2458529.1628717002 ...  1.4786143903738891e-05 70.32753120140761
+	1 Ceres 2458529.2045383668 ...  1.4213398342149963e-05 70.33698944971509
+	1 Ceres 2458529.2462050337 ...  1.2724269065650384e-05 70.34644748067402
+     
 The properties computed by pyoorb and listed in the resulting table
 are defined in the `pyoorb documentation
 <https://github.com/oorb/oorb/tree/master/python>`_. Note that this function requires pyoorb to be installed, which is not a requirement for `sbpy`.
@@ -544,46 +543,61 @@ orbital elements for a number of targets:
     >>> elem = Orbit.from_horizons(['3749', '2009 BR60'],
     ...                            epochs=epoch,
     ...                            refplane='earth')
-    >>> print(elem.table) # doctest:+SKIP
-          targetname         datetime_jd    ...         Q                 P
-                                  d         ...         AU                d
-    --------------------- ----------------- ... ----------------- -----------------
-    3749 Balam (1982 BG1) 2458334.097222222 ... 2.481...          1221.86...
-       312497 (2009 BR60) 2458334.097222222 ... 2.481...          1221.77...
+    >>> print(elem)
+    <QTable length=2>
+	  targetname         datetime_jd    ...         P         timescale
+				  d         ...         d                  
+	    str21              float64      ...      float64         str2  
+    --------------------- ----------------- ... ----------------- ---------
+    3749 Balam (1982 BG1) 2458334.097222222 ... 1221.865723414031        TT
+       312497 (2009 BR60) 2458334.097222222 ... 1221.776912893334        TT
 
 An existing `~Orbit` instance can be transformed to a different
 orbital element definition system (e.g., Keplerian, cometary,
 cartesian) using `~sbpy.data.Orbit.oo_transform` or it can be
 propagated into the future or past using
-`~sbpy.data.Orbit.oo_propagate`. Both functions are implemented in `sbpy` to provide an interface to `pyoorb
-<https://github.com/oorb/oorb/tree/master/python>`_, a Python module using `OpenOrb <https://github.com/oorb/oorb>`_.
+`~sbpy.data.Orbit.oo_propagate`. Both functions are implemented in
+`sbpy` to provide an interface to `pyoorb
+<https://github.com/oorb/oorb/tree/master/python>`_, a Python module
+using `OpenOrb <https://github.com/oorb/oorb>`_.
 
-In order to transform some current orbits to a state vector in cartesian coordinates, one could use the following code:
+In order to transform some current orbits to a state vector in
+cartesian coordinates, one could use the following code:
 
     >>> elem = Orbit.from_horizons(['Ceres', 'Pallas', 'Vesta'])
-    >>> statevec = elem.oo_transform('CART')  # doctest: +SKIP
-    >>> print(statevec.table)  # doctest: +SKIP
-       id             x                   y           ... epoch_scale  H    G
-                      AU                  AU          ...             mag
-    -------- ------------------- -------------------- ... ----------- ---- ----
-     1 Ceres -2.5244444864469164 -0.35655744512932896 ...         UTC 3.34 0.12
-    2 Pallas -1.7247978992440247   1.1268442378878316 ...         UTC 4.13 0.11
-     4 Vesta  0.9453230885641772  -1.9811261840060208 ...         UTC  3.2 0.32
+    >>> statevec = elem.oo_transform('CART')
+    >>> print(statevec)
+    <QTable length=3>
+       id             x                   y           ...    H       G    timescale
+		      AU                  AU          ...   mag                    
+      str8         float64             float64        ... float64 float64    str2  
+    -------- ------------------- -------------------- ... ------- ------- ---------
+     1 Ceres -1.9673670927605356   -1.788869179608663 ...    3.34    0.12        TT
+    2 Pallas  -2.354147777522819 -0.20413910825654025 ...    4.13    0.11        TT
+     4 Vesta   2.142974769357926  -0.8590480100896669 ...     3.2    0.32        TT
 
-Orbits can currently be transformed to the following definitions: cartesian (``'CART'``), Keplerian (``'KEP'``), and cometary (``'COM'``).
+Orbits can currently be transformed to the following definitions:
+cartesian (``'CART'``), Keplerian (``'KEP'``), and cometary
+(``'COM'``).
 
-Orbit propagation requires the epoch to which the orbit should be propagated to either as `~astropy.time.Time` object, or as float in terms of Julian date. The following example propagates the current orbit of Ceres back to year 2000:
+Orbit propagation requires the epoch to which the orbit should be
+propagated to either as `~astropy.time.Time` object, or as float in
+terms of Julian date. The following example propagates the current
+orbit of Ceres back to year 2000:
 
     >>> elem = Orbit.from_horizons('Ceres')
     >>> epoch = Time('2000-01-01', format='iso')
-    >>> newelem = elem.oo_propagate(epoch)  # doctest: +SKIP
-    >>> print(newelem.table)  # doctest: +SKIP
-       id           a                  e          ... epoch_scale  H    G
-                    AU                            ...             mag
-    ------- ----------------- ------------------- ... ----------- ---- ----
-    1 Ceres 2.766494213803344 0.07837503821706865 ...         UTC 3.34 0.12
+    >>> newelem = elem.oo_propagate(epoch)
+    >>> print(newelem)
+    <QTable length=1>
+       id           a                   e          ...    H       G    timescale
+		    AU                             ...   mag                    
+      str7       float64             float64       ... float64 float64    str3  
+    ------- ------------------ ------------------- ... ------- ------- ---------
+    1 Ceres 2.7664942134894703 0.07837504303420217 ...    3.34    0.12       UTC
 
-Note that both functions require pyoorb to be installed, which is not a requirement for `sbpy`.
+Note that both functions require pyoorb to be installed, which is
+not a requirement for `sbpy`.
 
 How to use Phys
 ---------------
@@ -602,13 +616,16 @@ small number of asteroids:
     >>> from sbpy.data import Phys
     >>> phys = Phys.from_sbdb(['Ceres', '12893', '3552'])
     >>> print(phys['targetname', 'H', 'diameter']) # doctest: +SKIP
-            targetname                 H          diameter
-                                      mag            km
-    -------------------------- ------------------ --------
-                       1 Ceres               3.34    939.4
-     12893 Mommert (1998 QS55)               13.9    5.214
-    3552 Don Quixote (1983 SA) 12.800000000000002     19.0
+    <QTable length=3>
+	    targetname            H    diameter
+					  km   
+	      str26            float64 float64 
+    -------------------------- ------- --------
+		       1 Ceres    3.34    939.4
+     12893 Mommert (1998 QS55)    13.9    5.214
+    3552 Don Quixote (1983 SA)    12.9     19.0
 
+    
 Please note that the SBDB database is not complete with respect to
 physical properties and should be considered as a sparse dataset.
 
