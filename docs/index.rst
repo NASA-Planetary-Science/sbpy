@@ -31,7 +31,7 @@ Please note that this package is currently under heavy development.
 Installation
 ------------
 
-`sbpy` requires Python 3.x - compatibility with Python 2.x is not
+`sbpy` requires Python 3.5+ - compatibility with Python 2.x is not
 supported. We hence recommend that you install the latest version of
 `Anaconda Python 3.x <https://www.anaconda.com/download/>`_ on your
 system before installing `sbpy`. Make sure that Anaconda Python is
@@ -42,7 +42,7 @@ Requirements
 
 `sbpy` has the following requirements (incomplete):
 
-* Python 3
+* Python 3.5 or later
 * `numpy <https://www.numpy.org/>` 1.4.0 or later
 * pytest 3.1 or later
 * `astropy <https://www.astropy.org/>`
