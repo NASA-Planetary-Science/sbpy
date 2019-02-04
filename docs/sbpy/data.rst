@@ -102,8 +102,15 @@ options in different cases:
     >>> dec = [-12.42123, -12.41562, -12.40435]*u.deg
     >>> epoch = (2451523.5 + array([0.1234, 0.2345, 0.3525]))*u.d
     >>> obs = Ephem.from_array([ra, dec, epoch], names=['ra', 'dec', 't'])
-    >>> print(obs)  # doctest:+ELLIPSIS
-    <sbpy.data.ephem.Ephem object at ...>
+    >>> print(obs)  
+    <QTable length=3>
+        ra       dec         t      
+       deg       deg         d      
+     float64   float64    float64   
+    --------- --------- ------------
+    10.223423 -12.42123 2451523.6234
+    10.233453 -12.41562 2451523.7345
+    10.243452 -12.40435 2451523.8525
 
 3. If your data are already available as a `~astropy.table.Table` or
    `~astropy.table.QTable`, you can simply convert it into a
@@ -359,13 +366,13 @@ Mauna Kea Observatory (IAU observatory code ``568``) from the `JPL Horizons serv
     >>> eph = Ephem.from_horizons('Ceres',
     ...                           location='568',
     ...                           epochs=epoch)
-    >>> print(eph) # doctest: +ELLIPSIS
-    <sbpy.data.ephem.Ephem object at ...>
-    >>> print(eph.table)
-    targetname       datetime_str          datetime_jd    ... PABLat timescale
-                                                d         ...  deg
-    ---------- ------------------------ ----------------- ... ------ ---------
-       1 Ceres 2018-Aug-03 14:20:00.000 2458334.097222222 ... 9.3473       UTC
+    >>> print(eph) 
+    <QTable masked=True length=1>
+    targetname       datetime_str          datetime_jd    ...  PABLat timescale
+						d         ...   deg            
+       str7             str24                float64      ... float64    str3  
+    ---------- ------------------------ ----------------- ... ------- ---------
+       1 Ceres 2018-Aug-03 14:20:00.000 2458334.097222222 ...  9.3473       UTC
 
     >>> print(eph.column_names)
     <TableColumns names=('targetname','datetime_str','datetime_jd','H','G','solar_presence','flags','RA','DEC','RA_app','DEC_app','RA*cos(Dec)_rate','DEC_rate','AZ','EL','AZ_rate','EL_rate','sat_X','sat_Y','sat_PANG','siderealtime','airmass','magextinct','V','surfbright','illumination','illum_defect','sat_sep','sat_vis','ang_width','PDObsLon','PDObsLat','PDSunLon','PDSunLat','SubSol_ang','SubSol_dist','NPole_ang','NPole_dist','EclLon','EclLat','r','r_rate','delta','delta_rate','lighttime','vel_sun','vel_obs','elong','elongFlag','alpha','lunar_elong','lunar_illum','sat_alpha','sunTargetPA','velocityPA','OrbPlaneAng','constellation','TDB-UT','ObsEclLon','ObsEclLat','NPole_RA','NPole_DEC','GlxLon','GlxLat','solartime','earth_lighttime','RA_3sigma','DEC_3sigma','SMAA_3sigma','SMIA_3sigma','Theta_3sigma','Area_3sigma','RSS_3sigma','r_3sigma','r_rate_3sigma','SBand_3sigma','XBand_3sigma','DoppDelay_3sigma','true_anom','hour_angle','alpha_true','PABLon','PABLat','timescale')>
@@ -516,11 +523,11 @@ body osculating elements from the `JPL Horizons service
     >>> from astropy.time import Time
     >>> epoch = Time('2018-05-14', scale='utc')
     >>> elem = Orbit.from_horizons('Ceres', epochs=epoch)
-    >>> print(elem)  # doctest: +ELLIPSIS
-    <sbpy.data.orbit.Orbit object at ...>
-    >>> print(elem.table)
+    >>> print(elem)
+    <QTable length=1>
     targetname datetime_jd ...         P         timescale
-                    d      ...         d
+		    d      ...         d                  
+       str7      float64   ...      float64         str2  
     ---------- ----------- ... ----------------- ---------
        1 Ceres   2458252.5 ... 1681.218128428134        TT
     >>> print(elem.column_names)
