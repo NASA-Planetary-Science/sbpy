@@ -488,8 +488,8 @@ from the Discovery Channel Telescope:
      >>> from astropy.time import Time
      >>> epochs = Time.now().jd + np.arange(0, 10, 1/24)
      >>> ceres = Orbit.from_horizons('1')
-     >>> eph = Ephem.from_oo(ceres, epochs, 'G37')
-     >>> print(eph)
+     >>> eph = Ephem.from_oo(ceres, epochs, 'G37') # doctest: +SKIP 
+     >>> print(eph) # doctest: +SKIP 
      <QTable length=240>
      targetname       epoch        ...           obsz               trueanom    
 			d          ...            AU                  deg       
@@ -567,7 +567,7 @@ In order to transform some current orbits to a state vector in
 cartesian coordinates, one could use the following code:
 
     >>> elem = Orbit.from_horizons(['Ceres', 'Pallas', 'Vesta'])
-    >>> statevec = elem.oo_transform('CART')
+    >>> statevec = elem.oo_transform('CART') # doctest: +SKIP 
     >>> print(statevec)
     <QTable length=3>
        id             x                   y           ...    H       G    timescale
@@ -589,7 +589,7 @@ orbit of Ceres back to year 2000:
 
     >>> elem = Orbit.from_horizons('Ceres')
     >>> epoch = Time('2000-01-01', format='iso')
-    >>> newelem = elem.oo_propagate(epoch)
+    >>> newelem = elem.oo_propagate(epoch) # doctest: +SKIP 
     >>> print(newelem)
     <QTable length=1>
        id           a                   e          ...    H       G    timescale
