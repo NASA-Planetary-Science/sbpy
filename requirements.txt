@@ -1,5 +1,6 @@
 pip=18.1
 numpy>=1.4.0
+pytest-astropy
 astropy-helpers
 matplotlib
 ads

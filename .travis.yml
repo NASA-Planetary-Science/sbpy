@@ -36,18 +36,18 @@ env:
 
         # List other runtime dependencies for the package that are available as
         # conda packages here.
-        - CONDA_DEPENDENCIES='openorb'
+        - CONDA_DEPENDENCIES=''
 
         # List other runtime dependencies for the package that are available as
         # pip packages here.
-        - PIP_DEPENDENCIES='pip==18.1 numpy matplotlib ads scipy synphot https://github.com/astropy/astroquery/archive/master.zip'
+        - PIP_DEPENDENCIES='pip==18.1 numpy matplotlib ads scipy synphot https://github.com/astropy/astroquery/archive/master.zip pytest-astropy'
 
         # Conda packages for affiliated packages are hosted in channel
         # "astropy" while builds for astropy LTS with recent numpy versions
         # are in astropy-ci-extras. If your package uses either of these,
         # add the channels to CONDA_CHANNELS along with any other channels
         # you want to use.
-        - CONDA_CHANNELS='astropy-ci-extras astropy conda-forge'
+        - CONDA_CHANNELS='astropy-ci-extras astropy'
 
         # If there are matplotlib or other GUI tests, uncomment the following
         # line to use the X virtual framebuffer.
