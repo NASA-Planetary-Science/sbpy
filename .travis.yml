@@ -78,12 +78,13 @@ matrix:
         - os: linux
           env: SETUP_CMD='test --coverage'
 
-        # Now try Astropy dev and LTS vesions with the latest 3.x and 2.7.
+        # Now try Astropy dev and LTS vesions with the latest 3.x
         - os: linux
           env: ASTROPY_VERSION=development
                EVENT_TYPE='pull_request push cron'
         - os: linux
           env: ASTROPY_VERSION=lts
+	       PYTEST_VERSION='<3.7'
                EVENT_TYPE='pull_request push cron'
 
         # Try all python versions and Numpy versions. Since we can assume that
