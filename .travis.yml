@@ -27,7 +27,7 @@ env:
         # The following versions are the 'default' for tests, unless
         # overridden underneath. They are defined here in order to save having
         # to repeat them for all configurations.
-        - PYTHON_VERSION=3.6
+        - PYTHON_VERSION=3.7
         - NUMPY_VERSION=stable
         - ASTROPY_VERSION=stable
         - MAIN_CMD='python setup.py'
@@ -40,7 +40,7 @@ env:
 
         # List other runtime dependencies for the package that are available as
         # pip packages here.
-        - PIP_DEPENDENCIES='pip==18.1 numpy matplotlib ads scipy synphot https://github.com/astropy/astroquery/archive/master.zip pytest>=3.6 pytest-astropy'
+        - PIP_DEPENDENCIES='pip==18.1 numpy matplotlib ads scipy synphot https://github.com/astropy/astroquery/archive/master.zip pytest pytest-astropy'
 
         # Conda packages for affiliated packages are hosted in channel
         # "astropy" while builds for astropy LTS with recent numpy versions
@@ -78,12 +78,9 @@ matrix:
         - os: linux
           env: SETUP_CMD='test --coverage'
 
-        # Now try Astropy dev and LTS vesions with the latest 3.x
+        # Now try Astropy dev version with the latest 3.x
         - os: linux
           env: ASTROPY_VERSION=development
-               EVENT_TYPE='pull_request push cron'
-        - os: linux
-          env: ASTROPY_VERSION=lts
                EVENT_TYPE='pull_request push cron'
 
         # Try all python versions and Numpy versions. Since we can assume that
@@ -97,6 +94,13 @@ matrix:
           env: PYTHON_VERSION=3.6 NUMPY_VERSION=1.11
         - os: linux
           env: PYTHON_VERSION=3.7 NUMPY_VERSION=1.11
+        - os: linux
+          env: PYTHON_VERSION=3.5 NUMPY_VERSION=1.14
+        - os: linux
+          env: PYTHON_VERSION=3.6 NUMPY_VERSION=1.14
+        - os: linux
+          env: PYTHON_VERSION=3.7 NUMPY_VERSION=1.14
+	  
 
         # Try numpy pre-release
         - os: linux
