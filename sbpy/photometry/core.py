@@ -7,7 +7,7 @@ created on June 23, 2017
 """
 
 __all__ = ['ref2mag', 'mag2ref', 'spline',
-           'DiskIntegratedModelClass', 'LinearPhaseFunc', 'HG', 'HG12', 'HG1G2',
+           'DiskIntegratedModelClass', 'LinearPhaseFunc', 'HG', 'HG12', 'HG1G2', 'HG12_Pen16',
            'DiskFunctionModel', 'LommelSeeliger', 'Lambert', 'LunarLambert',
            'PhaseFunctionModel', 'ROLOPhase',
            'ResolvedPhotometricModelClass', 'ROLO']
@@ -759,6 +759,57 @@ class HG12(HG12BaseClass):
         else:
             p1 = 0.9529
             p2 = -0.6125
+        ddg = 1.085736205*((phi3-phi1)*p1+(phi3-phi2)*p2)/dom
+        return [ddh, ddg]
+
+
+class HG12_Pen16(HG12):
+    """Revised H, G12 model by Penttil\"a et al. (2016)
+
+    Examples
+    --------
+    >>> # Define the phase function for Themis with
+    >>> # H = 7.121, G12 = 0.68
+    >>>
+    >>> from sbpy.photometry import HG12
+    >>> themis = HG12_Pen16(7.121, 0.68, radius=100)
+    >>> print('{0:.4f}'.format(themis.geoalb))
+    0.0639
+    >>> print('{0:.4f}'.format(themis.phaseint))
+    0.3804
+
+    """
+
+    @staticmethod
+    def _G12_to_G1(g12):
+        """Calculate G1 from G12"""
+        return 0.84293649*g12
+
+    @staticmethod
+    def _G12_to_G2(g12):
+        """Calculate G2 from G12"""
+        return 0.53513350*(1-g12)
+
+    @staticmethod
+    def evaluate(ph, h, g):
+        g1 = HG12_Pen16._G12_to_G1(g)
+        g2 = HG12_Pen16._G12_to_G2(g)
+        return HG1G2.evaluate(ph, h, g1, g2)
+
+    @staticmethod
+    def fit_deriv(ph, h, g):
+        if hasattr(ph, '__iter__'):
+            ddh = np.ones_like(ph)
+        else:
+            ddh = 1.
+        g1 = HG12_Pen16._G12_to_G1(g)
+        g2 = HG12_Pen16._G12_to_G2(g)
+        phi1 = HG1G2._phi1(ph)
+        phi2 = HG1G2._phi2(ph)
+        phi3 = HG1G2._phi3(ph)
+        dom = (g1*phi1+g2*phi2+(1-g1-g2)*phi3)
+        p1 = 0.84293649
+        p2 = -0.53513350
         ddg = 1.085736205*((phi3-phi1)*p1+(phi3-phi2)*p2)/dom
         return [ddh, ddg]
 
