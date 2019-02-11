@@ -22,4 +22,4 @@ def test_from_sbdb():
     assert data['H'].unit == 'mag'
     assert data['G'].unit is None
 
-    #assert 'sbpy.data.Phys.from_sbdb' in bib.to_text()
+    # assert 'sbpy.data.Phys.from_sbdb' in bib.to_text()

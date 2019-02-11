@@ -351,12 +351,12 @@ class Orbit(DataClass):
 
         >>> from sbpy.data import Orbit
         >>> ceres = Orbit.from_horizons('Ceres')
-        >>> statevec = ceres.oo_transform('CART')
+        >>> statevec = ceres.oo_transform('CART') # doctest: +SKIP
         >>> print(statevec)  # doctest: +SKIP
         <QTable length=1>
            id           x                   y          ...    H       G    timescale
-                        AU                  AU         ...   mag                    
-          str7       float64             float64       ... float64 float64    str2  
+                        AU                  AU         ...   mag
+          str7       float64             float64       ... float64 float64    str2
         ------- ------------------ ------------------- ... ------- ------- ---------
         1 Ceres -1.967176101061908 -1.7891189971612211 ...    3.34    0.12        TT
         """
@@ -488,12 +488,12 @@ class Orbit(DataClass):
         >>> from astropy.time import Time
         >>> epoch = Time.now().jd + 100
         >>> ceres = Orbit.from_horizons('Ceres')
-        >>> future_ceres = ceres.oo_propagate(epoch)
+        >>> future_ceres = ceres.oo_propagate(epoch)  # doctest: +SKIP
         >>> print(future_ceres)  # doctest: +SKIP
         <QTable length=1>
            id           a                  e          ...    H       G    timescale
-                        AU                            ...   mag                    
-          str7       float64            float64       ... float64 float64    str3  
+                        AU                            ...   mag
+          str7       float64            float64       ... float64 float64    str3
         ------- ----------------- ------------------- ... ------- ------- ---------
         1 Ceres 2.769331727251861 0.07605371361208543 ...    3.34    0.12       UTC        """
 

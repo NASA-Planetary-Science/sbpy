@@ -48,7 +48,7 @@ class Conf():
         ['lunar_elong', 'elong_moon', 'elongation_moon',
          'lunar_elongation', 'lunarelong', 'Lunar Elongation'],
         ['vx', 'dx', 'dx/dt', 'x Velocity Component'],
-        ['vy', 'dy', 'dy/dt',  'y Velocity Component'],
+        ['vy', 'dy', 'dy/dt', 'y Velocity Component'],
         ['vz', 'dz', 'dz/dt', 'z Velocity Component'],
 
         # physical properties

@@ -496,9 +496,9 @@ class Ephem(DataClass):
         >>> eph = Ephem.from_oo(ceres, epochs=epochs, location='G37') # doctest: +SKIP
         >>> print(eph)  # doctest: +SKIP
         <QTable length=240>
-        targetname       epoch        ...           obsz               trueanom    
-                           d          ...            AU                  deg       
-           str7         float64       ...         float64              float64     
+        targetname       epoch        ...           obsz               trueanom
+                           d          ...            AU                  deg
+           str7         float64       ...         float64              float64
         ---------- ------------------ ... ----------------------- -----------------
            1 Ceres  2458519.316966272 ...  3.2083678848104924e-06  68.0863831954328
            1 Ceres 2458519.3586329385 ...  2.7022422510736277e-07 68.09589266358881
