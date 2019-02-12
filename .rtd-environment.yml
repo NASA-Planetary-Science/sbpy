@@ -4,7 +4,8 @@ channels:
     - astropy
 
 dependencies:
-    - numpy
+    - python>=3 
+    - numpy     
     - astropy
     - astropy-helpers
     - Cython

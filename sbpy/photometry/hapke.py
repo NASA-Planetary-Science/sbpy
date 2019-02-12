@@ -9,6 +9,7 @@ created on November 27, 2017
 
 from .core import ResolvedPhotometricModelClass
 
+
 class Hapke(ResolvedPhotometricModelClass):
     """Hapke scattering model class"""
     pass

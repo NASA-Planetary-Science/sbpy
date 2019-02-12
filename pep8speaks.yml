@@ -5,6 +5,8 @@ pycodestyle:
     - E741  # single-letter small-caps 
     - E226  # Don't force "missing whitespace around arithmetic operator"
     - E402  # .conf has to be set in the __init__.py modules imports
+    - E501  # line too long
+
 
   exclude:
     - ez_setup.py

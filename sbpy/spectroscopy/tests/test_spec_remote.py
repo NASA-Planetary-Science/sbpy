@@ -137,9 +137,10 @@ def test_einstein():
         catalog_result.append(au_cat)
 
     err = (abs((np.array(catalog_result) - np.array(result)) /
-           np.array(catalog_result) * 100))
+               np.array(catalog_result) * 100))
 
     assert np.all(err < 23.5)
+
 
 @remote_data
 def test_Haser_prodrate():

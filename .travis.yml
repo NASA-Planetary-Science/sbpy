@@ -18,9 +18,9 @@ addons:
 stages:
    - name: Build tests 
    - name: Tests with various Astropy/Numpy versions
+   - name: Test docs, PEP8, and coverage
    - name: Remote data tests (allowed to fail)
-   - name: Test docs, PEP8, and coverage (allowed to fail)
-
+   
 stage: Build tests
 
 # setting up environment variables and the build matrix
@@ -60,36 +60,29 @@ matrix:
           stage: Tests with various Astropy/Numpy versions
           env: PYTHON_VERSION=3.7 NUMPY_VERSION=1.14 ASTROPY_VERSION=3 PYTEST_VERSION='<3.7'
           
+        # Test docs, PEP8, and coverage
+        - os: linux
+          stage: Test docs, PEP8, and coverage
+          env: MAIN_CMD='test --coverage' SETUP_CMD=''  
+
+        - os: linux
+          stage: Test docs, PEP8, and coverage
+          env: SETUP_CMD='build_docs -w'        
+
+        - os: linux
+          stage: Test docs, PEP8, and coverage
+          env: MAIN_CMD='pycodestyle sbpy --count' SETUP_CMD=''
+
         # Remote data tests
         - os: linux
           stage: Remote data tests (allowed to fail)
           env: DEBUG=True SETUP_CMD='test -R -V -a "--durations=50"' PYTEST_VERSION='<3.7'
-
-        # Test docs, PEP8, and coverage
-        - os: linux
-          stage: Test docs, PEP8, and coverage (allowed to fail)
-          env: MAIN_CMD='test --coverage' SETUP_CMD=''  
-
-        - os: linux
-          stage: Test docs, PEP8, and coverage (allowed to fail)
-          env: SETUP_CMD='build_docs -w'        
-
-        - os: linux
-          stage: Test docs, PEP8, and coverage (allowed to fail)
-          env: MAIN_CMD='pycodestyle sbpy --count' SETUP_CMD=''
 
     allow_failures:
         - os: linux
           stage: Remote data tests (allowed to fail)
           env: DEBUG=True SETUP_CMD='test -R -V -a "--durations=50"' PYTEST_VERSION='<3.7'
 
-        - os: linux
-          stage: Test docs, PEP8, and coverage (allowed to fail)
-          env: SETUP_CMD='build_docs -w'        
-
-        - os: linux
-          stage: Test docs, PEP8, and coverage (allowed to fail)
-          env: MAIN_CMD='pycodestyle sbpy --count' SETUP_CMD=''
 
 install:
    - git clone git://github.com/astropy/ci-helpers.git
