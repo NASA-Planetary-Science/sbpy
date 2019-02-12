@@ -14,10 +14,11 @@ def centroid(im, gyx, method='weighted'):
     Parameters
     ----------
     im : array, mandatory
-        image 
+        image
     gyx : tuple, mandatory
         initual guess coordinates (y, x)
-    method : str, optional, default: `weighted`, choices: [`weighted`, `peak`, `comet`]
+    method : str, optional, default: `weighted`, choices: [`weighted`,
+        `peak`, `comet`]
         method to use for finding centroid
 
     Returns
@@ -42,7 +43,7 @@ class CometaryEnhancement():
         self.cyx = cyx
 
     def azavg_norm(self):
-        """Normalize image using azimuthal average 
+        """Normalize image using azimuthal average
 
         Examples
         --------
@@ -119,7 +120,7 @@ class PSFSubtraction():
         >>> psfmodel = PSFSubtraction(hdu[0].data, cyx) # doctest: +SKIP
         >>> plt.imshow(psfmodel) # doctest: +SKIP
 
-        not yet implemented 
+        not yet implemented
 
         """
 
@@ -135,7 +136,8 @@ class PSFSubtraction():
         cyx : tuple, mandatory
             target centroid coordinates `(y, x)`
         scaling : str, optional, default: `peak`
-            select scaling method (`peak` fits the height of PSF model to the target's image)
+            select scaling method (`peak` fits the height of PSF model to
+            the target's image)
 
 
         Examples
@@ -149,6 +151,6 @@ class PSFSubtraction():
         >>> diff = PSFSubtraction.subtract_psfmodel(hdu[0].data, psfmodel, cyx) # doctest: +SKIP 
         >>> plt.imshow(diff) # doctest: +SKIP
 
-        not yet implemented 
+        not yet implemented
 
         """
