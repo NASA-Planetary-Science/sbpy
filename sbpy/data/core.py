@@ -102,9 +102,9 @@ class DataClass():
         ...                                    ('i', 10.59321*u.deg)]))
         >>> print(orb)
         <QTable length=1>
-           a       e       i    
-           AU             deg   
-        float64 float64 float64 
+           a       e       i
+           AU             deg
+        float64 float64 float64
         ------- ------- --------
          2.7674  0.0756 10.59321
         >>> print(orb.column_names) # doctest: +SKIP
@@ -305,7 +305,7 @@ class DataClass():
                     field))
 
     def __repr__(self):
-        """Return representation of the underlying data table 
+        """Return representation of the underlying data table
         (``self._table.__repr__()``)"""
         return self._table.__repr__()
 

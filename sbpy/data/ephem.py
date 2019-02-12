@@ -492,28 +492,27 @@ class Ephem(DataClass):
         >>> from sbpy.data import Orbit, Ephem
         >>> from astropy.time import Time
         >>> epochs = Time.now().jd + np.arange(0, 10, 1/24)
-        >>> ceres = Orbit.from_horizons('1')  # doctest: +SKIP
+        >>> ceres = Orbit.from_horizons('1')
         >>> eph = Ephem.from_oo(ceres, epochs=epochs, location='G37') # doctest: +SKIP
-        >>> print(eph.table)  # doctest: +SKIP
-        targetname      MJD [1]       ...        obsy [1]              obsz [1]
-                           d          ...           AU                    AU
-        ---------- ------------------ ... --------------------- ----------------------
-           1 Ceres 58374.720415079966 ...   -0.1640418731222332 1.3660753531152814e-05
-           1 Ceres  58374.76208174648 ...  -0.16334416599555382 1.6732994041007698e-05
-           1 Ceres 58374.803748413455 ...  -0.16264729902661218 2.0200328928084155e-05
-           1 Ceres 58374.845415079966 ...  -0.16195072092478624 2.3823231905778508e-05
-           1 Ceres  58374.88708174648 ...  -0.16125385509757997  2.735153478080482e-05
-           1 Ceres 58374.928748413455 ...  -0.16055613920683476 3.0541568772989025e-05
-                ...                ... ...                   ...                    ...
-           1 Ceres 58384.428748413455 ... 0.0016096754330388497  9.924120661052244e-06
-           1 Ceres 58384.470415079966 ... 0.0023287044344341605   7.69766111133525e-06
-           1 Ceres  58384.51208174648 ... 0.0030458232636104473  6.300640241761616e-06
-           1 Ceres 58384.553748413455 ...  0.003760809893911351 5.8280310798125914e-06
-           1 Ceres 58384.595415079966 ...  0.004473588211662766  6.311456253324348e-06
-           1 Ceres  58384.63708174648 ...  0.005184233254950517  7.717021060406424e-06
-           1 Ceres 58384.678748413455 ...  0.005892966025131429  9.947635868821306e-06
-        Length = 240 rows
-        """
+        >>> print(eph)  # doctest: +SKIP
+        <QTable length=240>
+        targetname       epoch        ...           obsz               trueanom
+                           d          ...            AU                  deg
+           str7         float64       ...         float64              float64
+        ---------- ------------------ ... ----------------------- -----------------
+           1 Ceres  2458519.316966272 ...  3.2083678848104924e-06  68.0863831954328
+           1 Ceres 2458519.3586329385 ...  2.7022422510736277e-07 68.09589266358881
+           1 Ceres 2458519.4002996054 ...  -3.111046209036683e-06 68.10540191585879
+           1 Ceres  2458519.441966272 ...  -6.700369254264427e-06 68.11491095202307
+           1 Ceres 2458519.4836329385 ... -1.0248419404668141e-05 68.12441977218093
+           1 Ceres 2458519.5252996054 ... -1.3508703580356052e-05 68.13392837643161
+               ...                ... ...                     ...               ...
+           1 Ceres  2458529.066966272 ...  1.2522500440509399e-05 70.30569661787204
+           1 Ceres 2458529.1086329385 ...  1.4101698473351076e-05 70.31515536712485
+           1 Ceres 2458529.1502996054 ...  1.4771304981564537e-05  70.3246138990413
+           1 Ceres  2458529.191966272 ...   1.448582020449618e-05 70.33407221340468
+           1 Ceres 2458529.2336329385 ...   1.326517587380005e-05 70.34353031031534
+           1 Ceres 2458529.2752996054 ...  1.1193369555934085e-05 70.35298818987367        """
 
         import pyoorb
 
@@ -570,6 +569,10 @@ class Ephem(DataClass):
             epochs = [Time.now()]
         elif isinstance(epochs, Time):
             epochs = [Time(epochs)]
+        elif isinstance(epochs, (float, int)):
+            epochs = [Time(epochs, format='jd')]
+        elif isinstance(epochs, str):
+            epochs = [Time(epochs, format='iso')]
         elif isinstance(epochs, (list, tuple, ndarray)):
             new_epochs = [None] * len(epochs)
             for i in range(len(epochs)):
@@ -616,8 +619,9 @@ class Ephem(DataClass):
                                       name='targetname'),
                                index=0)
 
-        # remove trueanom column for now as it only holds a dummy value
-        ephem.table.remove_column('trueanom')
+        # convert MJD to Julian Date
+        ephem.add_column(ephem['MJD']+2400000.5*u.d, name='epoch', index=1)
+        ephem._table.remove_column('MJD')
 
         if bib.status() is None or bib.status():
             bib.register('sbpy.data.Ephem.from_oo',

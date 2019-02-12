@@ -48,7 +48,7 @@ class Conf():
         ['lunar_elong', 'elong_moon', 'elongation_moon',
          'lunar_elongation', 'lunarelong', 'Lunar Elongation'],
         ['vx', 'dx', 'dx/dt', 'x Velocity Component'],
-        ['vy', 'dy', 'dy/dt',  'y Velocity Component'],
+        ['vy', 'dy', 'dy/dt', 'y Velocity Component'],
         ['vz', 'dz', 'dz/dt', 'z Velocity Component'],
 
         # physical properties
@@ -92,8 +92,8 @@ class Conf():
                         'CART': [None, 'au', 'au', 'au', 'au/d', 'au/d',
                                  'au/d', None, 'd', None, 'mag', None]}
 
-    oorb_ephem_fields = ['MJD', 'RA', 'DEC', 'RA*cos(Dec)_rate', 'DEC_rate', 'alpha',
-                         'elong', 'r', 'Delta', 'V', 'pa', 'TopEclLon',
+    oorb_ephem_fields = ['MJD', 'RA', 'DEC', 'RA*cos(Dec)_rate', 'DEC_rate',
+                         'alpha', 'elong', 'r', 'Delta', 'V', 'pa', 'TopEclLon',
                          'TopEclLat', 'OppTopEclLon', 'OppTopEclLat',
                          'HelEclLon', 'HelEclLat', 'OppHelEclLon',
                          'OppHelEclLat', 'EL', 'ELsun', 'ELmoon',

@@ -9,7 +9,7 @@ Class for querying, manipulating, integrating, and fitting orbital elements.
 created on June 04, 2017
 """
 import os
-from numpy import array, ndarray, double, arange
+from numpy import array, ndarray, double, arange, rad2deg
 from astropy.time import Time
 from astropy.table import vstack, Column
 from astroquery.jplhorizons import Horizons
@@ -351,13 +351,14 @@ class Orbit(DataClass):
 
         >>> from sbpy.data import Orbit
         >>> ceres = Orbit.from_horizons('Ceres')
-        >>> statevec = ceres.oo_transform('CART')  # doctest: +SKIP
-        >>> print(statevec.table)  # doctest: +SKIP
-           id           x                   y           ... epoch_scale  H    G
-                        AU                  AU          ...             mag
-        ------- ------------------ -------------------- ... ----------- ---- ----
-        1 Ceres -2.525066589355839 -0.34964875372044524 ...         UTC 3.34 0.12
-
+        >>> statevec = ceres.oo_transform('CART') # doctest: +SKIP
+        >>> print(statevec)  # doctest: +SKIP
+        <QTable length=1>
+           id           x                   y          ...    H       G    timescale
+                        AU                  AU         ...   mag
+          str7       float64             float64       ... float64 float64    str2
+        ------- ------------------ ------------------- ... ------- ------- ---------
+        1 Ceres -1.967176101061908 -1.7891189971612211 ...    3.34    0.12        TT
         """
         import pyoorb
 
@@ -400,8 +401,11 @@ class Orbit(DataClass):
 
         orbits = self.from_array(oo_orbits.transpose(), names=columns)
 
-        # apply units
         for i, col in enumerate(orbits.column_names):
+            # convert from radians to degrees where unit == deg
+            if conf.oorb_orbit_units[orbittype][i] == 'deg':
+                orbits._table[col] = rad2deg(orbits[col])
+            # apply units
             orbits[col].unit = conf.oorb_orbit_units[orbittype][i]
 
         # replace id column with actual target names from original orbits
@@ -485,12 +489,13 @@ class Orbit(DataClass):
         >>> epoch = Time.now().jd + 100
         >>> ceres = Orbit.from_horizons('Ceres')
         >>> future_ceres = ceres.oo_propagate(epoch)  # doctest: +SKIP
-        >>> print(future_ceres.table)  # doctest: +SKIP
-           id           a                  e          ... epoch_scale  H    G
-                        AU                            ...             mag
-        ------- ----------------- ------------------- ... ----------- ---- ----
-        1 Ceres 2.767911178119476 0.07574650026062148 ...         UTC 3.34 0.12
-        """
+        >>> print(future_ceres)  # doctest: +SKIP
+        <QTable length=1>
+           id           a                  e          ...    H       G    timescale
+                        AU                            ...   mag
+          str7       float64            float64       ... float64 float64    str3
+        ------- ----------------- ------------------- ... ------- ------- ---------
+        1 Ceres 2.769331727251861 0.07605371361208543 ...    3.34    0.12       UTC        """
 
         import pyoorb
 
@@ -550,8 +555,11 @@ class Orbit(DataClass):
 
         orbits = self.from_array(oo_orbits.transpose(), names=columns)
 
-        # apply units
         for i, col in enumerate(orbits.column_names):
+            # convert from radians to degrees where unit == deg
+            if conf.oorb_orbit_units[orbittype][i] == 'deg':
+                orbits._table[col] = rad2deg(orbits[col])
+            # apply units
             orbits[col].unit = conf.oorb_orbit_units[orbittype][i]
 
         # replace id column with actual target names from original orbits
