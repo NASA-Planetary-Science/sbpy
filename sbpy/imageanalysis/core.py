@@ -148,7 +148,7 @@ class PSFSubtraction():
         >>> hdu = fits.open('test.fits') # doctest: +SKIP
         >>> cyx = centroid(hdu[0].data, (21, 45)) # doctest: +SKIP
         >>> psfmodel = PSFSubtraction.create_psfmodel(hdu[0].data, cyx) # doctest: +SKIP
-        >>> diff = PSFSubtraction.subtract_psfmodel(hdu[0].data, psfmodel, cyx) # doctest: +SKIP 
+        >>> diff = PSFSubtraction.subtract_psfmodel(hdu[0].data, psfmodel, cyx) # doctest: +SKIP
         >>> plt.imshow(diff) # doctest: +SKIP
 
         not yet implemented
