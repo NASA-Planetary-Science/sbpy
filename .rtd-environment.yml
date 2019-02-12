@@ -10,6 +10,7 @@ dependencies:
     - astropy-helpers
     - Cython
     - matplotlib
+    - scipy
     - pip
     - pip:
       - "git+https://github.com/astropy/astroquery.git"
