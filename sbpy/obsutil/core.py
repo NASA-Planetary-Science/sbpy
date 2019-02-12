@@ -50,8 +50,7 @@ class Obsutil():
 
         Parameters
         ----------
-        condition : str, mandatory ['airmass', 'Vmag', 'slowest', 'fastest',
-                   'closest', 'furthest'...]
+        condition : str, mandatory ['airmass', 'Vmag', 'slowest', 'fastest', 'closest', 'furthest'...]
             condition on which to decide best observability
 
         Examples

@@ -34,7 +34,7 @@ Solar Spectral Irradiance Tables, ASTM International, West
 Conshohocken, PA. doi:10.1520/E0490
 
 Kurucz 1993, Smithsonian Astropys. Obs. CD-ROM No. 13.
- 
+
 Colina et al. 1996, Astronomical Journal 112, 307.
 
 """
