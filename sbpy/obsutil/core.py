@@ -31,13 +31,13 @@ class Obsutil():
 
         Returns
         -------
-        `astropy.table` 
+        `astropy.table`
 
         Examples
         --------
         >>> from sbpy.obsutil import Obsutil # doctest: +SKIP
         >>> from astropy.time import Time # doctest: +SKIP
-        >>> epochs = [Time('2018-05-23 23:00', scale='utc'), # doctest: +SKIP 
+        >>> epochs = [Time('2018-05-23 23:00', scale='utc'), # doctest: +SKIP
                       Time('2018-05-25 04:30', scale='utc'] # doctest: +SKIP
         >>> obs = Obsutil.check_observability('3552', epochs, '568') # doctest: +SKIP
 
@@ -50,8 +50,8 @@ class Obsutil():
 
         Parameters
         ----------
-        condition : str, mandatory ['airmass', 'Vmag', 'slowest', 'fastest', 
-        'closest', 'furthest'...]
+        condition : str, mandatory ['airmass', 'Vmag', 'slowest', 'fastest',
+                   'closest', 'furthest'...]
             condition on which to decide best observability
 
         Examples
@@ -75,7 +75,7 @@ class Obsutil():
         >>> from sbpy.obsutil import Obsutil
         >>> from astropy.time import Time
         >>> import matplotlib.pyplot as plt # doctest: +SKIP
-        >>> epochs = [Time('2018-05-23 23:00', scale='utc'), # doctest: +SKIP 
+        >>> epochs = [Time('2018-05-23 23:00', scale='utc'), # doctest: +SKIP
                       Time('2018-05-25 04:30', scale='utc'] # doctest: +SKIP
         >>> obs = Obsutil.check_observability('3552', epochs, '568') # doctest: +SKIP
         >>> plot = plt.figure() # doctest: +SKIP
@@ -98,5 +98,4 @@ class Obsutil():
         >>> obs = Obsutil.check_observability('3552', epochs, '568') # doctest: +SKIP
 
         not yet implemented
-
         """

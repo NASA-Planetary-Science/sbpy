@@ -3,6 +3,7 @@
 sbpy Photometry Module
 
 created on June 23, 2017
+
 """
 
 __all__ = ['ref2mag', 'mag2ref', 'spline',
@@ -13,7 +14,8 @@ __all__ = ['ref2mag', 'mag2ref', 'spline',
 
 import numpy as np
 from scipy.integrate import quad
-from astropy.modeling import FittableModel, Fittable1DModel, Fittable2DModel, Parameter
+from astropy.modeling import (FittableModel, Fittable1DModel,
+                              Fittable2DModel, Parameter)
 from astropy import units
 from ..data import Ephem
 
@@ -552,7 +554,8 @@ class HG(DiskIntegratedModelClass):
         sin_pha = np.sin(pha)
         tan_pha_half = np.tan(pha_half)
         w = np.exp(-90.56 * tan_pha_half * tan_pha_half)
-        phiis = 1 - c[i-1]*sin_pha/(0.119+1.341*sin_pha-0.754*sin_pha*sin_pha)
+        phiis = 1 - c[i-1]*sin_pha/(0.119+1.341*sin_pha -
+                                    0.754*sin_pha*sin_pha)
         phiil = np.exp(-a[i-1] * tan_pha_half**b[i-1])
         return w*phiis + (1-w)*phiil
 
@@ -621,14 +624,20 @@ class HG12BaseClass(DiskIntegratedModelClass):
                     y = 0
             return y
 
-    _phi1v = np.deg2rad([7.5, 30., 60, 90, 120, 150]), [7.5e-1, 3.3486016e-1, 1.3410560e-1,
-                                                        5.1104756e-2, 2.1465687e-2, 3.6396989e-3], [-1.9098593, -9.1328612e-2]
+    _phi1v = (np.deg2rad([7.5, 30., 60, 90, 120, 150]),
+              [7.5e-1, 3.3486016e-1, 1.3410560e-1,
+               5.1104756e-2, 2.1465687e-2, 3.6396989e-3],
+              [-1.9098593, -9.1328612e-2])
     _phi1 = _spline_positive(*_phi1v)
-    _phi2v = np.deg2rad([7.5, 30., 60, 90, 120, 150]), [9.25e-1, 6.2884169e-1, 3.1755495e-1,
-                                                        1.2716367e-1, 2.2373903e-2, 1.6505689e-4], [-5.7295780e-1, -8.6573138e-8]
+    _phi2v = (np.deg2rad([7.5, 30., 60, 90, 120, 150]),
+              [9.25e-1, 6.2884169e-1, 3.1755495e-1,
+               1.2716367e-1, 2.2373903e-2, 1.6505689e-4],
+              [-5.7295780e-1, -8.6573138e-8])
     _phi2 = _spline_positive(*_phi2v)
-    _phi3v = np.deg2rad([0.0, 0.3, 1., 2., 4., 8., 12., 20., 30.]), [1., 8.3381185e-1, 5.7735424e-1,
-                                                                     4.2144772e-1, 2.3174230e-1, 1.0348178e-1, 6.1733473e-2, 1.6107006e-2, 0.], [-1.0630097, 0]
+    _phi3v = (np.deg2rad([0.0, 0.3, 1., 2., 4., 8., 12., 20., 30.]),
+              [1., 8.3381185e-1, 5.7735424e-1, 4.2144772e-1, 2.3174230e-1,
+               1.0348178e-1, 6.1733473e-2, 1.6107006e-2, 0.],
+              [-1.0630097, 0])
     _phi3 = _spline_positive(*_phi3v)
 
 
@@ -836,9 +845,3 @@ class ResolvedPhotometricModelClass(object):
 class ROLO(ResolvedPhotometricModelClass):
     """ROLO disk-resolved photometric model"""
     pass
-
-
-# class Photometry():
-
-#     def diam2mag(phys, eph, model=None):
-#         """Function to calculate the apparent bightness of a body from its physical properties and ephemerides"""

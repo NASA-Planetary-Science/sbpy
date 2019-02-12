@@ -24,7 +24,7 @@ class ThermalClass():
 
         Examples
         --------
-        >>> from astropy.time import Time 
+        >>> from astropy.time import Time
         >>> from astropy import units as u
         >>> from sbpy.thermal import STM
         >>> from sbpy.data import Ephem, Phys
