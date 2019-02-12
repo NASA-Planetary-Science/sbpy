@@ -305,24 +305,29 @@ Solar spectra in Sun objects can be plotted at the native resolution of the data
    >>> plt.legend()
    >>> plt.tight_layout()
 
-.. plot::
+.. image:: ../_static/spectroscopy/spectroscopy-1.png
+    :align: center
 
-   import astropy.units as u
-   import numpy as np
-   import matplotlib.pyplot as plt
-   from sbpy.spectroscopy.sun import Sun
-   R = 25  # goal spectral resolution
-   wrange = 0.3, 0.8  # wavelength range
-   d = 1 + 1 / R
-   n = int(np.ceil(np.log(wrange[1] / wrange[0]) / np.log(d)))
-   wave_binned = wrange[0] * d**np.arange(n) * u.um
-   sun = Sun.from_builtin('Castelli1996')
-   fluxd_binned = sun(wave_binned, unit='W / (m2 um)')
-   plt.plot(sun.wave.to('um'), sun.fluxd.to('W/(m2 um)'), ls='steps-mid', color='#1f77b4', label='C96')
-   plt.plot(wave_binned, fluxd_binned, ls='steps-mid', color='#ff7f0e', label='C96, R~{}'.format(R))
-   plt.setp(plt.gca(), xlim=wrange, xlabel='Wavelength (μm)', ylabel='Flux density (W/(m2 μm)')
-   plt.legend()
-   plt.tight_layout()
+..
+   building plot on-the-fly fails since data cannot be downloaded	    
+   .. plot::
+
+      import astropy.units as u
+      import numpy as np
+      import matplotlib.pyplot as plt
+      from sbpy.spectroscopy.sun import Sun
+      R = 25  # goal spectral resolution
+      wrange = 0.3, 0.8  # wavelength range
+      d = 1 + 1 / R
+      n = int(np.ceil(np.log(wrange[1] / wrange[0]) / np.log(d)))
+      wave_binned = wrange[0] * d**np.arange(n) * u.um
+      sun = Sun.from_builtin('Castelli1996')
+      fluxd_binned = sun(wave_binned, unit='W / (m2 um)')
+      plt.plot(sun.wave.to('um'), sun.fluxd.to('W/(m2 um)'), ls='steps-mid', color='#1f77b4', label='C96')
+      plt.plot(wave_binned, fluxd_binned, ls='steps-mid', color='#ff7f0e', label='C96, R~{}'.format(R))
+      plt.setp(plt.gca(), xlim=wrange, xlabel='Wavelength (μm)', ylabel='Flux density (W/(m2 μm)')
+      plt.legend()
+      plt.tight_layout()
 
 
 Reference/API
