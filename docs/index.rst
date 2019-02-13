@@ -31,7 +31,7 @@ Please note that this package is currently under heavy development.
 Installation
 ------------
 
-`sbpy` requires Python 3.x - compatibility with Python 2.x is not
+`sbpy` requires Python 3.5 or later - compatibility with Python 2.x is not
 supported. We hence recommend that you install the latest version of
 `Anaconda Python 3.x <https://www.anaconda.com/download/>`_ on your
 system before installing `sbpy`. Make sure that Anaconda Python is
@@ -42,17 +42,19 @@ Requirements
 
 `sbpy` has the following requirements (incomplete):
 
-* Python 3
-* `numpy <https://www.numpy.org/>` 1.4.0 or later
+* Python 3.5 or later
+* `numpy <https://www.numpy.org/>`_ 1.4.0 or later
 * pytest 3.1 or later
-* `astropy <https://www.astropy.org/>`
+* `astropy <https://www.astropy.org/>`_
 
 `sbpy` also depends on the following packages for optional features (incomplete list):
-* `astroquery <https://astroquery.readthedocs.io/en/latest/>` 0.3.9.dev5089 or later: For retrieval of online data, e.g., ephemerides and orbits.
-* `scipy <https://scipy.org/>`: For numerical integration of `activity.GasComa` distributions, e.g., in order to compute gas column density.
-* `synphot <https://github.com/spacetelescope/synphot_refactor>`: For calibration to Sun and Vega.
-* `ginga <https://ejeschke.github.io/ginga/>`: To use the ``CometaryEnhancements`` Ginga plug-in.
-* `photutils <https://photutils.readthedocs.io/en/stable/>`: For centroiding within ``CometaryEnhancements``.
+
+* `astroquery <https://astroquery.readthedocs.io/en/latest/>`_ 0.3.9.dev5089 or later: For retrieval of online data, e.g., ephemerides and orbits.
+* `scipy <https://scipy.org/>`_: For numerical integration of `activity.GasComa` distributions, e.g., in order to compute gas column density.
+* `synphot <https://github.com/spacetelescope/synphot_refactor>`_: For calibration to Sun and Vega.
+* `ginga <https://ejeschke.github.io/ginga/>`_: To use the ``CometaryEnhancements`` Ginga plug-in.
+* `photutils <https://photutils.readthedocs.io/en/stable/>`_: For centroiding within ``CometaryEnhancements``.
+* `oorb <https://github.com/oorb/oorb>`_: For orbit calculations that utilize ``pyoorb``.
 
 Most requirements should be resolved during the installation process. However, we recommend to install the latest development version of `astroquery` using
 
@@ -160,6 +162,11 @@ Reference/API
    sbpy/bib.rst
 
 
+External packages that have been modified as part of `sbpy`
+-----------------------------------------------------------
+
+* `pyoorb <https://github.com/oorb/oorb/tree/master/python>`_: additional functionality for ephemerides computation, orbit transformation, and orbit propagation
+* `astroquery <https://github.com/astropy/astroquery>`_: added submodules ``jplhorizons``, ``jplsbdb``, ``jplspec``, ``imcce``, and modified ``mpc``
 
 Acknowledgments
 ---------------
