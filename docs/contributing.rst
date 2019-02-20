@@ -26,7 +26,7 @@ We are looking for volunteers to test `sbpy` functionality. In order
 to make this task worthwhile for you, we only ask you to test routines
 that are stable and which you can already use for your research. We
 will indicate which functions are ready to be tested on this dedicated
-`status page <status.rst>`_. Keep in mind that there might be issues, so feel
+:doc:`status`. Keep in mind that there might be issues, so feel
 free to compare the function results with your own results. If you
 find a problem, please issue an issue report on the github page.
 
