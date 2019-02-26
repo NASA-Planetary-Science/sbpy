@@ -1,49 +1,60 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import os
+import sys
 import pytest
+import mock
 import astropy.units as u
 import numpy as np
 import synphot
-from ..calibration import *
-from ..calibration import validate_mag
 from ...units import VegaMag
 from ...spectroscopy.vega import Vega
 from ...spectroscopy.sun import Sun
 
 
-@pytest.mark.parametrize('standard, unit, m0', (
-    (Sun.from_default(), 'W/(m2 um)', -27.04 * VegaMag),
-    (Sun.from_default(), 'W/(m2 Hz)', -26.93 * u.ABmag),
-    (Sun.from_default(), 'W/(m2 um)', -26.66 * u.STmag)
+def test_synphot_import_fail():
+    with mock.patch.dict(sys.modules, {'synphot': None}):
+        from .. import calibration
+        assert calibration.synphot is None
+
+
+@pytest.mark.parametrize('unit, m0', (
+    ('W/(m2 um)', -27.04 * VegaMag),
+    ('W/(m2 Hz)', -26.93 * u.ABmag),
+    ('W/(m2 um)', -26.66 * u.STmag)
 ))
-def test_fluxd_to_mag_sun(standard, unit, m0):
+def test_fluxd_to_mag_sun(unit, m0):
     """Compare sbpy's Sun apparent magnitudes to Willmer 2018.
 
-    Test r bandpass and r effective wavelength, since the two are
-    fairly close.
+    Tests SDSS r bandpass.
 
     """
+    from ..calibration import fluxd_to_mag
+
+    sun_fn = os.path.join(os.path.dirname(__file__),
+                          'data', 'sun-r-haberreiter17.txt')
+    sun = Sun.from_file(sun_fn, wave_unit=u.AA, flux_unit='W/(m2 um)')
+
     fn = os.path.join(os.path.dirname(__file__), 'data', 'sdss-r.fits')
     bp = synphot.SpectralElement.from_file(fn)
-    wave, fluxd = standard.filt(bp, unit=unit)
+    wave, fluxd = sun.filt(bp, unit=unit)
 
     m = fluxd_to_mag(fluxd, m0.unit, bandpass=bp)
     assert np.isclose(m.value, m0.value, atol=0.01)
     assert m.unit == m0.unit
 
-    fluxd = standard(wave, unit=unit)
+    # also test wave
     m = fluxd_to_mag(fluxd, m0.unit, wave=wave)
     assert np.isclose(m.value, m0.value, atol=0.01)
     assert m.unit == m0.unit
 
 
-@pytest.mark.parametrize('standard, unit, m0', (
-    (Vega.from_default(), 'W/(m2 Hz)', 0.03 * VegaMag),
-    (Vega.from_default(), 'W/(m2 Hz)', 0.149 * u.ABmag),
-    (Vega.from_default(), 'W/(m2 um)', 0.410 * u.STmag)
+@pytest.mark.parametrize('unit, m0', (
+    ('W/(m2 Hz)', 0.03 * VegaMag),
+    ('W/(m2 Hz)', 0.149 * u.ABmag),
+    ('W/(m2 um)', 0.410 * u.STmag)
 ))
-def test_fluxd_to_mag_vega(standard, unit, m0):
+def test_fluxd_to_mag_vega(unit, m0):
     """Compare sbpy's Vega apparent magnitudes to Willmer 2018.
 
     Note: AB and ST mags in Table 3 of Willmer 2018 are for conversion
@@ -54,12 +65,32 @@ def test_fluxd_to_mag_vega(standard, unit, m0):
     wavelength) are not similar.
 
     """
+    from ..calibration import fluxd_to_mag
 
+    vega = Vega.from_default()
     fn = os.path.join(os.path.dirname(__file__), 'data', 'sdss-r.fits')
     bp = synphot.SpectralElement.from_file(fn)
-    wave, fluxd = standard.filt(bp, unit=unit)
+    wave, fluxd = vega.filt(bp, unit=unit)
     print(wave, fluxd)
 
     m = fluxd_to_mag(fluxd, m0.unit, bandpass=bp)
     assert np.isclose(m.value, m0.value, atol=0.01)
     assert m.unit == m0.unit
+
+
+def test_fluxd_to_mag_bp_wave_error():
+    from ..calibration import fluxd_to_mag
+    with pytest.raises(ValueError):
+        fluxd_to_mag(1 * u.Jy, VegaMag)
+
+
+def test_fluxd_to_mag_mag_unit_error():
+    from ..calibration import fluxd_to_mag
+    with pytest.raises(ValueError):
+        fluxd_to_mag(1 * u.Jy, u.mag)
+
+
+def test_fluxd_to_mag_fluxd_unit_error():
+    from ..calibration import fluxd_to_mag
+    with pytest.raises(ValueError):
+        fluxd_to_mag(1 * u.m, VegaMag, wave=1 * u.um)

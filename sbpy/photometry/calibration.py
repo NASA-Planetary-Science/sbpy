@@ -72,12 +72,10 @@ def fluxd_to_mag(fluxd, to_unit, bandpass=None, wave=None):
     else:
         raise ValueError('Unsupported unit: {}'.format(to_unit))
 
-    if wave is not None:
-        args = (u.spectral_density(wave),)
-    elif bandpass is not None:
+    if bandpass is not None:
         args = (u.spectral_density(bandpass.pivot()),)
     else:
-        args = ()
+        args = (u.spectral_density(wave),)
 
     try:
         fluxd0 = zp.to(fluxd.unit, *args)
