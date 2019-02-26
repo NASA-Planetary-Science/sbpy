@@ -94,3 +94,21 @@ def test_fluxd_to_mag_fluxd_unit_error():
     from ..calibration import fluxd_to_mag
     with pytest.raises(ValueError):
         fluxd_to_mag(1 * u.m, VegaMag, wave=1 * u.um)
+
+
+@pytest.mark.parametrize('m, unit', (
+    (VegaMag, VegaMag),
+    (synphot.units.VEGAMAG, VegaMag),
+    (u.ABmag, u.ABmag),
+    (u.STmag, u.STmag)
+))
+def test_validate_mag(m, unit):
+    from ..calibration import validate_mag
+    assert validate_mag(m) == unit
+    assert validate_mag(0 * m).unit == unit
+
+
+def test_validate_mag_not_magnitude():
+    from ..calibration import validate_mag
+    with pytest.raises(ValueError):
+        validate_mag(0 * u.m)

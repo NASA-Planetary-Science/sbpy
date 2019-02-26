@@ -56,7 +56,9 @@ def fluxd_to_mag(fluxd, to_unit, bandpass=None, wave=None):
 
     """
 
-    if to_unit == VegaMag:
+    _to_unit = validate_mag(to_unit)
+
+    if _to_unit == VegaMag:
         vega = Vega.from_default()
         if bandpass is not None:
             zp = vega.filt(bandpass, unit=fluxd.unit)[1]
@@ -67,10 +69,8 @@ def fluxd_to_mag(fluxd, to_unit, bandpass=None, wave=None):
                              ' conversion to VegaMag.')
         # Vega == +0.03 mag: zeropoint is brighter than Vega
         zp *= 1.0280
-    elif to_unit in (u.ABmag, u.STmag):
-        zp = 0 * to_unit
-    else:
-        raise ValueError('Unsupported unit: {}'.format(to_unit))
+    elif _to_unit in (u.ABmag, u.STmag):
+        zp = 0 * _to_unit
 
     if bandpass is not None:
         args = (u.spectral_density(bandpass.pivot()),)
@@ -143,45 +143,40 @@ def mag_to_fluxd(mag, to_unit, bandpass=None, wave=None):
 
 
 def validate_mag(m):
-    """Verify that provided magnitude may be used with sbpy.
+    """Verify that provided unit may be used with sbpy.
 
     Converts synphot's VEGAMAG into sbpy's VegaMag.
 
 
     Parameters
     ----------
-    m : `~astropy.unit.Quantity`
-        Quantity to test.  May be ABmag, STmag, sbpy's VegaMag, a
-        generic astropy mag, or synphot's VEGAMAG.
+    m : `~astropy.unit.Unit`, `~astropy.unit.Quantity`
+        Quantity or unit to test.  May use units of ABmag, STmag,
+        sbpy's VegaMag, or synphot's VEGAMAG.
 
 
     Returns
     -------
-    new_mag : `~astropy.unit.Quantity`
-        Validated magnitude, ready for use with sbpy.
-
-
-    Raises
-    ------
-    TypeError if ``m`` is not a ``Quantity``.
-
-    ValueError if ``m`` is not a magnitude unit.
+    new_mag : `~astropy.unit.Unit`, `~astropy.unit.Quantity`
+        Validated magnitude unit/quantity (depending on input), ready
+        for use with sbpy.
 
     """
 
-    new_mag = None
-    if isinstance(m, u.Quantity):
-        if m.unit.is_equivalent((VegaMag, u.mag, u.ABmag, u.STmag)):
-            new_mag = m
-        elif synphot:
-            if m.unit == synphot.units.VEGAMAG:
-                # use sbpy's VegaMag
-                new_mag = m.value * u.mag(VegaFluxd)
+    unit = m.unit if isinstance(m, (u.Quantity, u.Magnitude)) else m
 
-        if new_mag is None:
-            raise ValueError('units are not magnitudes, found '
-                             + str(m.unit))
+    new_unit = None
+    if unit.is_equivalent((VegaMag, u.ABmag, u.STmag)):
+        new_unit = unit
+    elif synphot:
+        if unit == synphot.units.VEGAMAG:
+            # use sbpy's VegaMag instead
+            new_unit = VegaMag
+
+    if new_unit is None:
+        raise ValueError('units are not magnitudes, found ' + str(unit))
+
+    if isinstance(m, (u.Quantity, u.Magnitude)):
+        return m.value * new_unit
     else:
-        raise TypeError('m is not a Quantity')
-
-    return new_mag
+        return new_unit
