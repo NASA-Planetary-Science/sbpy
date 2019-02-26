@@ -9,6 +9,7 @@ __all__ = [
     'mag_to_fluxd'
 ]
 
+import sys
 import numpy as np
 import astropy.units as u
 
@@ -58,13 +59,14 @@ def fluxd_to_mag(fluxd, to_unit, bandpass=None, wave=None):
     if to_unit == VegaMag:
         vega = Vega.from_default()
         if bandpass is not None:
-            wave, zp = Vega.filt(bandpass, unit=fluxd.unit)
+            zp = vega.filt(bandpass, unit=fluxd.unit)[1]
         elif wave is not None:
-            zp = Vega(wave)
+            zp = vega(wave)
         else:
             raise ValueError('One of bandpass or wave is required for'
                              ' conversion to VegaMag.')
-        zp *= 1.0280  # Vega == 0.03 mag
+        # Vega == +0.03 mag: zeropoint is brighter than Vega
+        zp *= 1.0280
     elif to_unit in (u.ABmag, u.STmag):
         zp = 0 * to_unit
     else:
@@ -72,9 +74,17 @@ def fluxd_to_mag(fluxd, to_unit, bandpass=None, wave=None):
 
     if wave is not None:
         args = (u.spectral_density(wave),)
+    elif bandpass is not None:
+        args = (u.spectral_density(bandpass.pivot()),)
     else:
         args = ()
-    fluxd0 = zp.to(fluxd.unit, *args)
+
+    try:
+        fluxd0 = zp.to(fluxd.unit, *args)
+    except u.UnitConversionError as e:
+        raise (type(e)(str(e) +
+                       '.  Did you provide a bandpass or wavelength?')
+               .with_traceback(sys.exc_info()[2]))
 
     return -2.5 * np.log10(fluxd / fluxd0).value * to_unit
 
