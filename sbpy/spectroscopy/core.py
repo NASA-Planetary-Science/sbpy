@@ -830,16 +830,16 @@ class SpectralStandard(ABC):
         Parameters
         ----------
         wave : `~astropy.units.Quantity`
-          The spectral wavelengths.
+            The spectral wavelengths.
 
         fluxd : `~astropy.units.Quantity`
-          The solar flux densities, at 1 au.
+            The solar flux densities, at 1 au.
 
         meta : dict, optional
-          Meta data.
+            Meta data.
 
         **kwargs
-          Passed to object initialization.
+            Passed to object initialization.
 
         """
 
@@ -856,20 +856,22 @@ class SpectralStandard(ABC):
                   cache=True, **kwargs):
         """Load the source spectrum from a file.
 
+        NaNs are dropped.
+
         Parameters
         ----------
         filename : string
-          The name of the file.  See
-          `~synphot.SourceSpectrum.from_file` for details.
+            The name of the file.  See
+            `~synphot.SourceSpectrum.from_file` for details.
 
         wave_unit, flux_unit : str or `~astropy.units.core.Unit`, optional
-          Wavelength and flux units.
+            Wavelength and flux units.
 
         cache : bool, optional
-          If `True`, cache the contents of URLs.
+            If `True`, cache the contents of URLs.
 
         **kwargs
-          Passed to `Sun` initialization.
+            Passed to `Sun` initialization.
 
         """
 
@@ -878,21 +880,22 @@ class SpectralStandard(ABC):
         import synphot
         from synphot.specio import read_fits_spec, read_ascii_spec
 
+        if filename.lower().endswith(('.fits', '.fit')):
+            read_spec = read_fits_spec
+        else:
+            read_spec = read_ascii_spec
+
         # URL cache because synphot.SourceSpectrum.from_file does not
         if _is_url(filename):
-            if filename.lower().endswith(('.fits', '.fit')):
-                read_spec = read_fits_spec
-            else:
-                read_spec = read_ascii_spec
-
             fn = download_file(filename, cache=True)
-            spec = read_spec(fn, wave_unit=wave_unit, flux_unit=flux_unit)
-            source = synphot.SourceSpectrum(
-                synphot.Empirical1D, points=spec[1], lookup_table=spec[2],
-                meta={'header': spec[0]})
         else:
-            source = synphot.SourceSpectrum.from_file(
-                filename, wave_unit=wave_unit, flux_unit=flux_unit)
+            fn = filename
+
+        spec = read_spec(fn, wave_unit=wave_unit, flux_unit=flux_unit)
+        i = np.isfinite(spec[1] * spec[2])
+        source = synphot.SourceSpectrum(
+            synphot.Empirical1D, points=spec[1][i], lookup_table=spec[2][i],
+            meta={'header': spec[0]})
 
         return cls(source, **kwargs)
 
