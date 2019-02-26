@@ -124,6 +124,19 @@ class TestSun:
         sun = Sun.from_builtin('E490_2014')
         assert sun.meta is None
 
+    @remote_data
+    def test_kurucz_nan_error(self):
+        """Willmer 2018.
+
+        Using Haberreiter et al. 2017 solar spectrum: -26.77.
+
+        NaNs in Kurucz file should not affect this calulation.
+
+        """
+        sun = Sun.from_builtin('Kurucz1993')
+        wave, fluxd = sun.filt('johnson_v', unit='ABmag')
+        assert np.isclose(fluxd.value, -26.77, rtol=0.001)
+
 
 class Test_default_sun:
     def test_validate_str(self):
