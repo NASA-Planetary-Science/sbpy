@@ -1,13 +1,7 @@
-"""Code related to NEOs.
+"""Code related to DASTCOM5 service.
 
 Functions related to NEOs and different NASA APIs.
-All of them are coded as part of SOCIS 2017 proposal.
-
-Notes
------
-
-The orbits returned by the functions in this package are in the
-:py:class:`~poliastro.frames.HeliocentricEclipticJ2000` frame.
+All of them are coded as part of SOCIS 2017 proposal for poliastro by Antonio Hidalgo.
 
 """
-from poliastro.neos import neows, dastcom5  # flake8: noqa
+from sbpy.dastcom5 import dastcom5

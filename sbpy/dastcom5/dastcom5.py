@@ -1,6 +1,3 @@
-"""NEOs orbit from DASTCOM5 database.
-
-"""
 import os
 import re
 import urllib.request
@@ -10,11 +7,8 @@ import astropy.units as u
 import numpy as np
 import pandas as pd
 from astropy.time import Time
-
-from poliastro.bodies import Sun
-from poliastro.frames import HeliocentricEclipticJ2000
-from poliastro.twobody.angles import M_to_nu
-from poliastro.twobody.orbit import Orbit
+from astropy.table import Table
+import astropy.units as u
 
 AST_DTYPE = np.dtype(
     [
@@ -281,8 +275,8 @@ COM_DTYPE = np.dtype(
     ]
 )
 
-POLIASTRO_LOCAL_PATH = os.path.join(os.path.expanduser("~"), ".poliastro")
-DBS_LOCAL_PATH = os.path.join(POLIASTRO_LOCAL_PATH, "dastcom5", "dat")
+SBPY_LOCAL_PATH = os.path.join(os.path.expanduser("~"), ".sbpy")
+DBS_LOCAL_PATH = os.path.join(SBPY_LOCAL_PATH, "dastcom5", "dat")
 AST_DB_PATH = os.path.join(DBS_LOCAL_PATH, "dast5_le.dat")
 COM_DB_PATH = os.path.join(DBS_LOCAL_PATH, "dcom5_le.dat")
 
@@ -320,7 +314,7 @@ def comet_db():
 
 
 def orbit_from_name(name):
-    """Return :py:class:`~poliastro.twobody.orbit.Orbit` given a name.
+    """Return :py:class:`~astropy.table.Table` given a name.
 
     Retrieve info from JPL DASTCOM5 database.
 
@@ -331,19 +325,18 @@ def orbit_from_name(name):
 
     Returns
     -------
-    orbit : list (~poliastro.twobody.orbit.Orbit)
-        NEO orbits.
+    Table : ~astropy.table.Table
+        Near Earth Asteroid/Comet orbit parameters, all stacked.
 
     """
     records = record_from_name(name)
-    orbits = []
-    for record in records:
-        orbits.append(orbit_from_record(record))
-    return orbits
+    orbits = [self.orbit_from_record(rec) for rec in records]
+    tbl = Table(orbits)
+    return tbl
 
 
 def orbit_from_record(record):
-    """Return :py:class:`~poliastro.twobody.orbit.Orbit` given a record.
+    """Return :py:class:`~astropy.table.Table` given a record.
 
         Retrieve info from JPL DASTCOM5 database.
 
@@ -354,23 +347,23 @@ def orbit_from_record(record):
 
         Returns
         -------
-        orbit : ~poliastro.twobody.orbit.Orbit
-            NEO orbit.
+        Table : ~astropy.table.Table
+            Near Earth Asteroid/Comet orbit parameters.
 
-        """
+    """
     body_data = read_record(record)
-    a = body_data["A"].item() * u.au
-    ecc = body_data["EC"].item() * u.one
-    inc = body_data["IN"].item() * u.deg
-    raan = body_data["OM"].item() * u.deg
-    argp = body_data["W"].item() * u.deg
-    m = body_data["MA"].item() * u.deg
-    nu = M_to_nu(m, ecc)
+    a = body_data["A"].item()
+    ecc = body_data["EC"].item()
+    inc = body_data["IN"].item()
+    raan = body_data["OM"].item()
+    argp = body_data["W"].item()
+    m = body_data["MA"].item()
     epoch = Time(body_data["EPOCH"].item(), format="jd", scale="tdb")
+    column2 = (record, a, ecc, inc, raan, argp, m, epoch)
+    column1 = ("record", "a", "ecc", "inc", "raan", "argp", "m", "EPOCH")
+    data = Table(rows=[column1, column2])
 
-    orbit = Orbit.from_classical(Sun, a, ecc, inc, raan, argp, nu, epoch)
-    orbit._frame = HeliocentricEclipticJ2000(obstime=epoch)
-    return orbit
+    return data
 
 
 def record_from_name(name):
@@ -520,26 +513,26 @@ def read_record(record):
 def download_dastcom5():
     """Downloads DASTCOM5 database.
 
-    Downloads and unzip DASTCOM5 file in default poliastro path (~/.poliastro).
+    Downloads and unzip DASTCOM5 file in default sbpy path (~/.sbpy).
 
     """
 
-    dastcom5_dir = os.path.join(POLIASTRO_LOCAL_PATH, "dastcom5")
-    dastcom5_zip_path = os.path.join(POLIASTRO_LOCAL_PATH, "dastcom5.zip")
+    dastcom5_dir = os.path.join(SBPY_LOCAL_PATH, "dastcom5")
+    dastcom5_zip_path = os.path.join(SBPY_LOCAL_PATH, "dastcom5.zip")
 
     if os.path.isdir(dastcom5_dir):
         raise FileExistsError(
             "dastcom5 is already created in " + os.path.abspath(dastcom5_dir)
         )
     if not zipfile.is_zipfile(dastcom5_zip_path):
-        if not os.path.isdir(POLIASTRO_LOCAL_PATH):
-            os.makedirs(POLIASTRO_LOCAL_PATH)
+        if not os.path.isdir(SBPY_LOCAL_PATH):
+            os.makedirs(SBPY_LOCAL_PATH)
 
         urllib.request.urlretrieve(
             FTP_DB_URL + "dastcom5.zip", dastcom5_zip_path, _show_download_progress
         )
     with zipfile.ZipFile(dastcom5_zip_path) as myzip:
-        myzip.extractall(POLIASTRO_LOCAL_PATH)
+        myzip.extractall(SBPY_LOCAL_PATH)
 
 
 def _show_download_progress(transferred, block, totalsize):
