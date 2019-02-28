@@ -100,6 +100,6 @@ def test_download_dastcom5_downloads_file(
     dastcom5.download_dastcom5()
     mock_request.assert_called_once_with(
         dastcom5.FTP_DB_URL + "dastcom5.zip",
-        os.path.join(dastcom5.POLIASTRO_LOCAL_PATH, "dastcom5.zip"),
-        dastcom5._show_download_progress,
+        os.path.join(dastcom5.SBPY_LOCAL_PATH, "dastcom5.zip"),
+        dastcom5.show_download_progress,
     )

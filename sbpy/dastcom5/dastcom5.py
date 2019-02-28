@@ -531,13 +531,13 @@ def download_dastcom5():
         urllib.request.urlretrieve(
             FTP_DB_URL + "dastcom5.zip",
             dastcom5_zip_path,
-            _show_download_progress
+            show_download_progress
         )
     with zipfile.ZipFile(dastcom5_zip_path) as myzip:
         myzip.extractall(SBPY_LOCAL_PATH)
 
 
-def _show_download_progress(transferred, block, totalsize):
+def show_download_progress(transferred, block, totalsize):
     trans_mb = transferred * block / (1024 * 1024)
     total_mb = totalsize / (1024 * 1024)
     print("%.2f MB / %.2f MB" % (trans_mb, total_mb), end="\r", flush=True)
