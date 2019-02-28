@@ -7,20 +7,23 @@ import pytest
 from sbpy import dastcom5
 
 
+@mock.patch("sbpy.dastcom5.dastcom5.np.fromfile")
 @mock.patch("sbpy.dastcom5.dastcom5.open")
-def test_asteroid_db_is_called_with_right_path(mock_open):
+def test_asteroid_db_is_called_with_right_path(mock_open, mock_np_fromfile):
     dastcom5.asteroid_db()
     mock_open.assert_called_with(dastcom5.AST_DB_PATH, "rb")
 
 
+@mock.patch("sbpy.dastcom5.dastcom5.np.fromfile")
 @mock.patch("sbpy.dastcom5.dastcom5.open")
-def test_comet_db_is_called_with_right_path(mock_open):
+def test_comet_db_is_called_with_right_path(mock_open, mock_np_fromfile):
     dastcom5.comet_db()
     mock_open.assert_called_with(dastcom5.COM_DB_PATH, "rb")
 
 
+@mock.patch("sbpy.dastcom5.dastcom5.np.fromfile")
 @mock.patch("sbpy.dastcom5.dastcom5.open")
-def test_read_headers(mock_open):
+def test_read_headers(mock_open, mock_np_fromfile):
     dastcom5.read_headers()
     mock_open.assert_any_call(
         os.path.join(dastcom5.DBS_LOCAL_PATH, "dast5_le.dat"), "rb"
@@ -97,6 +100,6 @@ def test_download_dastcom5_downloads_file(
     dastcom5.download_dastcom5()
     mock_request.assert_called_once_with(
         dastcom5.FTP_DB_URL + "dastcom5.zip",
-        os.path.join(dastcom5.SBPY_LOCAL_PATH, "dastcom5.zip"),
+        os.path.join(dastcom5.POLIASTRO_LOCAL_PATH, "dastcom5.zip"),
         dastcom5._show_download_progress,
     )
