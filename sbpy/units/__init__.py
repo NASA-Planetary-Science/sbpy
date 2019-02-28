@@ -3,3 +3,4 @@
 """Common planetary astronomy units."""
 
 from .core import *
+from astropy.units import ABmag, STmag

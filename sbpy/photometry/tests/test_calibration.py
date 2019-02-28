@@ -4,6 +4,7 @@ import os
 import sys
 import pytest
 import mock
+import importlib
 import astropy.units as u
 import numpy as np
 import synphot
@@ -13,9 +14,12 @@ from ...spectroscopy.sun import Sun
 
 
 def test_synphot_import_fail():
+    # importlib rigamarole is supposedly not needed, but this didn't work without it.
     with mock.patch.dict(sys.modules, {'synphot': None}):
         from .. import calibration
+        importlib.reload(calibration)
         assert calibration.synphot is None
+    importlib.reload(calibration)
 
 
 @pytest.mark.parametrize('unit, m0', (
@@ -100,12 +104,13 @@ def test_fluxd_to_mag_fluxd_unit_error():
     (VegaMag, VegaMag),
     (synphot.units.VEGAMAG, VegaMag),
     (u.ABmag, u.ABmag),
-    (u.STmag, u.STmag)
+    (u.STmag, u.STmag),
 ))
 def test_validate_mag(m, unit):
     from ..calibration import validate_mag
     assert validate_mag(m) == unit
-    assert validate_mag(0 * m).unit == unit
+    if not isinstance(m, str):
+        assert validate_mag(0 * m).unit == unit
 
 
 def test_validate_mag_not_magnitude():

@@ -5,8 +5,7 @@ sbpy photometric calibration
 """
 
 __all__ = [
-    'fluxd_to_mag',
-    'mag_to_fluxd'
+    'convert_mag'
 ]
 
 import sys
@@ -23,24 +22,27 @@ except ImportError:
     synphot = None
 
 
-def fluxd_to_mag(fluxd, to_unit, bandpass=None, wave=None):
-    """Convert flux density into magnitude.
+def convert_mag(from_value, to_unit, bandpass=None, wave=None):
+    """Convert to/from magnitudes.
 
     Vega is assumed to have an apparent magnitude of 0.03 in the
     Vega-based magnitude system (Bessell & Murphy 2012, PASP 124,
     140-157).
 
+    One of `from_value` or `to_unit` must have units of magnitude.
+
+    If a convertion between flux density per unit wavelength and per
+    unit frequency is required, then one of `bandpass` or `wave` must
+    be given.
+
 
     Parameters
     ----------
-    fluxd : `~astropy.units.Quantity`
-        Flux density to convert.
+    from_value : `~astropy.units.Quantity`
+        Value to convert.
 
-    to_unit : `~astropy.units.MagUnit`
-        Convert into this magnitude system: VegaMag, ABmag, or STmag.
-        One of ``bandpass`` or ``wave`` is required for ``VegaMag`` or
-        when conversion requires a transformation between flux density
-        per unit frequency and per unit wavelength.
+    to_unit : `~astropy.units.Unit` or `~astropy.units.MagUnit`
+        Unit or magnitude system to convert to.
 
     bandpass : string or `~synphot.SpectralElement`, optional
         Name or transmission profile of the bandpass.
@@ -51,7 +53,66 @@ def fluxd_to_mag(fluxd, to_unit, bandpass=None, wave=None):
 
     Returns
     -------
-    m : `~astropy.units.Quantity`
+    v : `~astropy.units.Quantity` or `~astropy.units.Magnitude`
+        The converted value.
+
+    """
+
+    try:
+        _from = validate_mag(from_value)
+    except ValueError:
+        _from = from_value
+
+    try:
+        _to = validate_mag(to_unit)
+    except ValueError:
+        _to = to_unit
+
+    kwargs = dict(bandpass=bandpass, wave=wave)
+    if isinstance(_from, u.Magnitude) and isinstance(_to, u.MagUnit):
+        if _from.unit == u.ABmag:
+            fluxd = mag_to_fluxd(_from, u.Jy, **kwargs)
+        else:
+            fluxd = mag_to_fluxd(_from, 'W/(m2 um)', **kwargs)
+
+        v = fluxd_to_mag(fluxd, _to, **kwargs)
+    elif isinstance(_from, u.Magnitude):
+        v = mag_to_fluxd(_from, _to, **kwargs)
+    else:
+        v = fluxd_to_mag(_from, _to, **kwargs)
+
+    return v
+
+
+def fluxd_to_mag(fluxd, to_unit, bandpass=None, wave=None):
+    """Convert flux density into magnitude.
+
+    Vega is assumed to have an apparent magnitude of 0.03 in the
+    Vega-based magnitude system(Bessell & Murphy 2012, PASP 124,
+    140-157).
+
+    If a convertion between flux density per unit wavelength and per
+    unit frequency is required, then one of `bandpass` or `wave` must
+    be given.
+
+
+    Parameters
+    ----------
+    fluxd: `~astropy.units.Quantity`
+        Flux density to convert.
+
+    to_unit: `~astropy.units.MagUnit`
+        Convert into this magnitude system: VegaMag, ABmag, or STmag.
+
+    bandpass: string or `~synphot.SpectralElement`, optional
+        Name or transmission profile of the bandpass.
+
+    wave: `~astropy.units.Quantity`, optional
+        Effective wavelength of the flux density.
+
+    Returns
+    -------
+    m: `~astropy.units.Quantity`
         Equivalent magnitude.
 
     """
@@ -69,7 +130,7 @@ def fluxd_to_mag(fluxd, to_unit, bandpass=None, wave=None):
                              ' conversion to VegaMag.')
         # Vega == +0.03 mag: zeropoint is brighter than Vega
         zp *= 1.0280
-    elif _to_unit in (u.ABmag, u.STmag):
+    else:
         zp = 0 * _to_unit
 
     if bandpass is not None:
@@ -91,31 +152,32 @@ def mag_to_fluxd(mag, to_unit, bandpass=None, wave=None):
     """Convert magnitude into flux density.
 
     Vega is assumed to have an apparent magnitude of 0.03 in the
-    Vega-based magnitude system (Bessell & Murphy 2012, PASP 124,
+    Vega-based magnitude system(Bessell & Murphy 2012, PASP 124,
     140-157).
+
+    If a convertion between flux density per unit wavelength and per
+    unit frequency is required, then one of `bandpass` or `wave` must
+    be given.
 
 
     Parameters
     ----------
-    mag : `~astropy.units.Quantity`
-        Magnitude to convert: VegaMag, ABmag, or STmag.  One of
-        ``bandpass`` or ``wave`` is required for ``VegaMag`` or when
-        conversion requires a transformation between flux density per
-        unit frequency and per unit wavelength.
+    mag: `~astropy.units.Quantity`
+        Magnitude to convert: VegaMag, ABmag, or STmag.
 
-    to_unit : `~astropy.units.MagUnit`
+    to_unit: `~astropy.units.MagUnit`
         Convert into this flux density unit.
 
-    bandpass : string or `~synphot.SpectralElement`, optional
+    bandpass: string or `~synphot.SpectralElement`, optional
         Name or transmission profile of the bandpass.
 
-    wave : `~astropy.units.Quantity`, optional
+    wave: `~astropy.units.Quantity`, optional
         Effective wavelength of the flux density.
 
 
     Returns
     -------
-    fluxd : `~astropy.units.Quantity`
+    fluxd: `~astropy.units.Quantity`
         Equivalent flux density.
 
     """
@@ -125,17 +187,17 @@ def mag_to_fluxd(mag, to_unit, bandpass=None, wave=None):
     if _mag.unit == VegaMag:
         vega = Vega.from_default()
         if bandpass is not None:
-            wave, zp = Vega.filt(bandpass, unit=fluxd.unit)
+            wave, zp = vega.filt(bandpass, unit=fluxd.unit)
         elif wave is not None:
-            zp = Vega(wave)
+            zp = vega(wave)
         else:
             raise ValueError('One of bandpass or wave is required for'
                              ' conversion from VegaMag.')
         zp *= 1.0280  # Vega == 0.03 mag
-    elif to_unit in (u.ABmag, u.STmag):
+    elif _mag.unit in (u.ABmag, u.STmag):
         zp = 0 * _mag.unit
     else:
-        raise ValueError('Unsupported unit: {}'.format(unit))
+        raise ValueError('Unsupported unit: {}'.format(_mag.unit))
 
     fluxd0 = zp.to(to_unit, u.spectral_density(wave))
 
@@ -150,20 +212,23 @@ def validate_mag(m):
 
     Parameters
     ----------
-    m : `~astropy.unit.Unit`, `~astropy.unit.Quantity`
+    m: `~astropy.unit.Magnitude`, `~astropy.unit.Quantity`
         Quantity or unit to test.  May use units of ABmag, STmag,
         sbpy's VegaMag, or synphot's VEGAMAG.
 
 
     Returns
     -------
-    new_mag : `~astropy.unit.Unit`, `~astropy.unit.Quantity`
-        Validated magnitude unit/quantity (depending on input), ready
+    new_mag: `~astropy.unit.Unit`, `~astropy.unit.Quantity`
+        Validated magnitude unit/quantity(depending on input), ready
         for use with sbpy.
 
     """
 
-    unit = m.unit if isinstance(m, (u.Quantity, u.Magnitude)) else m
+    if isinstance(m, (u.Quantity, u.Magnitude)):
+        unit = m.unit
+    else:
+        unit = u.Unit(m)
 
     new_unit = None
     if unit.is_equivalent((VegaMag, u.ABmag, u.STmag)):
