@@ -367,7 +367,8 @@ def orbit_from_record(record):
 
 
 def record_from_name(name):
-    """Search `dastcom.idx` and return logical records that match a given string.
+    """Search `dastcom.idx` and return logical records that
+    match a given string.
 
     Body name, SPK-ID, or alternative designations can be used.
 
@@ -494,7 +495,6 @@ def read_record(record):
     if record <= int(ast_header["ENDPT2"][0].item()):
         # ENDPT2 indicates end of unnumbered asteroids records
         if record <= int(ast_header["ENDPT1"][0].item()):
-            # phis_rec = record_size * (record_number - IBIAS - 1 (header record))
             phis_rec = 835 * (record - ast_header["IBIAS0"][0].item() - 1)
         else:
             phis_rec = 835 * (record - ast_header["IBIAS1"][0].item() - 1)
@@ -529,7 +529,9 @@ def download_dastcom5():
             os.makedirs(SBPY_LOCAL_PATH)
 
         urllib.request.urlretrieve(
-            FTP_DB_URL + "dastcom5.zip", dastcom5_zip_path, _show_download_progress
+            FTP_DB_URL + "dastcom5.zip",
+            dastcom5_zip_path,
+            _show_download_progress
         )
     with zipfile.ZipFile(dastcom5_zip_path) as myzip:
         myzip.extractall(SBPY_LOCAL_PATH)
@@ -564,7 +566,8 @@ def entire_db():
         ]
     )
     ast_database.rename(
-        columns={"ASTNAM": "NAME", "NO": "NUMBER", "CALEPO": "CALEPOCH"}, inplace=True
+        columns={"ASTNAM": "NAME", "NO": "NUMBER", "CALEPO": "CALEPOCH"},
+        inplace=True
     )
     com_database = pd.DataFrame(
         com_database[
@@ -574,7 +577,8 @@ def entire_db():
         ]
     )
     com_database.rename(
-        columns={"COMNAM": "NAME", "NO": "NUMBER", "CALEPO": "CALEPOCH"}, inplace=True
+        columns={"COMNAM": "NAME", "NO": "NUMBER", "CALEPO": "CALEPOCH"},
+        inplace=True
     )
     df = ast_database.append(com_database, ignore_index=True)
     df[["NAME", "DESIG", "IREF"]] = df[["NAME", "DESIG", "IREF"]].apply(

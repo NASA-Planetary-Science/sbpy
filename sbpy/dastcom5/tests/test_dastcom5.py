@@ -89,7 +89,9 @@ def test_download_dastcom5_creates_folder(
 @mock.patch("sbpy.dastcom5.dastcom5.zipfile")
 @mock.patch("sbpy.dastcom5.dastcom5.os.path.isdir")
 @mock.patch("sbpy.dastcom5.dastcom5.urllib.request.urlretrieve")
-def test_download_dastcom5_downloads_file(mock_request, mock_isdir, mock_zipfile):
+def test_download_dastcom5_downloads_file(
+    mock_request, mock_isdir, mock_zipfile
+):
     mock_isdir.side_effect = lambda x: x == dastcom5.SBPY_LOCAL_PATH
     mock_zipfile.is_zipfile.return_value = False
     dastcom5.download_dastcom5()
