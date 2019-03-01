@@ -56,6 +56,15 @@ def convert_mag(from_value, to_unit, bandpass=None, wave=None):
     v : `~astropy.units.Quantity` or `~astropy.units.Magnitude`
         The converted value.
 
+
+    Examples
+    --------
+    >>> import astropy.units as u
+    >>> from sbpy.photometry import convert_mag
+    >>> fluxd = convert_mag(0 * u.ABmag, u.Jy)
+    >>> fluxd.value   # doctest: +FLOAT_CMP
+    3630.78
+
     """
 
     try:
@@ -114,6 +123,20 @@ def fluxd_to_mag(fluxd, to_unit, bandpass=None, wave=None):
     -------
     m: `~astropy.units.Quantity`
         Equivalent magnitude.
+
+
+    See also
+    --------
+    convert_mag : convert to/from magnitudes
+
+
+    Examples
+    --------
+    >>> import astropy.units as u
+    >>> from sbpy.photometry.calibration import fluxd_to_mag
+    >>> m = fluxd_to_mag(3630.78 * u.Jy, u.ABmag)
+    >>> m.value   # doctest: +FLOAT_CMP
+    1.6e-7
 
     """
 
@@ -179,6 +202,20 @@ def mag_to_fluxd(mag, to_unit, bandpass=None, wave=None):
     -------
     fluxd: `~astropy.units.Quantity`
         Equivalent flux density.
+
+
+    See also
+    --------
+    convert_mag : convert to/from magnitudes
+
+
+    Examples
+    --------
+    >>> import astropy.units as u
+    >>> from sbpy.photometry.calibration import mag_to_fluxd
+    >>> fluxd = mag_to_fluxd(0 * u.ABmag, u.Jy)
+    >>> fluxd.value   # doctest: +FLOAT_CMP
+    3630.78
 
     """
 
