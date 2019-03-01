@@ -187,19 +187,27 @@ def mag_to_fluxd(mag, to_unit, bandpass=None, wave=None):
     if _mag.unit == VegaMag:
         vega = Vega.from_default()
         if bandpass is not None:
-            wave, zp = vega.filt(bandpass, unit=fluxd.unit)
+            wave, zp = vega.filt(bandpass, unit=to_unit)
         elif wave is not None:
             zp = vega(wave)
         else:
             raise ValueError('One of bandpass or wave is required for'
-                             ' conversion from VegaMag.')
+                             ' conversion to VegaMag.')
         zp *= 1.0280  # Vega == 0.03 mag
-    elif _mag.unit in (u.ABmag, u.STmag):
-        zp = 0 * _mag.unit
     else:
-        raise ValueError('Unsupported unit: {}'.format(_mag.unit))
+        zp = 0 * _mag.unit
 
-    fluxd0 = zp.to(to_unit, u.spectral_density(wave))
+    if bandpass is not None:
+        args = (u.spectral_density(bandpass.pivot()),)
+    else:
+        args = (u.spectral_density(wave),)
+
+    try:
+        fluxd0 = zp.to(to_unit, *args)
+    except u.UnitConversionError as e:
+        raise (type(e)(str(e) +
+                       '.  Did you provide a bandpass or wavelength?')
+               .with_traceback(sys.exc_info()[2]))
 
     return fluxd0 * 10**(-0.4 * _mag.value)
 
@@ -231,13 +239,15 @@ def validate_mag(m):
         unit = u.Unit(m)
 
     new_unit = None
-    if unit.is_equivalent((VegaMag, u.ABmag, u.STmag)):
+    if unit in (VegaMag, u.ABmag, u.STmag):
         new_unit = unit
     elif synphot:
         if unit == synphot.units.VEGAMAG:
             # use sbpy's VegaMag instead
             new_unit = VegaMag
 
+    if unit == u.m:
+        pass  # stop
     if new_unit is None:
         raise ValueError('units are not magnitudes, found ' + str(unit))
 
