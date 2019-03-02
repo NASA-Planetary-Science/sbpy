@@ -84,8 +84,10 @@ def spectral_density_vega(wfb):
         """
         def f(fluxd):
             m = -2.5 * np.log10(fluxd / fluxd_vega.value)
-            m = np.ma.MaskedArray(m, mask=~np.isfinite(m))
-            return m.filled(-99)
+            m = np.ma.MaskedArray(m, mask=~np.isfinite(m)).filled(-99)
+            if np.ndim(m) == 0:
+                m = float(m)
+            return m
         return f
 
     def backward(fluxd_vega):
