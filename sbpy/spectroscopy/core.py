@@ -1025,22 +1025,24 @@ class SpectralStandard(ABC):
         import synphot
         from synphot.units import VEGAMAG
         from .vega import Vega
+        from ..units import spectral_density_vega
 
         if isinstance(bp, str):
             bp = synphot.SpectralElement.from_filter(bp)
 
         if not isinstance(bp, synphot.SpectralElement):
             raise ValueError(
-                '`bp` must be a string (filter name) or `synphot.SpectralElement`.')
+                '`bp` must be a string (filter name) or'
+                ' `synphot.SpectralElement`.')
 
         obs = synphot.Observation(self.source, bp, **kwargs)
         wave = obs.effective_wavelength()
+        _unit = u.Unit(unit)
 
-        if str(unit).lower().strip() == 'vegamag':
-            f = obs.effstim('W/(m2 um)')
-            f0 = Vega.from_default().filt(bp, unit='W/(m2 um)')[1]
-            fluxd = -2.5 * np.log10((f / f0).value) * VEGAMAG
+        if _unit.is_equivalent(VEGAMAG):
+            fluxd = obs.effstim('W/(m2 um)').to(
+                _unit, spectral_density_vega(bp))
         else:
-            fluxd = obs.effstim(unit)
+            fluxd = obs.effstim(_unit)
 
         return wave, fluxd

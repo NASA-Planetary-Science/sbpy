@@ -8,6 +8,7 @@ SBPy Vega Core Module
 import os
 import astropy.units as u
 from astropy.utils.state import ScienceState
+from astropy.utils.data import get_pkg_data_filename
 from ..core import SpectralStandard
 from . import sources
 
@@ -87,9 +88,8 @@ class Vega(SpectralStandard):
 
             if not _is_url(parameters['filename']):
                 # find in the module's location
-                path = os.path.dirname(__file__)
-                parameters['filename'] = os.sep.join(
-                    (path, 'data', parameters['filename']))
+                parameters['filename'] = get_pkg_data_filename(
+                    os.path.join('data', parameters['filename']))
 
             vega = Vega.from_file(**parameters)
         except AttributeError:

@@ -5,6 +5,7 @@ import pytest
 import numpy as np
 import astropy.units as u
 from astropy.tests.helper import remote_data
+from astropy.utils.data import get_pkg_data_filename
 import synphot
 from ..dust import *
 
@@ -73,16 +74,14 @@ class TestAfrho:
         Li et al. quotes 1660 cm, but we have revised it to 1683 (see
         test_from_fluxd).
 
-        Throughput file for this test:
-        ftp://ftp.stsci.edu/cdbs/comp/wfc3/wfc3_uvis_f606w_004_syn.fits
-
         """
 
         fluxd = 4.68e-15 * u.W / u.m**2 / u.um
         aper = 5000 * u.km
         eph = {'rh': 4.582 * u.au, 'delta': 4.042 * u.au}
-        fn = os.path.join(os.path.dirname(__file__), 'data',
-                          'wfc3_uvis_f606w_004_syn.fits')
+        fn = get_pkg_data_filename(os.path.join(
+            '..', '..', 'photometry', 'data',
+            'wfc3_uvis_f606w_004_syn.fits'))
         bandpass = synphot.SpectralElement.from_file(fn)
         afrho = Afrho.from_filt(bandpass, fluxd, aper, eph)
         assert np.isclose(afrho.cm, 1680, atol=4)
@@ -117,26 +116,10 @@ class TestAfrho:
 
             synphot.units.convert_flux(6182, 11.97 * u.ABmag, u.STmag)
 
-        Throughput files for this test:
-
-            ftp://ftp.stsci.edu/cdbs/comp/wfc3/wfc3_uvis_f606w_004_syn.fits
-            ftp://ftp.stsci.edu/cdbs/comp/wfc3/wfc3_uvis_f438w_004_syn.fits
-            ftp://ftp.stsci.edu/cdbs/comp/nonhst/cousins_i_004_syn.fits
-            https://www.sdss.org/wp-content/uploads/2017/04/filter_curves.fits
-
-        The latter file is split into the r' portion::
-
-            from astropy.io import fits
-            from astropy.table import table
-            with fits.open('filter_curves.fits') as hdu:
-                tab = Table(hdu['R'].data)
-                tab['respt'].name = 'throughput'
-                del tab['resbig'], tab['resnoa'], tab['xatm']
-                tab.write('sdss-r.fits')
-
         """
         rho = u.Quantity(rho)
-        fn = os.path.join(os.path.dirname(__file__), 'data', filename)
+        fn = get_pkg_data_filename(os.path.join(
+            '..', '..', 'photometry', 'data', filename))
         bandpass = synphot.SpectralElement.from_file(fn)
         afrho = Afrho.from_mag(mag, unit, rho, eph, bandpass=bandpass)
         assert np.isclose(afrho.cm, afrho0, rtol=unc)
@@ -190,7 +173,8 @@ class TestAfrho:
     def test_mag_bandpass(self, filename, mag0, unit, rho, afrho, eph, unc):
         """Inverse of test_from_mag_bandpass."""
         rho = u.Quantity(rho)
-        fn = os.path.join(os.path.dirname(__file__), 'data', filename)
+        fn = get_pkg_data_filename(os.path.join(
+            '..', '..', 'photometry', 'data', filename))
         bandpass = synphot.SpectralElement.from_file(fn)
         mag = Afrho(afrho * u.cm).mag(unit, rho, eph, bandpass=bandpass)
         assert np.isclose(mag, mag0, rtol=unc)

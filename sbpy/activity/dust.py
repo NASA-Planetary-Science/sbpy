@@ -337,7 +337,7 @@ class Afrho(u.SpecificTypeQuantity):
         Using Spitzer's IRAC 3.6-μm filter (online):
 
         >>> from synphot import SpectralElement
-        >>> fluxd = 5.286867353823682e-16 * u.W / u.m**2 / u.um
+        >>> fluxd = 5.199855486576812e-16 * u.W / u.m**2 / u.um
         >>> bp = SpectralElement.from_file(
         ...   'http://irsa.ipac.caltech.edu/data/SPITZER/'
         ...   'docs/irac/calibrationfiles/spectralresponse/'
@@ -345,7 +345,7 @@ class Afrho(u.SpecificTypeQuantity):
         ...                          # doctest: +REMOTE_DATA +IGNORE_OUTPUT
         >>> afrho = Afrho.from_filt(bp, fluxd, aper, eph)
         ...                          # doctest: +REMOTE_DATA
-        >>> afrho.cm                 # doctest: +REMOTE_DATA
+        >>> afrho.cm                 # doctest: +REMOTE_DATA +FLOAT_CMP
         1000.0
 
 
@@ -615,7 +615,7 @@ class Afrho(u.SpecificTypeQuantity):
         >>> fluxd = afrho.filt(bp, aper, eph, unit=unit)
         ...                                          # doctest: +REMOTE_DATA
         >>> fluxd.value                              # doctest: +REMOTE_DATA
-        5.286867353823682e-16
+        5.199855486576812e-16
 
         Returns
         -------
