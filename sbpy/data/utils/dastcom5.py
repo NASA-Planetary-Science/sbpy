@@ -1,13 +1,13 @@
 import os
 import re
+import shutil
 import urllib.request
 import zipfile
 
 import astropy.units as u
 import numpy as np
-import pandas as pd
 from astropy.time import Time
-from astropy.table import Table
+from astropy.table import Table, vstack
 import astropy.units as u
 
 AST_DTYPE = np.dtype(
@@ -330,7 +330,7 @@ def orbit_from_name(name):
 
     """
     records = record_from_name(name)
-    orbits = [self.orbit_from_record(rec) for rec in records]
+    orbits = [orbit_from_record(rec) for rec in records]
     tbl = Table(orbits)
     return tbl
 
@@ -510,7 +510,7 @@ def read_record(record):
     return body_data
 
 
-def download_dastcom5():
+def download_dastcom5(update=False):
     """Downloads DASTCOM5 database.
 
     Downloads and unzip DASTCOM5 file in default sbpy path (~/.sbpy).
@@ -520,10 +520,15 @@ def download_dastcom5():
     dastcom5_dir = os.path.join(SBPY_LOCAL_PATH, "dastcom5")
     dastcom5_zip_path = os.path.join(SBPY_LOCAL_PATH, "dastcom5.zip")
 
-    if os.path.isdir(dastcom5_dir):
+    if os.path.isdir(dastcom5_dir) and not update:
         raise FileExistsError(
             "dastcom5 is already created in " + os.path.abspath(dastcom5_dir)
         )
+
+    if os.path.isdir(dastcom5_dir) and update:
+        shutil.rmtree(dastcom5_dir)
+
+    print("Downloading the latest DASTCOM5 Database")
     if not zipfile.is_zipfile(dastcom5_zip_path):
         if not os.path.isdir(SBPY_LOCAL_PATH):
             os.makedirs(SBPY_LOCAL_PATH)
@@ -535,6 +540,7 @@ def download_dastcom5():
         )
     with zipfile.ZipFile(dastcom5_zip_path) as myzip:
         myzip.extractall(SBPY_LOCAL_PATH)
+    os.remove(dastcom5_zip_path)
 
 
 def show_download_progress(transferred, block, totalsize):
@@ -558,30 +564,19 @@ def entire_db():
     ast_database = asteroid_db()
     com_database = comet_db()
 
-    ast_database = pd.DataFrame(
+    ast_database = Table(
         ast_database[
             list(ast_database.dtype.names[:17])
             + list(ast_database.dtype.names[-4:-3])
             + list(ast_database.dtype.names[-2:])
         ]
     )
-    ast_database.rename(
-        columns={"ASTNAM": "NAME", "NO": "NUMBER", "CALEPO": "CALEPOCH"},
-        inplace=True
-    )
-    com_database = pd.DataFrame(
+    com_database = Table(
         com_database[
             list(com_database.dtype.names[:17])
             + list(com_database.dtype.names[-4:-3])
             + list(com_database.dtype.names[-2:])
         ]
     )
-    com_database.rename(
-        columns={"COMNAM": "NAME", "NO": "NUMBER", "CALEPO": "CALEPOCH"},
-        inplace=True
-    )
-    df = ast_database.append(com_database, ignore_index=True)
-    df[["NAME", "DESIG", "IREF"]] = df[["NAME", "DESIG", "IREF"]].apply(
-        lambda x: x.str.strip().str.decode("utf-8")
-    )
+    df = vstack(ast_database, com_database)
     return df

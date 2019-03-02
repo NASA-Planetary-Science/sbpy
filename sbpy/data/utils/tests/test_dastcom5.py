@@ -4,25 +4,25 @@ from unittest import mock
 import numpy as np
 import pytest
 
-from sbpy import dastcom5
+from sbpy.data.utils import dastcom5
 
 
-@mock.patch("sbpy.dastcom5.dastcom5.np.fromfile")
-@mock.patch("sbpy.dastcom5.dastcom5.open")
+@mock.patch("sbpy.data.utils.dastcom5.np.fromfile")
+@mock.patch("sbpy.data.utils.dastcom5.open")
 def test_asteroid_db_is_called_with_right_path(mock_open, mock_np_fromfile):
     dastcom5.asteroid_db()
     mock_open.assert_called_with(dastcom5.AST_DB_PATH, "rb")
 
 
-@mock.patch("sbpy.dastcom5.dastcom5.np.fromfile")
-@mock.patch("sbpy.dastcom5.dastcom5.open")
+@mock.patch("sbpy.data.utils.dastcom5.np.fromfile")
+@mock.patch("sbpy.data.utils.dastcom5.open")
 def test_comet_db_is_called_with_right_path(mock_open, mock_np_fromfile):
     dastcom5.comet_db()
     mock_open.assert_called_with(dastcom5.COM_DB_PATH, "rb")
 
 
-@mock.patch("sbpy.dastcom5.dastcom5.np.fromfile")
-@mock.patch("sbpy.dastcom5.dastcom5.open")
+@mock.patch("sbpy.data.utils.dastcom5.np.fromfile")
+@mock.patch("sbpy.data.utils.dastcom5.open")
 def test_read_headers(mock_open, mock_np_fromfile):
     dastcom5.read_headers()
     mock_open.assert_any_call(
@@ -33,9 +33,9 @@ def test_read_headers(mock_open, mock_np_fromfile):
     )
 
 
-@mock.patch("sbpy.dastcom5.dastcom5.read_headers")
-@mock.patch("sbpy.dastcom5.dastcom5.np.fromfile")
-@mock.patch("sbpy.dastcom5.dastcom5.open")
+@mock.patch("sbpy.data.utils.dastcom5.read_headers")
+@mock.patch("sbpy.data.utils.dastcom5.np.fromfile")
+@mock.patch("sbpy.data.utils.dastcom5.open")
 def test_read_record(mock_open, mock_np_fromfile, mock_read_headers):
     mocked_ast_headers = np.array(
         [(3184, -1, b"00740473", b"00496815")],
@@ -59,10 +59,10 @@ def test_read_record(mock_open, mock_np_fromfile, mock_read_headers):
     )
 
 
-@mock.patch("sbpy.dastcom5.dastcom5.os.makedirs")
-@mock.patch("sbpy.dastcom5.dastcom5.zipfile")
-@mock.patch("sbpy.dastcom5.dastcom5.os.path.isdir")
-@mock.patch("sbpy.dastcom5.dastcom5.urllib.request")
+@mock.patch("sbpy.data.utils.dastcom5.os.makedirs")
+@mock.patch("sbpy.data.utils.dastcom5.zipfile")
+@mock.patch("sbpy.data.utils.dastcom5.os.path.isdir")
+@mock.patch("sbpy.data.utils.dastcom5.urllib.request")
 def test_download_dastcom5_raises_error_when_folder_exists(
     mock_request, mock_isdir, mock_zipfile, mock_makedirs
 ):
@@ -76,10 +76,10 @@ def test_download_dastcom5_raises_error_when_folder_exists(
     )
 
 
-@mock.patch("sbpy.dastcom5.dastcom5.urllib.request")
-@mock.patch("sbpy.dastcom5.dastcom5.os.makedirs")
-@mock.patch("sbpy.dastcom5.dastcom5.zipfile")
-@mock.patch("sbpy.dastcom5.dastcom5.os.path.isdir")
+@mock.patch("sbpy.data.utils.dastcom5.urllib.request")
+@mock.patch("sbpy.data.utils.dastcom5.os.makedirs")
+@mock.patch("sbpy.data.utils.dastcom5.zipfile")
+@mock.patch("sbpy.data.utils.dastcom5.os.path.isdir")
 def test_download_dastcom5_creates_folder(
     mock_isdir, mock_zipfile, mock_makedirs, mock_request
 ):
@@ -89,9 +89,9 @@ def test_download_dastcom5_creates_folder(
     mock_makedirs.assert_called_once_with(dastcom5.SBPY_LOCAL_PATH)
 
 
-@mock.patch("sbpy.dastcom5.dastcom5.zipfile")
-@mock.patch("sbpy.dastcom5.dastcom5.os.path.isdir")
-@mock.patch("sbpy.dastcom5.dastcom5.urllib.request.urlretrieve")
+@mock.patch("sbpy.data.utils.dastcom5.zipfile")
+@mock.patch("sbpy.data.utils.dastcom5.os.path.isdir")
+@mock.patch("sbpy.data.utils.dastcom5.urllib.request.urlretrieve")
 def test_download_dastcom5_downloads_file(
     mock_request, mock_isdir, mock_zipfile
 ):
