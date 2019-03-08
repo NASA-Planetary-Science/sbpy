@@ -47,6 +47,14 @@ def test_get_set():
     with pytest.raises(KeyError):
         data['d']
 
+    # add non-existing column using set
+    data['z'] = 3
+    assert len(data['z'] == 3)
+
+    # modify existing column using set
+    data['z'] = 2
+    assert data['z'][1] == 2
+
 
 def test_creation_single():
     """ test the creation of DataClass objects from dicts or arrays;

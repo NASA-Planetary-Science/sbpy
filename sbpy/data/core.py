@@ -336,6 +336,10 @@ class DataClass():
         # return as element from self_table
         return self._table[ident]
 
+    def __setitem__(self, *args):
+        """Refer cls.__setitem__ to self._table"""
+        self._table.__setitem__(*args)
+
     def _translate_columns(self, target_colnames):
         """Translate target_colnames to the corresponding column names
         present in this object's table. Returns a list of actual column
