@@ -7,16 +7,17 @@ created on June 23, 2017
 """
 
 __all__ = ['ref2mag', 'mag2ref', 'spline', 'SpectralGradient',
-           'DiskIntegratedModelClass', 'LinearPhaseFunc', 'HG', 'HG12', 'HG1G2',
-           'DiskFunctionModel', 'LommelSeeliger', 'Lambert', 'LunarLambert',
-           'PhaseFunctionModel', 'ROLOPhase',
+           'DiskIntegratedModelClass', 'LinearPhaseFunc', 'HG',
+           'HG12', 'HG1G2', 'DiskFunctionModel', 'LommelSeeliger',
+           'Lambert', 'LunarLambert', 'PhaseFunctionModel', 'ROLOPhase',
            'ResolvedPhotometricModelClass', 'ROLO']
 
 from warnings import warn
 
 import numpy as np
 from scipy.integrate import quad
-from astropy.modeling import FittableModel, Fittable1DModel, Fittable2DModel, Parameter
+from astropy.modeling import (FittableModel, Fittable1DModel,
+                              Fittable2DModel, Parameter)
 import astropy.units as u
 from astropy.utils.exceptions import AstropyWarning
 
@@ -35,7 +36,6 @@ VegaFluxd = u.def_unit(
     'fluxd(Vega)',
     doc='Represents the flux density of Vega at any wavelength.')
 VegaMag = u.mag(VegaFluxd)
-hundred_nm = u.def_unit('100 nm', represents=100 * u.nm)
 
 
 def ref2mag(ref, radius, M_sun=None):
