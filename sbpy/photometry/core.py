@@ -20,6 +20,7 @@ from astropy.modeling import (FittableModel, Fittable1DModel,
                               Fittable2DModel, Parameter)
 import astropy.units as u
 from astropy.utils.exceptions import AstropyWarning
+from astropy import log
 
 try:
     import synphot
@@ -31,11 +32,7 @@ except ImportError:
 from ..data import Ephem
 from ..spectroscopy.sun import Sun
 from ..spectroscopy.vega import Vega
-
-VegaFluxd = u.def_unit(
-    'fluxd(Vega)',
-    doc='Represents the flux density of Vega at any wavelength.')
-VegaMag = u.mag(VegaFluxd)
+from ..units import spectral_density_vega
 
 
 def ref2mag(ref, radius, M_sun=None):
@@ -146,19 +143,19 @@ class SpectralGradient(u.SpecificTypeQuantity):
     linear with wavelength.  Eq. 1 of A'Hearn et al. (1984, AJ 89,
     579):
 
-                R(λ1) - R(λ0)  2 
+                R(λ1) - R(λ0)  2
         slope = ------------- ---
-                R(λ1) + R(λ0) Δλ 
+                R(λ1) + R(λ0) Δλ
 
     Δλ is typically measured in units of 100 nm.
 
 
-    Parameters                                                             
-    ----------                                                             
-    value : number, `~astropy.units.Quantity`                              
+    Parameters
+    ----------
+    value : number, `~astropy.units.Quantity`
         The value(s).
 
-    unit : string, `~astropy.units.Unit`, optional                         
+    unit : string, `~astropy.units.Unit`, optional
         The unit of the input value.  Strings must be parseable by
         :mod:`~astropy.units` package.
 
@@ -185,7 +182,7 @@ class SpectralGradient(u.SpecificTypeQuantity):
     >>> print(S)
 
     >>> S = SpectralGradient.from_filters(
-    ...       ('johnson_v', 'cousins_r'), 15.0, 16.0, unit=VegaMag)
+    ...       ('johnson_v', 'cousins_r'), 15.0, 16.0, unit=VEGAMAG)
     >>> print(S)
 
     """
@@ -212,56 +209,51 @@ class SpectralGradient(u.SpecificTypeQuantity):
 
         return S
 
-    @staticmethod
-    def _validate_mag(m):
-        # If m is not a magnitude, then return it as a generic
-        # magnitude.  This also handles synphot's VEGAMAG, which
-        # is not compatible with astropy's Magnitude.
-        new_mag = None
-        if isinstance(m, u.Quantity):
-            if m.unit.is_equivalent(VegaMag):
-                new_mag = m
-            elif m.unit.is_equivalent((u.mag, u.ABmag, u.STmag)):
-                new_mag = m
-            elif synphot:
-                if m.unit == synphot.units.VEGAMAG:
-                    # use sbpy's VegaMag
-                    new_mag = m.value * u.mag(VegaFluxd)
-
-            if new_mag is None:
-                raise ValueError('units are not magnitudes, found '
-                                 + str(m.unit))
-        else:
-            # make a generic magnitude
-            new_mag = m * u.mag
-
-        return new_mag
-
     @classmethod
-    def from_color(cls, wave, solar_index, color_index):
+    def from_color(cls, wfb, color_index, solar_index=None):
         """Initialize from observed color index.
+
 
         Parameters
         ----------
-        wave : two-element `~astropy.units.Quantity`
-            Effective wavelengths of the magnitudes given for a solar
-            spectral energy distribution.
+        wfb : two-element `~astropy.units.Quantity` or tuple
+            Wavelengths, frequencies, or bandpasses of the
+            measurement.  If a bandpass, the effective wavelength of
+            a solar spectrum will be used.  Bandpasses may be a string
+            (name) or `~synphot.SpectralElement`.
 
-        solar_index : float, array, or `~astropy.units.Quantity`
-            Solar color index in magnitudes, (blue - red) filter.
-            Must have same units as ``color_index``.
-
-        color_index : float, array, or `~astropy.units.Quantity`
+        color_index : `~astropy.units.Quantity`
             Observed color index, (blue - red) filter.  Must have same
             units as ``solar_index``.
 
+        solar_index : `~astropy.units.Quantity`, optional
+            Solar color index in magnitudes, (blue - red) filter.
+            Must have same units as ``color_index``.  If ``None``,
+            the solar color index will be estimated.
+
         """
 
-        si = cls._validate_mag(solar_index)
-        ci = cls._validate_mag(color_index)
+        wave = np.zeros(2) * u.um
+        msun = np.zeros(2) * color_index.unit
+        sun = Sun.from_default()
+        for i in range(2):
+            if isinstance(wfb[i], u.Quantity):
+                wave[i] = wfb[i].to(u.um, u.spectral())
+                fsun = sun(wave[i])
+            else:
+                try:
+                    wave[i], fsun = sun.filt(wfb[i])
+                except TypeError:
+                    raise TypeError('`wfb` must be wavelength, frequency,'
+                                    ' or a bandpass.')
 
-        if si.unit != ci.unit:
-            raise ValueError('If magnitudes are provided, all parameters'
+            msun[i] = fsun.to(msun.unit, spectral_density_vega(wfb[i]))
+
+        if solar_index is None:
+            solar_index = msun[0] - msun[1]
+
+        if solar_index.unit != color_index.unit:
+            raise ValueError('color_index and solar_index'
                              ' must use the same magnitude system')
 
         alpha = 10**(0.4 * (ci - si).value)

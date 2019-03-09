@@ -12,6 +12,7 @@ To use these units in the top-level `astropy.units` namespace::
 """
 
 __all__ = [
+    'hundred_nm',
     'spectral_density_vega',
     'enable',
     'VEGA',
@@ -54,6 +55,8 @@ def enable():
     """
     import inspect
     return u.add_enabled_units(inspect.getmodule(enable))
+
+hundred_nm = u.def_unit('100 nm', represents=100 * u.nm)
 
 
 def spectral_density_vega(wfb):

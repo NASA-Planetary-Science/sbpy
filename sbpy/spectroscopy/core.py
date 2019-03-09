@@ -1031,7 +1031,7 @@ class SpectralStandard(ABC):
             bp = synphot.SpectralElement.from_filter(bp)
 
         if not isinstance(bp, synphot.SpectralElement):
-            raise ValueError(
+            raise TypeError(
                 '`bp` must be a string (filter name) or'
                 ' `synphot.SpectralElement`.')
 
