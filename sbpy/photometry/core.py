@@ -336,8 +336,8 @@ class SpectralGradient(u.SpecificTypeQuantity):
 
         """
 
-        if self.wave is None:
-            raise ValueError('wave attribute must be defined.')
+        if self.wave0 is None:
+            raise ValueError('wave0 attribute must be defined.')
 
         delta = wave0 - self.wave0
         S0 = 1 + self.to(delta.unit**-1) * delta
