@@ -177,13 +177,13 @@ class SpectralGradient(u.SpecificTypeQuantity):
 
     Examples
     --------
-
+    >>> import astropy.units as u
     >>> from sbpy.units import hundred_nm
     >>> S = SpectralGradient(10 * u.percent / hundred_nm, wave0=5500 * u.AA)
     >>> print(S)
     10.0 % / 100 nm
 
-    >>> from sbpy.units import VEGAMAG, hundred_nm
+    >>> from sbpy.units import VEGAMAG
     >>> bp = ('johnson_v', 'cousins_r')
     >>> VmR = 15.8 * VEGAMAG - 15.3 * VEGAMAG
     >>> VmR_sun = 0.37 * u.mag
@@ -218,6 +218,26 @@ class SpectralGradient(u.SpecificTypeQuantity):
         return S
 
     @classmethod
+    def _eff_wave(cls, wfb):
+        """Wavelength/frequency/bandpass to wavelength.
+
+        Bandpass is converted to effective wavelength using a solar
+        spectrum.
+
+        """
+
+        eff_wave = (0, 0) * u.um
+        sun = Sun.from_default()
+        for i in range(2):
+            if isinstance(wfb, u.Quantity):
+                eff_wave[i] = wfb[i].to(u.um)
+            else:
+                eff_wave[i] = sun.filt(wfb[i])[0]
+                log.info('Using λ_eff = {}'.format(eff_wave[i]))
+
+        return eff_wave
+
+    @classmethod
     def from_color(cls, wfb, color):
         """Initialize from observed color.
 
@@ -239,7 +259,7 @@ class SpectralGradient(u.SpecificTypeQuantity):
 
         Notes
         -----
-        Computes spectral gradient from ``color_index``.  
+        Computes spectral gradient from ``color_index``.
         ``wfb[0]`` is the blue-ward of the two measurements:
 
                   R(λ1) - R(λ0)  2    α - 1  2
@@ -266,14 +286,7 @@ class SpectralGradient(u.SpecificTypeQuantity):
 
         """
 
-        eff_wave = (0, 0) * u.um
-        sun = Sun.from_default()
-        for i in range(2):
-            if isinstance(wfb, u.Quantity):
-                eff_wave[i] = wfb[i].to(u.um)
-            else:
-                eff_wave[i] = sun.filt(wfb[i])[0]
-                log.info('Using λ_eff = {}'.format(eff_wave[i]))
+        eff_wave = SpectralGradient._eff_wave(wfb)
 
         try:
             # works for u.Magnitudes and dimensionless u.Quantity
@@ -283,10 +296,66 @@ class SpectralGradient(u.SpecificTypeQuantity):
             alpha = color.to(u.dimensionless_unscaled, u.logarithmic())
 
         dw = eff_wave[0] - eff_wave[1]
-        s = ((2 / dw * (alpha - 1) / (alpha + 1))
+        S = ((2 / dw * (alpha - 1) / (alpha + 1))
              .to(u.percent / hundred_nm))
 
-        return SpectralGradient(s, wave=eff_wave)
+        return SpectralGradient(S, wave=eff_wave)
+
+    def to_color(self, wfb):
+        """Express as a color index.
+
+
+        Parameters
+        ----------
+        wfb : two-element `~astropy.units.Quantity` or tuple
+            Wavelengths, frequencies, or bandpasses of the
+            measurement.  If a bandpass, the effective wavelength of a
+            solar spectrum will be used.  Bandpasses may be a string
+            (name) or `~synphot.SpectralElement` (see
+            :func:`~sbpy.spectroscopy.sun.Sun.filt`).
+
+        Notes
+        -----
+              1 + S * Δλ / 2
+          α = -------------- 
+              1 - S * Δλ / 2
+
+        where S is the spectral gradient at the mean of λ0 and λ1, and
+
+          α = R(λ1) / R(λ0) = 10**(0.4 * color_index)
+          color_index = Δm - C_sun
+
+        Δλ is typically expressed in units of 100 nm.
+
+        Returns
+        -------
+        color : `~astropy.units.Quantity`
+            ``blue - red`` color in magnitudes, dimensionless and
+            excludes the solar color.
+
+
+        Examples
+        --------
+        >>> import astropy.units as u
+        >>> from sbpy.units import hundred_nm
+        >>> S = SpectralGradient(10 * u.percent / hundred_nm,
+        ...                      wave0=0.55 * u.um)
+        >>> C = S.to_color((525, 575) * u.nm)
+        >>> C.value    # doctest: +FLOAT_CMP
+        0.05429812423309064
+        >>> print(C.unit)
+        mag
+
+        """
+
+        eff_wave = self._eff_wave(wfb)
+
+        S = self.renormalize(eff_wave.mean())
+        dw = eff_wave[0] - eff_wave[1]
+        beta = (S * dw / 2).decompose()  # dimensionless
+        color = ((1 + beta) / (1 - beta)).to(u.mag, u.logarithmic())
+
+        return color
 
     def renormalize(self, wave0):
         """Re-normalize to another wavelength.
