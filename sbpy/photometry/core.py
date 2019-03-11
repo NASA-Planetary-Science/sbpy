@@ -178,13 +178,21 @@ class SpectralGradient(u.SpecificTypeQuantity):
     Examples
     --------
 
-    >>> S = SpectralGradient(1 / u.um, wave=(4702, 6176) * u.AA)
+    >>> from sbpy.units import hundred_nm
+    >>> S = SpectralGradient(10 * u.percent / hundred_nm, wave0=5500 * u.AA)
     >>> print(S)
+    10.0 % / 100 nm
 
-    >>> S = SpectralGradient.from_filters(
-    ...       ('johnson_v', 'cousins_r'), 15.0, 16.0, unit=VEGAMAG)
-    >>> print(S)
-
+    >>> from sbpy.units import VEGAMAG, hundred_nm
+    >>> bp = ('johnson_v', 'cousins_r')
+    >>> VmR = 15.8 * VEGAMAG - 15.3 * VEGAMAG
+    >>> VmR_sun = 0.37 * u.mag
+    >>> S = SpectralGradient.from_color(bp, VmR - VmR_sun)
+    ...                              # doctest: +REMOTE_DATA +IGNORE_OUTPUT
+    >>> S.value                      # doctest: +REMOTE_DATA +FLOAT_CMP
+    12.29185986266534
+    >>> print(S.unit)                # doctest: +REMOTE_DATA
+    % / 100 nm
     """
 
     _equivalent_unit = u.meter**-1
@@ -210,63 +218,29 @@ class SpectralGradient(u.SpecificTypeQuantity):
         return S
 
     @classmethod
-    def from_color(cls, wfb, color_index, solar_index=None):
-        """Initialize from observed color index.
+    def from_color(cls, wfb, color):
+        """Initialize from observed color.
 
 
         Parameters
         ----------
         wfb : two-element `~astropy.units.Quantity` or tuple
             Wavelengths, frequencies, or bandpasses of the
-            measurement.  If a bandpass, the effective wavelength of
-            a solar spectrum will be used.  Bandpasses may be a string
-            (name) or `~synphot.SpectralElement`.
+            measurement.  If a bandpass, the effective wavelength of a
+            solar spectrum will be used.  Bandpasses may be a string
+            (name) or `~synphot.SpectralElement` (see
+            :func:`~sbpy.spectroscopy.sun.Sun.filt`).
 
-        color_index : `~astropy.units.Quantity`
-            Observed color index, (blue - red) filter.  Must have same
-            units as ``solar_index``.
+        color : `~astropy.units.Quantity`, optional
+            Observed color, ``blue - red`` for magnitudes, ``red
+            / blue`` for linear units.  Must be dimensionless and have
+            the solar color removed.
 
-        solar_index : `~astropy.units.Quantity`, optional
-            Solar color index in magnitudes, (blue - red) filter.
-            Must have same units as ``color_index``.  If ``None``,
-            the solar color index will be estimated.
 
-        """
-
-        wave = np.zeros(2) * u.um
-        msun = np.zeros(2) * color_index.unit
-        sun = Sun.from_default()
-        for i in range(2):
-            if isinstance(wfb[i], u.Quantity):
-                wave[i] = wfb[i].to(u.um, u.spectral())
-                fsun = sun(wave[i])
-            else:
-                try:
-                    wave[i], fsun = sun.filt(wfb[i])
-                except TypeError:
-                    raise TypeError('`wfb` must be wavelength, frequency,'
-                                    ' or a bandpass.')
-
-            msun[i] = fsun.to(msun.unit, spectral_density_vega(wfb[i]))
-
-        if solar_index is None:
-            solar_index = msun[0] - msun[1]
-
-        if solar_index.unit != color_index.unit:
-            raise ValueError('color_index and solar_index'
-                             ' must use the same magnitude system')
-
-        alpha = 10**(0.4 * (ci - si).value)
-        s = ((2 / wave.ptp() * (alpha - 1) / (alpha + 1))
-             .to(u.percent / hundred_nm))
-        return SpectralGradient(s, wave=wave)
-
-    @classmethod
-    def from_filters(cls, bp0, bp1, m0, m1):
-        """Initialize from filter bandpasses and observed magnitudes.
-
-        Computes spectral gradient from ``m0 - m1``.  Typically
-        ``bp0``/``m0`` is the blue-ward of the two measuremnts:
+        Notes
+        -----
+        Computes spectral gradient from ``color_index``.  
+        ``wfb[0]`` is the blue-ward of the two measurements:
 
                   R(λ1) - R(λ0)  2    α - 1  2
           slope = ------------- --- = ----- ---
@@ -274,48 +248,45 @@ class SpectralGradient(u.SpecificTypeQuantity):
 
         where R(λ) is the reflectivity, and
 
-          α = 10**(0.4 * (Δm - C_sun))
+          α = R(λ1) / R(λ0) = 10**(0.4 * color_index)
+          color_index = Δm - C_sun
 
-        Δλ is typically measured in units of 100 nm.
-
-
-        Parameters
-        ----------
-        bp0, bp1 : string or `~synphot.SpectralElement`
-            Bandpasses of the two filters as filter names or
-            transmission profiles.  See
-            `~sbpy.spectroscopy.sun.Sun.filt` for acceptable filter
-            names.
-
-
-        m0, m1 : `~astropy.units.Quantity`
-            Observed magnitudes.
-
-        .. note:
-            Uses ``SpectralGradient.solar_index`` to compute the color
-            of the Sun and bandpass effective wavelengths.
-
-        .. note:
-            Vega-based magnitude systems can use sbpy's `~VegaMag` or
-            synphot's `synphot.unit.VEGAMAG`.
+        Δλ is typically expressed in units of 100 nm.
 
 
         Examples
         --------
+        >>> import astropy.units as u
+        >>> w = [0.4719, 0.6185] * u.um
+        >>> S = SpectralGradient.from_color(w, 0.10 * u.mag)
+        >>> S.value                             # doctest: +FLOAT_CMP
+        6.27819572
+        >>> print(S.unit)
+        % / 100 nm
 
         """
 
-        if m0.unit != m1.unit:
-            raise ValueError('Magnitudes must use the same system.')
+        eff_wave = (0, 0) * u.um
+        sun = Sun.from_default()
+        for i in range(2):
+            if isinstance(wfb, u.Quantity):
+                eff_wave[i] = wfb[i].to(u.um)
+            else:
+                eff_wave[i] = sun.filt(wfb[i])[0]
+                log.info('Using λ_eff = {}'.format(eff_wave[i]))
 
-        wave, si = cls.solar_index(bp0, bp1, m0.unit)
-        ci = m0 - m1
+        try:
+            # works for u.Magnitudes and dimensionless u.Quantity
+            alpha = u.Quantity(color, u.dimensionless_unscaled)
+        except u.UnitConversionError:
+            # works for u.mag
+            alpha = color.to(u.dimensionless_unscaled, u.logarithmic())
 
-        alpha = 10**(0.4 * (ci - si).value)
-        dw = wave[1] - wave[0]
-        S = ((alpha - 1) / (alpha + 1) * 2 / dw).to(u.percent / hundred_nm)
+        dw = eff_wave[0] - eff_wave[1]
+        s = ((2 / dw * (alpha - 1) / (alpha + 1))
+             .to(u.percent / hundred_nm))
 
-        return cls(S, wave=wave)
+        return SpectralGradient(s, wave=eff_wave)
 
     def renormalize(self, wave0):
         """Re-normalize to another wavelength.
@@ -344,62 +315,6 @@ class SpectralGradient(u.SpecificTypeQuantity):
         S = self / S0
         S.wave0 = wave0
         return S
-
-    @staticmethod
-    def solar_index(bp0, bp1, unit):
-        """Solar color index and effective wavelengths.
-
-
-        Parameters
-        ----------
-        bp0, bp1 : string or `~synphot.SpectralElement`
-            Bandpasses of the two filters as filter names or
-            transmission profiles.  See
-            `~sbpy.spectroscopy.sun.Sun.filt` for acceptable filter
-            names.
-
-        unit : string or `~astropy.unit.Unit`
-            Magnitude system to use.
-
-
-        Returns
-        -------
-        eff_wave : `~astropy.unit.Quantity`
-            Effective wavelengths for each bandpass.
-
-        solar_index : `~astropy.unit.Quantity`
-            Solar color index.
-
-        """
-
-        if synphot:
-            VEGAMAG = synphot.units.VEGAMAG
-        else:
-            VEGAMAG = None
-
-        sun = Sun.from_default()
-
-        wave, fluxd_sun = zip(sun.filt(bp0), sun.filt(bp1))
-        wave = u.Quantity(wave)
-        fluxd_sun = u.Quantity(fluxd_sun)
-
-        if (synphot and unit == VEGAMAG) or unit == VegaMag:
-            vega = Vega.from_default()
-            zp = u.Quantity((vega.filt(bp0)[1], vega.filt(bp1)[1]))
-        elif unit == u.ABmag:
-            zp = ([0, 0] * u.ABmag)
-        elif unit == u.STmag:
-            zp = ([0, 0] * u.STmag)
-        else:
-            raise ValueError('Unrecognized magnitude: {}'.format(unit))
-
-        zp = zp.to(fluxd_sun.unit, u.spectral_density(wave))
-
-        solar_index = (-2.5 * np.log10(
-            zp[1] / zp[0] * fluxd_sun[0] / fluxd_sun[1])
-            .decompose().value) * unit
-
-        return wave, solar_index
 
 
 class spline(object):

@@ -801,13 +801,14 @@ class SpectralStandard(ABC):
     Parameters
     ----------
     source : `~synphot.SourceSpectrum`
-      The source spectrum.
+        The source spectrum.
 
     description : string, optional
-      A brief description of the source spectrum.
+        A brief description of the source spectrum.
 
     bibcode : string, optional
-      Bibliography code for `sbpy.bib.register`.
+        Bibliography code for `sbpy.bib.register`.
+
 
     Attributes
     ----------
@@ -1046,3 +1047,60 @@ class SpectralStandard(ABC):
             fluxd = obs.effstim(_unit)
 
         return wave, fluxd
+
+    def color_index(self, wfb, unit):
+        """Color index (magnitudes) and effective wavelengths.
+
+
+        Parameters
+        ----------
+        wfb : two-element `~astropy.units.Quantity` or tuple
+            Wavelengths, frequencies, or bandpasses of the
+            measurement.  See :func:`~observe`.
+
+        unit : string or `~astropy.units.Quantity`
+            Units for the output, typically one of:
+                * ``astropy.units.ABmag``
+                * ``astropy.units.STmag``
+                * ``synphot.units.VEGAMAG``
+                * ``sbpy.units.VEGAMAG``
+
+
+        Returns
+        -------
+        eff_wave : `~astropy.units.Quantity`
+            Effective wavelengths for each ``wfb``.
+
+        ci : `~astropy.units.Quantity`
+            Color index, ``m_0 - m_1``, where 0 and 1 are element
+            indexes for ``wfb``.
+
+
+        Notes
+        -----
+        VEGAMAG requires ``~synphot``.
+
+        """
+
+        from ..units import spectral_density_vega
+
+        eff_wave = np.zeros(2) * u.um
+        m = np.zeros(2) * u.Unit(unit)
+        for i in range(2):
+            if isinstance(wfb[i], u.Quantity):
+                eff_wave[i] = wfb[i].to(u.um, u.spectral())
+                f = self(eff_wave[i])
+            else:
+                try:
+                    eff_wave[i], f = self.filt(wfb[i])
+                except TypeError:
+                    raise TypeError('`wfb` must be wavelength, frequency,'
+                                    ' or a bandpass.')
+
+            eqv = (spectral_density_vega(wfb[i])
+                   + u.spectral_density(eff_wave[i]))
+            m[i] = f.to(m.unit, eqv)
+        ci = m[0] - m[1]
+        assert ci.unit == u.Unit(unit)
+
+        return eff_wave, ci
