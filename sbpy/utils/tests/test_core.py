@@ -1,5 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import sys
+import mock
 import pytest
 import numpy as np
 from ..core import *
@@ -18,3 +20,9 @@ from ..core import *
 def test_get_bandpass(name, avgwave):
     bp = get_bandpass(name)
     assert np.isclose(bp.avgwave().value, avgwave)
+
+
+def test_get_bandpass_synphot():
+    with mock.patch.dict(sys.modules, {'synphot': None}):
+        with pytest.raises(ImportError):
+            get_bandpass('sdss u')

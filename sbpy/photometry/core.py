@@ -208,10 +208,10 @@ class SpectralGradient(u.SpecificTypeQuantity):
                 raise ValueError(
                     'Two wavelengths must be provided, got {}'
                     .format(np.size(wave)))
-        S.wave = wave
+            S.wave = S._eff_wave(wave)
 
         if wave0 is None and wave is not None:
-            S.wave0 = wave.mean()
+            S.wave0 = S.wave.mean()
         else:
             S.wave0 = wave0
 

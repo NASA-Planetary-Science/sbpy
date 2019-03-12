@@ -12,6 +12,10 @@ import synphot
 from ..core import *
 
 
+def test_hundred_nm():
+    assert (1 * core.hundred_nm).to(u.nm).value == 100
+
+
 def test_synphot_import_fail():
     with mock.patch.dict(sys.modules, {'synphot': None}):
         assert spectral_density_vega(1 * u.um) == []
