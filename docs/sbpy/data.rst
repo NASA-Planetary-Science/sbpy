@@ -249,8 +249,8 @@ or if you want to add a column to your object:
 
 The same result can be achieved using the following syntax:
 
-    >>> obs['filter2'] = ['V', 'V', 'R', 'i', 'g']
-    >>> print(obs)
+    >>> obs['filter2'] = ['V', 'V', 'R', 'i', 'g']  # doctest: +SKIP
+    >>> print(obs)  # doctest: +SKIP
     <QTable length=5>
 	ra       dec          t       filter filter2
        deg       deg          d                     
