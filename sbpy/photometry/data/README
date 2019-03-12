@@ -1,16 +1,18 @@
-Throughput files from
+Throughput files from:
 
-  ftp://ftp.stsci.edu/cdbs/comp/wfc3/wfc3_uvis_f606w_004_syn.fits
-  ftp://ftp.stsci.edu/cdbs/comp/wfc3/wfc3_uvis_f438w_004_syn.fits
-  ftp://ftp.stsci.edu/cdbs/comp/nonhst/cousins_i_004_syn.fits
-  https://www.sdss.org/wp-content/uploads/2017/04/filter_curves.fits
+    ftp://ftp.stsci.edu/cdbs/comp/wfc3/wfc3_uvis_f606w_004_syn.fits
+    ftp://ftp.stsci.edu/cdbs/comp/wfc3/wfc3_uvis_f438w_004_syn.fits
+    ftp://ftp.stsci.edu/cdbs/comp/nonhst/cousins_i_004_syn.fits
+    https://www.sdss.org/wp-content/uploads/2017/04/filter_curves.fits
 
-The latter file is split into the r' portion::
+The latter file is split into the r' portion:
 
-    from astropy.io import fits
-    from astropy.table import table
-    with fits.open('filter_curves.fits') as hdu:
-        tab = Table(hdu['R'].data)
+from astropy.io import fits
+from astropy.table import Table
+url = 'https://www.sdss.org/wp-content/uploads/2017/04/filter_curves.fits'
+with fits.open(url) as hdu:
+    for filt in 'ugriz':
+        tab = Table(hdu[filt.upper()].data)
         tab['respt'].name = 'throughput'
         del tab['resbig'], tab['resnoa'], tab['xatm']
-        tab.write('sdss-r.fits')
+        tab.write('sdss-{}.fits'.format(filt))

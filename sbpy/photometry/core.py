@@ -204,10 +204,10 @@ class SpectralGradient(u.SpecificTypeQuantity):
                             copy=copy)
 
         if wave is not None:
-            if len(wave) != 2:
+            if np.size(wave) != 2:
                 raise ValueError(
                     'Two wavelengths must be provided, got {}'
-                    .format(len(wave)))
+                    .format(np.size(wave)))
         S.wave = wave
 
         if wave0 is None and wave is not None:
@@ -326,6 +326,7 @@ class SpectralGradient(u.SpecificTypeQuantity):
           color_index = Δm - C_sun
 
         Δλ is typically expressed in units of 100 nm.
+
 
         Returns
         -------

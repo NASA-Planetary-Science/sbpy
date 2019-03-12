@@ -1,11 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import numpy as np
+import pytest
 import astropy
 from astropy import units as u
 from astropy.modeling import Parameter
 from ..core import *
 from ...data import Ephem
+from ...units import hundred_nm
 from distutils.version import LooseVersion
 
 req_ver = LooseVersion('3.0.2')
@@ -22,6 +24,31 @@ def test_mag2ref():
     assert np.isclose(mag2ref(3.32, 460), 0.03185556322261901)
     if LooseVersion(astropy.__version__) >= req_ver:
         assert u.isclose(mag2ref(3.32, 460*u.km), 0.03185556322261901/u.sr)
+
+
+class TestSpectralGradient():
+    def test_new(self):
+        S = SpectralGradient(100 / u.um, wave=(525, 575) * u.nm)
+        assert np.isclose(S.wave0.value, 550)
+
+    def test_new_wave_error(self):
+        with pytest.raises(ValueError):
+            SpectralGradient(100 / u.um, wave=525 * u.nm)
+
+    @pytest.mark.parametrize('wfb, color, S0', (
+        (('F438W', 'F606W'), 0.93 * u.mag, 5 * u.percent / hundred_nm),
+        (('F438W', 'F606W'), 0.95 * u.mag, 6 * u.percent / hundred_nm),
+        (('F438W', 'F606W'), 0.98 * u.mag, 9 * u.percent / hundred_nm)
+    ))
+    def test_from_color(self, wfb, color, S0):
+        """Test from color to spectral gradient.
+
+        Li et al. 2014, ApJL, 797, L8.
+
+        """
+        S = SpectralGradient.from_color(wfb, color)
+        assert np.isclose(S.value, S0.value)
+        assert S.unit == S0.unit
 
 
 def test_spline():
