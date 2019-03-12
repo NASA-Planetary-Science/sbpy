@@ -8,8 +8,8 @@ from .. import *
 class TestVega:
     def test___repr__(self):
         with default_vega.set('Bohlin2014'):
-            assert repr(Vega.from_default()
-                        ) == '<Vega: Spectrum of Bohlin 2014>'
+            assert (repr(Vega.from_default()) ==
+                    '<Vega: Dust-free template spectrum of Bohlin 2014>')
 
         vega = Vega.from_array([1, 2] * u.um, [1, 2] * u.Jy)
         assert repr(vega) == '<Vega>'
