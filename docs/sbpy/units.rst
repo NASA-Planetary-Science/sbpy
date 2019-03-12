@@ -15,6 +15,26 @@ This will make them searchable via strings, such as
 ``u.Unit('mag(VEGA)')``.
 
 
+Spectral Gradient Units
+-----------------------
+
+Spectral gradients are commonly expressed as % per 100 nm.  This is a
+subtle concept for `~astropy.units`:
+
+  >>> import astropy.units as u
+  >>> print(u.percent / (100 * u.nm))
+  0.01 % / nm
+  >>> print(u.Unit('% / (100 nm)'))    # doctest: +SKIP
+  ValueError: '% / (100 nm)' did not parse as unit: Syntax error parsing unit '% / 100 nm'
+
+As a convenience, `sbpy` defines a ``hundred_nm`` unit that has an
+appropriate string representation:
+
+  >>> from sbpy.units import hundred_nm
+  >>> print(u.percent / hundred_nm)
+  % / 100 nm
+
+
 Vega Magnitudes
 ---------------
 
