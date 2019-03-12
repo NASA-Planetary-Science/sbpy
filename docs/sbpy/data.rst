@@ -247,6 +247,25 @@ or if you want to add a column to your object:
      10.25546  -12.3946 2451523.94653      i
     10.265425 -12.38246  2451524.0673      g
 
+The same result can be achieved using the following syntax:
+
+    >>> obs['filter2'] = ['V', 'V', 'R', 'i', 'g']  # doctest: +SKIP
+    >>> print(obs)  # doctest: +SKIP
+    <QTable length=5>
+	ra       dec          t       filter filter2
+       deg       deg          d                     
+     float64   float64     float64     str1    str1 
+    --------- --------- ------------- ------ -------
+    10.223423 -12.42123  2451523.6234      V       V
+    10.233453 -12.41562  2451523.7345      V       V
+    10.243452 -12.40435  2451523.8525      R       R
+     10.25546  -12.3946 2451523.94653      i       i
+    10.265425 -12.38246  2451524.0673      g       g
+
+Similarly, exisiting columns can be modified using:
+
+    >>> obs['filter'] = ['g', 'i', 'R', 'V', 'V']  # doctest: +SKIP
+    
 A few things to be mentioned here:
 
 * Note how both functions return the number of rows or columns in the
@@ -260,7 +279,8 @@ A few things to be mentioned here:
 * Naturally, the number of columns and rows of the rows and columns
   to be added has to be identical to the numbers in the data table.
 
-If you are trying to add a single row to your object data table, using a dictionary might be the most convenient solution:
+If you are trying to add a single row to your object data table, using
+a dictionary might be the most convenient solution:
 
     >>> obs.add_rows({'ra':10.255460*u.deg, 'dec': -12.39460*u.deg,
     ...               't': 2451524.14653*u.d, 'filter': 'z'})
