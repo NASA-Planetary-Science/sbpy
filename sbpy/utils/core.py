@@ -38,30 +38,32 @@ def get_bandpass(name):
     +-----------+---------------------------+
     | Name      | Source                    |
     +===========+===========================+
-    | F438W     | HST/WFC3 UVIS, v4 [1]_    |
+    | F438W     | HST/WFC3 UVIS, v4         |
     +-----------+---------------------------+
-    | F606W     | HST/WFC3 UVIS, v4 [1]_    |
+    | F606W     | HST/WFC3 UVIS, v4         |
     +-----------+---------------------------+
-    | Cousins I | STScI CDBS, v4 [1]_       |
+    | Cousins I | STScI CDBS, v4            |
     +-----------+---------------------------+
-    | SDSS u    | SDSS, dated 2001 [2]_     |
+    | SDSS u    | SDSS, dated 2001          |
     +-----------+---------------------------+
-    | SDSS g    | SDSS, dated 2001 [2]_     |
+    | SDSS g    | SDSS, dated 2001          |
     +-----------+---------------------------+
-    | SDSS r    | SDSS, dated 2001 [2]_     |
+    | SDSS r    | SDSS, dated 2001          |
     +-----------+---------------------------+
-    | SDSS i    | SDSS, dated 2001 [2]_     |
+    | SDSS i    | SDSS, dated 2001          |
     +-----------+---------------------------+
-    | SDSS z    | SDSS, dated 2001 [2]_     |
+    | SDSS z    | SDSS, dated 2001          |
     +-----------+---------------------------+
 
+    WFC3 filters and Cousins I from [CDBS]_, SDSS filters from
+    [SDSS]_.
 
     References
     ----------
-    .. [1] Space Telescope Science Institute.  Calibration Database
+    .. [CDBS] Space Telescope Science Institute.  Calibration Database
        System.  http://www.stsci.edu/hst/observatory/cdbs .
 
-    .. [2] Sloan Digital Sky Survey.  Camera.
+    .. [SDSS] Sloan Digital Sky Survey.  Camera.
        https://www.sdss.org/instruments/camera
 
     """
