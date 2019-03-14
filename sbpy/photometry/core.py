@@ -132,7 +132,7 @@ def mag2ref(mag, radius, M_sun=None):
 
 
 class SpectralGradient(u.SpecificTypeQuantity):
-    """Convert between magnitude and spectral gradient.
+    r"""Convert between magnitude and spectral gradient.
 
     ``SpectralGradient`` is a `~astropy.units.Quantity` object with
     units of percent change per wavelength.
@@ -143,9 +143,9 @@ class SpectralGradient(u.SpecificTypeQuantity):
     linear with wavelength.  Eq. 1 of A'Hearn et al. (1984, AJ 89,
     579):
 
-                R(λ1) - R(λ0)  2
-        slope = ------------- ---
-                R(λ1) + R(λ0) Δλ
+    .. math::
+
+        S = \frac{R(λ1) - R(λ0)}{R(λ1) + R(λ0)} \frac{2}{Δλ}
 
     Δλ is typically measured in units of 100 nm.
 
@@ -239,7 +239,7 @@ class SpectralGradient(u.SpecificTypeQuantity):
 
     @classmethod
     def from_color(cls, wfb, color):
-        """Initialize from observed color.
+        r"""Initialize from observed color.
 
 
         Parameters
@@ -259,17 +259,22 @@ class SpectralGradient(u.SpecificTypeQuantity):
 
         Notes
         -----
+
         Computes spectral gradient from ``color_index``.
-        ``wfb[0]`` is the blue-ward of the two measurements:
+        ``wfb[0]`` is the blue-ward of the two measurements
 
-                  R(λ1) - R(λ0)  2    α - 1  2
-          slope = ------------- --- = ----- ---
-                  R(λ1) + R(λ0) Δλ    α + 1 Δλ
+        .. math::
 
-        where R(λ) is the reflectivity, and
+           S &= \frac{R(λ1) - R(λ0)}{R(λ1) + R(λ0)} \frac{2}{Δλ} \\
+           &= \frac{α - 1}{α + 1} \frac{2}{Δλ}
 
-          α = R(λ1) / R(λ0) = 10**(0.4 * color_index)
-          color_index = Δm - C_sun
+        where R(λ) is the reflectivity, and:
+
+        .. math::
+
+            α = R(λ1) / R(λ0) = 10^{0.4 color_index}
+
+            color_index = Δm - C_{sun}
 
         Δλ is typically expressed in units of 100 nm.
 
@@ -302,7 +307,7 @@ class SpectralGradient(u.SpecificTypeQuantity):
         return SpectralGradient(S, wave=eff_wave)
 
     def to_color(self, wfb):
-        """Express as a color index.
+        r"""Express as a color index.
 
 
         Parameters
@@ -316,14 +321,19 @@ class SpectralGradient(u.SpecificTypeQuantity):
 
         Notes
         -----
-              1 + S * Δλ / 2
-          α = -------------- 
-              1 - S * Δλ / 2
+        Color index is computed from:
 
-        where S is the spectral gradient at the mean of λ0 and λ1, and
+        .. math::
 
-          α = R(λ1) / R(λ0) = 10**(0.4 * color_index)
-          color_index = Δm - C_sun
+            α = \frac{1 + S Δλ / 2}{1 - S * Δλ / 2}
+
+        where S is the spectral gradient at the mean of λ0 and λ1, and:
+
+        .. math::
+
+            α = R(λ1) / R(λ0) = 10^{0.4 color_index}
+
+            color_index = Δm - C_{sun}
 
         Δλ is typically expressed in units of 100 nm.
 

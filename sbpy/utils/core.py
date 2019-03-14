@@ -35,33 +35,33 @@ def get_bandpass(name):
     -----
     Available filters:
 
-    +-----------+------------------------------+
-    | Name      | Source                       |
-    +===========+==============================+
-    | F438W     | HST/WFC3 UVIS, v4 [CDBS]_    |
-    +-----------+------------------------------+
-    | F606W     | HST/WFC3 UVIS, v4 [CDBS]_    |
-    +-----------+------------------------------+
-    | Cousins I | STScI CDBS, v4 [CDBS]_       |
-    +-----------+------------------------------+
-    | SDSS u    | SDSS [SDSS]_ dated 2001      |
-    +-----------+------------------------------+
-    | SDSS g    | SDSS [SDSS]_ dated 2001      |
-    +-----------+------------------------------+
-    | SDSS r    | SDSS [SDSS]_ dated 2001      |
-    +-----------+------------------------------+
-    | SDSS i    | SDSS [SDSS]_ dated 2001      |
-    +-----------+------------------------------+
-    | SDSS z    | SDSS [SDSS]_ dated 2001      |
-    +-----------+------------------------------+
+    +-----------+---------------------------+
+    | Name      | Source                    |
+    +===========+===========================+
+    | F438W     | HST/WFC3 UVIS, v4 [1]_    |
+    +-----------+---------------------------+
+    | F606W     | HST/WFC3 UVIS, v4 [1]_    |
+    +-----------+---------------------------+
+    | Cousins I | STScI CDBS, v4 [1]_       |
+    +-----------+---------------------------+
+    | SDSS u    | SDSS, dated 2001 [2]_     |
+    +-----------+---------------------------+
+    | SDSS g    | SDSS, dated 2001 [2]_     |
+    +-----------+---------------------------+
+    | SDSS r    | SDSS, dated 2001 [2]_     |
+    +-----------+---------------------------+
+    | SDSS i    | SDSS, dated 2001 [2]_     |
+    +-----------+---------------------------+
+    | SDSS z    | SDSS, dated 2001 [2]_     |
+    +-----------+---------------------------+
 
 
     References
     ----------
-    .. [CDBS] Space Telescope Science Institute.  Calibration Database
+    .. [1] Space Telescope Science Institute.  Calibration Database
        System.  http://www.stsci.edu/hst/observatory/cdbs .
 
-    .. [SDSS] Sloan Digital Sky Survey.  Camera.
+    .. [2] Sloan Digital Sky Survey.  Camera.
        https://www.sdss.org/instruments/camera
 
     """
