@@ -14,14 +14,9 @@ import astropy.units as u
 from astropy.utils.exceptions import AstropyWarning
 
 try:
-    import synphot
     from synphot.units import VEGAMAG
 except ImportError:
-    synphot = None
     VEGAMAG = None
-    warnings.warn(AstropyWarning(
-        'synphot is not present, spectral_density_vega() will not work'
-    ))
 
 from ..spectroscopy.vega import Vega
 
@@ -31,9 +26,10 @@ def spectral_density_vega(wfb):
 
     Uses the default `sbpy` Vega spectrum.
 
-    Vega is assumed to have an apparent magnitude of 0.03 in the
-    Vega-based magnitude system (Bessell & Murphy 2012, PASP 124,
-    140-157).
+    Vega is assumed to have an apparent magnitude of 0 in the VEGAMAG
+    system (``VEGAMAG``).  Note this is different from the
+    Johnson-Morgan system, in which Vega has a magnitude of 0.03
+    [Joh66, BM12]_.
 
 
     Parameters
@@ -60,20 +56,29 @@ def spectral_density_vega(wfb):
     >>> fluxd.value   # doctest: +FLOAT_CMP
     3679.226291142341
 
+
+    References
+    ----------
+    [Joh66] Johnson et al. 1966, Commun. Lunar Planet. Lab. 4, 99
+
+    [BM12] Bessell & Murphy 2012, PASP 124, 140-157
+
     """
 
-    if synphot is None:
-        raise ImportError('synphot required for VEGAMAG conversions.')
+    try:
+        import synphot
+    except ImportError:
+        raise ImportError('synphot required for Vega-based magnitude'
+                          ' conversions.')
 
-    # Vega == 0.03 mag
     vega = Vega.from_default()
     if isinstance(wfb, u.Quantity):
         wav = wfb
-        fnu0 = vega(wfb, unit='W/(m2 Hz)') * 1.0280163
-        flam0 = vega(wfb, unit='W/(m2 um)') * 1.0280163
+        fnu0 = vega(wfb, unit='W/(m2 Hz)')
+        flam0 = vega(wfb, unit='W/(m2 um)')
     elif isinstance(wfb, (synphot.SpectralElement, str)):
-        fnu0 = vega.filt(wfb, unit='W/(m2 Hz)')[1] * 1.0280163
-        flam0 = vega.filt(wfb, unit='W/(m2 um)')[1] * 1.0280163
+        fnu0 = vega.filt(wfb, unit='W/(m2 Hz)')[1]
+        flam0 = vega.filt(wfb, unit='W/(m2 um)')[1]
 
     def forward(fluxd_vega):
         """nan/inf are returned as -99 mag.
