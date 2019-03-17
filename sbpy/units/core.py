@@ -5,31 +5,32 @@ sbpy units core module
 
 __all__ = [
     'spectral_density_vega',
-    'VEGAMAG'
+    'fluxd_vega',
+    'vega_mag',
+    'j66_mag'
 ]
 
 import warnings
+from fractions import Fraction
 import numpy as np
 import astropy.units as u
 from astropy.utils.exceptions import AstropyWarning
-
-try:
-    from synphot.units import VEGAMAG
-except ImportError:
-    VEGAMAG = None
-
 from ..spectroscopy.vega import Vega
 
 
+fluxd_vega = u.def_unit('Vega', doc='Spectral flux density of Vega.')
+vega_mag = u.mag(fluxd_vega)
+j66_mag = u.mag(fluxd_vega * 10**(0.4 * 0.03))
+
+
 def spectral_density_vega(wfb):
-    """Flux density equivalencies with VEGAMAG.
+    """Flux density equivalencies with Vega-based magnitude systems.
 
     Uses the default `sbpy` Vega spectrum.
 
     Vega is assumed to have an apparent magnitude of 0 in the VEGAMAG
-    system (``VEGAMAG``).  Note this is different from the
-    Johnson-Morgan system, in which Vega has a magnitude of 0.03
-    [Joh66, BM12]_.
+    system (``vega_mag``), and 0.03 in the Johnson-Morgan system
+    (``j66_mag``) [Joh66, BM12]_.
 
 
     Parameters
@@ -50,11 +51,11 @@ def spectral_density_vega(wfb):
     Examples
     --------
     >>> import astropy.units as u
-    >>> from sbpy.units import spectral_density_vega, VEGAMAG
-    >>> m = 0 * VEGAMAG
+    >>> from sbpy.units import spectral_density_vega, vega_mag
+    >>> m = 0 * vega_mag
     >>> fluxd = m.to(u.Jy, spectral_density_vega(5500 * u.AA))
     >>> fluxd.value   # doctest: +FLOAT_CMP
-    3679.226291142341
+    3578.9571538333985
 
 
     References
@@ -67,6 +68,7 @@ def spectral_density_vega(wfb):
 
     try:
         import synphot
+        from synphot.units import VEGAMAG
     except ImportError:
         raise ImportError('synphot required for Vega-based magnitude'
                           ' conversions.')
@@ -80,7 +82,7 @@ def spectral_density_vega(wfb):
         fnu0 = vega.filt(wfb, unit='W/(m2 Hz)')[1]
         flam0 = vega.filt(wfb, unit='W/(m2 um)')[1]
 
-    def forward(fluxd_vega):
+    def vegamag_forward(fluxd_vega):
         """nan/inf are returned as -99 mag.
 
         nan/inf handling consistent with
@@ -95,12 +97,14 @@ def spectral_density_vega(wfb):
             return m
         return f
 
-    def backward(fluxd_vega):
+    def vegamag_backward(fluxd_vega):
         def b(m):
             return fluxd_vega.value * 10**(-0.4 * m)
         return b
 
     return [
-        (fnu0.unit, VEGAMAG, forward(fnu0), backward(fnu0)),
-        (flam0.unit, VEGAMAG, forward(flam0), backward(flam0)),
+        (fnu0.unit, fluxd_vega, lambda x: x / fnu0.value,
+         lambda x: x * fnu0.value),
+        (flam0.unit, fluxd_vega, lambda x: x / flam0.value,
+         lambda x: x * flam0.value)
     ]

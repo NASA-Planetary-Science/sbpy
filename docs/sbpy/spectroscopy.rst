@@ -139,11 +139,11 @@ model does account for the effects of photolysis.
   >>> print(Q)
       <Quantity [1.64403219e+28] 1 / s>
 
-.. _sbpy_spectral_standards:      
+.. _sbpy_spectral_standards:
 
 Spectral standards and photometric calibration
 ----------------------------------------------
-`sbpy` has the ability to return spectra of the Sun and Vega.  There are built-in spectra for each.  The spectra are additionally used for `sbpy`'s photometric calibration.  Users may provide their own spectra.
+`sbpy` photometric calibration is partially based on spectra of the Sun and Vega.  There are built-in spectra for each.  The spectra are additionally used for `sbpy`'s photometric calibration.  Users may provide their own spectra.
 
 For Vega, the spectrum of Bohlin (2014) is the default.  It is downloaded and cached from STScI, as needed.  Four solar spectra are built-in:
 
