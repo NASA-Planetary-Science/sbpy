@@ -9,7 +9,7 @@ magnitude conversions.  ``sbpy`` units may be added to the top-level
 ``astropy.units`` namespace via:
 
   >>> import sbpy.units
-  >>> sbpy.units.enable()
+  >>> sbpy.units.enable()    # doctest: +SKIP
 
 This will make them searchable via strings, such as
 ``u.Unit('mag(VEGA)')``.
@@ -35,7 +35,7 @@ for the transformation:
   >>> import astropy.units as u
   >>> from sbpy.units import VEGAmag, spectral_density_vega
   >>> wave = 5500 * u.AA
-  >>> m = 0 * vega_mag
+  >>> m = 0 * VEGAmag
   >>> fluxd = m.to('erg/(cm2 s AA)', spectral_density_vega(wave))
   >>> fluxd.value                                  # doctest: +FLOAT_CMP
   3.5469235179497687e-09
@@ -47,8 +47,8 @@ To use a bandpass, pass the name as a string (see
 :func:`~synphot.spectrum.SpectralElement.from_filter`) or an instance
 of `~synphot.spectrum.SpectralElement`:
 
-  >>> from sbpy.units import vega_mag, spectral_density_vega
-  >>> m = 0.0 * vega_mag
+  >>> from sbpy.units import VEGAmag, spectral_density_vega
+  >>> m = 0.0 * VEGAmag
   >>> fluxd = m.to('erg/(cm2 s AA)',
   ...     spectral_density_vega('johnson_v'))  # doctest: +REMOTE_DATA
   >>> fluxd.value                   # doctest: +FLOAT_CMP +REMOTE_DATA
