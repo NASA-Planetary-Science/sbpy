@@ -151,13 +151,14 @@ Reference/API
    :maxdepth: 1
 
    fieldnames.rst
-   sbpy/data.rst	     
+   sbpy/data.rst
    sbpy/activity.rst
    sbpy/photometry.rst
    sbpy/shape.rst
    sbpy/spectroscopy.rst
    sbpy/imageanalysis.rst
    sbpy/thermal.rst
+   sbpy/units.rst
    sbpy/obsutil.rst
    sbpy/bib.rst
 

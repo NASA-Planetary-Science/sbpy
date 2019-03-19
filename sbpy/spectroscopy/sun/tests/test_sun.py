@@ -106,7 +106,7 @@ class TestSun:
 
         """
         sun = Sun.from_builtin('E490_2014')
-        wave, fluxd = sun.filt('johnson_v', unit='ABmag')
+        wave, fluxd = sun.filt('johnson_v', unit=u.ABmag)
         assert np.isclose(fluxd.value, -26.77, rtol=0.001)
 
     @remote_data
@@ -117,7 +117,7 @@ class TestSun:
 
         """
         sun = Sun.from_builtin('E490_2014')
-        wave, fluxd = sun.filt('johnson_v', unit='STmag')
+        wave, fluxd = sun.filt('johnson_v', unit=u.STmag)
         assert np.isclose(fluxd.value, -26.76, rtol=0.001)
 
     def test_meta(self):
@@ -134,7 +134,7 @@ class TestSun:
 
         """
         sun = Sun.from_builtin('Kurucz1993')
-        wave, fluxd = sun.filt('johnson_v', unit='ABmag')
+        wave, fluxd = sun.filt('johnson_v', unit=u.ABmag)
         assert np.isclose(fluxd.value, -26.77, rtol=0.001)
 
 
