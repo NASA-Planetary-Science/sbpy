@@ -1058,12 +1058,9 @@ class SpectralStandard(ABC):
             Wavelengths, frequencies, or bandpasses of the
             measurement.  See :func:`~observe`.
 
-        unit : string or `~astropy.units.Quantity`
-            Units for the output, typically one of:
-                * ``astropy.units.ABmag``
-                * ``astropy.units.STmag``
-                * ``synphot.units.VEGAMAG``
-                * ``sbpy.units.VEGAMAG``
+        unit : string or `~astropy.units.MagUnit`
+            Units for the output, e.g., ``astropy.units.ABmag`` or
+            ``sbpy.units.VEGAmag``.
 
 
         Returns
@@ -1074,11 +1071,6 @@ class SpectralStandard(ABC):
         ci : `~astropy.units.Quantity`
             Color index, ``m_0 - m_1``, where 0 and 1 are element
             indexes for ``wfb``.
-
-
-        Notes
-        -----
-        VEGAMAG requires ``~synphot``.
 
         """
 
@@ -1101,6 +1093,5 @@ class SpectralStandard(ABC):
                    + u.spectral_density(eff_wave[i]))
             m[i] = f.to(m.unit, eqv)
         ci = m[0] - m[1]
-        assert ci.unit == u.Unit(unit)
 
         return eff_wave, ci
