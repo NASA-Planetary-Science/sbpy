@@ -19,20 +19,11 @@ from scipy.integrate import quad
 from astropy.modeling import (FittableModel, Fittable1DModel,
                               Fittable2DModel, Parameter)
 import astropy.units as u
-from astropy.utils.exceptions import AstropyWarning
 from astropy import log
-
-try:
-    import synphot
-except ImportError:
-    synphot = None
-    raise warn(AstropyWarning('synphot is not present, photometric filter'
-                              ' conversions will be limited.'))
 
 from ..data import Ephem
 from ..spectroscopy.sun import Sun
-from ..spectroscopy.vega import Vega
-from ..units import spectral_density_vega
+from ..units import hundred_nm
 
 
 def ref2mag(ref, radius, M_sun=None):
@@ -101,7 +92,6 @@ def mag2ref(mag, radius, M_sun=None):
 
     Examples
     --------
-    >>> from astropy import u as u
     >>> from sbpy.photometry import mag2ref
     >>> ref = mag2ref(2.08, 460)
     >>> print('{0:.4}'.format(ref))
@@ -140,8 +130,7 @@ class SpectralGradient(u.SpecificTypeQuantity):
     Spectral gradient is with respect to the flux density at a
     particular wavelength.  By convention this is the mean flux
     between the two filters, assuming the reflectance spectrum is
-    linear with wavelength.  Eq. 1 of A'Hearn et al. (1984, AJ 89,
-    579):
+    linear with wavelength.  Eq. 1 of A'Hearn et al. [ADT84]_:
 
     .. math::
 
@@ -183,16 +172,21 @@ class SpectralGradient(u.SpecificTypeQuantity):
     >>> print(S)
     10.0 % / 100 nm
 
-    >>> from sbpy.units import VEGAMAG
+    >>> from sbpy.units import VEGAmag
     >>> bp = ('johnson_v', 'cousins_r')
-    >>> VmR = 15.8 * VEGAMAG - 15.3 * VEGAMAG
+    >>> VmR = 15.8 * VEGAmag - 15.3 * VEGAmag
     >>> VmR_sun = 0.37 * u.mag
     >>> S = SpectralGradient.from_color(bp, VmR - VmR_sun)
     ...                              # doctest: +REMOTE_DATA +IGNORE_OUTPUT
-    >>> S.value                      # doctest: +REMOTE_DATA +FLOAT_CMP
-    12.29185986266534
-    >>> print(S.unit)                # doctest: +REMOTE_DATA
-    % / 100 nm
+    >>> print(S)                     # doctest: +REMOTE_DATA +FLOAT_CMP
+    12.29185986266534 % / 100 nm
+
+
+    References
+    ----------
+    .. [ADT84] A'Hearn, Dwek & Tokunaga 1984. Infrared Photometry of
+        Comet Bowell and Other Comets. ApJ 282, 803-806.
+
     """
 
     _equivalent_unit = u.meter**-1
@@ -284,10 +278,8 @@ class SpectralGradient(u.SpecificTypeQuantity):
         >>> import astropy.units as u
         >>> w = [0.4719, 0.6185] * u.um
         >>> S = SpectralGradient.from_color(w, 0.10 * u.mag)
-        >>> S.value                             # doctest: +FLOAT_CMP
-        6.27819572
-        >>> print(S.unit)
-        % / 100 nm
+        >>> print(S)                            # doctest: +FLOAT_CMP
+        6.27819572 % / 100 nm
 
         """
 
@@ -352,10 +344,8 @@ class SpectralGradient(u.SpecificTypeQuantity):
         >>> S = SpectralGradient(10 * u.percent / hundred_nm,
         ...                      wave0=0.55 * u.um)
         >>> C = S.to_color((525, 575) * u.nm)
-        >>> C.value    # doctest: +FLOAT_CMP
-        0.05429812423309064
-        >>> print(C.unit)
-        mag
+        >>> print(C)    # doctest: +FLOAT_CMP
+        0.05429812423309064 mag
 
         """
 
@@ -375,16 +365,31 @@ class SpectralGradient(u.SpecificTypeQuantity):
         point.  Requires the `wave` attribute to be defined, see
         `~SpectralGradient`.
 
+
         Parameters
         ----------
         wave0 : `~astropy.units.Quantity`
             Wavelength.
+
 
         Returns
         -------
         S : ``SpectralGradient``
             Renormalized gradient.
 
+
+        Examples
+        --------
+        >>> import astropy.units as u
+        >>> from sbpy.photometry import SpectralGradient
+        >>> from sbpy.units import hundred_nm
+        >>> S1 = SpectralGradient(10 * u.percent / hundred_nm,
+        ...                      wave0=0.55 * u.um)
+        >>> S2 = S1.renormalize(3.6 * u.um)
+        >>> print(S2.renormalize(3.6 * u.um))    # doctest: +FLOAT_CMP
+        2.469135802469136 % / 100 nm
+        >>> print(S2.wave0)
+        3.6 um
         """
 
         if self.wave0 is None:

@@ -6,8 +6,11 @@ equivalency function for converting to/from flux density.
 
 To use these units in the top-level `astropy.units` namespace::
 
+    >>> import astropy.units as u
     >>> import sbpy.units
-    >>> sbpy.units.enable()    # doctest: +SKIP
+    >>> sbpy.units.enable()    # doctest: +IGNORE_OUTPUT
+    >>> u.Unit('mag(VEGA)')
+    Unit("mag(VEGA)")
 
 """
 
@@ -43,6 +46,8 @@ JMmag.__doc__ = ("Johnson-Morgan magnitude system: Vega is 0.03 mag at "
                  "all wavelengths (Johnson et al. 1966; Bessell & Murphy "
                  "2012).")
 
+hundred_nm = u.def_unit('100 nm', represents=100 * u.nm)
+
 
 def enable():
     """Enable `sbpy` units in the top-level `~astropy.units` namespace.
@@ -55,8 +60,6 @@ def enable():
     """
     import inspect
     return u.add_enabled_units(inspect.getmodule(enable))
-
-hundred_nm = u.def_unit('100 nm', represents=100 * u.nm)
 
 
 def spectral_density_vega(wfb):
