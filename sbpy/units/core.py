@@ -25,32 +25,34 @@ __all__ = [
 ]
 
 from warnings import warn
-import numpy as np
 import astropy.units as u
 from astropy.utils.exceptions import AstropyWarning
 from ..spectroscopy.vega import Vega
 
 
-VEGA = u.def_unit(['VEGA', 'VEGAflux'], doc='Spectral flux density of Vega.')
+VEGA = u.def_unit(['VEGA', 'VEGAflux'],
+                  doc='Spectral flux density of Vega.')
 
 VEGAmag = u.MagUnit(VEGA)
 VEGAmag.__doc__ = "Vega-based magnitude: Vega is 0 mag at all wavelengths"
 
 JM = u.def_unit(['JM', 'JMflux'], represents=VEGA * 10**(0.4 * 0.03),
                 doc=('Johnson-Morgan magnitude system flux density '
-                     'zeropoint (Johnson et al. 1966; Bessell & Murphy '
+                     'zeropoint (Johnson et al 1966; Bessell & Murphy '
                      '2012).'))
 
 JMmag = u.MagUnit(JM)
 JMmag.__doc__ = ("Johnson-Morgan magnitude system: Vega is 0.03 mag at "
-                 "all wavelengths (Johnson et al. 1966; Bessell & Murphy "
+                 "all wavelengths (Johnson et al 1966; Bessell & Murphy "
                  "2012).")
 
-hundred_nm = u.def_unit('100 nm', represents=100 * u.nm)
+hundred_nm = u.def_unit('100 nm', represents=100 * u.nm,
+                        doc=('Convenience unit for expressing spectral '
+                             'gradients.'))
 
 
 def enable():
-    """Enable `sbpy` units in the top-level `~astropy.units` namespace.
+    """Enable `sbpy` units in the top-level `astropy.units` namespace.
 
     Allows the use in `~astropy.units.UnitBase.find_equivalent_units` and
     `~astropy.units.UnitBase.compose`.

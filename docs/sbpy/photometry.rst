@@ -14,10 +14,10 @@ Spectral Gradients
 Spectral gradient or slope is commonly expressed as a percent change
 per wavelength interval, usually % per 100 nm or % per 0.1 μm.  The
 class `~sbpy.photometry.SpectralGradient` enables easy conversion
-between spectra gradient and color index (magnitudes), and
+between spectral gradient and color index (magnitudes), and
 re-normalization to other wavelengths.
 
-Initialize a spectral gradient object using `~astropy.units`:
+Initialize a spectral gradient object using ``astropy``'s `~astropy.units`:
 
   >>> import astropy.units as u
   >>> from sbpy.photometry import SpectralGradient

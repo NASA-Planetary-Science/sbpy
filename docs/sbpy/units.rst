@@ -19,7 +19,7 @@ Spectral Gradient Units
 -----------------------
 
 Spectral gradients are commonly expressed as % per 100 nm.  This is a
-subtle concept for `~astropy.units`:
+subtle concept for ``astropy``'s `~astropy.units`:
 
   >>> import astropy.units as u
   >>> print(u.percent / (100 * u.nm))
@@ -27,7 +27,7 @@ subtle concept for `~astropy.units`:
   >>> print(u.Unit('% / (100 nm)'))    # doctest: +SKIP
   ValueError: '% / (100 nm)' did not parse as unit: Syntax error parsing unit '% / 100 nm'
 
-As a convenience, `sbpy` defines a ``hundred_nm`` unit that has an
+As a convenience, ``sbpy`` defines a ``hundred_nm`` unit that has an
 appropriate string representation:
 
   >>> from sbpy.units import hundred_nm
@@ -79,3 +79,4 @@ Reference/API
 -------------
 .. automodapi:: sbpy.units
     :no-heading:
+    :include-all-objects:
