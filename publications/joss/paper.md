@@ -5,8 +5,14 @@ tags:
   - astronomy
   - solar system
   - planetary science
+  - small bodies
   - asteroids
   - comets
+  - meteoroids
+  - trojans
+  - centaurs
+  - kuiper belt objects
+  - trans-neptunian objects
 authors:
   - name: Michael Mommert
     orcid: 0000-0002-8132-778X
@@ -23,7 +29,7 @@ authors:
   - name: Giannina Guzman
     orcid: 0000-0001-6340-8220
     affiliation: 4
-  - name: Josef Durech
+  - name: Josef Ďurech
     affiliation: 5
   - name: Mikael Granvik
     orcid: 0000-0002-5624-1888
@@ -73,7 +79,7 @@ comets in the same way in which ``Astropy`` [@astropy; @astropy2]
 supports the general astronomy community.
 
 ``sbpy`` is a community effort to build a Python package for
-small-body planetary astronomy in the form of an ``Astropy` affiliated
+small-body planetary astronomy in the form of an ``Astropy`` affiliated
 package. The goal is to collect and implement well-tested and
 well-documented code for the scientific study of asteroids and comets,
 including (but not limited to):
