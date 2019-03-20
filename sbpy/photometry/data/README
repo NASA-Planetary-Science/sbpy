@@ -3,6 +3,7 @@ Throughput files from:
     ftp://ftp.stsci.edu/cdbs/comp/wfc3/wfc3_uvis_f606w_004_syn.fits
     ftp://ftp.stsci.edu/cdbs/comp/wfc3/wfc3_uvis_f438w_004_syn.fits
     ftp://ftp.stsci.edu/cdbs/comp/nonhst/cousins_i_004_syn.fits
+    ftp://ftp.stsci.edu/cdbs/comp/nonhst/johnson_v_004_syn.fits
     https://www.sdss.org/wp-content/uploads/2017/04/filter_curves.fits
 
 The latter file is split into the r' portion:

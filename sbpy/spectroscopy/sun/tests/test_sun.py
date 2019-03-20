@@ -1,7 +1,11 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 import pytest
 import numpy as np
 import astropy.units as u
 from astropy.tests.helper import remote_data
+from ....units import JMmag, VEGAmag
+from ....utils import get_bandpass
 from .. import *
 
 try:
@@ -14,8 +18,9 @@ except ImportError:
 class TestSun:
     def test___repr__(self):
         with default_sun.set('E490_2014LR'):
-            assert repr(Sun.from_default()
-                        ) == '<Sun: E490-00a (2014) low resolution reference solar spectrum (Table 4)>'
+            assert (repr(Sun.from_default()) ==
+                    ('<Sun: E490-00a (2014) low resolution reference '
+                     'solar spectrum (Table 4)>'))
 
         sun = Sun.from_array([1, 2] * u.um, [1, 2] * u.Jy)
         assert repr(sun) == '<Sun>'
@@ -46,14 +51,16 @@ class TestSun:
             assert np.isclose(f.value, 2.49484251e+14)
 
     @pytest.mark.skipif('not HAS_SCIPY')
-    def test_sun_wavelength_array(self):
+    def test_sun_observe_wavelength_array(self):
         from scipy.integrate import trapz
+
+        unit = 'W/(m2 um)'
 
         # compare Sun's rebinning with an integration over the spectrum
         sun = Sun.from_builtin('E490_2014')
 
         wave0 = sun.wave.to('um').value
-        fluxd0 = sun.fluxd.to('W/(m2 um)').value
+        fluxd0 = sun.fluxd.to(unit).value
 
         wave = np.linspace(0.35, 0.55, 6)
 
@@ -64,61 +71,58 @@ class TestSun:
         fluxd1 = np.zeros(len(wave))
         for i in range(len(wave)):
             j = (wave0 >= left_bins[i]) * (wave0 <= right_bins[i])
-            fluxd1[i] = trapz(fluxd0[j] * wave0[j], wave0[j]) / trapz(
-                wave0[j], wave0[j])
+            fluxd1[i] = (trapz(fluxd0[j] * wave0[j], wave0[j]) /
+                         trapz(wave0[j], wave0[j]))
 
-        fluxd2 = sun(wave * u.um).value
+        fluxd2 = sun.observe(wave * u.um, unit=unit).value
 
-        assert np.allclose(fluxd1, fluxd2, 0.005)
+        assert np.allclose(fluxd1, fluxd2, rtol=0.005)
 
-    @remote_data
     def test_filt_units(self):
         """Colina et al. V=-26.75 mag, for zero-point flux density
            36.7e-10 ergs/s/cm2/Å.
         """
         sun = Sun.from_builtin('E490_2014')
-        wave, fluxd = sun.filt('johnson_v', unit='erg/(s cm2 AA)')
+        V = get_bandpass('johnson v')
+        wave, fluxd = sun.filt(V, unit='erg/(s cm2 AA)')
         assert np.isclose(wave.value, 5502, rtol=0.001)
         assert np.isclose(fluxd.value, 183.94, rtol=0.0003)
 
-    @remote_data
     def test_filt_vegamag(self):
-        """Colina et al. V=-26.75 mag (Johnson system)
+        """Colina et al. V=-26.75 mag (Johnson-Morgan system)
 
-        Convert Johnson mag to Vega mag: V=-26.75 - 0.035 = -26.79?
-
-        Not obvious we are using the same filter profile, but 0.02 mag
+        Not obvious we are using the same filter profile, but 0.006 mag
         agreement is good.
 
-        Willmer 2018 using Haberreiter et al. 2017 solar spectrum and
-        Bohlin 2014 Vega spectrum find -26.76 mag.
-
         """
         sun = Sun.from_builtin('E490_2014')
-        wave, fluxd = sun.filt('johnson_v', unit='vegamag')
-        assert np.isclose(fluxd.value, -26.79, rtol=0.001)
+        V = get_bandpass('johnson v')
+        wave, fluxd = sun.filt(V, unit=JMmag)
+        assert np.isclose(fluxd.value, -26.75, atol=0.006)
 
-    @remote_data
     def test_filt_abmag(self):
-        """Willmer 2018.
+        """Willmer 2018 V=-26.77.
 
-        Using Haberreiter et al. 2017 solar spectrum: -26.77.
+        Willmer uses Haberreiter et al. 2017 solar spectrum in the
+        optical.
 
         """
         sun = Sun.from_builtin('E490_2014')
-        wave, fluxd = sun.filt('johnson_v', unit=u.ABmag)
-        assert np.isclose(fluxd.value, -26.77, rtol=0.001)
+        V = get_bandpass('johnson v')
+        wave, fluxd = sun.filt(V, unit=u.ABmag)
+        assert np.isclose(fluxd.value, -26.77, atol=0.007)
 
-    @remote_data
     def test_filt_stmag(self):
-        """Willmer 2018.
+        """Willmer 2018, V=-26.76
 
-        Using Haberreiter et al. 2017 solar spectrum: -26.76.
+        Willmer uses Haberreiter et al. 2017 solar spectrum in the
+        optical.
 
         """
         sun = Sun.from_builtin('E490_2014')
-        wave, fluxd = sun.filt('johnson_v', unit=u.STmag)
-        assert np.isclose(fluxd.value, -26.76, rtol=0.001)
+        V = get_bandpass('johnson v')
+        wave, fluxd = sun.filt(V, unit=u.STmag)
+        assert np.isclose(fluxd.value, -26.76, atol=0.003)
 
     def test_meta(self):
         sun = Sun.from_builtin('E490_2014')
@@ -126,7 +130,7 @@ class TestSun:
 
     @remote_data
     def test_kurucz_nan_error(self):
-        """Willmer 2018.
+        """sbpy#113
 
         Using Haberreiter et al. 2017 solar spectrum: -26.77.
 
@@ -134,8 +138,9 @@ class TestSun:
 
         """
         sun = Sun.from_builtin('Kurucz1993')
-        wave, fluxd = sun.filt('johnson_v', unit=u.ABmag)
-        assert np.isclose(fluxd.value, -26.77, rtol=0.001)
+        V = get_bandpass('johnson v')
+        wave, fluxd = sun.filt(V, unit=u.ABmag)
+        assert np.isclose(fluxd.value, -26.77, atol=0.005)
 
 
 class Test_default_sun:
