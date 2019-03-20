@@ -16,7 +16,7 @@ import numpy as np
 from scipy.integrate import quad
 from astropy.modeling import (FittableModel, Fittable1DModel,
                               Fittable2DModel, Parameter)
-from astropy import units
+from astropy import units as u
 from ..data import Ephem
 
 
@@ -51,19 +51,19 @@ def ref2mag(ref, radius, M_sun=None):
     if M_sun is None:
         M_sun = -26.74
     Q = False
-    if isinstance(ref, units.Quantity):
+    if isinstance(ref, u.Quantity):
         ref = ref.value
         Q = True
-    if isinstance(radius, units.Quantity):
+    if isinstance(radius, u.Quantity):
         radius = radius.to('km').value
         Q = True
-    if isinstance(M_sun, units.Quantity):
+    if isinstance(M_sun, u.Quantity):
         M_sun = M_sun.to('mag').value
         Q = True
 
-    mag = M_sun-2.5*np.log10(ref*np.pi*radius*radius*units.km.to('au')**2)
+    mag = M_sun-2.5*np.log10(ref*np.pi*radius*radius*u.km.to('au')**2)
     if Q:
-        return mag*units.mag
+        return mag*u.mag
     else:
         return mag
 
@@ -99,19 +99,19 @@ def mag2ref(mag, radius, M_sun=None):
     if M_sun is None:
         M_sun = -26.74
     Q = False
-    if isinstance(mag, units.Quantity):
+    if isinstance(mag, u.Quantity):
         mag = mag.value
         Q = True
-    if isinstance(radius, units.Quantity):
+    if isinstance(radius, u.Quantity):
         radius = radius.to('km').value
         Q = True
-    if isinstance(M_sun, units.Quantity):
+    if isinstance(M_sun, u.Quantity):
         M_sun = M_sun.to('mag').value
         Q = True
 
-    ref = 10**((M_sun-mag)*0.4)/(np.pi*radius*radius*units.km.to('au')**2)
+    ref = 10**((M_sun-mag)*0.4)/(np.pi*radius*radius*u.km.to('au')**2)
     if Q:
-        return ref/units.sr
+        return ref/u.sr
     else:
         return ref
 
@@ -251,7 +251,7 @@ class DiskIntegratedModelClass(Fittable1DModel):
         """Geometric albedo"""
         alb = np.pi*self.ref(0)
         if hasattr(alb, 'unit'):
-            alb = alb*units.sr
+            alb = alb*u.sr
         return alb
 
     @property
@@ -355,7 +355,7 @@ class DiskIntegratedModelClass(Fittable1DModel):
         else:
             eph = Ephem({'alpha': eph})
         pha = eph['alpha']
-        if isinstance(pha, units.Quantity):
+        if isinstance(pha, u.Quantity):
             pha = pha.to('rad').value
         out = self(pha, **kwargs)
         if self._unit != 'mag':
@@ -365,12 +365,12 @@ class DiskIntegratedModelClass(Fittable1DModel):
             out = ref2mag(out, self.radius, M_sun=self.M_sun)
         if 'r' in eph.column_names:
             rh = eph['r']
-            if isinstance(rh, units.Quantity):
+            if isinstance(rh, u.Quantity):
                 rh = rh.to('au').value
             out += 5*np.log10(rh)
         if 'delta' in eph.column_names:
             delta = eph['delta']
-            if isinstance(delta, units.Quantity):
+            if isinstance(delta, u.Quantity):
                 delta = delta.to('au').value
             out += 5*np.log10(delta)
         return out
@@ -416,11 +416,11 @@ class DiskIntegratedModelClass(Fittable1DModel):
             pha = eph['alpha']
         else:
             pha = eph
-        if isinstance(pha, units.Quantity):
+        if isinstance(pha, u.Quantity):
             pha = pha.to('rad').value
         out = self(pha, **kwargs)
         if normalized is not None:
-            if isinstance(normalized, units.Quantity):
+            if isinstance(normalized, u.Quantity):
                 normalized = normalized.to('rad').value
             norm = self(normalized, **kwargs)
         if self._unit == 'ref':
