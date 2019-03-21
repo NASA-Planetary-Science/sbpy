@@ -223,6 +223,8 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
     """
 
     _unit = None
+    input_units = {'x': u.rad}
+    input_units_allow_dimensionless = {'x': True}
 
     def __init__(self, *args, radius=None, M_sun=None, **kwargs):
         """Initialize DiskIntegratedPhaseFunc
@@ -530,7 +532,8 @@ class LinearPhaseFunc(DiskIntegratedPhaseFunc):
 
     _unit = 'mag'
     H = Parameter(description='Absolute magnitude')
-    S = Parameter(description='Linear slope (mag/rad)')
+    S = Parameter(description='Linear slope (mag/deg)')
+    input_units = {'x': u.deg}
 
     @staticmethod
     def evaluate(a, H, S):
@@ -544,6 +547,10 @@ class LinearPhaseFunc(DiskIntegratedPhaseFunc):
             ddh = 1.
         dds = a
         return [ddh, dds]
+
+    def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
+        return OrderedDict([('H', outputs_unit['y']),
+                            ('S', outputs_unit['y']/inputs_unit['x'])])
 
 
 class HG(DiskIntegratedPhaseFunc):
@@ -601,7 +608,15 @@ class HG(DiskIntegratedPhaseFunc):
 
     @staticmethod
     def evaluate(pha, hh, gg):
-        return hh-2.5*np.log10((1-gg)*HG._hgphi(pha, 1)+gg*HG._hgphi(pha, 2))
+        func = (1-gg)*HG._hgphi(pha, 1)+gg*HG._hgphi(pha, 2)
+        if isinstance(hh, u.Quantity):
+            if not isinstance(func, u.Quantity):
+                func = func * u.dimensionless_unscaled
+            return hh+u.Magnitude(func)
+        else:
+            if isinstance(func, u.Quantity):
+                func = func.value
+            return hh-2.5*np.log10(func)
 
     @staticmethod
     def fit_deriv(pha, hh, gg):
@@ -613,6 +628,10 @@ class HG(DiskIntegratedPhaseFunc):
         phi2 = HG._hgphi(pha, 2)
         ddg = 1.085736205*(phi1-phi2)/((1-gg)*phi1+gg*phi2)
         return [ddh, ddg]
+
+    def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
+        return OrderedDict([('H', outputs_unit['y']),
+                            ('G', u.dimensionless_unscaled)])
 
 
 class HG12BaseClass(DiskIntegratedPhaseFunc):
@@ -713,7 +732,15 @@ class HG1G2(HG12BaseClass):
 
     @staticmethod
     def evaluate(ph, h, g1, g2):
-        return h-2.5*np.log10(g1*HG1G2._phi1(ph)+g2*HG1G2._phi2(ph)+(1-g1-g2)*HG1G2._phi3(ph))
+        func = g1*HG1G2._phi1(ph)+g2*HG1G2._phi2(ph)+(1-g1-g2)*HG1G2._phi3(ph)
+        if isinstance(h, u.Quantity):
+            if not isinstance(func, u.Quantity):
+                func = func * u.dimensionless_unscaled
+            return h+u.Magnitude(func)
+        else:
+            if isinstance(func, u.Quantity):
+                func = func.value
+            return h-2.5*np.log10(func)
 
     @staticmethod
     def fit_deriv(ph, h, g1, g2):
@@ -728,6 +755,11 @@ class HG1G2(HG12BaseClass):
         ddg1 = 1.085736205*(phi3-phi1)/dom
         ddg2 = 1.085736205*(phi3-phi2)/dom
         return [ddh, ddg1, ddg2]
+
+    def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
+        return OrderedDict([('H', outputs_unit['y']),
+                            ('G1', u.dimensionless_unscaled),
+                            ('G2', u.dimensionless_unscaled)])
 
 
 class HG12(HG12BaseClass):
@@ -801,6 +833,10 @@ class HG12(HG12BaseClass):
             p2 = -0.6125
         ddg = 1.085736205*((phi3-phi1)*p1+(phi3-phi2)*p2)/dom
         return [ddh, ddg]
+
+    def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
+        return OrderedDict([('H', outputs_unit['y']),
+                            ('G12', u.dimensionless_unscaled)])
 
 
 class HG12_Pen16(HG12):
