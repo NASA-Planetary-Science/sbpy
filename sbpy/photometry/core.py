@@ -264,9 +264,9 @@ class DiskIntegratedModelClass(Fittable1DModel):
         """Phase integral"""
         return self._phase_integral()
 
-    def fit(self, eph):
+    def _fit(self, eph, mag, fitter=None, return_fitter=False, **kwargs):
         """Fit photometric model to photometric data stored in sbpy.data.Ephem
-        object
+        object.
 
         Parameters
         ----------
@@ -289,27 +289,75 @@ class DiskIntegratedModelClass(Fittable1DModel):
         not yet implemented
 
         """
+        if fitter is None:
+            from astropy.modeling.fitting import LevMarLSQFitter, SLSQPLSQFitter
+            fitter = LevMarLSQFitter() # SLSQPLSQFitter()
+        if isinstance(eph['alpha'], u.Quantity):
+            phase = eph['alpha'].to('rad').value
+        model = fitter(self, phase, mag+self._distance_module(eph), **kwargs)
+        if return_fitter:
+            return model, fitter
+        else:
+            return model
 
-    def distance_module(self, eph):
-        """Account magnitudes for distance module (distance from observer,
-        distance to the Sun); return modified magnitudes
+    def _distance_module(self, eph):
+        """Return a distance module (distance from observer, distance to the
+        Sun)
 
         Parameters
         ----------
-        eph : list or array, mandatory
-            phase angles
+        eph : `~sbpy.data.Ephem`, dict_like
+            The ephemerides data, could include `r`, `delta`.
 
         Returns
         -------
-        sbpy.data.Ephem instance
+        Magnitude correction to be added or scaling factor to be multiplied to
+        the apparent magnitude or flux in order to correct to heliocentric
+        distance and observer distance of both 1 au.
+        """
+        if isinstance(eph, dict):
+            eph = Ephem(eph)
+        module = 1.
+        try:
+            rh = eph['r']
+            if isinstance(rh, u.Quantity):
+                rh = rh.to('au').value
+            module = module * rh * rh
+        except:
+            pass
+        try:
+            delta = eph['delta']
+            if isinstance(delta, u.Quantity):
+                delta = delta.to('au').value
+            module = module * delta * delta
+        except:
+            pass
+        if self._unit == 'mag':
+            return -2.5 * np.log10(module)
+        else:
+            return module
+
+    @classmethod
+    def from_data(cls, eph, mag, init=None, fitter=None, **kwargs):
+        """Instantiate a photometric model class object from data
+
+        Parameters
+        ----------
+
+
+        Returns
+        -------
+        A photometric model class
 
         Examples
         --------
-        TBD
-
-        not yet implemented
 
         """
+        if init is None:
+            m0 = cls()
+        else:
+            m0 = cls(*init)
+        return m0._fit(eph, mag, fitter=fitter, **kwargs)
 
     def mag(self, eph, **kwargs):
         """Calculate phase function in magnitude
@@ -363,16 +411,8 @@ class DiskIntegratedModelClass(Fittable1DModel):
                 raise ValueError(
                     'cannot calculate phase funciton in magnitude because the size of object is unknown')
             out = ref2mag(out, self.radius, M_sun=self.M_sun)
-        if 'r' in eph.column_names:
-            rh = eph['r']
-            if isinstance(rh, u.Quantity):
-                rh = rh.to('au').value
-            out += 5*np.log10(rh)
-        if 'delta' in eph.column_names:
-            delta = eph['delta']
-            if isinstance(delta, u.Quantity):
-                delta = delta.to('au').value
-            out += 5*np.log10(delta)
+        else:
+            out = out - self._distance_module(eph)
         return out
 
     def ref(self, eph, normalized=None, **kwargs):
@@ -523,8 +563,8 @@ class HG(DiskIntegratedModelClass):
     """
 
     _unit = 'mag'
-    H = Parameter(description='H parameter')
-    G = Parameter(description='G parameter')
+    H = Parameter(description='H parameter', default=8)
+    G = Parameter(description='G parameter', default=0.4)
 
     @staticmethod
     def _hgphi(pha, i):
@@ -659,9 +699,9 @@ class HG1G2(HG12BaseClass):
 
     """
 
-    H = Parameter(description='H parameter')
-    G1 = Parameter(description='G1 parameter')
-    G2 = Parameter(description='G2 parameter')
+    H = Parameter(description='H parameter', default=8)
+    G1 = Parameter(description='G1 parameter', default=0.2)
+    G2 = Parameter(description='G2 parameter', default=0.2)
 
     @property
     def _G1(self):
@@ -708,8 +748,8 @@ class HG12(HG12BaseClass):
 
     """
 
-    H = Parameter(description='H parameter')
-    G12 = Parameter(description='G12 parameter')
+    H = Parameter(description='H parameter', default=8)
+    G12 = Parameter(description='G12 parameter', default=0.3)
 
     @property
     def _G1(self):
@@ -789,12 +829,6 @@ class HG12_Pen16(HG12):
     def _G12_to_G2(g12):
         """Calculate G2 from G12"""
         return 0.53513350*(1-g12)
-
-    @staticmethod
-    def evaluate(ph, h, g):
-        g1 = HG12_Pen16._G12_to_G1(g)
-        g2 = HG12_Pen16._G12_to_G2(g)
-        return HG1G2.evaluate(ph, h, g1, g2)
 
     @staticmethod
     def fit_deriv(ph, h, g):
