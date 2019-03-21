@@ -51,6 +51,26 @@ class TestAfrho:
         afrho = Afrho.from_fluxd(None, fluxd, aper, eph, S=S)
         assert np.isclose(afrho.cm, 1680, atol=4)
 
+    def test_from_fluxd_PR125(self):
+        """Regression test for PR#125: User requested Phi was ignored."""
+        afrho = Afrho(100 * u.cm)
+        wave = 1 * u.um
+        eph = {'rh': 1 * u.au, 'delta': 1 * u.au, 'phase': 100 * u.deg}
+        aper = 10 * u.arcsec
+        opts = {
+            # nonsense phase function:
+            'Phi': lambda phase: 1 + u.Quantity(phase, 'deg').value,
+            'S': 1000 * u.W / u.m**2 / u.um
+        }
+
+        f0 = afrho.fluxd(wave, aper, eph, phasecor=False, **opts)
+        f1 = afrho.fluxd(wave, aper, eph, phasecor=True, **opts)
+        assert np.isclose(f0.value * 101, f1.value)
+
+        a0 = Afrho.from_fluxd(wave, f0, aper, eph, phasecor=False, **opts)
+        a1 = Afrho.from_fluxd(wave, f0, aper, eph, phasecor=True, **opts)
+        assert np.isclose(a0.value / 101, a1.value)
+
     def test_from_flam_with_synphot(self):
         wave = 0.55 * u.um
         fluxd = 6.764172537310662e-14 * u.W / u.m**2 / u.um

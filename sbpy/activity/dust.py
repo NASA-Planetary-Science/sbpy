@@ -287,7 +287,7 @@ class Afrho(u.SpecificTypeQuantity):
 
         afrho = Afrho((fluxd / fluxd1cm).decompose() * u.cm)
         if phasecor:
-            afrho = afrho.to_phase(0 * u.deg, eph['phase'])
+            afrho = afrho.to_phase(0 * u.deg, eph['phase'], Phi=Phi)
         return afrho
 
     @classmethod
@@ -550,7 +550,7 @@ class Afrho(u.SpecificTypeQuantity):
                     'e.g., W/m2/μm or W/m2/Hz')
 
         if phasecor:
-            afrho = self.to_phase(eph['phase'], 0 * u.deg)
+            afrho = self.to_phase(eph['phase'], 0 * u.deg, Phi=Phi)
         else:
             afrho = self
 
