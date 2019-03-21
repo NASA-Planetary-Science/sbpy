@@ -11,21 +11,24 @@ __all__ = ['register', 'reset', 'status', 'stop', 'track', 'Tracking',
 
 import warnings
 from collections import OrderedDict
+import atexit
+from astropy import log
 
 
 def register(task, citation):
-    """Register a citation with the `sbpy` bibliography when running a
-    function
+    """Register a citation with the `sbpy` bibliography tracker.
+
 
     Parameters
     ----------
     task : string
-      The name of the source module requesting a citation.
+        The name of the source module requesting a citation.
+
     citation : dict
-      A dictionary of a single NASA Astrophysics Data System (ADS) bibcode
-      to cite.  The key references the aspect that requires citation,
-      e.g., `{'method': '1998Icar..131..291H'}`, or
-      `{'beaming parameter': '2013Icar..226.1138F'}`.
+        A dictionary of a single NASA Astrophysics Data System (ADS)
+        bibcode to cite.  The key references the aspect that requires
+        citation, e.g., `{'method': '1998Icar..131..291H'}`, or
+        `{'beaming parameter': '2013Icar..226.1138F'}`.
 
     """
     global _bibliography, _track
@@ -59,10 +62,11 @@ def stop():
 def status():
     """Report `sbpy` bibliography tracking status.
 
+
     Returns
     -------
     status : bool
-      `True` if bibliography tracking is enabled.
+        `True` if bibliography tracking is enabled.
 
     """
     return _track
@@ -84,13 +88,15 @@ class Tracking:
 
 
 def to_text():
-    """convert bibcodes to human readable text
+    """Convert bibcodes to human readable text.
+
 
     Returns
     -------
     text : string
-      Text with human-readable information retrieved from ADS using the
-      bibcodes.
+        Text with human-readable information retrieved from ADS using
+        the bibcodes.
+
     """
     import ads
 
@@ -161,19 +167,21 @@ def to_text():
 
 
 def _to_format(format):
-    """Convert bibcodes to a range of different output formats
+    """Convert bibcodes to a range of different output formats.
+
 
     Parameters
     ----------
     format : string
-      Output format: ``bibtex`` | ``aastex``  | ``icarus`` | ``mnras``
+        Output format: ``bibtex`` | ``aastex``  | ``icarus`` | ``mnras``
+
 
     Returns
     -------
     text : string
-      ADS entries for all the bibliographic items in the given format.
-      Uses a query to the export service to get the data for each
-      reference.
+        ADS entries for all the bibliographic items in the given
+        format.  Uses a query to the export service to get the data
+        for each reference.
 
     """
     import ads
@@ -205,47 +213,63 @@ def _to_format(format):
 
 
 def to_bibtex():
-    """Convert bibliography to BibTeX format
+    """Convert bibliography to BibTeX format.
+
 
     Returns
     -------
     text : string
-       ADS data in BibTeX format.
+        ADS data in BibTeX format.
+
     """
     return _to_format('bibtex')
 
 
 def to_aastex():
-    """Convert bibliography to AASTeX format
+    """Convert bibliography to AASTeX format.
+
 
     Returns
     -------
     text : string
-       ADS data in AASTeX format.
+        ADS data in AASTeX format.
+
     """
     return _to_format('aastex')
 
 
 def to_icarus():
-    """Convert bibliography to Icarus LATeX format
+    """Convert bibliography to Icarus LATeX format.
+
 
     Returns
     -------
     text : string
-       ADS data in Icarus LATeX format.
+        ADS data in Icarus LATeX format.
+
     """
     return _to_format('icarus')
 
 
 def to_mnras():
-    """Convert bibliography to MNRAS LATeX format
+    """Convert bibliography to MNRAS LATeX format.
+
 
     Returns
     -------
     text : string
-       ADS data in MNRAS LATeX format.
+        ADS data in MNRAS LATeX format.
+
     """
     return _to_format('mnras')
+
+
+@atexit.register
+def _report_at_exit():
+    if _track:
+        log.info('Thank you for using sbpy.  ' +
+                 'Your session results were based on:\n' +
+                 to_text())
 
 
 _track = False  # default is no bibliography tracking
