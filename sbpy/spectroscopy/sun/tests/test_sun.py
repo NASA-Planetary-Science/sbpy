@@ -142,6 +142,13 @@ class TestSun:
         wave, fluxd = sun.filt(V, unit=u.ABmag)
         assert np.isclose(fluxd.value, -26.77, atol=0.005)
 
+    def test_show_builtin(self, capsys):
+        from ..sources import available
+        Sun.show_builtin()
+        captured = capsys.readouterr()
+        for spec in available:
+            assert spec in captured.out
+
 
 class Test_default_sun:
     def test_validate_str(self):

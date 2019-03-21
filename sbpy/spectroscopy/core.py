@@ -1136,11 +1136,7 @@ class SpectralStandard(ABC):
                 eff_wave[i] = wfb[i].to(u.um, u.spectral())
                 f = self(eff_wave[i])
             else:
-                try:
-                    eff_wave[i], f = self.filt(wfb[i])
-                except TypeError:
-                    raise TypeError('`wfb` must be wavelength, frequency,'
-                                    ' or a bandpass.')
+                eff_wave[i], f = self.filt(wfb[i])
 
             eqv = (spectral_density_vega(wfb[i])
                    + u.spectral_density(eff_wave[i]))

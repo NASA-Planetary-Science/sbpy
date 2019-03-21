@@ -126,3 +126,23 @@ class TestSpectralStandard:
         mag = s.filt(V, unit=units.VEGAmag)[1]
         # -18.60 is -2.5 * log10(3636e-11)
         assert np.isclose(mag.value, -18.60, atol=0.02)
+
+    @pytest.mark.parametrize('wfb, test, atol', (
+        ((utils.get_bandpass('johnson v'), utils.get_bandpass('cousins i')),
+         0.0171 * units.VEGAmag, 0.001),
+        ((600 * u.nm, 750 * u.nm), -0.242 * u.ABmag, 0.001)
+    ))
+    def test_color_index(self, wfb, test, atol):
+        """-2.5 * log10((750 / 600)) = -0.242"""
+        w = u.Quantity(np.linspace(0.3, 1.0), 'um')
+        f = u.Quantity(np.ones(len(w)) * w.value**-3, 'W/(m2 um)')
+        s = Star.from_array(w, f)
+        eff_wave, ci = s.color_index(wfb, test.unit)
+        assert np.isclose(ci.value, test.value, atol=atol)
+
+    def test_color_index_typeerror(self):
+        w = u.Quantity(np.linspace(0.3, 1.0), 'um')
+        f = u.Quantity(np.ones(len(w)) * w.value**-3, 'W/(m2 um)')
+        s = Star.from_array(w, f)
+        with pytest.raises(synphot.exceptions.SynphotError):
+            s.color_index((None, None), u.ABmag)
