@@ -7,7 +7,7 @@ created on June 23, 2017
 """
 
 __all__ = ['ref2mag', 'mag2ref', 'spline',
-           'DiskIntegratedModelClass', 'LinearPhaseFunc', 'HG', 'HG12', 'HG1G2', 'HG12_Pen16',
+           'DiskIntegratedPhaseFunc', 'LinearPhaseFunc', 'HG', 'HG12', 'HG1G2', 'HG12_Pen16',
            'DiskFunctionModel', 'LommelSeeliger', 'Lambert', 'LunarLambert',
            'PhaseFunctionModel', 'ROLOPhase',
            'ResolvedPhotometricModelClass', 'ROLO']
@@ -184,7 +184,7 @@ class spline(object):
         return out
 
 
-class DiskIntegratedModelClass(Fittable1DModel):
+class DiskIntegratedPhaseFunc(Fittable1DModel):
     """Base class for disk-integrated phase function model
 
     Examples
@@ -195,9 +195,9 @@ class DiskIntegratedModelClass(Fittable1DModel):
     >>> # Define a disk-integrated phase function model
     >>> import numpy as np
     >>> from astropy.modeling import Parameter
-    >>> from sbpy.photometry import DiskIntegratedModelClass
+    >>> from sbpy.photometry import DiskIntegratedPhaseFunc
     >>>
-    >>> class LinearPhaseFunc(DiskIntegratedModelClass):
+    >>> class LinearPhaseFunc(DiskIntegratedPhaseFunc):
     ...
     ...     _unit = 'mag'
     ...     H = Parameter()
@@ -225,7 +225,7 @@ class DiskIntegratedModelClass(Fittable1DModel):
     _unit = None
 
     def __init__(self, *args, radius=None, M_sun=None, **kwargs):
-        """Initialize DiskIntegratedModelClass
+        """Initialize DiskIntegratedPhaseFunc
 
         Parameters
         ----------
@@ -503,7 +503,7 @@ class DiskIntegratedModelClass(Fittable1DModel):
         return integrator(integrand, 0, np.pi)[0]
 
 
-class LinearPhaseFunc(DiskIntegratedModelClass):
+class LinearPhaseFunc(DiskIntegratedPhaseFunc):
     """Linear phase function model
 
     Examples
@@ -546,7 +546,7 @@ class LinearPhaseFunc(DiskIntegratedModelClass):
         return [ddh, dds]
 
 
-class HG(DiskIntegratedModelClass):
+class HG(DiskIntegratedPhaseFunc):
     """HG photometric phase model (Bowell et al. 1989)
 
     Examples
@@ -615,7 +615,7 @@ class HG(DiskIntegratedModelClass):
         return [ddh, ddg]
 
 
-class HG12BaseClass(DiskIntegratedModelClass):
+class HG12BaseClass(DiskIntegratedPhaseFunc):
     """Base class for IAU HG1G2 model and HG12 model"""
 
     _unit = 'mag'
