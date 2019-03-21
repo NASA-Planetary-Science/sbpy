@@ -117,10 +117,14 @@ that of ``Astropy`` wherever possible in order to enable user-friendly
 and consistent access to its functionality.
 
 ``sbpy`` is setup in a highly modular class-based fashion, roughly
-separated into the individual tasks listed above. The following
+separated by the individual tasks listed above. The following
 schematic provides an overview of these modules and their
-interrelations, as indicated through colored symbols of different
-shapes:
+interrelations as indicated through colored symbols. The main modules,
+shown as black boxes, interact through data countainers for
+ephemerides and observations (red box symbol), orbits (blue triangle),
+physical properties (green diamond), and target names (orange
+cross). All modules make use of the reference tracking system (purple
+circle).
 
 ![``sbpy`` module structure.](structure.png)
 
