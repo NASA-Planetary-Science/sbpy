@@ -46,16 +46,16 @@ class Ephem(DataClass):
             ``'name'`` (asteroid or comet name), ``'asteroid_name'``,
             ``'comet_name'``, ``'id'`` (Horizons id).
             Default: ``'smallbody'``
-        epochs : `~astropy.time.Time` object or iterable thereof, or dictionary, optional
-            Epochs of elements to be queried; a list, tuple or
-            `~numpy.ndarray` of `~astropy.time.Time` objects or Julian
-            Dates as floats should be used for a number of discrete
-            epochs; a dictionary including keywords ``start``,
-            ``step``, and ``stop`` can be used to generate a range of
-            epochs (see
+        epochs : `~astropy.time.Time` object, or dictionary of `astropy.time.Time` objects, optional
+            Epochs of elements to be queried; `~astropy.time.Time` objects
+            support iterables within the object so an `~astropy.time.Time`
+            object should still be used for a number of discrete epochs;
+            a dictionary including keywords ``start``, ``step``, and ``stop``
+            and `~astropy.time.Time` objects can be used to generate a range
+            of epochs (see
             `~astroquery.jplhorizons.HorizonsClass.Horizons.ephemerides`
-            for details); if ``None`` is provided, current date and
-            time are used. Default: ``None``
+            for details); if ``None`` is provided, current date and time are
+            used. Default: ``None``
         location : str, optional, default ``'500'`` (geocentric)
             Location of the observer.
         **kwargs : optional
@@ -79,7 +79,13 @@ class Ephem(DataClass):
         if epochs is None:
             epochs = [Time.now().jd]
         elif isinstance(epochs, Time):
-            epochs = [Time(epochs).jd]
+            epochs = epochs.jd
+            if isinstance(epochs, float):
+                epochs = [epochs]
+            new_epochs = [None] * len(epochs)
+            for i in range(len(epochs)):
+                new_epochs[i] = epochs[i]
+            epochs = new_epochs
         elif isinstance(epochs, dict):
             for key, val in epochs.items():
                 if isinstance(val, Time):
@@ -88,14 +94,6 @@ class Ephem(DataClass):
                     epochs[key] = val.value
                 else:
                     epochs[key] = epochs[key]
-        elif isinstance(epochs, (list, tuple, ndarray)):
-            new_epochs = [None] * len(epochs)
-            for i in range(len(epochs)):
-                if isinstance(epochs[i], Time):
-                    new_epochs[i] = epochs[i].jd
-                else:
-                    new_epochs[i] = epochs[i]
-            epochs = new_epochs
 
         # if targetids is a list, run separate Horizons queries and append
         if not isinstance(targetids, (list, ndarray, tuple)):
