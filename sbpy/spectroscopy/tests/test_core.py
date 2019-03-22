@@ -9,6 +9,7 @@ from astropy.tests.helper import remote_data
 import synphot
 from ..core import SpectralStandard
 from ... import bib, units, utils
+from ... import exceptions as sbe
 
 
 class Star(SpectralStandard):
@@ -28,7 +29,6 @@ class TestSpectralStandard:
         assert np.allclose(f.value, s(w, f.unit).value)
 
     def test_from_array_importerror(self):
-
         with mock.patch.dict(sys.modules, {'synphot': None}):
             with pytest.raises(ImportError):
                 s = Star.from_array(None, None)
@@ -76,6 +76,23 @@ class TestSpectralStandard:
         nu = np.linspace(310, 999) * u.THz
         assert np.allclose(s(nu).value, 0.5 * nu.value + 0.1, rtol=0.002)
 
+    def test_observe_units(self):
+        w = u.Quantity(np.linspace(0.3, 1.0), 'um')
+        f = u.Quantity(np.ones(len(w)) * 0.35 / w.value, 'W/(m2 um)')
+        s = Star.from_array(w, f)
+        w = [0.3, 0.35, 0.4] * u.um
+        a = s.observe(w)
+        b = s.observe(w, unit='W/(m2 Hz)')
+        c = s.observe(w, unit=units.VEGAmag)
+        d = s.observe(w, unit=u.ABmag)
+        assert np.allclose(
+            a.value, b.to(a.unit, u.spectral_density(w)).value)
+        assert np.allclose(
+            a.value, c.to(a.unit, units.spectral_density_vega(w)).value)
+        assert c.unit == units.VEGAmag
+        assert np.allclose(
+            a.value, d.to(a.unit, u.spectral_density(w)).value)
+
     def test_observe_wavelength(self):
         w = u.Quantity(np.linspace(0.3, 1.0), 'um')
         f = u.Quantity(np.ones(len(w)) * 0.35 / w.value, 'W/(m2 um)')
@@ -99,6 +116,22 @@ class TestSpectralStandard:
                                      width=0.1 * u.um)
         fluxd = s.observe(bp)
         assert np.allclose(fluxd.value, [1])
+
+        bps = [synphot.SpectralElement(synphot.Box1D, x_0=0.55 * u.um,
+                                       width=0.1 * u.um),
+               synphot.SpectralElement(synphot.Box1D, x_0=0.65 * u.um,
+                                       width=0.1 * u.um)]
+        fluxd = s.observe(bps, unit='W/(m2 um)')
+        assert np.allclose(fluxd.value, [1, 1])
+
+    def test_observe_singlepointspectrumerror(self):
+        w = u.Quantity(np.linspace(0.3, 1.0), 'um')
+        f = u.Quantity(np.ones(len(w)), 'W/(m2 um)')
+        s = Star.from_array(w, f)
+        with pytest.raises(sbe.SinglePointSpectrumError):
+            s.observe(1 * u.um)
+        with pytest.raises(sbe.SinglePointSpectrumError):
+            s.observe([1] * u.um)
 
     def test_bibcode(self):
         w = u.Quantity(np.linspace(0.3, 1.0), 'um')

@@ -14,6 +14,7 @@ from astropy.time import Time
 from astroquery.jplspec import JPLSpec
 from astroquery.jplhorizons import Horizons, conf
 from ..bib import register
+from ..exceptions import SinglePointSpectrumError
 
 conf.horizons_server = 'https://ssd.jpl.nasa.gov/horizons_batch.cgi'
 
@@ -994,6 +995,11 @@ class SpectralStandard(ABC):
             The spectrum rebinned.
 
 
+        Raies
+        -----
+        SinglePointSpectrumError - If requested wavelengths or
+            frequencies has only one value.
+
         Notes
         -----
         Method adapted from AstroBetter post by Jessica Lu:
@@ -1002,23 +1008,39 @@ class SpectralStandard(ABC):
         """
 
         import synphot
+        from .. import units as sbu  # avoid circular dependency
 
+        # promote single bandpasses to a list, but preserve number of
+        # dimensions
         if isinstance(wfb, (synphot.SpectralElement, str)):
+            ndim = 0
             wfb = [wfb]
+        else:
+            ndim = np.ndim(wfb)
 
         if isinstance(wfb, (tuple, list)):
             if unit is None:
                 unit = u.Unit('W/(m2 um)')
+            else:
+                unit = u.Unit(unit)
 
-            fluxd = u.Quantity(np.ones(len(wfb)), unit)
+            fluxd = np.ones(len(wfb)) * unit
             for i in range(len(wfb)):
                 fluxd[i] = self.filt(wfb[i], unit=unit, **kwargs)[1]
         else:
+            if np.size(wfb) == 1:
+                raise SinglePointSpectrumError(
+                    'Multiple wavelengths or frequencies required for '
+                    'observe.  Consider interpolation with {}() instead.'
+                    .format(self.__class__.__name__))
+
             if unit is None:
                 if wfb.unit.is_equivalent('m'):
                     unit = u.Unit('W/(m2 um)')
                 else:
                     unit = u.Jy
+            else:
+                unit = u.Unit(unit)
 
             specele = synphot.SpectralElement(synphot.ConstFlux1D(1))
 
@@ -1030,7 +1052,15 @@ class SpectralStandard(ABC):
             obs = synphot.Observation(
                 self.source, specele, binset=wfb, **kwargs)
 
-            fluxd = obs.sample_binned(flux_unit=unit)
+            if unit.is_equivalent(sbu.VEGAmag):
+                fluxd = obs.sample_binned(flux_unit='W/(m2 um)').to(
+                    unit, sbu.spectral_density_vega(wfb))
+            else:
+                fluxd = obs.sample_binned(flux_unit=unit)
+
+        if np.ndim(fluxd) != ndim:
+            # likely need a squeeze
+            fluxd = fluxd.squeeze()
 
         return fluxd
 
@@ -1084,7 +1114,7 @@ class SpectralStandard(ABC):
         """
 
         import synphot
-        from ..units import spectral_density_vega, VEGAmag
+        from .. import units as sbu  # avoid circular dependency
 
         if isinstance(bp, str):
             bp = synphot.SpectralElement.from_filter(bp)
@@ -1093,9 +1123,9 @@ class SpectralStandard(ABC):
         wave = obs.effective_wavelength()
         _unit = u.Unit(unit)
 
-        if _unit.is_equivalent(VEGAmag):
+        if _unit.is_equivalent(sbu.VEGAmag):
             fluxd = obs.effstim('W/(m2 um)').to(
-                _unit, spectral_density_vega(bp))
+                _unit, sbu.spectral_density_vega(bp))
         else:
             fluxd = obs.effstim(flux_unit=_unit)
 
