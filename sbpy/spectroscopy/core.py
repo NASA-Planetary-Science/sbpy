@@ -796,8 +796,10 @@ class Spectrum():
         """
 
 
-class SpectralStandard(ABC):
-    """Abstract base class for SBPy spectral standards.
+class SpectralSource(ABC):
+    """Abstract base class for SBPy spectral sources.
+
+    Requires `~synphot`.
 
 
     Parameters
@@ -808,28 +810,25 @@ class SpectralStandard(ABC):
     description : string, optional
         A brief description of the source spectrum.
 
-    bibcode : string, optional
-        Bibliography code for `sbpy.bib.register`.
-
 
     Attributes
     ----------
     wave        - Wavelengths of the source spectrum.
     fluxd       - Source spectrum.
     description - Brief description of the source spectrum.
-    meta        - Meta data from `source`.
+    meta        - Meta data from ``source``, if any.
 
     """
 
-    def __init__(self, source, description=None, bibcode=None):
+    def __init__(self, source, description=None):
         try:
             import synphot
         except ImportError:
-            raise ImportError('synphot required for SpectralStandard.')
+            raise ImportError(
+                'synphot required for {}.'.format(self.__class__.__name__))
 
         self._source = source
         self._description = description
-        self._bibcode = bibcode
 
     @classmethod
     def from_array(cls, wave, fluxd, meta=None, **kwargs):
@@ -855,7 +854,8 @@ class SpectralStandard(ABC):
         try:
             import synphot
         except ImportError:
-            raise ImportError('synphot required for SpectralStandard.')
+            raise ImportError(
+                'synphot required for {}.'.format(cls.__name__))
 
         source = synphot.SourceSpectrum(
             synphot.Empirical1D, points=wave, lookup_table=fluxd,
@@ -877,7 +877,7 @@ class SpectralStandard(ABC):
             The name of the file.  See
             `~synphot.SourceSpectrum.from_file` for details.
 
-        wave_unit, flux_unit : str or `~astropy.units.core.Unit`, optional
+        wave_unit, flux_unit : str or `~astropy.units.Unit`, optional
             Wavelength and flux units in the file.
 
         cache : bool, optional
@@ -891,7 +891,8 @@ class SpectralStandard(ABC):
         try:
             import synphot
         except ImportError:
-            raise ImportError('synphot required for SpectralStandard.')
+            raise ImportError(
+                'synphot required for {}.'.format(cls.__name__))
 
         from astropy.utils.data import download_file, _is_url
 
@@ -931,8 +932,6 @@ class SpectralStandard(ABC):
 
     @property
     def source(self):
-        if self._bibcode is not None:
-            register('spectroscopy', {self._description: self._bibcode})
         return self._source
 
     @property
@@ -940,7 +939,7 @@ class SpectralStandard(ABC):
         self._source.meta
 
     def __call__(self, wave_or_freq, unit=None):
-        """Interpolate the source spectrum.
+        """Evaluate or interpolate the source spectrum.
 
 
         Parameters
@@ -958,17 +957,26 @@ class SpectralStandard(ABC):
         Returns
         -------
         fluxd : `~astropy.units.Quantity`
-            The spectrum interpolated.
+            The spectrum evaluated at or interpolated to the requested
+            wavelengths or frequencies.
 
         """
+
+        from .. import units as sbu  # avoid circular dependency
 
         if unit is None:
             if wave_or_freq.unit.is_equivalent('m'):
                 unit = u.Unit('W/(m2 um)')
             else:
                 unit = u.Jy
+        else:
+            unit = u.Unit(unit)
 
-        fluxd = self.source(wave_or_freq, unit)
+        if unit.is_equivalent(sbu.VEGA):
+            fluxd = self.source(wave_or_freq, 'W/(m2 um)').to(
+                unit, sbu.spectral_density_vega(wave_or_freq))
+        else:
+            fluxd = self.source(wave_or_freq, unit)
 
         return fluxd
 
@@ -1190,3 +1198,38 @@ class SpectralStandard(ABC):
         ci = m[0] - m[1]
 
         return eff_wave, ci
+
+
+class SpectralStandard(SpectralSource, ABC):
+    """Abstract base class for SBPy spectral standards.
+
+    Parameters
+    ----------
+    source : `~synphot.SourceSpectrum`
+        The source spectrum.
+
+    description : string, optional
+        A brief description of the source spectrum.
+
+    bibcode : string, optional
+        Bibliography code for `sbpy.bib.register`.
+
+
+    Attributes
+    ----------
+    wave        - Wavelengths of the source spectrum.
+    fluxd       - Source spectrum.
+    description - Brief description of the source spectrum.
+    meta        - Meta data from `source`, if any.
+
+    """
+
+    def __init__(self, source, description=None, bibcode=None):
+        super().__init__(source, description=description)
+        self._bibcode = bibcode
+
+    @property
+    def source(self):
+        if self._bibcode is not None:
+            register('spectroscopy', {self._description: self._bibcode})
+        return self._source
