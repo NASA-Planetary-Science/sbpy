@@ -270,7 +270,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
     @property
     def geoalb(self):
         """Geometric albedo"""
-        alb = np.pi*self.ref(0)
+        alb = np.pi*self.ref(0)['ref'][0]
         if hasattr(alb, 'unit'):
             alb = alb*u.sr
         return alb
@@ -561,7 +561,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         0.364
 
         """
-        def integrand(x): return 2*self.ref(x, normalized=0.)*np.sin(x)
+        def integrand(x): return 2*self.ref(x, normalized=0.)['ref']*np.sin(x)
         return integrator(integrand, 0, np.pi)[0]
 
 

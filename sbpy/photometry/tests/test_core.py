@@ -50,7 +50,7 @@ class TestLinear():
              7.398082392240209, 8.197443189653612, 8.996803987067015,
              9.796164784480418, 10.59552558189382, 11.394886379307223,
              12.194247176720626])
-        assert np.isclose(linphase.mag(pha_test), mag_test).all()
+        assert np.isclose(linphase.mag(pha_test)['mag'], mag_test).all()
 
     def test_ref(self):
         linphase = LinearPhaseFunc(5, 2.29, radius=300)
@@ -63,9 +63,9 @@ class TestLinear():
             [1., 0.47891196, 0.22935666,
              0.10984165, 0.05260448, 0.02519291, 0.01206519, 0.00577816,
              0.00276723, 0.00132526])
-        assert np.isclose(linphase.ref(pha_test), ref_test).all()
+        assert np.isclose(linphase.ref(pha_test)['ref'], ref_test).all()
         assert np.isclose(linphase.ref(
-            pha_test, normalized=0), ref_norm_test).all()
+            pha_test, normalized=0)['ref'], ref_norm_test).all()
 
     def test_props(self):
         linphase = LinearPhaseFunc(5, 2.29, radius=300)
@@ -137,15 +137,15 @@ class TestHG:
              8.297741273359549, 8.813984838536113, 9.366879943505342,
              10.024055427421063, 10.886692329621765, 12.143261499943726,
              14.18326309145893, 18.48388800989832])
-        assert np.isclose(ceres.mag(eph_test), mag1_test).all()
-        assert np.isclose(ceres.mag(eph_dict), mag1_test).all()
+        assert np.isclose(ceres.mag(eph_test)['mag'], mag1_test).all()
+        assert np.isclose(ceres.mag(eph_dict)['mag'], mag1_test).all()
         pha_test = np.linspace(0, np.pi*0.9, 10)
         mag2_test = np.array(
             [3.34, 4.313146162557345,
              4.864559927048081, 5.380803492224645, 5.9336985971938745,
              6.590874081109595, 7.453510983310297, 8.710080153632259,
              10.750081745147462, 15.050706663586855])
-        assert np.isclose(ceres.mag(pha_test), mag2_test).all()
+        assert np.isclose(ceres.mag(pha_test)['mag'], mag2_test).all()
 
     def test_ref(self):
         ceres = HG(3.34, 0.12, radius=480)
@@ -159,8 +159,8 @@ class TestHG:
              0.0026347477224558857, 0.0014383641304522461,
              0.0006498514365555728, 0.0002042614521939071,
              3.1202240400267656e-05, 5.942043286373853e-07])
-        assert np.isclose(ceres.ref(eph_test), ref1_test).all()
-        assert np.isclose(ceres.ref(eph_dict), ref1_test).all()
+        assert np.isclose(ceres.ref(eph_test)['ref'], ref1_test).all()
+        assert np.isclose(ceres.ref(eph_dict)['ref'], ref1_test).all()
         pha_test = np.linspace(0, np.pi*0.9, 10)
         ref2_test = np.array(
             [2.87222512e-02, 1.17208744e-02, 7.05333491e-03,
@@ -171,8 +171,8 @@ class TestHG:
             [1.00000000e+00, 4.08076452e-01,
              2.45570407e-01, 1.52643601e-01, 9.17319364e-02, 5.00783911e-02,
              2.26253657e-02, 7.11161011e-03, 1.08634383e-03, 2.06879441e-05])
-        assert np.isclose(ceres.ref(pha_test), ref2_test).all()
-        assert np.isclose(ceres.ref(pha_test, normalized=0),
+        assert np.isclose(ceres.ref(pha_test)['ref'], ref2_test).all()
+        assert np.isclose(ceres.ref(pha_test, normalized=0)['ref'],
                           ref2_norm_test).all()
 
 
@@ -248,7 +248,7 @@ class TestHG1G2:
                              9.29834638, 9.96574599, 10.72080704,
                              11.52317465, 12.15094612,
                              18.65369516, 18.65389398])
-        assert np.isclose(themis.mag(pha_test), mag_test).all()
+        assert np.isclose(themis.mag(pha_test)['mag'], mag_test).all()
 
     def test_ref(self):
         themis = HG1G2(7.063, 0.62, 0.14, radius=100)
@@ -258,7 +258,7 @@ class TestHG1G2:
              2.73755213e-03, 1.48048003e-03, 7.38546998e-04,
              3.52720817e-04, 1.97843827e-04, 4.95704528e-07,
              4.95613763e-07])
-        assert np.isclose(themis.ref(pha_test), ref_test).all()
+        assert np.isclose(themis.ref(pha_test)['ref'], ref_test).all()
 
 
 class TestHG12:
@@ -327,7 +327,7 @@ class TestHG12:
                              9.2993879, 9.96817595, 10.72086969,
                              11.51208664, 12.12722017,
                              18.70628001, 18.70647883])
-        assert np.isclose(themis.mag(pha_test), mag_test).all()
+        assert np.isclose(themis.mag(pha_test)['mag'], mag_test).all()
 
     def test_ref(self):
         themis = HG12(7.121, 0.68, radius=100)
@@ -337,4 +337,4 @@ class TestHG12:
              2.73492734e-03, 1.47717032e-03, 7.38504380e-04,
              3.56341412e-04, 2.02214774e-04, 4.72268466e-07,
              4.72181992e-07])
-        assert np.isclose(themis.ref(pha_test), ref_test).all()
+        assert np.isclose(themis.ref(pha_test)['ref'], ref_test).all()
