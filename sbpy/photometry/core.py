@@ -12,6 +12,7 @@ __all__ = ['ref2mag', 'mag2ref', 'spline',
            'PhaseFunctionModel', 'ROLOPhase',
            'ResolvedPhotometricModelClass', 'ROLO']
 
+from collections import OrderedDict
 import numpy as np
 from numbers import Number
 from scipy.integrate import quad
@@ -326,8 +327,6 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         >>> hg = HG() # doctest: +SKIP
         >>> best_hg = hg.fit(eph, eph['mag']) # doctest: +SKIP
         """
-        if not isinstance(eph, [Ephem, dict, np.ndarray]):
-            raise ValueError('`~sbpy.data.Ephem`, `dict`, or `numpy.ndarray` expected, {0} received'.format(type(eph)))
         eph, pha = _process_ephem_input(eph, 'alpha')
 
         mag = np.asanyarray(mag)
@@ -519,8 +518,6 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         eph, pha = _process_ephem_input(eph, 'alpha')
         out = self(pha, **kwargs)
         if normalized is not None:
-            if isinstance(normalized, u.Quantity):
-                normalized = normalized.to('rad').value
             norm = self(normalized, **kwargs)
         if self._unit == 'ref':
             if normalized is not None:
@@ -669,14 +666,12 @@ class HG(DiskIntegratedPhaseFunc):
     @staticmethod
     def evaluate(pha, hh, gg):
         func = (1-gg)*HG._hgphi(pha, 1)+gg*HG._hgphi(pha, 2)
+        if isinstance(func, u.Quantity):
+            func = func.value
+        func = -2.5 * np.log10(func)
         if isinstance(hh, u.Quantity):
-            if not isinstance(func, u.Quantity):
-                func = func * u.dimensionless_unscaled
-            return hh+u.Magnitude(func)
-        else:
-            if isinstance(func, u.Quantity):
-                func = func.value
-            return hh-2.5*np.log10(func)
+            func = func * u.mag
+        return hh + func
 
     @staticmethod
     def fit_deriv(pha, hh, gg):
@@ -793,14 +788,12 @@ class HG1G2(HG12BaseClass):
     @staticmethod
     def evaluate(ph, h, g1, g2):
         func = g1*HG1G2._phi1(ph)+g2*HG1G2._phi2(ph)+(1-g1-g2)*HG1G2._phi3(ph)
+        if isinstance(func, u.Quantity):
+            func = func.value
+        func = -2.5 * np.log10(func)
         if isinstance(h, u.Quantity):
-            if not isinstance(func, u.Quantity):
-                func = func * u.dimensionless_unscaled
-            return h+u.Magnitude(func)
-        else:
-            if isinstance(func, u.Quantity):
-                func = func.value
-            return h-2.5*np.log10(func)
+            func = func * u.mag
+        return h + func
 
     @staticmethod
     def fit_deriv(ph, h, g1, g2):
