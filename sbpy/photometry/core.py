@@ -442,8 +442,8 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
 
         Returns
         -------
-        Numpy array of magnitude based on the phase function model at specified
-        phase angle, heliocentric and geocentric distances
+        `~sbpy.data.Ephem` object, with the calculated magnitudes added in
+        a new column.
 
         Examples
         --------
@@ -473,7 +473,11 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
             out = ref2mag(out, self.radius, M_sun=self.M_sun)
         else:
             out = out - self._distance_module(eph)
-        return out
+        if eph is None:
+            eph = Ephem({'alpha': pha, 'mag': out})
+        else:
+            eph.add_column(out, name='mag')
+        return eph
 
     def ref(self, eph, normalized=None, **kwargs):
         """Calculate phase function in average bidirectional reflectance
@@ -492,8 +496,8 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
 
         Returns
         -------
-        Numpy array of average bidirectional reflectance based on the phase
-        function model at specified phase angle
+        `~sbpy.data.Ephem` object, with the calculated reflectances added in a
+        new column.
 
         Examples
         --------
@@ -521,7 +525,6 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         if self._unit == 'ref':
             if normalized is not None:
                 out /= norm
-            return out
         else:
             if self.radius is None:
                 raise ValueError(
@@ -529,7 +532,11 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
             out = mag2ref(out, self.radius, M_sun=self.M_sun)
             if normalized is not None:
                 out /= mag2ref(norm, self.radius, M_sun=self.M_sun)
-            return out
+        if eph is None:
+            eph = Ephem({'alpha': pha, 'ref': out})
+        else:
+            eph.add_column(out, name='ref')
+        return eph
 
     def _phase_integral(self, integrator=quad):
         """Calculate phase integral with numerical integration
