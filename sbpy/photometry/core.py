@@ -333,9 +333,8 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         mag = np.asanyarray(mag)
         dist_corr = self._distance_module(eph)
         if isinstance(mag, u.Quantity):
-            mag0 = mag + dist_corr*mag.unit
-        else:
-            mag0 = mag + dist_corr
+            dist_corr = dist_corr*mag.unit
+        mag0 = mag + dist_corr
 
         if fitter is None:
             from astropy.modeling.fitting import LevMarLSQFitter, SLSQPLSQFitter
@@ -463,8 +462,6 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         """
         self._check_unit()
         eph, pha = _process_ephem_input(eph, 'alpha')
-        if isinstance(pha, u.Quantity):
-            pha = pha.to('rad').value
         out = self(pha, **kwargs)
         if self._unit != 'mag':
             if self.radius is None:
@@ -472,7 +469,10 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
                     'cannot calculate phase funciton in magnitude because the size of object is unknown')
             out = ref2mag(out, self.radius, M_sun=self.M_sun)
         else:
-            out = out - self._distance_module(eph)
+            dist_corr = self._distance_module(eph)
+            if isinstance(out, u.Quantity):
+                dist_corr = dist_corr*u.mag
+            out = out - dist_corr
         if eph is None:
             eph = Ephem({'alpha': pha, 'mag': out})
         else:
