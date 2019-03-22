@@ -88,24 +88,6 @@ class TestAfrho:
         afrho = Afrho.from_fluxd(nu, fluxd, aper, eph, S=S)
         assert np.isclose(afrho.cm, 1000.0)
 
-    def test_from_filt(self):
-        """HST/WFC3 photometry of C/2013 A1 (Siding Spring) (Li et al. 2014).
-
-        Li et al. quotes 1660 cm, but we have revised it to 1683 (see
-        test_from_fluxd).
-
-        """
-
-        fluxd = 4.68e-15 * u.W / u.m**2 / u.um
-        aper = 5000 * u.km
-        eph = {'rh': 4.582 * u.au, 'delta': 4.042 * u.au}
-        fn = get_pkg_data_filename(os.path.join(
-            '..', '..', 'photometry', 'data',
-            'wfc3_uvis_f606w_004_syn.fits'))
-        bandpass = synphot.SpectralElement.from_file(fn)
-        afrho = Afrho.from_filt(bandpass, fluxd, aper, eph)
-        assert np.isclose(afrho.cm, 1680, atol=4)
-
     @pytest.mark.parametrize('filename, mag, unit, rho, afrho0, eph, unc', (
         ('wfc3_uvis_f606w_004_syn.fits', 16.98, 'vegamag', '5000 km', 1680,
          {'rh': 4.582 * u.au, 'delta': 4.042 * u.au}, 0.05),
