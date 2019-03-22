@@ -13,11 +13,30 @@ __all__ = ['ref2mag', 'mag2ref', 'spline',
            'ResolvedPhotometricModelClass', 'ROLO']
 
 import numpy as np
+from numbers import Number
 from scipy.integrate import quad
 from astropy.modeling import (FittableModel, Fittable1DModel,
                               Fittable2DModel, Parameter)
 from astropy import units as u
 from ..data import Ephem
+
+
+def _process_ephem_input(eph, key=None):
+    if eph is None:
+        return None, None
+    if not isinstance(eph, (Ephem, dict, np.ndarray, Number, u.Quantity)):
+        raise ValueError('`~sbpy.data.Ephem`, `dict`, `numpy.ndarray`, `Number`, or `~astropy.units.Quantity expected, {0} received'.format(type(eph)))
+    if isinstance(eph, dict):
+        eph = Ephem(eph)
+    if isinstance(eph, Ephem):
+        if key is None:
+            out = None
+        else:
+            out = eph[key]
+    else:
+        out = eph
+        eph = None
+    return eph, out
 
 
 def ref2mag(ref, radius, M_sun=None):
@@ -309,12 +328,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         """
         if not isinstance(eph, [Ephem, dict, np.ndarray]):
             raise ValueError('`~sbpy.data.Ephem`, `dict`, or `numpy.ndarray` expected, {0} received'.format(type(eph)))
-        if isinstance(eph, dict):
-            eph = Ephem(eph)
-        if isinstance(eph, Ephem):
-            pha = eph['alpha']
-        else:
-            pha = np.asanyarray(eph)
+        eph, pha = _process_ephem_input(eph, 'alpha')
 
         mag = np.asanyarray(mag)
         dist_corr = self._distance_module(eph)
@@ -340,11 +354,12 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
 
         Parameters
         ----------
-        eph : `~sbpy.data.Ephem`, dict_like
-            Must contain column or columns that contain the heliocentric and/or
-            observer distance (see `~sbpy.data.DataClass`).  If no unit is
-            provided via type `~astropy.units.Quantity`, then the distance is
-            assumed to be in unit of au.
+        eph : any type
+            If `~sbpy.data.Ephem` or dict_like, then it's used to calculate
+            distanc correction.  If no unit is provided via type
+            `~astropy.units.Quantity`, then the distance is assumed to be in
+            unit of au.  For any other data type, a factor 1 a magnitude of 0
+            will be returned
 
         Returns
         -------
@@ -354,8 +369,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
             order to correct to heliocentric distance and observer distance of
             both 1 au.
         """
-        if isinstance(eph, dict):
-            eph = Ephem(eph)
+        eph, dummy = _process_ephem_input(eph)
         module = 1.
         try:
             rh = eph['r']
@@ -371,6 +385,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
             module = module * delta * delta
         except:
             pass
+        module = np.asarray(module)
         if self._unit == 'mag':
             return -2.5 * np.log10(module)
         else:
@@ -447,13 +462,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         >>> mag2 = ceres_hg.mag(np.deg2rad(pha))
         """
         self._check_unit()
-        if isinstance(eph, Ephem):
-            pass
-        elif isinstance(eph, dict):
-            eph = Ephem(eph)
-        else:
-            eph = Ephem({'alpha': eph})
-        pha = eph['alpha']
+        eph, pha = _process_ephem_input(eph, 'alpha')
         if isinstance(pha, u.Quantity):
             pha = pha.to('rad').value
         out = self(pha, **kwargs)
@@ -503,12 +512,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         >>> ref2 = ceres_hg.mag(np.deg2rad(pha))
         """
         self._check_unit()
-        if isinstance(eph, (dict, Ephem)):
-            pha = eph['alpha']
-        else:
-            pha = eph
-        if isinstance(pha, u.Quantity):
-            pha = pha.to('rad').value
+        eph, pha = _process_ephem_input(eph, 'alpha')
         out = self(pha, **kwargs)
         if normalized is not None:
             if isinstance(normalized, u.Quantity):
