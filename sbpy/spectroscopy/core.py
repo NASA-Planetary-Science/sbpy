@@ -1200,6 +1200,37 @@ class SpectralSource(ABC):
         return eff_wave, ci
 
 
+class BlackbodySource(SpectralSource):
+    """Blackbody sphere.
+
+    Spectral flux densities are calculated from ``pi * B(T)``, where
+    ``B`` is the Planck function.
+
+
+    Parameters
+    ----------
+    T : `~astropy.units.Quantity`
+        Temperature.
+
+    """
+
+    del from_file
+    del from_array
+
+    def __init__(self, T):
+        self._T = u.Quantity(T, u.K)
+        source = synphot.SourceSpectrum(
+            synphot.BlackBody1D, temperature=self._T.value) * np.pi
+        super().__init__(source, description='πB(T)')
+
+    def __repr__(self):
+        return '<BlackbodySource: T={}>'.format(self._T)
+
+    @property
+    def T(self):
+        return self._T
+
+
 class SpectralStandard(SpectralSource, ABC):
     """Abstract base class for SBPy spectral standards.
 
