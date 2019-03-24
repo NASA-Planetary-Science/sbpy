@@ -18,7 +18,8 @@ __all__ = [
     'VEGAmag',
     'JM',
     'JMmag',
-    'magnitude_reflectance'
+    'magnitude_reflectance',
+    'magnitude_xsection'
 ]
 
 from warnings import warn
@@ -129,12 +130,13 @@ def spectral_density_vega(wfb):
 
 
 def magnitude_reflectance(xsec, wfb=None, M_sun=None):
-    """Magnitude - reflectance equivalencies for asteroids
+    """Magnitude - reflectance equivalencies to convert between magnitude and
+    average reflectance for given scattering cross-section.
 
     Parameters
     ----------
     xsec : `~astropy.units.Quantity`
-        Cross-sectional area of the object of interest
+        Scattering cross-section of the object of interest
     wfb : `~astropy.units.Quantity`, `~synphot.SpectralElement`, string
         Wavelength, frequency, or a bandpass of the corresponding flux
         density being converted.  See
@@ -176,16 +178,20 @@ def magnitude_reflectance(xsec, wfb=None, M_sun=None):
     else:
         if M_sun is None:
             M_sun = -26.775
-    return [(u.mag, u.sr**-1, lambda mag: 10**((M_sun-mag)*0.4)/(xsec/u.au**2).decompose().value, lambda ref: M_sun-2.5*np.log10(ref*(xsec/u.au**2).decompose().value))]
+    return [(u.mag,
+             u.sr**-1,
+             lambda mag: 10**((M_sun-mag)*0.4)/xsec.to('au2').value,
+             lambda ref: M_sun-2.5*np.log10(ref*xsec.to('au2').value))]
 
 
-def magnitude_radius(ref, wfb=None, M_sun=None):
-    """Magnitude - radius equivalencies for asteroids
+def magnitude_xsection(ref, wfb=None, M_sun=None):
+    """Magnitude - cross-section equivalencies to convert between magnitude
+    and scattering cross-section for given average reflectance.
 
     Parameters
     ----------
     ref : `~astropy.units.Quantity`
-        Reflectance of the object of interest
+        Average reflectance of the object of interest
     wfb : `~astropy.units.Quantity`, `~synphot.SpectralElement`, string
         Wavelength, frequency, or a bandpass of the corresponding flux
         density being converted.  See
@@ -204,10 +210,31 @@ def magnitude_radius(ref, wfb=None, M_sun=None):
     Examples
     --------
     >>> from astropy import units as u
-    >>> from sbpy.units import magnitude_reflectance
-    >>> m = 2.19 * u.mag
-    >>> ref = 0.09 / u.sr
-    >>> radius = m.to('km', magnitude_reflectance(ref)) # doctest: +SKIP
-    >>> print(radius) # doctest: +SKIP
+    >>> from sbpy.units import magnitude_xsection
+    >>> m = 3.4 * u.mag
+    >>> ref = 0.0287 / u.sr
+    >>> xsec = m.to('km2', magnitude_xsection(ref))
+    >>> radius = np.sqrt(xsec/np.pi)
+    >>> print(f'{radius:.2f}')
+    459.63 km
+    >>>
+    >>> m1 = xsec.to('mag', magnitude_xsection(ref))
+    >>> print(f'{m1:.2f}')
+    3.40 mag
     """
-    pass
+    if wfb is not None:
+        sun = Sun.from_default()
+        if isinstance(wfb, u.Quantity):
+            M_sun = sun(wfb).to(VEGAmag, spectral_density_vega(wfb)).value
+        elif isinstance(wfb, (synphot.SpectralElement, str)):
+            M_sun = sun.filt(wfb)[1].to(VEGAmag, spectral_density_vega(wfb)).value
+        else:
+            raise ValueError('unrecognized type for `wfb`')
+    else:
+        if M_sun is None:
+            M_sun = -26.775
+    ref = ref.to('1/sr').value
+    return [(u.mag,
+             u.km**2,
+             lambda mag: 10**((M_sun-mag)*0.4)/ref*u.au.to('km')**2,
+             lambda xsec: M_sun-2.5*np.log10(ref*xsec*u.km.to('au')**2))]
