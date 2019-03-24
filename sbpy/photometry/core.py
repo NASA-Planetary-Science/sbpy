@@ -337,7 +337,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
 
         if fitter is None:
             from astropy.modeling.fitting import LevMarLSQFitter, SLSQPLSQFitter
-            fitter = LevMarLSQFitter # SLSQPLSQFitter()
+            fitter = LevMarLSQFitter
         fit = fitter()
 
         model = fit(self, pha, mag0, **kwargs)
@@ -374,14 +374,14 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
             if isinstance(rh, u.Quantity):
                 rh = rh.to('au').value
             module = module * rh * rh
-        except:
+        except (KeyError, TypeError):
             pass
         try:
             delta = eph['delta']
             if isinstance(delta, u.Quantity):
                 delta = delta.to('au').value
             module = module * delta * delta
-        except:
+        except (KeyError, TypeError):
             pass
         module = np.asarray(module)
         if self._unit == 'mag':
