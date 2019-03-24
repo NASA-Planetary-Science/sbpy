@@ -17,7 +17,8 @@ __all__ = [
     'VEGA',
     'VEGAmag',
     'JM',
-    'JMmag'
+    'JMmag',
+    'magnitude_reflectance'
 ]
 
 from warnings import warn
@@ -125,3 +126,88 @@ def spectral_density_vega(wfb):
         (flam0.unit, VEGA, lambda x: x / flam0.value,
          lambda x: x * flam0.value)
     ]
+
+
+def magnitude_reflectance(area, wfb=None, M_sun=None):
+    """Magnitude - reflectance equivalencies for asteroids
+
+    Parameters
+    ----------
+    area : `~astropy.units.Quantity`
+        Cross-sectional area of the object of interest
+    wfb : `~astropy.units.Quantity`, `~synphot.SpectralElement`, string
+        Wavelength, frequency, or a bandpass of the corresponding flux
+        density being converted.  See
+        :func:`~synphot.SpectralElement.from_filter()` for possible
+        bandpass names.  If provided, then this parameter overrides `M_sun`.
+    M_sun : `~astropy.units.Quantity`
+        Solar magnitude.  If `wfb` is not provided, then `M_sun` will be used
+        in the conversion.  If either `wfb` or `M_sun` is not present, then
+        the default V-band solar magnitude in V-band, -26.775 will be used.
+
+    Returns
+    -------
+    eqv : list
+        List of equivalencies
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from astropy import units as u
+    >>> from sbpy.units import magnitude_reflectance
+    >>> m = 3.4 * u.mag
+    >>> area = np.pi * (460 * u.km)**2
+    >>> ref = m.to('1/sr', magnitude_reflectance(area))
+    >>> print(f'{ref:.4f}')
+    0.0287 1 / sr
+    >>>
+    >>> m1 = ref.to(u.mag, magnitude_reflectance(area))
+    >>> print(f'{m1:.2f}')
+    3.40 mag
+    """
+    if wfb is not None:
+        sun = Sun.from_default()
+        if isinstance(wfb, u.Quantity):
+            M_sun = sun(wfb).to(VEGAmag, spectral_density_vega(wfb)).value
+        elif isinstance(wfb, (synphot.SpectralElement, str)):
+            M_sun = sun.filt(wfb)[1].to(VEGAmag, spectral_density_vega(wfb)).value
+        else:
+            raise ValueError('unrecognized type for `wfb`')
+    else:
+        if M_sun is None:
+            M_sun = -26.775
+    return [(u.mag, u.sr**-1, lambda mag: 10**((M_sun-mag)*0.4)/(area/u.au**2).decompose().value, lambda ref: M_sun-2.5*np.log10(ref*(area/u.au**2).decompose().value))]
+
+
+def magnitude_radius(ref, wfb=None, M_sun=None):
+    """Magnitude - radius equivalencies for asteroids
+
+    Parameters
+    ----------
+    ref : `~astropy.units.Quantity`
+        Reflectance of the object of interest
+    wfb : `~astropy.units.Quantity`, `~synphot.SpectralElement`, string
+        Wavelength, frequency, or a bandpass of the corresponding flux
+        density being converted.  See
+        :func:`~synphot.SpectralElement.from_filter()` for possible
+        bandpass names.  If provided, then this parameter overrides `M_sun`.
+    M_sun : `~astropy.units.Quantity`
+        Solar magnitude.  If `wfb` is not provided, then `M_sun` will be used
+        in the conversion.  If either `wfb` or `M_sun` is not present, then
+        the default V-band solar magnitude in V-band, -26.775 will be used.
+
+    Returns
+    -------
+    eqv : list
+        List of equivalencies
+
+    Examples
+    --------
+    >>> from astropy import units as u
+    >>> from sbpy.units import magnitude_reflectance
+    >>> m = 2.19 * u.mag
+    >>> ref = 0.09 / u.sr
+    >>> radius = m.to('km', magnitude_reflectance(ref)) # doctest: +SKIP
+    >>> print(radius) # doctest: +SKIP
+    """
+    pass
