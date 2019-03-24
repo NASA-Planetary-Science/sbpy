@@ -128,12 +128,12 @@ def spectral_density_vega(wfb):
     ]
 
 
-def magnitude_reflectance(area, wfb=None, M_sun=None):
+def magnitude_reflectance(xsec, wfb=None, M_sun=None):
     """Magnitude - reflectance equivalencies for asteroids
 
     Parameters
     ----------
-    area : `~astropy.units.Quantity`
+    xsec : `~astropy.units.Quantity`
         Cross-sectional area of the object of interest
     wfb : `~astropy.units.Quantity`, `~synphot.SpectralElement`, string
         Wavelength, frequency, or a bandpass of the corresponding flux
@@ -156,12 +156,12 @@ def magnitude_reflectance(area, wfb=None, M_sun=None):
     >>> from astropy import units as u
     >>> from sbpy.units import magnitude_reflectance
     >>> m = 3.4 * u.mag
-    >>> area = np.pi * (460 * u.km)**2
-    >>> ref = m.to('1/sr', magnitude_reflectance(area))
+    >>> xsec = np.pi * (460 * u.km)**2
+    >>> ref = m.to('1/sr', magnitude_reflectance(xsec))
     >>> print(f'{ref:.4f}')
     0.0287 1 / sr
     >>>
-    >>> m1 = ref.to(u.mag, magnitude_reflectance(area))
+    >>> m1 = ref.to(u.mag, magnitude_reflectance(xsec))
     >>> print(f'{m1:.2f}')
     3.40 mag
     """
@@ -176,7 +176,7 @@ def magnitude_reflectance(area, wfb=None, M_sun=None):
     else:
         if M_sun is None:
             M_sun = -26.775
-    return [(u.mag, u.sr**-1, lambda mag: 10**((M_sun-mag)*0.4)/(area/u.au**2).decompose().value, lambda ref: M_sun-2.5*np.log10(ref*(area/u.au**2).decompose().value))]
+    return [(u.mag, u.sr**-1, lambda mag: 10**((M_sun-mag)*0.4)/(xsec/u.au**2).decompose().value, lambda ref: M_sun-2.5*np.log10(ref*(xsec/u.au**2).decompose().value))]
 
 
 def magnitude_radius(ref, wfb=None, M_sun=None):
