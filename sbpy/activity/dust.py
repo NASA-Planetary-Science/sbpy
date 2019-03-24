@@ -179,7 +179,12 @@ def phase_HalleyMarcus(phase):
     return Phi
 
 
-class DustComaQuantity(abc.ABC, u.SpecificTypeQuantity):
+class DustComaQuantityMeta(type(u.SpecificTypeQuantity), abc.ABCMeta):
+    pass
+
+
+class DustComaQuantity(u.SpecificTypeQuantity, abc.ABC,
+                       metaclass=DustComaQuantityMeta):
     """Abstract base class for dust coma photometric models: Afrho, Efrho.
     """
     _equivalent_unit = u.meter
@@ -355,7 +360,11 @@ class Afrho(DustComaQuantity):
 
     """
 
-    from_fluxd.__doc__ += """
+    @classmethod
+    def from_fluxd(cls, wfb, fluxd, aper, eph, **kwargs):
+        return super().from_fluxd(cls, wfb, fluxd, aper, eph, **kwargs)
+
+    from_fluxd.__doc__ = DustComaQuantity.from_fluxd.__doc__ + """
         Examples
         --------
         >>> from sbpy.activity import Afrho
@@ -370,7 +379,12 @@ class Afrho(DustComaQuantity):
 
         """
 
-    to_fluxd.__doc__ += """
+    def to_fluxd(self, wfb, aper, eph, unit=None, phasecor=False,
+                 Phi=None, S=None):
+        return super().to_fluxd(wfb, aper, eph, unit=unit, phasecor=phasecor,
+                                Phi=Phi, S=S)
+
+    to_fluxd.__doc__ = DustComaQuantity.to_fluxd.__doc__ + """
         phasecor: bool, optional
             Scale the result by the phase function ``Phi``, assuming
             ``Afrho`` is quoted for 0° phase.  Requires phase angle in
@@ -490,7 +504,7 @@ class Afrho(DustComaQuantity):
         return self * Phi(to_phase) / Phi(from_phase)
 
 
-class Efrho(u.SpecificTypeQuantity):
+class Efrho(DustComaQuantity):
     """Coma dust quantity for thermal emission.
 
     ``Efrho`` behave like `~astropy.units.Quantity` objects with units
@@ -536,7 +550,11 @@ class Efrho(u.SpecificTypeQuantity):
 
     """
 
-    from_fluxd.__doc__ += """
+    @classmethod
+    def from_fluxd(cls, wfb, fluxd, aper, eph, **kwargs):
+        return super().from_fluxd(cls, wfb, fluxd, aper, eph, **kwargs)
+
+    from_fluxd.__doc__ = DustComaQuantity.from_fluxd.__doc__ + """
         Examples
         --------
         >>> from sbpy.activity import Efrho
@@ -551,7 +569,12 @@ class Efrho(u.SpecificTypeQuantity):
 
     """
 
-    to_fluxd.__doc__ += """
+    def to_fluxd(self, wfb, aper, eph, unit=None, Tscale=1.1,
+                 T=None, B=None):
+        return super().to_fluxd(wfb, aper, eph, unit=unit, Tscale=Tscale,
+                                T=T, B=B)
+
+    to_fluxd.__doc__ = DustComaQuantity.to_fluxd.__doc__ + """
         Tscale : float, optional
             Scale factor for blackbody in LTE with sunlight.  Ignored
             if ``T`` or ``B`` is provided.

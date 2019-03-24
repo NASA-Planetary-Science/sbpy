@@ -18,8 +18,14 @@ from ..exceptions import SinglePointSpectrumError
 
 conf.horizons_server = 'https://ssd.jpl.nasa.gov/horizons_batch.cgi'
 
-__all__ = ['Spectrum', 'SpectralModel', 'molecular_data', 'einstein_coeff',
-           'intensity_conversion']
+__all__ = [
+    'Spectrum',
+    'SpectralModel',
+    'BlackbodySource',
+    'molecular_data',
+    'einstein_coeff',
+    'intensity_conversion'
+]
 
 
 def molecular_data(temp_estimate, transition_freq, mol_tag):
@@ -1214,10 +1220,7 @@ class BlackbodySource(SpectralSource):
 
     """
 
-    del from_file
-    del from_array
-
-    def __init__(self, T):
+    def __init__(self, T=None):
         self._T = u.Quantity(T, u.K)
         source = synphot.SourceSpectrum(
             synphot.BlackBody1D, temperature=self._T.value) * np.pi
