@@ -35,25 +35,25 @@ def get_bandpass(name):
     -----
     Available filters:
 
-    +-----------+---------------------------+
-    | Name      | Source                    |
-    +===========+===========================+
-    | F438W     | HST/WFC3 UVIS, v4         |
-    +-----------+---------------------------+
-    | F606W     | HST/WFC3 UVIS, v4         |
-    +-----------+---------------------------+
-    | Cousins I | STScI CDBS, v4            |
-    +-----------+---------------------------+
-    | SDSS u    | SDSS, dated 2001          |
-    +-----------+---------------------------+
-    | SDSS g    | SDSS, dated 2001          |
-    +-----------+---------------------------+
-    | SDSS r    | SDSS, dated 2001          |
-    +-----------+---------------------------+
-    | SDSS i    | SDSS, dated 2001          |
-    +-----------+---------------------------+
-    | SDSS z    | SDSS, dated 2001          |
-    +-----------+---------------------------+
+    +-------------+---------------------------+
+    | Name        | Source                    |
+    +=============+===========================+
+    | WFC3 F438W  | HST/WFC3 UVIS, v4         |
+    +-------------+---------------------------+
+    | WFC3 F606W  | HST/WFC3 UVIS, v4         |
+    +-------------+---------------------------+
+    | Cousins I   | STScI CDBS, v4            |
+    +-------------+---------------------------+
+    | SDSS u      | SDSS, dated 2001          |
+    +-------------+---------------------------+
+    | SDSS g      | SDSS, dated 2001          |
+    +-------------+---------------------------+
+    | SDSS r      | SDSS, dated 2001          |
+    +-------------+---------------------------+
+    | SDSS i      | SDSS, dated 2001          |
+    +-------------+---------------------------+
+    | SDSS z      | SDSS, dated 2001          |
+    +-------------+---------------------------+
 
     WFC3 filters and Cousins I from [CDBS]_, SDSS filters from
     [SDSS]_.
@@ -74,8 +74,8 @@ def get_bandpass(name):
         raise ImportError('synphot is required.')
 
     name2file = {
-        'f438w': 'wfc3_uvis_f438w_004_syn.fits',
-        'f606w': 'wfc3_uvis_f606w_004_syn.fits',
+        'wfc3 f438w': 'wfc3_uvis_f438w_004_syn.fits',
+        'wfc3 f606w': 'wfc3_uvis_f606w_004_syn.fits',
         'cousins i': 'cousins_i_004_syn.fits',
         'sdss u': 'sdss-u.fits',
         'sdss g': 'sdss-g.fits',
