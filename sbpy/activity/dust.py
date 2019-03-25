@@ -221,7 +221,8 @@ class DustComaQuantity(u.SpecificTypeQuantity, abc.ABC,
 
         """
 
-        fluxd1cm = cls(1 * u.cm).to_fluxd(wfb, fluxd, aper, eph, **kwargs)
+        fluxd1cm = cls(1 * u.cm).to_fluxd(wfb, aper, eph, unit=fluxd.unit,
+                                          **kwargs)
 
         if isinstance(fluxd1cm, u.Magnitude):
             coma = cls((fluxd - fluxd1cm).physical * u.cm)
@@ -260,7 +261,8 @@ class DustComaQuantity(u.SpecificTypeQuantity, abc.ABC,
         # will handle the photometric quantities in `_source_fluxd`.
 
         # validate eph
-        eph = Ephem(eph)
+        if not isinstance(eph, Ephem):
+            eph = Ephem.from_dict(eph)
 
         # rho = effective circular aperture radius at the distance of
         # the comet.  Keep track of array dimensionality as Ephem
@@ -280,7 +282,7 @@ class DustComaQuantity(u.SpecificTypeQuantity, abc.ABC,
         # * blackbody emission for Efrho
         # quantity = (delta**2 * F / rho) / source
         # must have spectral flux density units
-        source = self._source_fluxd(wfb, eph, **kwargs)
+        source = self._source_fluxd(wfb, eph, unit=unit, **kwargs)
 
         if isinstance(source, u.Magnitude):
             _source = source.physical
@@ -362,7 +364,7 @@ class Afrho(DustComaQuantity):
 
     @classmethod
     def from_fluxd(cls, wfb, fluxd, aper, eph, **kwargs):
-        return super().from_fluxd(cls, wfb, fluxd, aper, eph, **kwargs)
+        return super().from_fluxd(wfb, fluxd, aper, eph, **kwargs)
 
     from_fluxd.__doc__ = DustComaQuantity.from_fluxd.__doc__ + """
         Examples
@@ -552,7 +554,7 @@ class Efrho(DustComaQuantity):
 
     @classmethod
     def from_fluxd(cls, wfb, fluxd, aper, eph, **kwargs):
-        return super().from_fluxd(cls, wfb, fluxd, aper, eph, **kwargs)
+        return super().from_fluxd(wfb, fluxd, aper, eph, **kwargs)
 
     from_fluxd.__doc__ = DustComaQuantity.from_fluxd.__doc__ + """
         Examples
@@ -608,7 +610,7 @@ class Efrho(DustComaQuantity):
     
     """
 
-    def _source_fluxd(wfb, eph, unit=None, Tscale=1.1, T=None, B=None):
+    def _source_fluxd(self, wfb, eph, unit=None, Tscale=1.1, T=None, B=None):
         bib.register('activity.dust.Efrho.fluxd',
                      {'model': '2013Icar..225..475K'})
 

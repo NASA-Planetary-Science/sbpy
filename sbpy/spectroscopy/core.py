@@ -1215,12 +1215,18 @@ class BlackbodySource(SpectralSource):
 
     Parameters
     ----------
-    T : `~astropy.units.Quantity`
+    T : `~astropy.units.Quantity`, required
         Temperature.
 
     """
 
     def __init__(self, T=None):
+
+        import synphot
+
+        if T is None:
+            raise TypeError('T is required.')
+
         self._T = u.Quantity(T, u.K)
         source = synphot.SourceSpectrum(
             synphot.BlackBody1D, temperature=self._T.value) * np.pi
