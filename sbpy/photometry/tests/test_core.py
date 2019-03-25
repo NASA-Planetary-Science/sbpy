@@ -59,8 +59,9 @@ class TestLinear():
         pha_test = np.linspace(0, 180, 10) * u.deg
         eph = linphase.mag(pha_test)
         mag_test = np.array([5., 5.8, 6.6, 7.4, 8.2, 9., 9.8, 10.6, 11.4, 12.2])*u.mag
-        assert u.isclose(eph['mag'], mag_test).all()
-        assert u.isclose(eph['alpha'], pha_test).all()
+        if LooseVersion(astropy.__version__) >= req_ver:
+            assert u.isclose(eph['mag'], mag_test).all()
+            assert u.isclose(eph['alpha'], pha_test).all()
         assert set(eph.column_names) == {'alpha', 'mag'}
 
     def test_ref(self):
@@ -94,12 +95,14 @@ class TestLinear():
           [1., 0.47863009, 0.22908677, 0.10964782, 0.05248075,
            0.02511886, 0.01202264, 0.0057544, 0.00275423,
            0.00131826]) * u.dimensionless_unscaled
-        assert u.isclose(eph['ref'], ref_test).all()
-        assert u.isclose(eph['alpha'], pha_test).all()
+        if LooseVersion(astropy.__version__) >= req_ver:
+            assert u.isclose(eph['ref'], ref_test).all()
+            assert u.isclose(eph['alpha'], pha_test).all()
         assert set(eph.column_names) == {'alpha', 'ref'}
         eph_norm = linphase.ref(pha_test, normalized=0*u.deg)
-        assert u.isclose(eph_norm['ref'], ref_norm_test).all()
-        assert u.isclose(eph_norm['alpha'], pha_test).all()
+        if LooseVersion(astropy.__version__) >= req_ver:
+            assert u.isclose(eph_norm['ref'], ref_norm_test).all()
+            assert u.isclose(eph_norm['alpha'], pha_test).all()
         assert set(eph_norm.column_names) == {'alpha', 'ref'}
 
     def test_props(self):
@@ -179,8 +182,9 @@ class TestHG:
            6.63099954, 7.2461781, 7.32734464, 8.00147425, 8.40595306]) * u.mag
         m0 = HG()
         m = m0.fit(pha, data)
-        assert str(m.H) == "Parameter('H', value=3.436677464580658, unit=mag)"
-        assert str(m.G) == "Parameter('G', value=0.18575884331805023, unit=)"
+        assert isinstance(m, HG)
+        assert isinstance(m.H, Parameter) & np.isclose(m.H.value, 3.436677) & (m.H.unit == u.mag)
+        assert isinstance(m.G, Parameter) & np.isclose(m.G.value, 0.1857588) & (m.G.unit == u.dimensionless_unscaled)
 
     def test_from_data(self):
         pha = np.array(
@@ -194,9 +198,9 @@ class TestHG:
            5.52976173, 5.64255607, 5.84536878, 6.13724017, 6.33675472,
            6.63099954, 7.2461781, 7.32734464, 8.00147425, 8.40595306]) * u.mag
         m = HG.from_data(pha, data)
-        assert str(type(m)) == "<class 'sbpy.photometry.core.HG'>\nName: HG\nInputs: ('x',)\nOutputs: ('y',)\nFittable parameters: ('H', 'G')"
-        assert str(m.H) == "Parameter('H', value=3.436677464580658, unit=mag)"
-        assert str(m.G) == "Parameter('G', value=0.18575884331805023, unit=)"
+        assert isinstance(m, HG)
+        assert isinstance(m.H, Parameter) & np.isclose(m.H.value, 3.436677) & (m.H.unit == u.mag)
+        assert isinstance(m.G, Parameter) & np.isclose(m.G.value, 0.1857588) & (m.G.unit == u.dimensionless_unscaled)
 
     def test_mag(self):
         ceres = HG(3.34, 0.12, radius=480)
@@ -237,9 +241,10 @@ class TestHG:
         eph1 = ceres.mag(eph_test)
         eph2 = ceres.mag(eph_dict)
         assert set(eph1.column_names) == {'alpha', 'delta', 'mag', 'r'}
-        assert u.isclose(eph1['mag'], mag1_test).all()
         assert set(eph2.column_names) == {'alpha', 'delta', 'mag', 'r'}
-        assert u.isclose(eph2['mag'], mag1_test).all()
+        if LooseVersion(astropy.__version__) >= req_ver:
+            assert u.isclose(eph1['mag'], mag1_test).all()
+            assert u.isclose(eph2['mag'], mag1_test).all()
         pha_test = np.linspace(0, np.pi*0.9, 10)
         mag2_test = np.array(
             [3.34, 4.313146162557345, 4.864559927048081, 5.380803492224645,
@@ -247,7 +252,8 @@ class TestHG:
              8.710080153632259, 10.750081745147462,
              15.050706663586855]) * u.mag
         eph3 = ceres.mag(pha_test)
-        assert u.isclose(eph3['mag'], mag2_test).all()
+        if LooseVersion(astropy.__version__) >= req_ver:
+            assert u.isclose(eph3['mag'], mag2_test).all()
         assert set(eph3.column_names) == {'alpha', 'mag'}
 
     def test_ref(self):
@@ -298,9 +304,10 @@ class TestHG:
         eph1 = ceres.ref(eph_test)
         eph2 = ceres.ref(eph_dict)
         assert set(eph1.column_names) == {'alpha', 'delta', 'ref', 'r'}
-        assert u.isclose(eph1['ref'], ref1_test*u.dimensionless_unscaled).all()
         assert set(eph2.column_names) == {'alpha', 'delta', 'ref', 'r'}
-        assert u.isclose(eph2['ref'], ref1_test*u.dimensionless_unscaled).all()
+        if LooseVersion(astropy.__version__) >= req_ver:
+            assert u.isclose(eph1['ref'], ref1_test*u.dimensionless_unscaled).all()
+            assert u.isclose(eph2['ref'], ref1_test*u.dimensionless_unscaled).all()
         pha_test = np.linspace(0, np.pi*0.9, 10)
         ref2_test = np.array(
             [2.87222512e-02, 1.17208744e-02, 7.05333491e-03, 4.38426786e-03,
@@ -313,9 +320,10 @@ class TestHG:
         eph3 = ceres.ref(pha_test)
         eph4 = ceres.ref(pha_test, normalized=0*u.deg)
         assert set(eph3.column_names) == {'alpha', 'ref'}
-        assert u.isclose(eph3['ref'], ref2_test*u.dimensionless_unscaled).all()
         assert set(eph4.column_names) == {'alpha', 'ref'}
-        assert u.isclose(eph4['ref'], ref2_norm_test*u.dimensionless_unscaled).all()
+        if LooseVersion(astropy.__version__) >= req_ver:
+            assert u.isclose(eph3['ref'], ref2_test*u.dimensionless_unscaled).all()
+            assert u.isclose(eph4['ref'], ref2_norm_test*u.dimensionless_unscaled).all()
 
 
 class TestHG1G2:
@@ -390,9 +398,10 @@ class TestHG1G2:
            11.43888611]) * u.mag
         m0 = HG1G2()
         m = m0.fit(pha, data)
-        assert str(m.H) == "Parameter('H', value=7.11671255754441, unit=mag)"
-        assert str(m.G1) == "Parameter('G1', value=0.6392159854798494, unit=)"
-        assert str(m.G2) == "Parameter('G2', value=0.17262569035776615, unit=)"
+        assert isinstance(m, HG1G2)
+        assert isinstance(m.H, Parameter) & np.isclose(m.H.value, 7.1167) & (m.H.unit == u.mag)
+        assert isinstance(m.G1, Parameter) & np.isclose(m.G1.value, 0.63922) & (m.G1.unit == u.dimensionless_unscaled)
+        assert isinstance(m.G2, Parameter) & np.isclose(m.G2.value, 0.17262569) & (m.G2.unit == u.dimensionless_unscaled)
 
     def test_from_data(self):
         pha = np.array(
@@ -407,10 +416,10 @@ class TestHG1G2:
            10.51021594, 10.63215313, 11.15570421, 11.44890748,
            11.43888611]) * u.mag
         m = HG1G2.from_data(pha, data)
-        assert str(type(m)) == "<class 'sbpy.photometry.core.HG1G2'>\nName: HG1G2\nInputs: ('x',)\nOutputs: ('y',)\nFittable parameters: ('H', 'G1', 'G2')"
-        assert str(m.H) == "Parameter('H', value=7.11671255754441, unit=mag)"
-        assert str(m.G1) == "Parameter('G1', value=0.6392159854798494, unit=)"
-        assert str(m.G2) == "Parameter('G2', value=0.17262569035776615, unit=)"
+        assert isinstance(m, HG1G2)
+        assert isinstance(m.H, Parameter) & np.isclose(m.H.value, 7.1167) & (m.H.unit == u.mag)
+        assert isinstance(m.G1, Parameter) & np.isclose(m.G1.value, 0.63922) & (m.G1.unit == u.dimensionless_unscaled)
+        assert isinstance(m.G2, Parameter) & np.isclose(m.G2.value, 0.17262569) & (m.G2.unit == u.dimensionless_unscaled)
 
     def test_mag(self):
         themis = HG1G2(7.063, 0.62, 0.14, radius=100)
@@ -427,7 +436,8 @@ class TestHG1G2:
                              9.29834638, 9.96574599, 10.72080704,
                              11.52317465, 12.15094612,
                              18.65369516, 18.65389398])*u.mag
-        assert u.isclose(themis.mag(pha_test)['mag'], mag_test).all()
+        if LooseVersion(astropy.__version__) >= req_ver:
+            assert u.isclose(themis.mag(pha_test)['mag'], mag_test).all()
 
     def test_ref(self):
         themis = HG1G2(7.063, 0.62, 0.14, radius=100)
@@ -446,7 +456,8 @@ class TestHG1G2:
              2.73755213e-03, 1.48048003e-03, 7.38546998e-04,
              3.52720817e-04, 1.97843827e-04, 4.95704528e-07,
              4.95613763e-07])/u.sr
-        assert u.isclose(themis.ref(pha_test)['ref'], ref_test).all()
+        if LooseVersion(astropy.__version__) >= req_ver:
+            assert u.isclose(themis.ref(pha_test)['ref'], ref_test).all()
 
 
 class TestHG12:
@@ -515,8 +526,9 @@ class TestHG12:
            10.26459992, 10.79316978, 10.79202241, 11.36950747, 11.61018708]) * u.mag
         m0 = HG12()
         m = m0.fit(pha, data)
-        assert str(m.H) == "Parameter('H', value=7.139391777126645, unit=mag)"
-        assert str(m.G12) == "Parameter('G12', value=0.44872099566674006, unit=)"
+        assert isinstance(m, HG12)
+        assert isinstance(m.H, Parameter) & np.isclose(m.H.value, 7.13939) & (m.H.unit == u.mag)
+        assert isinstance(m.G12, Parameter) & np.isclose(m.G12.value, 0.44872) & (m.G12.unit == u.dimensionless_unscaled)
 
     def test_from_data(self):
         pha = np.array(
@@ -531,9 +543,9 @@ class TestHG12:
            10.26459992, 10.79316978, 10.79202241, 11.36950747,
            11.61018708]) * u.mag
         m = HG12.from_data(pha, data)
-        assert str(type(m)) == "<class 'sbpy.photometry.core.HG12'>\nName: HG12\nInputs: ('x',)\nOutputs: ('y',)\nFittable parameters: ('H', 'G12')"
-        assert str(m.H) == "Parameter('H', value=7.139391777126645, unit=mag)"
-        assert str(m.G12) == "Parameter('G12', value=0.44872099566674006, unit=)"
+        assert isinstance(m, HG12)
+        assert isinstance(m.H, Parameter) & np.isclose(m.H.value, 7.13939) & (m.H.unit == u.mag)
+        assert isinstance(m.G12, Parameter) & np.isclose(m.G12.value, 0.44872) & (m.G12.unit == u.dimensionless_unscaled)
 
     def test_mag(self):
         themis = HG12(7.121, 0.68, radius=100)
@@ -546,7 +558,8 @@ class TestHG12:
         themis = HG12(7.121*u.mag, 0.68*u.dimensionless_unscaled, radius=100)
         pha_test = np.linspace(0, np.pi, 10)*u.rad
         mag_test = mag_test * u.mag
-        assert u.isclose(themis.mag(pha_test)['mag'], mag_test).all()
+        if LooseVersion(astropy.__version__) >= req_ver:
+            assert u.isclose(themis.mag(pha_test)['mag'], mag_test).all()
 
     def test_ref(self):
         themis = HG12(7.121, 0.68, radius=100)
@@ -561,7 +574,8 @@ class TestHG12:
         themis = HG12(7.121*u.mag, 0.68*u.dimensionless_unscaled, radius=100)
         pha_test = np.linspace(0, np.pi, 10)*u.rad
         ref_test = ref_test / u.sr
-        assert u.isclose(themis.ref(pha_test)['ref'], ref_test).all()
+        if LooseVersion(astropy.__version__) >= req_ver:
+            assert u.isclose(themis.ref(pha_test)['ref'], ref_test).all()
 
 
 class TestHG12_Pen16:
@@ -629,8 +643,9 @@ class TestHG12_Pen16:
            10.49122575, 10.78544483, 11.12145723, 11.18055954, 11.40468613]) * u.mag
         m0 = HG12_Pen16()
         m = m0.fit(pha, data)
-        assert str(m.H) == "Parameter('H', value=7.09145635891841, unit=mag)"
-        assert str(m.G12) == "Parameter('G12', value=0.6312434748810577, unit=)"
+        assert isinstance(m, HG12_Pen16)
+        assert isinstance(m.H, Parameter) & np.isclose(m.H.value, 7.091456) & (m.H.unit == u.mag)
+        assert isinstance(m.G12, Parameter) & np.isclose(m.G12.value, 0.631243) & (m.G12.unit == u.dimensionless_unscaled)
 
     def test_from_data(self):
         pha = np.array(
@@ -644,9 +659,9 @@ class TestHG12_Pen16:
            9.16195702, 9.54770054, 9.60599559, 10.06129054, 10.22544773,
            10.49122575, 10.78544483, 11.12145723, 11.18055954, 11.40468613]) * u.mag
         m = HG12_Pen16.from_data(pha, data)
-        assert str(type(m)) == "<class 'sbpy.photometry.core.HG12_Pen16'>\nName: HG12_Pen16 (HG12)\nInputs: ('x',)\nOutputs: ('y',)\nFittable parameters: ('H', 'G12')"
-        assert str(m.H) == "Parameter('H', value=7.09145635891841, unit=mag)"
-        assert str(m.G12) == "Parameter('G12', value=0.6312434748810577, unit=)"
+        assert isinstance(m, HG12_Pen16)
+        assert isinstance(m.H, Parameter) & np.isclose(m.H.value, 7.091456) & (m.H.unit == u.mag)
+        assert isinstance(m.G12, Parameter) & np.isclose(m.G12.value, 0.631243) & (m.G12.unit == u.dimensionless_unscaled)
 
     def test_mag(self):
         themis = HG12_Pen16(7.121, 0.68, radius=100)
@@ -659,7 +674,8 @@ class TestHG12_Pen16:
         themis = HG12_Pen16(7.121*u.mag, 0.68*u.dimensionless_unscaled, radius=100)
         pha_test = np.linspace(0, np.pi, 10)*u.rad
         mag_test = mag_test*u.mag
-        assert u.isclose(themis.mag(pha_test)['mag'], mag_test).all()
+        if LooseVersion(astropy.__version__) >= req_ver:
+            assert u.isclose(themis.mag(pha_test)['mag'], mag_test).all()
 
     def test_ref(self):
         themis = HG12_Pen16(7.121, 0.68, radius=100)
@@ -673,4 +689,5 @@ class TestHG12_Pen16:
         themis = HG12_Pen16(7.121*u.mag, 0.68*u.dimensionless_unscaled, radius=100)
         pha_test = np.linspace(0, np.pi, 10)*u.rad
         ref_test = ref_test / u.sr
-        assert u.isclose(themis.ref(pha_test)['ref'], ref_test).all()
+        if LooseVersion(astropy.__version__) >= req_ver:
+            assert u.isclose(themis.ref(pha_test)['ref'], ref_test).all()
