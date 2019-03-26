@@ -136,7 +136,7 @@ def spectral_density_vega(wfb):
     ]
 
 
-def magnitude_reflectance(xsec, unit=u.mag, wfb=None, M_sun=None):
+def magnitude_reflectance(xsec, wfb=None, M_sun=None):
     """Magnitude - reflectance equivalencies to convert between magnitude and
     average reflectance for given scattering cross-section.
 
@@ -177,23 +177,24 @@ def magnitude_reflectance(xsec, unit=u.mag, wfb=None, M_sun=None):
     if wfb is not None:
         sun = Sun.from_default()
         if isinstance(wfb, u.Quantity):
-            M_sun = sun(wfb).to(VEGAmag, spectral_density_vega(wfb)).value
+            f_sun = sun(wfb).to(VEGA, spectral_density_vega(wfb))
         elif isinstance(wfb, (synphot.SpectralElement, str)):
-            M_sun = sun.filt(wfb)[1].to(VEGAmag, spectral_density_vega(wfb)).value
+            f_sun = sun.filt(wfb)[1].to(VEGA, spectral_density_vega(wfb))
         else:
             raise ValueError('unrecognized type for `wfb`')
+        M_sun = f_sun.to(VEGAmag)
+        f_sun = f_sun.value
     else:
         if M_sun is None:
-            M_sun = -26.775
-        elif isinstance(M_sun, u.Quantity):
-            M_sun = M_sun.value
-    return [(unit,
+            M_sun = -26.775 * VEGAmag
+        f_sun = M_sun.to(M_sun.unit.physical_unit).value
+    return [(M_sun.unit.physical_unit,
              u.sr**-1,
-             lambda mag: 10**((M_sun-mag)*0.4)/xsec.to('au2').value,
-             lambda ref: M_sun-2.5*np.log10(ref*xsec.to('au2').value))]
+             lambda mag: mag/(f_sun*xsec.to('au2').value),
+             lambda ref: ref*f_sun*xsec.to('au2').value)]
 
 
-def magnitude_xsection(ref, unit=u.mag, wfb=None, M_sun=None):
+def magnitude_xsection(ref, wfb=None, M_sun=None):
     """Magnitude - cross-section equivalencies to convert between magnitude
     and scattering cross-section for given average reflectance.
 
@@ -234,18 +235,19 @@ def magnitude_xsection(ref, unit=u.mag, wfb=None, M_sun=None):
     if wfb is not None:
         sun = Sun.from_default()
         if isinstance(wfb, u.Quantity):
-            M_sun = sun(wfb).to(VEGAmag, spectral_density_vega(wfb)).value
+            f_sun = sun(wfb).to(VEGA, spectral_density_vega(wfb))
         elif isinstance(wfb, (synphot.SpectralElement, str)):
-            M_sun = sun.filt(wfb)[1].to(VEGAmag, spectral_density_vega(wfb)).value
+            f_sun = sun.filt(wfb)[1].to(VEGA, spectral_density_vega(wfb))
         else:
             raise ValueError('unrecognized type for `wfb`')
+        M_sun = f_sun.to(VEGAmag)
+        f_sun = f_sun.value
     else:
         if M_sun is None:
-            M_sun = -26.775
-        elif isinstance(M_sun, u.Quantity):
-            M_sun = M_sun.value
+            M_sun = -26.775 * VEGAmag
+        f_sun = M_sun.to(M_sun.unit.physical_unit)
     ref = ref.to('1/sr').value
-    return [(unit,
+    return [(M_sun.unit.physical_unit,
              u.km**2,
-             lambda mag: 10**((M_sun-mag)*0.4)/ref*u.au.to('km')**2,
-             lambda xsec: M_sun-2.5*np.log10(ref*xsec*u.km.to('au')**2))]
+             lambda mag: mag/(f_sun*ref)*u.au.to('km')**2,
+             lambda xsec: f_sun*ref*xsec*u.km.to('au')**2)]
