@@ -9,8 +9,8 @@ import os
 import astropy.units as u
 from astropy.utils.state import ScienceState
 from astropy.utils.data import get_pkg_data_filename
-from ..core import SpectralStandard
-from . import sources
+from ..sources import SpectralStandard
+from . import sources as sources
 
 __all__ = [
     'Sun',

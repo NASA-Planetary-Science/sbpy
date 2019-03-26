@@ -7,7 +7,7 @@ import numpy as np
 import astropy.units as u
 from astropy.tests.helper import remote_data
 import synphot
-from ..core import SpectralStandard
+from ..sources import SpectralStandard
 from ... import bib, units, utils
 from ... import exceptions as sbe
 
