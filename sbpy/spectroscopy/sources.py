@@ -426,7 +426,7 @@ class BlackbodySource(SpectralSource):
     Parameters
     ----------
     T : `~astropy.units.Quantity`, required
-        Temperature.
+        Temperature in Kelvin.
 
     """
 

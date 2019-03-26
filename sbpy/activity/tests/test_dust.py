@@ -1,6 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import os
+import sys
+import mock
 import pytest
 import numpy as np
 import astropy.units as u
@@ -8,18 +10,32 @@ from astropy.tests.helper import remote_data
 from astropy.utils.data import get_pkg_data_filename
 import synphot
 from ..dust import *
+from ..core import CircularAperture
 from ...units import VEGAmag, JMmag
 from ...data import Ephem
 from ... import utils
 
 
-def test_phase_HalleyMarcus():
-    assert np.isclose(phase_HalleyMarcus(0 * u.deg), 1.0)
-    assert np.isclose(phase_HalleyMarcus(15 * u.deg), 5.8720e-01)
-    assert np.isclose(phase_HalleyMarcus(14.5 * u.deg), 0.5959274462322928)
-
-
 Wm2um = u.W / u.m**2 / u.um
+
+
+@pytest.mark.parametrize('phase, value', (
+    (0, 1.0),
+    (15, 5.8720e-01),
+    (14.5, 0.5959274462322928)
+))
+def test_phase_HalleyMarcus(phase, value):
+    assert np.isclose(phase_HalleyMarcus(phase * u.deg), value)
+
+
+@pytest.mark.parametrize('phase, value', (
+    (0, 1.0),
+    (15, 5.8720e-01),
+    (14.5, (6.0490e-01 + 5.8720e-01) / 2)
+))
+def test_phase_HalleyMarcus_linear_interp(phase, value):
+    with mock.patch.dict(sys.modules, {'scipy': None}):
+        assert np.isclose(phase_HalleyMarcus(phase * u.deg), value)
 
 
 class TestAfrho:
@@ -40,25 +56,25 @@ class TestAfrho:
         assert not isinstance(v, Afrho)
 
     @pytest.mark.parametrize('wfb, fluxd0, rho, rh, delta, S, afrho0, tol', (
-        (0.55 * u.um, 6.7641725e-14 * Wm2um, '1 arcsec', 1.5, 1.0, None,
+        (0.55 * u.um, 6.7641725e-14 * Wm2um, CircularAperture(1 * u.arcsec),
+         1.5, 1.0, None, 1000, 0.001),
+        (666.21 * u.THz, 5.0717 * u.mJy, 1 * u.arcsec, 1.5, 1.0, None,
          1000, 0.001),
-        (666.21 * u.THz, 5.0717 * u.mJy, '1 arcsec', 1.5, 1.0, None,
-         1000, 0.001),
-        (None, 4.68e-15 * Wm2um, '5000 km', 4.582, 4.042, 1707 * Wm2um,
+        (None, 4.68e-15 * Wm2um, 5000 * u.km, 4.582, 4.042, 1707 * Wm2um,
          1682, 0.01),
-        (None, 16.98 * VEGAmag, '5000 km', 4.582, 4.042, -26.92 * VEGAmag,
+        (None, 16.98 * VEGAmag, 5000 * u.km, 4.582, 4.042, -26.92 * VEGAmag,
          1682, 0.01),
-        (None, 11.97 * u.ABmag, '19.2 arcsec', 1.098, 0.164,
+        (None, 11.97 * u.ABmag, 19.2 * u.arcsec, 1.098, 0.164,
          -26.93 * u.ABmag, 34.9, 0.01),
-        ('WFC3 F606W', 16.98 * VEGAmag, '5000 km', 4.582, 4.042, None,
+        ('WFC3 F606W', 16.98 * VEGAmag, 5000 * u.km, 4.582, 4.042, None,
          1682, 0.02),
-        ('WFC3 F438W', 17.91 * VEGAmag, '5000 km', 4.582, 4.042, None,
+        ('WFC3 F438W', 17.91 * VEGAmag, 5000 * u.km, 4.582, 4.042, None,
          1550, 0.01),
-        ('Cousins I', 7.97 * JMmag, '10000 km', 1.45, 0.49, None,
+        ('Cousins I', 7.97 * JMmag, 10000 * u.km, 1.45, 0.49, None,
          3188, 0.04),
-        ('SDSS r', 11.97 * u.ABmag, '19.2 arcsec', 1.098, 0.164, None,
+        ('SDSS r', 11.97 * u.ABmag, 19.2 * u.arcsec, 1.098, 0.164, None,
          34.9, 0.01),
-        ('SDSS r', 12.23 * u.STmag, '19.2 arcsec', 1.098, 0.164, None,
+        ('SDSS r', 12.23 * u.STmag, 19.2 * u.arcsec, 1.098, 0.164, None,
          34.9, 0.01),
     ))
     def test_from_fluxd(self, wfb, fluxd0, rho, rh, delta, S, afrho0, tol):
@@ -83,7 +99,6 @@ class TestAfrho:
             synphot.units.convert_flux(6182, 11.97 * u.ABmag, u.STmag)
 
         """
-        rho = u.Quantity(rho)
         eph = Ephem(dict(rh=rh * u.au, delta=delta * u.au))
         if isinstance(wfb, str):
             wfb = utils.get_bandpass(wfb)
@@ -97,6 +112,12 @@ class TestAfrho:
             wfb, rho, eph, unit=fluxd0.unit, S=S)
         k = 'atol' if isinstance(fluxd, u.Magnitude) else 'rtol'
         assert np.isclose(fluxd.value, fluxd0.value, **{k: tol})
+
+    def test_source_fluxd_S_error(self):
+        eph = Ephem(dict(rh=1 * u.au, delta=1 * u.au))
+        with pytest.raises(ValueError):
+            assert Afrho.from_fluxd(1 * u.um, 1 * u.Jy, 1 * u.arcsec, eph,
+                                    S=5 * u.m)
 
     def test_phasecor(self):
         a0frho = Afrho(100 * u.cm)
@@ -183,3 +204,9 @@ class TestEfrho:
             wfb, rho, eph, unit=unit, Tscale=1.1, B=B)
         k = 'atol' if isinstance(fluxd, u.Magnitude) else 'rtol'
         assert np.isclose(fluxd0.value, fluxd.value, **{k: tol})
+
+    def test_source_fluxd_B_error(self):
+        eph = Ephem(dict(rh=1 * u.au, delta=1 * u.au))
+        with pytest.raises(ValueError):
+            assert Efrho.from_fluxd(1 * u.um, 1 * u.Jy, 1 * u.arcsec, eph,
+                                    B=5 * u.m)

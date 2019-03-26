@@ -315,7 +315,6 @@ class DustComaQuantity(u.SpecificTypeQuantity, abc.ABC,
         Must respect requested units.
 
         """
-        pass
 
 
 class Afrho(DustComaQuantity):
@@ -414,13 +413,13 @@ class Afrho(DustComaQuantity):
         >>> wave = 0.55 * u.um
         >>> aper = 1 * u.arcsec
         >>> eph = dict(rh=1.5 * u.au, delta=1.0 * u.au)
-        >>> fluxd = afrho.fluxd(wave, aper, eph)
+        >>> fluxd = afrho.to_fluxd(wave, aper, eph)
         >>> print(fluxd)    # doctest: +FLOAT_CMP
         6.730018324465526e-14 W / (m2 um)
 
         With a phase correction:
         >>> eph['phase'] = 30 * u.deg
-        >>> fluxd = afrho.fluxd(wave, aper, eph, phasecor=True)
+        >>> fluxd = afrho.to_fluxd(wave, aper, eph, phasecor=True)
         >>> print(fluxd)    # doctest: +FLOAT_CMP
         2.8017202649540757e-14 W / (m2 um)
 
@@ -428,7 +427,7 @@ class Afrho(DustComaQuantity):
         >>> import sbpy.units as sbu
         >>> import sbpy.utils
         >>> bp = sbpy.utils.get_bandpass('Johnson V')
-        >>> fluxd = afrho.fluxd(bp, aper, eph, unit=sbu.JMmag, 
+        >>> fluxd = afrho.to_fluxd(bp, aper, eph, unit=sbu.JMmag, 
         ...                     phasecor=True)
         >>> print(fluxd)    # doctest: +FLOAT_CMP
         15.321242371548918 mag(JM)
@@ -437,7 +436,7 @@ class Afrho(DustComaQuantity):
 
     def _source_fluxd(self, wfb, eph, unit=None, phasecor=False,
                       Phi=None, S=None):
-        bib.register('activity.dust.Afrho.to_fluxd', {
+        bib.register('activity.dust.Afrho', {
                      'model': '1984AJ.....89..579A'})
 
         # check solar flux density
@@ -604,14 +603,14 @@ class Efrho(DustComaQuantity):
         >>> freq = 15.8 * u.um
         >>> aper = 11.1 * u.arcsec
         >>> eph = {'rh': 4.42 * u.au, 'delta': 4.01 * u.au}
-        >>> fluxd = efrho.fluxd(freq, aper, eph=eph, unit='Jy')
+        >>> fluxd = efrho.to_fluxd(freq, aper, eph=eph, unit='Jy')
         >>> print(fluxd)                           # doctest: +FLOAT_CMP
         0.006519545281786034 Jy
     
     """
 
     def _source_fluxd(self, wfb, eph, unit=None, Tscale=1.1, T=None, B=None):
-        bib.register('activity.dust.Efrho.fluxd',
+        bib.register('activity.dust.Efrho',
                      {'model': '2013Icar..225..475K'})
 
         from numpy import pi
