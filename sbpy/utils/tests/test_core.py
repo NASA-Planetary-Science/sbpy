@@ -8,8 +8,8 @@ from ..core import *
 
 
 @pytest.mark.parametrize('name, avgwave', (
-    ('f438w', 4324.44438089),
-    ('f606w', 5946.7429129),
+    ('wfc3 f438w', 4324.44438089),
+    ('wfc3 f606w', 5946.7429129),
     ('cousins i', 7884.10581303),
     ('sdss u', 3561.78873418),
     ('sdss g', 4718.87224631),

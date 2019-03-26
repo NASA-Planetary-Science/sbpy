@@ -37,7 +37,7 @@ class TestSpectralGradient():
             SpectralGradient(100 / u.um, wave=525 * u.nm)
 
     @pytest.mark.parametrize('wfb, color, S0, atol', (
-        ((get_bandpass('F438W'), get_bandpass('F606W')),
+        ((get_bandpass('WFC3 F438W'), get_bandpass('WFC3 F606W')),
          0.09 * u.mag, 5.0 * u.percent / hundred_nm, 0.2),
         ((550, 650) * u.nm, 0.12 * u.mag, 11 * u.percent / hundred_nm, 0.5),
         ((550, 650) * u.nm, 0.11 * u.mag, 10 * u.percent / hundred_nm, 0.5),
@@ -66,7 +66,7 @@ class TestSpectralGradient():
         assert np.isclose(S.to(S0.unit).value, S0.value, atol=atol)
 
     @pytest.mark.parametrize('wfb, color0, S, atol', (
-        ((get_bandpass('F438W'), get_bandpass('F606W')),
+        ((get_bandpass('WFC3 F438W'), get_bandpass('WFC3 F606W')),
          0.09 * u.mag, 5.0 * u.percent / hundred_nm, 0.003),
         ((550, 650) * u.nm, 0.12 * u.mag, 11 * u.percent / hundred_nm, 0.005),
         ((550, 650) * u.nm, 0.11 * u.mag, 10 * u.percent / hundred_nm, 0.005),
