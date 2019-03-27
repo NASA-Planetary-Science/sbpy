@@ -140,6 +140,11 @@ def magnitude_reflectance(xsec, wfb=None, M_sun=None):
     """Magnitude - reflectance equivalencies to convert between magnitude and
     average reflectance for given scattering cross-section.
 
+    The default magnitude system is ``VEGAmag``, where the apparent magnitude
+    of Vega is assumed to be 0 in all and any wavelengths and bands.  If other
+    magnitude system is used, then it is implicitly inferred from the solar
+    magnitude passed by keyword 'M_sun'.
+
     Parameters
     ----------
     xsec : `~astropy.units.Quantity`
@@ -150,9 +155,10 @@ def magnitude_reflectance(xsec, wfb=None, M_sun=None):
         :func:`~synphot.SpectralElement.from_filter()` for possible
         bandpass names.  If provided, then this parameter overrides `M_sun`.
     M_sun : `~astropy.units.Quantity`
-        Solar magnitude.  If `wfb` is not provided, then `M_sun` will be used
-        in the conversion.  If either `wfb` or `M_sun` is not present, then
-        the default V-band solar magnitude in V-band, -26.775 will be used.
+        Solar magnitude in the same magnitude system as the quantity to be
+        converted.  If `wfb` is not provided, then `M_sun` will be used
+        in the conversion.  If neither `wfb` nor `M_sun` is present, then
+        the default V-band solar magnitude, -26.775 VEGAmag will be used.
 
     Returns
     -------
@@ -164,15 +170,15 @@ def magnitude_reflectance(xsec, wfb=None, M_sun=None):
     >>> import numpy as np
     >>> from astropy import units as u
     >>> from sbpy.units import magnitude_reflectance
-    >>> m = 3.4 * u.mag
+    >>> m = 3.4 * VEGAmag
     >>> xsec = np.pi * (460 * u.km)**2
     >>> ref = m.to('1/sr', magnitude_reflectance(xsec))
     >>> print(f'{ref:.4f}')
     0.0287 1 / sr
     >>>
-    >>> m1 = ref.to(u.mag, magnitude_reflectance(xsec))
+    >>> m1 = ref.to(VEGAmag, magnitude_reflectance(xsec))
     >>> print(f'{m1:.2f}')
-    3.40 mag
+    3.40 mag(VEGA)
     """
     if wfb is not None:
         sun = Sun.from_default()
@@ -198,6 +204,11 @@ def magnitude_xsection(ref, wfb=None, M_sun=None):
     """Magnitude - cross-section equivalencies to convert between magnitude
     and scattering cross-section for given average reflectance.
 
+    The default magnitude system is ``VEGAmag``, where the apparent magnitude
+    of Vega is assumed to be 0 in all and any wavelengths and bands.  If other
+    magnitude system is used, then it is implicitly inferred from the solar
+    magnitude passed by keyword 'M_sun'.
+
     Parameters
     ----------
     ref : `~astropy.units.Quantity`
@@ -208,9 +219,10 @@ def magnitude_xsection(ref, wfb=None, M_sun=None):
         :func:`~synphot.SpectralElement.from_filter()` for possible
         bandpass names.  If provided, then this parameter overrides `M_sun`.
     M_sun : `~astropy.units.Quantity`
-        Solar magnitude.  If `wfb` is not provided, then `M_sun` will be used
-        in the conversion.  If either `wfb` or `M_sun` is not present, then
-        the default V-band solar magnitude in V-band, -26.775 will be used.
+        Solar magnitude in the same magnitude system as the quantity to be
+        converted.  If `wfb` is not provided, then `M_sun` will be used
+        in the conversion.  If neither `wfb` nor `M_sun` is present, then
+        the default V-band solar magnitude, -26.775 VEGAmag will be used.
 
     Returns
     -------
@@ -221,16 +233,16 @@ def magnitude_xsection(ref, wfb=None, M_sun=None):
     --------
     >>> from astropy import units as u
     >>> from sbpy.units import magnitude_xsection
-    >>> m = 3.4 * u.mag
+    >>> m = 3.4 * VEGAmag
     >>> ref = 0.0287 / u.sr
     >>> xsec = m.to('km2', magnitude_xsection(ref))
     >>> radius = np.sqrt(xsec/np.pi)
     >>> print(f'{radius:.2f}')
     459.63 km
     >>>
-    >>> m1 = xsec.to('mag', magnitude_xsection(ref))
+    >>> m1 = xsec.to(VEGAmag, magnitude_xsection(ref))
     >>> print(f'{m1:.2f}')
-    3.40 mag
+    3.40 mag(VEGA)
     """
     if wfb is not None:
         sun = Sun.from_default()
@@ -245,7 +257,7 @@ def magnitude_xsection(ref, wfb=None, M_sun=None):
     else:
         if M_sun is None:
             M_sun = -26.775 * VEGAmag
-        f_sun = M_sun.to(M_sun.unit.physical_unit)
+        f_sun = M_sun.to(M_sun.unit.physical_unit).value
     ref = ref.to('1/sr').value
     return [(M_sun.unit.physical_unit,
              u.km**2,
