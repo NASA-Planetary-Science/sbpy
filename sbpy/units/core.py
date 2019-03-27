@@ -167,11 +167,11 @@ def magnitude_reflectance(xsec, wfb=None, M_sun=None):
     >>> m = 3.4 * VEGAmag
     >>> xsec = np.pi * (460 * u.km)**2
     >>> ref = m.to('1/sr', magnitude_reflectance(xsec))
-    >>> print(f'{ref:.4f}')
+    >>> print('{0:.4f}'.format(ref))
     0.0287 1 / sr
     >>>
     >>> m1 = ref.to(VEGAmag, magnitude_reflectance(xsec))
-    >>> print(f'{m1:.2f}')
+    >>> print('{0:.2f}'.format(m1))
     3.40 mag(VEGA)
     """
     if wfb is not None:
@@ -239,11 +239,11 @@ def magnitude_xsection(ref, wfb=None, M_sun=None):
     >>> ref = 0.0287 / u.sr
     >>> xsec = m.to('km2', magnitude_xsection(ref))
     >>> radius = np.sqrt(xsec/np.pi)
-    >>> print(f'{radius:.2f}')
+    >>> print('{0:.2f}'.format(radius))
     459.69 km
     >>>
     >>> m1 = xsec.to(VEGAmag, magnitude_xsection(ref))
-    >>> print(f'{m1:.2f}')
+    >>> print('{0:.2f}'.format(m1))
     3.40 mag(VEGA)
     """
     if wfb is not None:
