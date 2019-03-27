@@ -332,7 +332,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         mag = np.asanyarray(mag)
         dist_corr = self._distance_module(eph)
         if isinstance(mag, u.Quantity):
-            dist_corr = dist_corr*mag.unit
+            dist_corr = dist_corr * u.mag
         mag0 = mag + dist_corr
 
         if fitter is None:
