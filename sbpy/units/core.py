@@ -192,7 +192,7 @@ def magnitude_reflectance(xsec, wfb=None, M_sun=None):
         f_sun = f_sun.value
     else:
         if M_sun is None:
-            M_sun = -26.775 * VEGAmag
+            M_sun = -26.77471503 * VEGAmag
         if not hasattr(M_sun.unit, 'physical_unit'):
             raise u.UnitTypeError('the magnitude system must be based on a physical unit')
         f_sun = M_sun.to(M_sun.unit.physical_unit).value
@@ -240,7 +240,7 @@ def magnitude_xsection(ref, wfb=None, M_sun=None):
     >>> xsec = m.to('km2', magnitude_xsection(ref))
     >>> radius = np.sqrt(xsec/np.pi)
     >>> print(f'{radius:.2f}')
-    459.63 km
+    459.69 km
     >>>
     >>> m1 = xsec.to(VEGAmag, magnitude_xsection(ref))
     >>> print(f'{m1:.2f}')
@@ -264,7 +264,7 @@ def magnitude_xsection(ref, wfb=None, M_sun=None):
         f_sun = f_sun.value
     else:
         if M_sun is None:
-            M_sun = -26.775 * VEGAmag
+            M_sun = -26.77471503 * VEGAmag
         if not hasattr(M_sun.unit, 'physical_unit'):
             raise u.UnitTypeError('the magnitude system must be based on a physical unit')
         f_sun = M_sun.to(M_sun.unit.physical_unit).value
