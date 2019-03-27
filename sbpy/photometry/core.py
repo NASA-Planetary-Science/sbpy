@@ -13,6 +13,7 @@ __all__ = ['ref2mag', 'mag2ref', 'spline',
            'ResolvedPhotometricModelClass', 'ROLO']
 
 from collections import OrderedDict
+import warnings
 import numpy as np
 from numbers import Number
 from scipy.integrate import quad
@@ -665,6 +666,8 @@ class HG(DiskIntegratedPhaseFunc):
 
     @staticmethod
     def evaluate(pha, hh, gg):
+        if np.max(gg) > 1.194:
+            warnings.warn('G parameter could result in a non-monotonic phase function', RuntimeWarning)
         func = (1-gg)*HG._hgphi(pha, 1)+gg*HG._hgphi(pha, 2)
         if isinstance(func, u.Quantity):
             func = func.value
@@ -787,6 +790,8 @@ class HG1G2(HG12BaseClass):
 
     @staticmethod
     def evaluate(ph, h, g1, g2):
+        if (np.min(g1) < 0) or (np.min(g2) < 0) or (np.max(g1+g2) > 1):
+            warnings.warn('G1, G2 parameter combination might result in a non-monotonic phase function', RuntimeWarning)
         func = g1*HG1G2._phi1(ph)+g2*HG1G2._phi2(ph)+(1-g1-g2)*HG1G2._phi3(ph)
         if isinstance(func, u.Quantity):
             func = func.value
@@ -862,9 +867,14 @@ class HG12(HG12BaseClass):
 
     @staticmethod
     def evaluate(ph, h, g):
+        if (g < -0.70) or (g > 1.30):
+            warnings.warn('G12 parameter could result in a non-monotonic phase function', RuntimeWarning)
         g1 = HG12._G12_to_G1(g)
         g2 = HG12._G12_to_G2(g)
-        return HG1G2.evaluate(ph, h, g1, g2)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            out = HG1G2.evaluate(ph, h, g1, g2)
+        return out
 
     @staticmethod
     def fit_deriv(ph, h, g):
