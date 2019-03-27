@@ -45,12 +45,6 @@ JMmag.__doc__ = ("Johnson-Morgan magnitude system: Vega is 0.03 mag at "
                  "all wavelengths (Johnson et al. 1966; Bessell & Murphy "
                  "2012).")
 
-try:
-    import synphot
-except ImportError:
-    warn(AstropyWarning('synphot required for Vega-based magnitude'
-                        ' conversions.'))
-
 
 def enable():
     """Enable `sbpy` units in the top-level `~astropy.units` namespace.
@@ -169,7 +163,7 @@ def magnitude_reflectance(xsec, wfb=None, M_sun=None):
     --------
     >>> import numpy as np
     >>> from astropy import units as u
-    >>> from sbpy.units import magnitude_reflectance
+    >>> from sbpy.units import magnitude_reflectance, VEGAmag
     >>> m = 3.4 * VEGAmag
     >>> xsec = np.pi * (460 * u.km)**2
     >>> ref = m.to('1/sr', magnitude_reflectance(xsec))
@@ -181,6 +175,12 @@ def magnitude_reflectance(xsec, wfb=None, M_sun=None):
     3.40 mag(VEGA)
     """
     if wfb is not None:
+        try:
+            import synphot
+        except ImportError:
+            warn(AstropyWarning('synphot required for Vega-based magnitude'
+                            ' conversions.'))
+            return []
         sun = Sun.from_default()
         if isinstance(wfb, u.Quantity):
             f_sun = sun(wfb).to(VEGA, spectral_density_vega(wfb))
@@ -193,6 +193,8 @@ def magnitude_reflectance(xsec, wfb=None, M_sun=None):
     else:
         if M_sun is None:
             M_sun = -26.775 * VEGAmag
+        if not hasattr(M_sun.unit, 'physical_unit'):
+            raise u.UnitTypeError('the magnitude system must be based on a physical unit')
         f_sun = M_sun.to(M_sun.unit.physical_unit).value
     return [(M_sun.unit.physical_unit,
              u.sr**-1,
@@ -232,7 +234,7 @@ def magnitude_xsection(ref, wfb=None, M_sun=None):
     Examples
     --------
     >>> from astropy import units as u
-    >>> from sbpy.units import magnitude_xsection
+    >>> from sbpy.units import magnitude_xsection, VEGAmag
     >>> m = 3.4 * VEGAmag
     >>> ref = 0.0287 / u.sr
     >>> xsec = m.to('km2', magnitude_xsection(ref))
@@ -245,6 +247,12 @@ def magnitude_xsection(ref, wfb=None, M_sun=None):
     3.40 mag(VEGA)
     """
     if wfb is not None:
+        try:
+            import synphot
+        except ImportError:
+            warn(AstropyWarning('synphot required for Vega-based magnitude'
+                            ' conversions.'))
+            return []
         sun = Sun.from_default()
         if isinstance(wfb, u.Quantity):
             f_sun = sun(wfb).to(VEGA, spectral_density_vega(wfb))
@@ -257,6 +265,8 @@ def magnitude_xsection(ref, wfb=None, M_sun=None):
     else:
         if M_sun is None:
             M_sun = -26.775 * VEGAmag
+        if not hasattr(M_sun.unit, 'physical_unit'):
+            raise u.UnitTypeError('the magnitude system must be based on a physical unit')
         f_sun = M_sun.to(M_sun.unit.physical_unit).value
     ref = ref.to('1/sr').value
     return [(M_sun.unit.physical_unit,
