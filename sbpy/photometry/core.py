@@ -6,7 +6,7 @@ created on June 23, 2017
 
 """
 
-__all__ = ['ref2mag', 'mag2ref', 'spline',
+__all__ = ['ref2mag', 'mag2ref',
            'DiskIntegratedPhaseFunc', 'LinearPhaseFunc', 'HG', 'HG12', 'HG1G2', 'HG12_Pen16',
            'DiskFunctionModel', 'LommelSeeliger', 'Lambert', 'LunarLambert',
            'PhaseFunctionModel', 'ROLOPhase',
@@ -137,7 +137,7 @@ def mag2ref(mag, radius, M_sun=None):
         return ref
 
 
-class spline(object):
+class _spline(object):
     """Cubic spline class
 
     Spline function is defined by function values at nodes and the first
@@ -727,7 +727,7 @@ class HG12BaseClass(DiskIntegratedPhaseFunc):
         tmp = float(self._G1+self._G2)
         return (1-tmp)/tmp
 
-    class _spline_positive(spline):
+    class _spline_positive(_spline):
         """
         Define a spline class that clips negative function values
         """
