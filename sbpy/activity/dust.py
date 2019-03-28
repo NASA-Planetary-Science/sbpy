@@ -277,6 +277,10 @@ class DustComaQuantity(u.SpecificTypeQuantity, abc.ABC,
 
         ndim = max(ndim, np.ndim(self))
 
+        # validate unit
+        if unit is not None:
+            unit = u.Unit(unit)
+
         # get source spectral flux density
         # * sunlight for Afrho,
         # * blackbody emission for Efrho
@@ -298,7 +302,7 @@ class DustComaQuantity(u.SpecificTypeQuantity, abc.ABC,
         return fluxd.to(source.unit)
 
     @abc.abstractmethod
-    def _source_fluxd(self, wfb, eph, units=None, **kwargs):
+    def _source_fluxd(self, wfb, eph, unit=None, **kwargs):
         """Photometric calibration of dust coma quantity.
 
         quantity = delta**2 * F / rho / source
