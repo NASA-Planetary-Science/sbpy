@@ -87,9 +87,8 @@ class Tracking:
         stop()
 
 
-def to_text():
-    """Convert bibcodes to human readable text.
-
+def to_text(filter=None):
+    """convert bibcodes to human readable text
 
     Returns
     -------
@@ -104,6 +103,10 @@ def to_text():
     for task, ref in _bibliography.items():
         output += '{:s}:\n'.format(task)
         try:
+            if filter is None:
+                pass
+            else:
+                ref = {i: ref[i] for i in ref if i == filter}
             for key, value in ref.items():
                 output += '  {:s}:\n'.format(key)
                 for citation in value:
