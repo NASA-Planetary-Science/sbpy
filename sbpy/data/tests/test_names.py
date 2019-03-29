@@ -26,6 +26,7 @@ comets = {
     'C/-146 P1': {'type': 'C', 'desig': '-146 P1'},
     'C/2001 A2-A (LINEAR)': {'type': 'C', 'desig': '2001 A2',
                              'fragm': 'A', 'name': 'LINEAR'},
+    'P/2010 WK (LINEAR}': {'type': 'P', 'desig': '2010 WK', 'name': 'LINEAR'},
     'C/2013 US10': {'type': 'C', 'desig': '2013 US10'},
     'C/2015 V2 (Johnson)': {'type': 'C', 'desig': '2015 V2', 'name': 'Johnson'}
 }
