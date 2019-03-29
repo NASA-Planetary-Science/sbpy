@@ -58,8 +58,6 @@ def test_spectral_density_vega_wf(wf, fluxd, to):
 
 
 @pytest.mark.parametrize('filename, fluxd, to, tol', (
-    ('cousins_i_004_syn.fits', 2478.76 * u.Jy, 0 * JMmag, 0.015),
-    ('cousins_i_004_syn.fits', 0 * JMmag, 2478.76 * u.Jy, 0.015),
     ('sdss-r.fits', 2.55856e-9 * u.Unit('erg/(s cm2 AA)'), 0 * JMmag,
      0.005),
     ('sdss-r.fits', 0 * JMmag, 2.55856e-9 * u.Unit('erg/(s cm2 AA)'),
