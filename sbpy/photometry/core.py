@@ -362,7 +362,7 @@ class SpectralGradient(u.SpecificTypeQuantity):
         """Re-normalize to another wavelength.
 
         The slope is linearly extrapolated to the new normalization
-        point.  Requires the `wave` attribute to be defined, see
+        point.  Requires the `wave0` attribute to be defined, see
         `~SpectralGradient`.
 
 
