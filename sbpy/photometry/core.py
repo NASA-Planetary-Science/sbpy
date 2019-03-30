@@ -631,6 +631,11 @@ class HG(DiskIntegratedPhaseFunc):
     H = Parameter(description='H parameter', default=8)
     G = Parameter(description='G parameter', default=0.4)
 
+    @G.validator
+    def G(self, value):
+        if np.any(value > 1.194):
+            warnings.warn('G parameter could result in a non-monotonic phase function', RuntimeWarning)
+
     @staticmethod
     def _hgphi(pha, i):
         """Core function in IAU HG phase function model
@@ -666,8 +671,6 @@ class HG(DiskIntegratedPhaseFunc):
 
     @staticmethod
     def evaluate(pha, hh, gg):
-        if np.max(gg) > 1.194:
-            warnings.warn('G parameter could result in a non-monotonic phase function', RuntimeWarning)
         func = (1-gg)*HG._hgphi(pha, 1)+gg*HG._hgphi(pha, 2)
         if isinstance(func, u.Quantity):
             func = func.value
@@ -780,6 +783,16 @@ class HG1G2(HG12BaseClass):
     G1 = Parameter(description='G1 parameter', default=0.2)
     G2 = Parameter(description='G2 parameter', default=0.2)
 
+    @G1.validator
+    def G1(self, value):
+        if np.any(value < 0) or np.any(value + self.G2 > 1):
+            warnings.warn('G1, G2 parameter combination might result in a non-monotonic phase function', RuntimeWarning)
+
+    @G2.validator
+    def G2(self, value):
+        if np.any(value < 0) or np.any(value + self.G1 > 1):
+            warnings.warn('G1, G2 parameter combination might result in a non-monotonic phase function', RuntimeWarning)
+
     @property
     def _G1(self):
         return self.G1.value
@@ -790,8 +803,6 @@ class HG1G2(HG12BaseClass):
 
     @staticmethod
     def evaluate(ph, h, g1, g2):
-        if (np.min(g1) < 0) or (np.min(g2) < 0) or (np.max(g1+g2) > 1):
-            warnings.warn('G1, G2 parameter combination might result in a non-monotonic phase function', RuntimeWarning)
         func = g1*HG1G2._phi1(ph)+g2*HG1G2._phi2(ph)+(1-g1-g2)*HG1G2._phi3(ph)
         if isinstance(func, u.Quantity):
             func = func.value
@@ -841,6 +852,11 @@ class HG12(HG12BaseClass):
     H = Parameter(description='H parameter', default=8)
     G12 = Parameter(description='G12 parameter', default=0.3)
 
+    @G12.validator
+    def G12(self, value):
+        if np.any(value < -0.70) or np.any(value > 1.30):
+            warnings.warn('G12 parameter could result in a non-monotonic phase function', RuntimeWarning)
+
     @property
     def _G1(self):
         return self._G12_to_G1(self.G12.value)
@@ -867,14 +883,9 @@ class HG12(HG12BaseClass):
 
     @staticmethod
     def evaluate(ph, h, g):
-        if (g < -0.70) or (g > 1.30):
-            warnings.warn('G12 parameter could result in a non-monotonic phase function', RuntimeWarning)
         g1 = HG12._G12_to_G1(g)
         g2 = HG12._G12_to_G2(g)
-        with warnings.catch_warnings():
-            warnings.simplefilter('ignore')
-            out = HG1G2.evaluate(ph, h, g1, g2)
-        return out
+        return HG1G2.evaluate(ph, h, g1, g2)
 
     @staticmethod
     def fit_deriv(ph, h, g):
