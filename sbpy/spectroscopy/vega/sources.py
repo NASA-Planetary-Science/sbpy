@@ -18,6 +18,6 @@ available = [
 
 Bohlin2014 = {
     'filename': 'alpha_lyr_stis_008-edit.fits',
-    'description': 'Spectrum of Bohlin 2014',
+    'description': 'Dust-free template spectrum of Bohlin 2014',
     'bibcode': '2014AJ....147..127B'
 }

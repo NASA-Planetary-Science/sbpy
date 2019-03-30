@@ -12,21 +12,22 @@ import synphot
 from ..core import *
 
 
-def test_synphot_import_fail():
-    with mock.patch.dict(sys.modules, {'synphot': None}):
-        assert spectral_density_vega(1 * u.um) == []
-
-
-def test_enable():
+@pytest.mark.parametrize('unit,test', (
+    ('VEGA', 'VEGA'),
+    ('VEGAflux', 'VEGA'),
+    ('mag(VEGA)', 'mag(VEGA)'),
+    ('mag(VEGAflux)', 'mag(VEGA)'),
+    ('JM', 'JM'),
+    ('JMflux', 'JM'),
+    ('mag(JM)', 'mag(JM)'),
+    ('mag(JMflux)', 'mag(JM)')))
+def test_enable(unit, test):
     with enable():
-        assert str(u.Unit('VEGA')) == 'VEGA'
-        assert str(u.Unit('VEGAflux')) == 'VEGA'
-        assert str(u.Unit('mag(VEGA)')) == 'mag(VEGA)'
-        assert str(u.Unit('mag(VEGAflux)')) == 'mag(VEGA)'
-        assert str(u.Unit('JM')) == 'JM'
-        assert str(u.Unit('JMflux')) == 'JM'
-        assert str(u.Unit('mag(JM)')) == 'mag(JM)'
-        assert str(u.Unit('mag(JMflux)')) == 'mag(JM)'
+        assert str(u.Unit(unit)) == test
+
+
+def test_hundred_nm():
+    assert (1 * hundred_nm).to(u.nm).value == 100
 
 
 @pytest.mark.parametrize('wf, fluxd, to', (
@@ -74,8 +75,10 @@ def test_spectral_density_vega_wf(wf, fluxd, to):
 def test_spectral_density_vega_bp(filename, fluxd, to, tol):
     """Test VEGAmag conversions for bandpasses.
 
-    Compare to Willmer 2018 Vega-mag zerpoints (Vega assumed to be
-    0.03 mag).
+    Compare to Willmer 2018 Vega-mag zerpoints.  According to Eq. 13,
+    Table 3 assumes Vega is 0 mag, but only the Cousins I filter
+    tested here agrees with that definition.  The rest have better
+    agreement with 0.03 mag.
 
     """
     fn = get_pkg_data_filename(os.path.join(
@@ -88,3 +91,8 @@ def test_spectral_density_vega_bp(filename, fluxd, to, tol):
         assert np.isclose(v.value, to.value, atol=tol)
     else:
         assert np.isclose(v.value, to.value, rtol=tol)
+
+
+def test_spectral_density_vega_synphot_import_fail():
+    with mock.patch.dict(sys.modules, {'synphot': None}):
+        assert spectral_density_vega(1 * u.um) == []

@@ -159,6 +159,7 @@ Reference/API
    sbpy/imageanalysis.rst
    sbpy/thermal.rst
    sbpy/units.rst
+   sbpy/utils.rst
    sbpy/obsutil.rst
    sbpy/bib.rst
 
