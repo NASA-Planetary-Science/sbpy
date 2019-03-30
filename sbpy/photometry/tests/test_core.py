@@ -24,18 +24,6 @@ def test_mag2ref():
         assert u.isclose(mag2ref(3.32, 460*u.km), 0.03185556322261901/u.sr)
 
 
-def test_spline():
-    nodes = np.array([10, 20, 30, 40, 50])
-    values = np.array([1.2, 3.5, 8.9, 15.3, 30])
-    dy = np.array([0.5, 2])
-    y = spline(nodes, values, dy)
-    x_test = np.linspace(5, 55, 10)
-    y_test = np.array([-1.3, 1.45926293, 2.73994342, 4.12536376,
-                       7.223823, 10.4137113, 13.8713955, 19.75606139,
-                       28.90522609, 40.])
-    assert np.isclose(y(x_test), y_test).all()
-
-
 class TestLinear():
     def test_init(self):
         linphase = LinearPhaseFunc(5, 2.29, radius=300)
