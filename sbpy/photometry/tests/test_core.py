@@ -7,6 +7,7 @@ from astropy.modeling import Parameter
 from ..core import *
 from ...data import Ephem
 from distutils.version import LooseVersion
+import pytest
 
 req_ver = LooseVersion('3.0.2')
 
@@ -313,6 +314,9 @@ class TestHG:
             assert u.isclose(eph3['ref'], ref2_test*u.dimensionless_unscaled).all()
             assert u.isclose(eph4['ref'], ref2_norm_test*u.dimensionless_unscaled).all()
 
+    def test_g_validate(self):
+        with pytest.warns(RuntimeWarning):
+            m = HG(0, 1.2)
 
 class TestHG1G2:
     def test_init(self):
@@ -447,6 +451,12 @@ class TestHG1G2:
         if LooseVersion(astropy.__version__) >= req_ver:
             assert u.isclose(themis.ref(pha_test)['ref'], ref_test).all()
 
+    def test_g1g2_validator(self):
+        with pytest.warns(RuntimeWarning):
+            m = HG1G2(0, -0.2, 0.5)
+            m = HG1G2(0, 0.5, -0.2)
+            m = HG1G2(0, 0.6, 0.6)
+
 
 class TestHG12:
     def test_init(self):
@@ -565,6 +575,11 @@ class TestHG12:
         if LooseVersion(astropy.__version__) >= req_ver:
             assert u.isclose(themis.ref(pha_test)['ref'], ref_test).all()
 
+    def test_g_validator(self):
+        with pytest.warns(RuntimeWarning):
+            m = HG12(0, -0.71)
+            m = HG12(0, 1.31)
+
 
 class TestHG12_Pen16:
     def test_init(self):
@@ -679,3 +694,8 @@ class TestHG12_Pen16:
         ref_test = ref_test / u.sr
         if LooseVersion(astropy.__version__) >= req_ver:
             assert u.isclose(themis.ref(pha_test)['ref'], ref_test).all()
+
+    def test_g_validator(self):
+        with pytest.warns(RuntimeWarning):
+            m = HG12(0, -0.71)
+            m = HG12(0, 1.31)
