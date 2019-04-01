@@ -1,4 +1,4 @@
----
+--
 title: 'sbpy: A Python module for small-body planetary astronomy'
 tags:
   - python
@@ -71,12 +71,12 @@ telescopic observations from the ground or from space - utilizes a
 wide range of methods that are common in observational
 astronomy. However, some aspects, including the planning of
 observations, as well as the analysis and interpretation of the
-results, require tailored techniques and models that are disparate
-from those used most other astronomical fields of research. Currently,
-there is no single open source software package available to support
-small-body planetary astronomers in their study of asteroids and
-comets in the same way in which ``Astropy`` [@astropy; @astropy2]
-supports the general astronomy community.
+results, require tailored techniques and models that are unique and
+disparate from those used in most other fields of
+astronomy. Currently, there is no single open source software package
+available to support small-body planetary astronomers in their study
+of asteroids and comets in the same way in which ``Astropy``
+[@astropy; @astropy2] supports the general astronomy community.
 
 ``sbpy`` is a community effort to build a Python package for
 small-body planetary astronomy in the form of an ``Astropy`` affiliated
@@ -85,7 +85,7 @@ well-documented code for the scientific study of asteroids and comets,
 including (but not limited to):
 
 * observation planning tools tailored to moving objects;
-* photometry models for resolved and unresolved observations;
+* photometric models for resolved and unresolved observations;
 * wrappers and tools for astrometry and orbit fitting;
 * spectroscopy analysis tools and models for reflected solar light and
   emission from gas;
@@ -93,8 +93,8 @@ including (but not limited to):
 * asteroid thermal models for flux estimation and size/albedo estimation;
 * image enhancement tools for comet comae and PSF subtraction tools;
 * lightcurve and shape analysis tools;
-* access tools for various databases for orbital and physical data, as
-  well as ephemerides services.
+* access tools for various databases containing orbital and physical data,
+  as well as ephemerides services.
 
 ``sbpy`` is available and being maintained as a github repository at
 [github.com/NASA-Planetary-Science/sbpy](https://github.com/NASA-Planetary-Science/sbpy);
@@ -120,7 +120,7 @@ and consistent access to its functionality.
 separated by the individual tasks listed above. The following
 schematic provides an overview of these modules and their
 interrelations as indicated through colored symbols. The main modules,
-shown as black boxes, interact through data countainers for
+shown as black boxes, interact through data containers for
 ephemerides and observations (red box symbol), orbits (blue triangle),
 physical properties (green diamond), and target names (orange
 cross). All modules make use of the reference tracking system (purple
@@ -131,7 +131,7 @@ circle).
 ``sbpy`` is designed to support both professional researchers and
 interested citizen scientists in their activities.
 
-# Acknowledgements
+# Acknowledgments
 
 The development of ``sbpy`` is supported by NASA PDART Grant
 No. 80NSSC18K0987.
