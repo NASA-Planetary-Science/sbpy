@@ -799,6 +799,7 @@ class Spectrum():
 class SpectralStandard(ABC):
     """Abstract base class for SBPy spectral standards.
 
+
     Parameters
     ----------
     source : `~synphot.SourceSpectrum`
@@ -834,6 +835,7 @@ class SpectralStandard(ABC):
     def from_array(cls, wave, fluxd, meta=None, **kwargs):
         """Create standard from arrays.
 
+
         Parameters
         ----------
         wave : `~astropy.units.Quantity`
@@ -867,6 +869,7 @@ class SpectralStandard(ABC):
         """Load the source spectrum from a file.
 
         NaNs are dropped.
+
 
         Parameters
         ----------
@@ -1000,6 +1003,7 @@ class SpectralStandard(ABC):
         SinglePointSpectrumError - If requested wavelengths or
             frequencies has only one value.
 
+
         Notes
         -----
         Method adapted from AstroBetter post by Jessica Lu:
@@ -1131,7 +1135,7 @@ class SpectralStandard(ABC):
 
         return wave, fluxd
 
-    def color_index(self, wfb, unit):
+    def color_index(self, wfb, unit, equivalencies=[], equiv_func=None):
         """Color index (magnitudes) and effective wavelengths.
 
 
@@ -1145,6 +1149,18 @@ class SpectralStandard(ABC):
             Units for the output, e.g., ``astropy.units.ABmag`` or
             ``sbpy.units.VEGAmag``.
 
+        equivalencies : list, optional
+            List of unit equivalencies for magnitude-flux-density
+            conversion.
+
+        equiv_func : callable, optional
+            A function that takes the effective wavelength of the
+            observation and generates an equivalency list, e.g., use
+            :func:`~sbpy.units.spectral_density_vega` for Vega-based
+            magnitude conversions.
+            :func:`~sbpy.units.spectral_density` is automatically
+            included.
+
 
         Returns
         -------
@@ -1157,8 +1173,6 @@ class SpectralStandard(ABC):
 
         """
 
-        from ..units import spectral_density_vega
-
         eff_wave = np.zeros(2) * u.um
         m = np.zeros(2) * u.Unit(unit)
         for i in range(2):
@@ -1168,9 +1182,11 @@ class SpectralStandard(ABC):
             else:
                 eff_wave[i], f = self.filt(wfb[i])
 
-            eqv = (spectral_density_vega(wfb[i])
-                   + u.spectral_density(eff_wave[i]))
-            m[i] = f.to(m.unit, eqv)
+            eqv = u.spectral_density(eff_wave[i])
+            if equiv_func is not None:
+                eqv.extend(equiv_func(eff_wave[i]))
+
+            m[i] = f.to(m.unit, equivalencies + eqv)
         ci = m[0] - m[1]
 
         return eff_wave, ci

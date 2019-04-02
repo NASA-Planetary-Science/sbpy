@@ -162,7 +162,7 @@ class TestSpectralStandard:
 
     @pytest.mark.parametrize('wfb, test, atol', (
         ((utils.get_bandpass('johnson v'), utils.get_bandpass('cousins i')),
-         0.0171 * units.VEGAmag, 0.001),
+         0.0273 * units.VEGAmag, 0.001),
         ((600 * u.nm, 750 * u.nm), -0.242 * u.ABmag, 0.001)
     ))
     def test_color_index(self, wfb, test, atol):
@@ -170,7 +170,8 @@ class TestSpectralStandard:
         w = u.Quantity(np.linspace(0.3, 1.0), 'um')
         f = u.Quantity(np.ones(len(w)) * w.value**-3, 'W/(m2 um)')
         s = Star.from_array(w, f)
-        eff_wave, ci = s.color_index(wfb, test.unit)
+        eff_wave, ci = s.color_index(
+            wfb, test.unit, equiv_func=units.spectral_density_vega)
         assert np.isclose(ci.value, test.value, atol=atol)
 
     def test_color_index_typeerror(self):
