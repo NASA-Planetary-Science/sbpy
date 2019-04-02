@@ -58,8 +58,8 @@ class Sun(SpectralStandard):
     Create solar standard from `synphot.SourceSpectrum`:
     >>> import astropy.constants as const
     >>> import synphot
-    >>> source = synphot.SourceSpectrum(synphot.BlackBody1D, temperature=5770)
-    >>> source *= (3.14159 * const.R_sun**2 / const.au**2).decompose().value
+    >>> source = (synphot.SourceSpectrum(synphot.BlackBody1D, temperature=5770)
+    ...           (3.14159 * const.R_sun**2 / const.au**2).decompose())
     >>> sun = Sun(source, description='5770 K blackbody Sun')
 
     Create solar standard from an array:
@@ -68,8 +68,8 @@ class Sun(SpectralStandard):
     >>> import astropy.constants as const
     >>> from astropy.modeling.blackbody import blackbody_lambda
     >>> wave = np.logspace(-1, 2) * u.um
-    >>> fluxd = blackbody_lambda(wave, 5770 * u.K) * np.pi * u.sr
-    >>> fluxd *= (const.R_sun**2 / const.au**2).decompose().value
+    >>> fluxd = (blackbody_lambda(wave, 5770 * u.K) * np.pi * u.sr
+    ...          (const.R_sun**2 / const.au**2).decompose())
     >>> sun = Sun.from_array(wave, fluxd, description='5770 K blackbody Sun')
 
     Create solar standard from a file:
