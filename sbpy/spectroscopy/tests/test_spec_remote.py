@@ -21,7 +21,7 @@ def test_remote_prodrate_simple_hcn():
     hcn = Table.read(data_path('HCN.csv'), format="ascii.csv")
 
     temp_estimate = 47. * u.K
-    target = '900918'
+    target = '103P'
     vgas = 0.8 * u.km / u.s
     aper = 30 * u.m  # The aperture for telescope used (Drahus et al. 2012)
     b = 1.13  # Value taken from (Drahus et al. 2012)
@@ -60,7 +60,7 @@ def test_remote_prodrate_simple_ch3oh():
 
     ch3oh = Table.read(data_path('CH3OH.csv'), format="ascii.csv")
     temp_estimate = 47. * u.K
-    target = '900918'
+    target = '103P'
     vgas = 0.8 * u.km / u.s
     aper = 30 * u.m  # The aperture for telescope used (Drahus et al. 2012)
     b = 1.13  # Value taken from (Drahus et al. 2012)
