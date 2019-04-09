@@ -26,20 +26,20 @@ class Sun(SpectralStandard):
     Parameters
     ----------
     wave : `~astropy.units.Quantity`
-      The spectral wavelengths.
+        Spectral wavelengths.
 
     fluxd : `~astropy.units.Quantity`
-      The solar flux densities, at 1 au.
+        Solar spectral flux density at 1 au.
 
     description : string, optional
-      A brief description of the source spectrum.
+        Brief description of the source spectrum.
 
     bibcode : string, optional
-      Bibliography code for `sbpy.bib.register`.
+        Bibliography code for `sbpy.bib.register`.
 
     meta : dict, optional
-      Any additional meta data, passed on to
-      `~synphot.SourceSpectrum`.
+        Any additional meta data, passed on to
+        `~synphot.SourceSpectrum`.
 
 
     Attributes
@@ -58,8 +58,8 @@ class Sun(SpectralStandard):
     Create solar standard from `synphot.SourceSpectrum`:
     >>> import astropy.constants as const
     >>> import synphot
-    >>> source = synphot.SourceSpectrum(synphot.BlackBody1D, temperature=5770)
-    >>> source *= (3.14159 * const.R_sun**2 / const.au**2).decompose().value
+    >>> source = (synphot.SourceSpectrum(synphot.BlackBody1D, temperature=5770)
+    ...           (3.14159 * const.R_sun**2 / const.au**2).decompose())
     >>> sun = Sun(source, description='5770 K blackbody Sun')
 
     Create solar standard from an array:
@@ -68,15 +68,28 @@ class Sun(SpectralStandard):
     >>> import astropy.constants as const
     >>> from astropy.modeling.blackbody import blackbody_lambda
     >>> wave = np.logspace(-1, 2) * u.um
-    >>> fluxd = blackbody_lambda(wave, 5770 * u.K) * np.pi * u.sr
-    >>> fluxd *= (const.R_sun**2 / const.au**2).decompose().value
+    >>> fluxd = (blackbody_lambda(wave, 5770 * u.K) * np.pi * u.sr
+    ...          (const.R_sun**2 / const.au**2).decompose())
     >>> sun = Sun.from_array(wave, fluxd, description='5770 K blackbody Sun')
 
     Create solar standard from a file:
     >>> sun = Sun.from_file('filename')        # doctest: +SKIP
 
-    Evaluate solar standard at 1 μm:
-    >>> print(sun(1 * u.um))                   # doctest: +SKIP
+    Interpolate to 0.62 μm:
+    >>> sun(0.62 * u.um)                       # doctest: +FLOAT_CMP
+    <Quantity 1720.5108871 W / (m2 um)>
+
+    Observe as through a spectrometer:
+    >>> import numpy as np
+    >>> import astropy.units as u
+    >>> sun = Sun.from_default()
+    >>> wave = np.linspace(1, 2.5) * u.um
+    >>> fluxd = sun.observe(wave)              # doctest: +IGNORE_OUTPUT
+
+    Observe as through a filter:
+    >>> sun = Sun.from_default()
+    >>> sun.observe('johnson_v')               # doctest: +FLOAT_CMP
+    <Quantity [1839.93273227] W / (m2 um)>
 
     """
 
@@ -93,8 +106,8 @@ class Sun(SpectralStandard):
         Parameters
         ----------
         name : string
-          The name of a solar spectrum parameter set in
-          `sbpy.spectroscopy.sun.sources`.
+            The name of a solar spectrum parameter set in
+            `sbpy.spectroscopy.sun.sources`.
 
         """
 
@@ -119,6 +132,17 @@ class Sun(SpectralStandard):
         """Return the `sbpy` default solar spectrum."""
         return default_sun.get()
 
+    @staticmethod
+    def show_builtin():
+        """List built-in solar spectra."""
+        from astropy.table import Table
+        rows = []
+        for name in sources.available:
+            source = getattr(sources, name)
+            rows.append((name, source['description']))
+        Table(rows=rows, names=('name', 'description')).pprint(
+            max_lines=-1, max_width=-1)
+
 
 class default_sun(ScienceState):
     """Get/set the `sbpy` default solar spectrum.
@@ -129,7 +153,7 @@ class default_sun(ScienceState):
 
     To change it:
 
-    >>> from sbpy.spectroscopy.sun import default_sun
+    >>> from sbpy.spectroscopy import default_sun
     >>> with default_sun.set('E490_2014'):
     ...     # E490_2014 in effect
     ...     pass

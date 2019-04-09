@@ -26,20 +26,20 @@ class Vega(SpectralStandard):
     Parameters
     ----------
     wave : `~astropy.units.Quantity`
-      The spectral wavelengths.
+        Spectral wavelengths.
 
     fluxd : `~astropy.units.Quantity`
-      The solar flux densities, at 1 au.
+        Spectral flux density.
 
     description : string, optional
-      A brief description of the source spectrum.
+        Brief description of the source spectrum.
 
     bibcode : string, optional
-      Bibliography code for `sbpy.bib.register`.
+        Bibliography code for `sbpy.bib.register`.
 
     meta : dict, optional
-      Any additional meta data, passed on to
-      `~synphot.SourceSpectrum`.
+        Any additional meta data, passed on to
+        `~synphot.SourceSpectrum`.
 
 
     Attributes
@@ -53,7 +53,7 @@ class Vega(SpectralStandard):
     Examples
     --------
     Get the default Vega spectrum:
-    >>> vega = Vega.from_default()               # doctest: +REMOTE_DATA +IGNORE_OUTPUT
+    >>> vega = Vega.from_default()               # doctest: +IGNORE_OUTPUT
 
     Create Vega from a file:
     >>> vega = Vega.from_file('filename')        # doctest: +SKIP
@@ -104,15 +104,27 @@ class Vega(SpectralStandard):
         """Return the `sbpy` default Vega spectrum."""
         return default_vega.get()
 
+    @staticmethod
+    def show_builtin():
+        """List built-in Vega spectra."""
+        from astropy.table import Table
+        rows = []
+        for name in sources.available:
+            source = getattr(sources, name)
+            rows.append((name, source['description']))
+        Table(rows=rows, names=('name', 'description')).pprint(
+            max_lines=-1, max_width=-1)
+
 
 class default_vega(ScienceState):
     """Get/set the `sbpy` default Vega spectrum.
 
     To change it:
 
-    >>> from sbpy.spectroscopy.vega import default_vega
+    >>> from sbpy.spectroscopy import default_vega
     >>> with default_vega(Vega.from_file(filename))  # doctest: +SKIP
     ...     # Vega from filename in effect
+    ...     pass
 
     """
     _value = 'Bohlin2014'

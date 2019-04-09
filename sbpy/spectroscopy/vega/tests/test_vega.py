@@ -39,6 +39,13 @@ class TestVega:
             f = vega(3e14 * u.Hz)
             assert np.isclose(f.value, 2129.13636259)  # Jy
 
+    def test_show_builtin(self, capsys):
+        from ..sources import available
+        Vega.show_builtin()
+        captured = capsys.readouterr()
+        for spec in available:
+            assert spec in captured.out
+
 
 class Test_default_vega:
     def test_validate_str(self):
