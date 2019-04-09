@@ -431,7 +431,7 @@ class Afrho(DustComaQuantity):
         >>> import sbpy.units as sbu
         >>> import sbpy.utils
         >>> bp = sbpy.utils.get_bandpass('Johnson V')
-        >>> fluxd = afrho.to_fluxd(bp, aper, eph, unit=sbu.JMmag, 
+        >>> fluxd = afrho.to_fluxd(bp, aper, eph, unit=sbu.JMmag,
         ...                     phasecor=True)
         >>> print(fluxd)    # doctest: +FLOAT_CMP
         15.321242371548918 mag(JM)
@@ -610,7 +610,7 @@ class Efrho(DustComaQuantity):
         >>> fluxd = efrho.to_fluxd(freq, aper, eph=eph, unit='Jy')
         >>> print(fluxd)                           # doctest: +FLOAT_CMP
         0.006519545281786034 Jy
-    
+
     """
 
     def _source_fluxd(self, wfb, eph, unit=None, Tscale=1.1, T=None, B=None):
