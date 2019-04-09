@@ -23,15 +23,15 @@ The *Afρ* parameter of A'Hearn et al (1984) is based on observations of idealiz
   >>> from sbpy.activity import Afrho, Efrho
   >>> 
   >>> afrho = Afrho(100 * u.cm)
-  >>> print(afrho)
+  >>> print(afrho)    # doctest: +FLOAT_CMP
   100.0 cm
   >>> efrho = Efrho(afrho * 3.5)
-  >>> print(efrho)
+  >>> print(efrho)    # doctest: +FLOAT_CMP
   350.0 cm
 
 They may be converted to other units of length just like any `Quantity`:
 
-  >>> afrho.to('m')
+  >>> afrho.to('m')    # doctest: +FLOAT_CMP
   <Afrho 1. m>
  
 
@@ -90,7 +90,7 @@ To use the Kurucz (1993) model:
 .. doctest-requires:: synphot
 
    >>> from sbpy.spectroscopy.sun import default_sun
-   >>> with default_sun.set('Kurucz1993'):            # doctest: +REMOTE_DATA
+   >>> with default_sun.set('Kurucz1993'):           # doctest: +REMOTE_DATA
    ...     print(afrho.to_fluxd(wave, aper, eph))    # doctest: +FLOAT_CMP
    [7.62582935e-14 1.06322888e-13 9.55650074e-14] W / (m2 um)
    
@@ -104,7 +104,7 @@ Reproduce the *εfρ* of 246P/NEAT from Kelley et al. (2013).
   >>> eph = {'rh': 4.28 * u.au, 'delta': 3.71 * u.au}
   >>> efrho = Efrho.from_fluxd(wave, fluxd, aper, eph)
   >>> for i in range(len(wave)):
-  ...     print('{:5.1f} at {:.1f}'.format(efrho[i], wave[i]))  # doctest: +FLOAT_CMP
+  ...     print('{:5.1f} at {:.1f}'.format(efrho[i], wave[i]))    # doctest: +FLOAT_CMP
   406.2 cm at 15.8 um
   427.9 cm at 22.3 um
 
@@ -127,7 +127,7 @@ Estimate the *Afρ* of comet C/2012 S1 (ISON) based on Pan-STARRS 1 photometry i
   >>> afrho = Afrho.from_fluxd(w, m, aper, eph)
   >>> print(afrho)    # doctest: +FLOAT_CMP
   1948.496075629444 cm
-  >>> m2 = afrho.to_fluxd(w, aper, eph, unit=u.ABmag)   # doctest: +FLOAT_CMP
+  >>> m2 = afrho.to_fluxd(w, aper, eph, unit=u.ABmag)    # doctest: +FLOAT_CMP
   >>> print(m2)
   16.02 mag(AB)
 
@@ -138,7 +138,7 @@ Phase angles and functions
 Phase angle was not used in the previous section.  The default behavior for `Afrho` is to compute *A(θ)fρ* (as opposed to *A(0°)fρ*).  Returning to the A'Hearn et al. data, we scale *Afρ* to 0° from to 3.3° phase using the :func:`~sbpy.activity.Afrho.to_phase` method:
 
   >>> afrho = Afrho(6029.9 * u.cm)
-  >>> print(afrho.to_phase(0 * u.deg, 3.3 * u.deg))  # doctest: +FLOAT_CMP
+  >>> print(afrho.to_phase(0 * u.deg, 3.3 * u.deg))    # doctest: +FLOAT_CMP
   6886.825981017757 cm
 
 The default phase function is the Halley-Marcus composite phase function (:func:`~sbpy.activity.phase_HalleyMarcus`), but any callable that returns a scale factor from an angle:
