@@ -998,8 +998,8 @@ class SpectralStandard(ABC):
             The spectrum rebinned.
 
 
-        Raies
-        -----
+        Raises
+        ------
         SinglePointSpectrumError - If requested wavelengths or
             frequencies has only one value.
 
