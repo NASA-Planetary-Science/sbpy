@@ -19,7 +19,7 @@ from warnings import warn
 
 from .. import bib
 from . import conf, DataClass
-from .. import utils
+from . import utils
 
 __all__ = ['Orbit', 'OrbitError', 'OpenOrbError']
 
@@ -181,14 +181,14 @@ class Orbit(DataClass):
         return cls.from_table(all_elem)
 
     @classmethod
-    def from_dastcom5(cls, name):
+    def from_dastcom5(cls, identifier, is_record_number=False):
         """Load orbital elements from the DASTCOM5 Database
         (ftp://ssd.jpl.nasa.gov/pub/ssd/dastcom5.zip).
 
         Parameters
         ----------
-        name: str, mandatory
-            Name of NEO
+        identifier: mandatory
+            Names, numbers, or designations of objects to be queried
 
         Returns
         -------
@@ -205,7 +205,10 @@ class Orbit(DataClass):
         if not os.path.isdir(dastcom5_dir):
             utils.dastcom5.download_dastcom5()
 
-        tb = utils.dastcom5.orbit_from_name(name=name)
+        if is_record_number:
+            tb = utils.dastcom5.orbit_from_record(record=identifier)
+        else:
+            tb = utils.dastcom5.orbit_from_name(name=identifier)
         return cls.from_table(tb)
 
     @classmethod
