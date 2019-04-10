@@ -22,7 +22,7 @@ from astropy.modeling import (FittableModel, Fittable1DModel,
 import astropy.units as u
 from astropy import log
 
-from ..data import Ephem
+from ..data import DataClass, Ephem
 from ..spectroscopy.sun import Sun
 from ..units import hundred_nm
 
@@ -563,7 +563,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
     # Whether or not the model input is allowed to be dimensionless
     input_units_allow_dimensionless = {'x': True}
 
-    def __init__(self, *args, radius=None, M_sun=None, **kwargs):
+    def __init__(self, *args, radius=None, M_sun=None, data=None, **kwargs):
         """Initialize DiskIntegratedPhaseFunc
 
         Parameters
@@ -575,8 +575,41 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
             Solar magnitude.  Needed for magnitude and reflectance conversion.
             If not supplied, the V-band solar magnitude assumed.  See
             `~ref2mag` and `~mag2ref`
-
+        data : `astropy.data.DataClass`
+            If present, the model class will be initialized by a
+            `astropy.data.DataClass` object.  This parameter overrides all
+            other relevant parameters, including model parameters and
+            `n_models`.
         """
+        if isinstance(data, DataClass):
+            par = {}
+            valid = np.ones(len(data), dtype=bool)
+            for p in self.param_names:
+                par[p] = data[p]
+                valid = valid & np.isfinite(par[p])
+            if valid.any():
+                for p in self.param_names:
+                    par[p] = par[p][valid]
+                meta = kwargs.pop('meta', OrderedDict())
+                meta.update({'targetname': data['targetname'][valid]})
+                kwargs['meta'] = meta
+                n_models = len(np.where(valid)[0])
+                kwargs['n_models'] = n_models
+                for p in self.param_names:
+                    val = kwargs.pop(p, None)
+                kwargs.update(par)
+                try:
+                    radius = data['diameter'][valid]/2
+                except KeyError:
+                    pass
+                if n_models == 1:
+                    log.info(f"Model initialized with {n_models} object.")
+                    log.info(f"See `.meta['targetname']` for object included.")
+                else:
+                    log.info(f"Model set initialized with {n_models} objects.")
+                    log.info(f"See `.meta['targetname']` for objects included.")
+            else:
+                raise ValueError('no valid model parameters contained in `data` keyword')
         super().__init__(*args, **kwargs)
         self.radius = radius
         self.M_sun = M_sun
