@@ -1288,6 +1288,13 @@ class HG1G2(HG12BaseClass):
 class HG12(HG12BaseClass):
     """HG12 photometric phase model (Muinonen et al. 2010)
 
+    This system is adopted by IAU as the "standard" model for disk-integrated
+    phase functions of planetary objects.  Note that there is a discontinuity
+    in the derivative for parameter G12, sometimes making the model fitting
+    difficult.  Penttil\"a et al. (2016, Planet. Space Sci. 123, 117-125)
+    revised the H, G12 system such that the G12 parameter has a continuous
+    derivative.  The revised model is implemented in class `G12_Pen16`.
+
     Examples
     --------
 
@@ -1374,6 +1381,12 @@ class HG12(HG12BaseClass):
 
 class HG12_Pen16(HG12):
     """Revised H, G12 model by Penttil\"a et al. (2016)
+
+    This system is the revised H, G12 system by Penttil\"a et al. (2016,
+    Planet. Space Sci. 123, 117-125) that has a continuous derivative with
+    respect to parameter G12.  The original model as adopted by IAU as the
+    "standard" model for disk-integrated phase functions of planetary objects
+    is implemented in class `HG12`.
 
     Examples
     --------
