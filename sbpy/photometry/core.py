@@ -28,6 +28,28 @@ from ..units import hundred_nm
 
 
 def _process_ephem_input(eph, key=None):
+    """Pre-processing `~sbpy.data.Ephem` type input parameter
+
+    This function facilitates flexible input parameter type for those
+    functions that accepts both `~sbpy.data.Ephem` and other simpler data
+    types (such as numpy.ndarray, numbers, or `~astropy.units.Quantity).
+
+    Parameters
+    ----------
+    eph : `~sbpy.data.Ephem`, dict, ndarray, numbers, `~astropy.units.Quantity`
+        The input to be processed.
+    key : str
+        The name of column to be extracted from `~sbpy.data.Ephem`.
+
+    Returns
+    -------
+    eph : `~sbpy.data.Ephem`
+        If input `eph` can be converted to `~sbpy.data.Ephem`, then returns the
+        converted `~sbpy.data.Ephem` object.  If not, then returns `None`.
+    out : ndarray, numbers, `~astropy.units.Qauntity`
+        The colume extracted from input `eph` if it can be converted to
+        `~sbpy.data.Ephem`, or the original input `eph` if it cannot be converted.
+    """
     if eph is None:
         return None, None
     if not isinstance(eph, (Ephem, dict, np.ndarray, Number, u.Quantity)):
@@ -529,8 +551,16 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
     Phase integral is 0.368
     """
 
+    # Some phase function models are defined in magnitude space, such as the
+    # IAU H, G system.  Some phase function models are defined in reflectance
+    # space, such as the disk-integrated phase function of the Hapke model.
+    # _unit defines which unit the model is defined in.
     _unit = None
+
+    # The default unit for model input when the model is dimensional
     input_units = {'x': u.rad}
+
+    # Whether or not the model input is allowed to be dimensionless
     input_units_allow_dimensionless = {'x': True}
 
     def __init__(self, *args, radius=None, M_sun=None, **kwargs):
@@ -583,13 +613,12 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         Parameters
         ----------
         eph : `~sbpy.data.Ephem`, dict_like, or array_like of float
-            If `~sbpy.data.Ephem` or dict_like, must contain a column with a
-            name that's compatible with the alternative names for phase angle
-            (see `~sbpy.data.DataClass`).  If array_like, then it is the phase
-            angles of object.  If any distance (heliocentric and geocentric)
-            is provided, then they will be used to correct magnitude to
-            1 au before fitting.  If no unit is provided via type
-            `~astropy.units.Quantity`, then radiance is assumed for phase
+            If `~sbpy.data.Ephem` or dict_like, must contain 'phaseangle' or
+            the equivalent (see `~sbpy.data.DataClass`).  If array_like, then
+            it is the phase angles of object.  If any distance (heliocentric
+            and geocentric) is provided, then they will be used to correct
+            magnitude to 1 au before fitting.  If no unit is provided via type
+            `~astropy.units.Quantity`, then radians is assumed for phase
             angle, and au is assumed for distances.
         mag : array_like, `~astropy.units.Quantity`
             Magnitude data to be fitted
@@ -600,6 +629,9 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
             If `True`, then the fitter class is returned in a tuple.
             Default: `False`
         **kwargs : Keyword parameters accepted by `fitter.__call__()`.
+            Note that the magnitude uncertainty can also be supplied to the fit
+            via `weights` keyword for all fitters provided by
+            `~astropy.modeling.fitting`.
 
         Returns
         -------
@@ -640,11 +672,14 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         Parameters
         ----------
         eph : any type
-            If `~sbpy.data.Ephem` or dict_like, then it's used to calculate
-            distanc correction.  If no unit is provided via type
-            `~astropy.units.Quantity`, then the distance is assumed to be in
-            unit of au.  For any other data type, a factor 1 a magnitude of 0
-            will be returned
+            If `~sbpy.data.Ephem` or dict_like, then the relevant fields, such
+            as 'rh' and 'delta' or the equivalent will be searched and, if
+            exist, used to calculate distance correction.  If non-exist, then
+            no correction will be included for the corresponding field.  If no
+            unit is provided via type `~astropy.units.Quantity`, then the
+            distance is assumed to be in unit of au.  For any other data type,
+            a factor 1 or magnitude of 0 will be returned (implying no
+            correction).
 
         Returns
         -------
@@ -692,6 +727,9 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
             The fitter class to be used for fitting.  See `.fit()` for
             details.
         **kwargs : Keyword parameters accepted by `fitter.__call__()`.
+            Note that the magnitude uncertainty can also be supplied to the fit
+            via `weights` keyword for all fitters provided by
+            `~astropy.modeling.fitting`.
 
         Returns
         -------
@@ -722,7 +760,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
             the phase angle of object.  If any distance (heliocentric and
             geocentric) is not provided, then it will be assumed to be 1 au.
             If no unit is provided via type `~astropy.units.Quantity`, then
-            radiance is assumed for phase angle, and au is assumed for
+            radians is assumed for phase angle, and au is assumed for
             distances.
 
         Returns
@@ -777,7 +815,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
             the phase angle of object.  If any distance (heliocentric and
             geocentric) is not provided, then it will be assumed to be 1 au.
             If no unit is provided via type `~astropy.units.Quantity`, then
-            radiance is assumed for phase angle, and au is assumed for
+            radians is assumed for phase angle, and au is assumed for
             distances.
 
         Returns
@@ -919,6 +957,11 @@ class HG(DiskIntegratedPhaseFunc):
 
     @G.validator
     def G(self, value):
+        """Validate parameter G to avoid non-monotonic phase function
+
+        If G > 1.194, the phase function could potentially be non-monotoic,
+        and a warning will be issued.
+        """
         if np.any(value > 1.194):
             warnings.warn('G parameter could result in a non-monotonic phase function', RuntimeWarning)
 
@@ -1071,11 +1114,21 @@ class HG1G2(HG12BaseClass):
 
     @G1.validator
     def G1(self, value):
+        """Validate parameter G1 to avoid non-monotonic phase function
+
+        If G1 < 0 or G2 < 0 or G1 + G2 > 1, the phase function could
+        potentially be non-monotoic, and a warning will be issued.
+        """
         if np.any(value < 0) or np.any(value + self.G2 > 1):
             warnings.warn('G1, G2 parameter combination might result in a non-monotonic phase function', RuntimeWarning)
 
     @G2.validator
     def G2(self, value):
+        """Validate parameter G1 to avoid non-monotonic phase function
+
+        If G1 < 0 or G2 < 0 or G1 + G2 > 1, the phase function could
+        potentially be non-monotoic, and a warning will be issued.
+        """
         if np.any(value < 0) or np.any(value + self.G1 > 1):
             warnings.warn('G1, G2 parameter combination might result in a non-monotonic phase function', RuntimeWarning)
 
@@ -1140,6 +1193,11 @@ class HG12(HG12BaseClass):
 
     @G12.validator
     def G12(self, value):
+        """Validate parameter G12 to avoid non-monotonic phase function
+
+        If G12 < -0.70 or G12 > 1.30, the phase function could potentially be
+        non-monotoic, and a warning will be issued.
+        """
         if np.any(value < -0.70) or np.any(value > 1.30):
             warnings.warn('G12 parameter could result in a non-monotonic phase function', RuntimeWarning)
 
