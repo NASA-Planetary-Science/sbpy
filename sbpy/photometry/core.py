@@ -685,11 +685,11 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
                 except KeyError:
                     pass
                 if n_models == 1:
-                    log.info(f"Model initialized with {n_models} object.")
-                    log.info(f"See `.meta['targetname']` for object included.")
+                    log.info("Model initialized with {} object.".format(n_models))
+                    log.info("See `.meta['targetname']` for object included.")
                 else:
-                    log.info(f"Model set initialized with {n_models} objects.")
-                    log.info(f"See `.meta['targetname']` for objects included.")
+                    log.info("Model set initialized with {} objects.".format(n_models))
+                    log.info("See `.meta['targetname']` for objects included.")
             else:
                 raise ValueError('no valid model parameters contained in `data` keyword')
         super().__init__(*args, **kwargs)
