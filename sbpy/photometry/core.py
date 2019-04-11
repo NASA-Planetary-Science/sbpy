@@ -55,7 +55,7 @@ def _process_ephem_input(eph, key=None):
     if not isinstance(eph, (Ephem, dict, np.ndarray, Number, u.Quantity)):
         raise ValueError('`~sbpy.data.Ephem`, `dict`, `numpy.ndarray`, `Number`, or `~astropy.units.Quantity expected, {0} received'.format(type(eph)))
     if isinstance(eph, dict):
-        eph = Ephem(eph)
+        eph = Ephem.from_dict(eph)
     if isinstance(eph, Ephem):
         if key is None:
             out = None
