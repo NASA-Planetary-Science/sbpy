@@ -519,7 +519,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
     Examples
     --------
     Define a linear phase function with phase slope 0.04 mag/deg, and
-    study its properties
+    study its properties:
 
     >>> # Define a disk-integrated phase function model
     >>> import numpy as np
@@ -549,6 +549,88 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
     Bond albedo is 0.0184
     >>> print('Phase integral is {0:.3}'.format(phaseint))
     Phase integral is 0.368
+
+    Initialization with subclass of `~sbpy.data.DataClass`:
+
+    The subclassed models can either be initialized by model parameters, or by
+    subclass of `~sbpy.data.DataClass`.  Below example uses the `HG` model
+    class.
+
+    >>> from sbpy.photometry import HG
+    >>> from sbpy.data import Phys, Orbit, Ephem
+    >>>
+    >>> # Initialize from physical parameters pulled from JPL SBDB
+    >>> phys = Phys.from_sbdb(['Ceres', 'Pallas', '12893', '3552'])
+    >>> print(phys['targetname','H','G'])
+    <QTable length=4>
+            targetname            H       G
+              str26            float64 float64
+    -------------------------- ------- -------
+                       1 Ceres    3.34    0.12
+                      2 Pallas    4.13    0.11
+     12893 Mommert (1998 QS55)    13.9     nan
+    3552 Don Quixote (1983 SA)    12.9     nan
+    >>> m = HG(data = phys)
+    INFO: Model set initialized with 2 objects. [sbpy.photometry.core]
+    INFO: See `.meta['targetname']` for objects included. [sbpy.photometry.core]
+    >>> print(m)
+    Model: HG
+    Inputs: ('x',)
+    Outputs: ('y',)
+    Model set size: 2
+    Parameters:
+         H    G
+        ---- ----
+        3.34 0.12
+        4.13 0.11
+    >>> print(m.meta['targetname'])
+    targetname
+    ----------
+       1 Ceres
+      2 Pallas
+    >>>
+    >>> # Initialize from orbital elements pulled from JPL Horizons that also
+    >>> # contain the H and G parameters
+    >>> elem = Orbit.from_horizons(['Ceres','Pallas','Vesta'])
+    >>> print(elem['targetname','H','G'])
+    <QTable masked=True length=3>
+    targetname    H       G
+                 mag
+       str8    float64 float64
+    ---------- ------- -------
+       1 Ceres    3.34    0.12
+      2 Pallas    4.13    0.11
+       4 Vesta     3.2    0.32
+    >>> m = HG(data=elem)
+    INFO: Model set initialized with 3 objects. [sbpy.photometry.core]
+    INFO: See `.meta['targetname']` for objects included. [sbpy.photometry.core]
+    >>> print(m)
+    Model: HG
+    Inputs: ('x',)
+    Outputs: ('y',)
+    Model set size: 3
+    Parameters:
+         H    G
+        mag
+        ---- ----
+        3.34 0.12
+        4.13 0.11
+         3.2 0.32
+    >>> print(m.meta['targetname'])
+    targetname
+    ----------
+       1 Ceres
+      2 Pallas
+       4 Vesta
+    >>>
+    >>> # Failed initialization due to the lack of field 'G'
+    >>> phys = Phys.from_sbdb(['12893','3552'])
+    >>> print('G' in phys.column_names)
+    False
+    >>> m = HG(data=phys)
+    Traceback (most recent call last):
+      File "<stdin>", line 1, in <module>
+    KeyError: 'field G not available.'
     """
 
     # Some phase function models are defined in magnitude space, such as the
