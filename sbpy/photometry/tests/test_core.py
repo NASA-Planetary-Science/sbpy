@@ -182,10 +182,10 @@ class TestLinear():
         delta = [0.3, 1, 1, 2]
         m = LinearPhaseFunc(5*u.mag, 0.04*u.mag/u.deg)
         module = np.array([4.1195437, -0., -0.39590623, -3.01029996])
-        assert np.isclose(m._distance_module({'r': r, 'delta': delta}), module).all()
+        assert np.isclose(m._distance_module(Ephem.from_dict({'r': r, 'delta': delta})), module).all()
         m = HG(5*u.mag, 0.3*u.dimensionless_unscaled)
         module = np.array([4.1195437, -0., -0.39590623, -3.01029996])
-        assert np.isclose(m._distance_module({'r': r, 'delta': delta}), module).all()
+        assert np.isclose(m._distance_module(Ephem.from_dict({'r': r, 'delta': delta})), module).all()
 
 
 class TestHG:
@@ -308,11 +308,8 @@ class TestHG:
              10.886692329621765, 12.143261499943726, 14.18326309145893,
              18.48388800989832])
         eph1 = ceres.mag(eph_test)
-        eph2 = ceres.mag(eph_dict)
         assert set(eph1.column_names) == {'alpha', 'delta', 'mag', 'r'}
         assert np.isclose(eph1['mag'], mag1_test).all()
-        assert set(eph2.column_names) == {'alpha', 'delta', 'mag', 'r'}
-        assert np.isclose(eph2['mag'], mag1_test).all()
         pha_test = np.linspace(0, np.pi*0.9, 10)
         mag2_test = np.array(
             [3.34, 4.313146162557345, 4.864559927048081, 5.380803492224645,
@@ -333,12 +330,9 @@ class TestHG:
              10.886692329621765, 12.143261499943726, 14.18326309145893,
              18.48388800989832]) * u.mag
         eph1 = ceres.mag(eph_test)
-        eph2 = ceres.mag(eph_dict)
         assert set(eph1.column_names) == {'alpha', 'delta', 'mag', 'r'}
-        assert set(eph2.column_names) == {'alpha', 'delta', 'mag', 'r'}
         if LooseVersion(astropy.__version__) >= req_ver:
             assert u.isclose(eph1['mag'], mag1_test).all()
-            assert u.isclose(eph2['mag'], mag1_test).all()
         pha_test = np.linspace(0, np.pi*0.9, 10)
         mag2_test = np.array(
             [3.34, 4.313146162557345, 4.864559927048081, 5.380803492224645,
@@ -363,11 +357,8 @@ class TestHG:
              0.0002042614521939071, 3.1202240400267656e-05,
              5.942043286373853e-07])
         eph1 = ceres.ref(eph_test)
-        eph2 = ceres.ref(eph_dict)
         assert set(eph1.column_names) == {'alpha', 'delta', 'ref', 'r'}
         assert np.isclose(eph1['ref'], ref1_test).all()
-        assert set(eph2.column_names) == {'alpha', 'delta', 'ref', 'r'}
-        assert np.isclose(eph2['ref'], ref1_test).all()
         pha_test = np.linspace(0, np.pi*0.9, 10)
         ref2_test = np.array(
             [2.87222512e-02, 1.17208744e-02, 7.05333491e-03, 4.38426786e-03,
@@ -396,12 +387,9 @@ class TestHG:
              0.0002042614521939071, 3.1202240400267656e-05,
              5.942043286373853e-07])
         eph1 = ceres.ref(eph_test)
-        eph2 = ceres.ref(eph_dict)
         assert set(eph1.column_names) == {'alpha', 'delta', 'ref', 'r'}
-        assert set(eph2.column_names) == {'alpha', 'delta', 'ref', 'r'}
         if LooseVersion(astropy.__version__) >= req_ver:
             assert u.isclose(eph1['ref'], ref1_test*u.dimensionless_unscaled).all()
-            assert u.isclose(eph2['ref'], ref1_test*u.dimensionless_unscaled).all()
         pha_test = np.linspace(0, np.pi*0.9, 10)
         ref2_test = np.array(
             [2.87222512e-02, 1.17208744e-02, 7.05333491e-03, 4.38426786e-03,
