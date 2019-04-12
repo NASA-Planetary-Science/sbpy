@@ -207,22 +207,22 @@ class TestHG:
         assert ceres.G.unit == u.dimensionless_unscaled
         # test initialization from `sbpy.data.DataClass`
         phys = Phys.from_sbdb(['Ceres', 'Pallas', '12893', '3552'])
-        m = HG(data = phys)
+        m = HG(data=phys)
         for i, tgt in enumerate(m.meta['targetname']):
-            index = phys['targetname']==tgt
-            assert np.isclose(m.param_sets[:,i],
-                phys[index]['H','G'].as_array().view
-                (dtype=((float,float)))).all()
+            index = phys['targetname'] == tgt
+            assert np.isclose(m.param_sets[:, i],
+                phys[index]['H', 'G'].as_array().view
+                (dtype=((float, float)))).all()
             assert np.isclose(m.radius[i].value,
                 phys[index]['diameter'].value/2)
         # test initialization failure with `sbpy.data.DataClass` when H or G
         # is not present
-        phys = Phys.from_sbdb(['12893','3552'])
+        phys = Phys.from_sbdb(['12893', '3552'])
         with pytest.raises(KeyError):
             m = HG(data=phys)
         # test initialization failure with `sbpy.data.DataClass` when no valid
         # parameter set is found
-        phys = Phys.from_sbdb(['Ceres','12893','3552'])
+        phys = Phys.from_sbdb(['Ceres', '12893', '3552'])
         phys[0]['H'] = np.nan
         with pytest.raises(ValueError):
             m = HG(data=phys)
