@@ -7,7 +7,7 @@ import astropy
 from astropy import units as u
 from astropy.modeling import Parameter
 from ..core import *
-from ...data import Ephem
+from ...data import Ephem, Phys
 from ...units import hundred_nm
 from ...utils import get_bandpass
 
@@ -190,6 +190,7 @@ class TestLinear():
 
 class TestHG:
     def test_init(self):
+        # initialize with numbers
         ceres = HG(3.34, 0.12, radius=480*u.km, M_sun=-26.74)
         if LooseVersion(astropy.__version__) >= req_ver:
             assert u.isclose(ceres.radius, 480*u.km)
@@ -198,6 +199,33 @@ class TestHG:
         assert np.isclose(ceres.H.value, 3.34)
         assert isinstance(ceres.G, Parameter)
         assert np.isclose(ceres.G.value, 0.12)
+        # initialize with Quantity
+        ceres = HG(3.34 * u.mag, 0.12 * u.dimensionless_unscaled)
+        assert np.isclose(ceres.H.value, 3.34)
+        assert ceres.H.unit == u.mag
+        assert np.isclose(ceres.G.value, 0.12)
+        assert ceres.G.unit == u.dimensionless_unscaled
+        # test initialization from `sbpy.data.DataClass`
+        phys = Phys.from_sbdb(['Ceres', 'Pallas', '12893', '3552'])
+        m = HG(data = phys)
+        for i, tgt in enumerate(m.meta['targetname']):
+            index = phys['targetname']==tgt
+            assert np.isclose(m.param_sets[:,i],
+                phys[index]['H','G'].as_array().view
+                (dtype=((float,float)))).all()
+            assert np.isclose(m.radius[i].value,
+                phys[index]['diameter'].value/2)
+        # test initialization failure with `sbpy.data.DataClass` when H or G
+        # is not present
+        phys = Phys.from_sbdb(['12893','3552'])
+        with pytest.raises(KeyError):
+            m = HG(data=phys)
+        # test initialization failure with `sbpy.data.DataClass` when no valid
+        # parameter set is found
+        phys = Phys.from_sbdb(['Ceres','12893','3552'])
+        phys[0]['H'] = np.nan
+        with pytest.raises(ValueError):
+            m = HG(data=phys)
 
     def test_evaluate(self):
         pha_test = np.linspace(0, np.pi, 10)
@@ -398,6 +426,7 @@ class TestHG:
 
 class TestHG1G2:
     def test_init(self):
+        # initialization with numbers
         themis = HG1G2(7.063, 0.62, 0.14, radius=100.*u.km, M_sun=-26.74)
         assert themis._unit == 'mag'
         if LooseVersion(astropy.__version__) >= req_ver:
@@ -409,6 +438,20 @@ class TestHG1G2:
         assert np.isclose(themis.G1.value, 0.62)
         assert isinstance(themis.G2, Parameter)
         assert np.isclose(themis.G2.value, 0.14)
+        # initialization with Quantity
+        themis = HG1G2(7.062 * u.mag, 0.62 * u.dimensionless_unscaled,
+            0.14 * u.dimensionless_unscaled)
+        assert np.isclose(themis.H.value, 7.062)
+        assert themis.H.unit == u.mag
+        assert np.isclose(themis.G1.value, 0.62)
+        assert themis.G1.unit == u.dimensionless_unscaled
+        assert np.isclose(themis.G2.value, 0.14)
+        assert themis.G2.unit == u.dimensionless_unscaled
+        # initialization with Phys, will cause exception because G1, G2 are
+        # not generally unavailable.
+        phys = Phys.from_sbdb(['Ceres'])
+        with pytest.raises(KeyError):
+            m = HG1G2(data=phys)
 
     def test__G1_G2(self):
         themis = HG1G2(7.063, 0.62, 0.14, radius=100*u.km, M_sun=-26.74)
