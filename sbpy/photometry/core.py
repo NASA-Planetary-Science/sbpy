@@ -893,7 +893,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         >>> from sbpy.data import Ephem
         >>> ceres_hg = HG(3.34, 0.12)
         >>> # parameter `eph` as `~sbpy.data.Ephem` type
-        >>> eph = Ephem({'alpha': np.linspace(0,np.pi*0.9,200),
+        >>> eph = Ephem.from_dict({'alpha': np.linspace(0,np.pi*0.9,200),
         ...              'r': np.repeat(2.7*u.au, 200),
         ...              'delta': np.repeat(1.8*u.au, 200)})
         >>> mag1 = ceres_hg.mag(eph)
@@ -915,7 +915,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
                 dist_corr = dist_corr*u.mag
             out = out - dist_corr
         if eph is None:
-            eph = Ephem({'alpha': pha, 'mag': out})
+            eph = Ephem.from_dict({'alpha': pha, 'mag': out})
         else:
             eph.add_column(out, name='mag')
         return eph
@@ -948,7 +948,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         >>> from sbpy.data import Ephem
         >>> ceres_hg = HG(3.34, 0.12, radius=480)
         >>> # parameter `eph` as `~sbpy.data.Ephem` type
-        >>> eph = Ephem({'alpha': np.linspace(0,np.pi*0.9,200),
+        >>> eph = Ephem.from_dict({'alpha': np.linspace(0,np.pi*0.9,200),
         ...              'r': np.repeat(2.7*u.au, 200),
         ...              'delta': np.repeat(1.8*u.au, 200)})
         >>> ref1 = ceres_hg.ref(eph)
@@ -972,7 +972,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
             if normalized is not None:
                 out /= mag2ref(norm, self.radius, M_sun=self.M_sun)
         if eph is None:
-            eph = Ephem({'alpha': pha, 'ref': out})
+            eph = Ephem.from_dict({'alpha': pha, 'ref': out})
         else:
             eph.add_column(out, name='ref')
         return eph
