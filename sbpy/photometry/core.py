@@ -36,7 +36,8 @@ def _process_ephem_input(eph, key=None):
 
     Parameters
     ----------
-    eph : `~sbpy.data.Ephem`, dict, ndarray, numbers, `~astropy.units.Quantity`
+    eph : `~sbpy.data.Ephem`, numbers, iterables of numbers, or
+            `~astropy.units.Quantity`
         The input to be processed.
     key : str
         The name of column to be extracted from `~sbpy.data.Ephem`.
@@ -44,25 +45,26 @@ def _process_ephem_input(eph, key=None):
     Returns
     -------
     eph : `~sbpy.data.Ephem`
-        If input `eph` can be converted to `~sbpy.data.Ephem`, then returns the
-        converted `~sbpy.data.Ephem` object.  If not, then returns `None`.
+        If `~sbpy.data.Ephem`, then returns itself.  If not, then returns
+        `None`.
     out : ndarray, numbers, `~astropy.units.Qauntity`
         The colume extracted from input `eph` if it can be converted to
         `~sbpy.data.Ephem`, or the original input `eph` if it cannot be converted.
     """
     if eph is None:
         return None, None
-    if not isinstance(eph, (Ephem, dict, np.ndarray, Number, u.Quantity)):
-        raise ValueError('`~sbpy.data.Ephem`, `dict`, `numpy.ndarray`, `Number`, or `~astropy.units.Quantity expected, {0} received'.format(type(eph)))
-    if isinstance(eph, dict):
-        eph = Ephem.from_dict(eph)
+    if not isinstance(eph, (Ephem, list, tuple, np.ndarray, Number,
+        u.Quantity)):
+        raise TypeError('`~sbpy.data.Ephem`, numbers, iterables of numbers, or `~astropy.units.Quantity` expected, {0} received'.format(type(eph)))
     if isinstance(eph, Ephem):
         if key is None:
             out = None
         else:
             out = eph[key]
     else:
-        out = eph
+        out = np.asanyarray(eph)
+        if not np.issubdtype(out.dtype, np.number):
+            raise TypeError('numerical type expected in iterables.')
         eph = None
     return eph, out
 
