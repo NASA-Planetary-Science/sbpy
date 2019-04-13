@@ -21,13 +21,16 @@ __all__ = [
     'VEGA',
     'VEGAmag',
     'JM',
-    'JMmag'
+    'JMmag',
+    'magnitude_reflectance',
+    'magnitude_xsection'
 ]
 
 from warnings import warn
 import astropy.units as u
 from astropy.utils.exceptions import AstropyWarning
 from ..spectroscopy.vega import Vega
+from ..spectroscopy.sun import Sun
 
 
 VEGA = u.def_unit(['VEGA', 'VEGAflux'],
@@ -133,3 +136,148 @@ def spectral_density_vega(wfb):
         (flam0.unit, VEGA, lambda x: x / flam0.value,
          lambda x: x * flam0.value)
     ]
+
+
+def magnitude_reflectance(xsec, wfb=None, M_sun=None):
+    """Magnitude - reflectance equivalencies to convert between magnitude and
+    average reflectance for given scattering cross-section.
+
+    The default magnitude system is ``VEGAmag``, where the apparent magnitude
+    of Vega is assumed to be 0 in all and any wavelengths and bands.  If other
+    magnitude system is used, then it is implicitly inferred from the solar
+    magnitude passed by keyword 'M_sun'.
+
+    Parameters
+    ----------
+    xsec : `~astropy.units.Quantity`
+        Scattering cross-section of the object of interest
+    wfb : `~astropy.units.Quantity`, `~synphot.SpectralElement`, string
+        Wavelength, frequency, or a bandpass of the corresponding flux
+        density being converted.  See
+        :func:`~synphot.SpectralElement.from_filter()` for possible
+        bandpass names.  If provided, then this parameter overrides `M_sun`.
+    M_sun : `~astropy.units.Quantity`
+        Solar magnitude in the same magnitude system as the quantity to be
+        converted.  If `wfb` is not provided, then `M_sun` will be used
+        in the conversion.  If neither `wfb` nor `M_sun` is present, then
+        the default V-band solar magnitude, -26.775 VEGAmag will be used.
+
+    Returns
+    -------
+    eqv : list
+        List of equivalencies
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from astropy import units as u
+    >>> from sbpy.units import magnitude_reflectance, VEGAmag
+    >>> m = 3.4 * VEGAmag
+    >>> xsec = np.pi * (460 * u.km)**2
+    >>> ref = m.to('1/sr', magnitude_reflectance(xsec))
+    >>> print('{0:.4f}'.format(ref))
+    0.0287 1 / sr
+    >>>
+    >>> m1 = ref.to(VEGAmag, magnitude_reflectance(xsec))
+    >>> print('{0:.2f}'.format(m1))
+    3.40 mag(VEGA)
+    """
+    if wfb is not None:
+        try:
+            import synphot
+        except ImportError:
+            warn(AstropyWarning('synphot required for Vega-based magnitude'
+                            ' conversions.'))
+            return []
+        sun = Sun.from_default()
+        if isinstance(wfb, u.Quantity):
+            f_sun = sun(wfb).to(VEGA, spectral_density_vega(wfb))
+        elif isinstance(wfb, (synphot.SpectralElement, str)):
+            f_sun = sun.filt(wfb)[1].to(VEGA, spectral_density_vega(wfb))
+        else:
+            raise ValueError('unrecognized type for `wfb`')
+        M_sun = f_sun.to(VEGAmag)
+        f_sun = f_sun.value
+    else:
+        if M_sun is None:
+            M_sun = -26.77471503 * VEGAmag
+        if not hasattr(M_sun.unit, 'physical_unit'):
+            raise u.UnitTypeError('the magnitude system must be based on a physical unit')
+        f_sun = M_sun.to(M_sun.unit.physical_unit).value
+    return [(M_sun.unit.physical_unit,
+             u.sr**-1,
+             lambda mag: mag/(f_sun*xsec.to('au2').value),
+             lambda ref: ref*f_sun*xsec.to('au2').value)]
+
+
+def magnitude_xsection(ref, wfb=None, M_sun=None):
+    """Magnitude - cross-section equivalencies to convert between magnitude
+    and scattering cross-section for given average reflectance.
+
+    The default magnitude system is ``VEGAmag``, where the apparent magnitude
+    of Vega is assumed to be 0 in all and any wavelengths and bands.  If other
+    magnitude system is used, then it is implicitly inferred from the solar
+    magnitude passed by keyword 'M_sun'.
+
+    Parameters
+    ----------
+    ref : `~astropy.units.Quantity`
+        Average reflectance of the object of interest
+    wfb : `~astropy.units.Quantity`, `~synphot.SpectralElement`, string
+        Wavelength, frequency, or a bandpass of the corresponding flux
+        density being converted.  See
+        :func:`~synphot.SpectralElement.from_filter()` for possible
+        bandpass names.  If provided, then this parameter overrides `M_sun`.
+    M_sun : `~astropy.units.Quantity`
+        Solar magnitude in the same magnitude system as the quantity to be
+        converted.  If `wfb` is not provided, then `M_sun` will be used
+        in the conversion.  If neither `wfb` nor `M_sun` is present, then
+        the default V-band solar magnitude, -26.775 VEGAmag will be used.
+
+    Returns
+    -------
+    eqv : list
+        List of equivalencies
+
+    Examples
+    --------
+    >>> from astropy import units as u
+    >>> from sbpy.units import magnitude_xsection, VEGAmag
+    >>> m = 3.4 * VEGAmag
+    >>> ref = 0.0287 / u.sr
+    >>> xsec = m.to('km2', magnitude_xsection(ref))
+    >>> radius = np.sqrt(xsec/np.pi)
+    >>> print('{0:.2f}'.format(radius))
+    459.69 km
+    >>>
+    >>> m1 = xsec.to(VEGAmag, magnitude_xsection(ref))
+    >>> print('{0:.2f}'.format(m1))
+    3.40 mag(VEGA)
+    """
+    if wfb is not None:
+        try:
+            import synphot
+        except ImportError:
+            warn(AstropyWarning('synphot required for Vega-based magnitude'
+                            ' conversions.'))
+            return []
+        sun = Sun.from_default()
+        if isinstance(wfb, u.Quantity):
+            f_sun = sun(wfb).to(VEGA, spectral_density_vega(wfb))
+        elif isinstance(wfb, (synphot.SpectralElement, str)):
+            f_sun = sun.filt(wfb)[1].to(VEGA, spectral_density_vega(wfb))
+        else:
+            raise ValueError('unrecognized type for `wfb`')
+        M_sun = f_sun.to(VEGAmag)
+        f_sun = f_sun.value
+    else:
+        if M_sun is None:
+            M_sun = -26.77471503 * VEGAmag
+        if not hasattr(M_sun.unit, 'physical_unit'):
+            raise u.UnitTypeError('the magnitude system must be based on a physical unit')
+        f_sun = M_sun.to(M_sun.unit.physical_unit).value
+    ref = ref.to('1/sr').value
+    return [(M_sun.unit.physical_unit,
+             u.km**2,
+             lambda mag: mag/(f_sun*ref)*u.au.to('km')**2,
+             lambda xsec: f_sun*ref*xsec*u.km.to('au')**2)]

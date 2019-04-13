@@ -96,3 +96,33 @@ def test_spectral_density_vega_bp(filename, fluxd, to, tol):
 def test_spectral_density_vega_synphot_import_fail():
     with mock.patch.dict(sys.modules, {'synphot': None}):
         assert spectral_density_vega(1 * u.um) == []
+
+
+@pytest.mark.parametrize('mag, wfb, M_sun, ref', (
+    (3.4 * VEGAmag, None, None, 0.02865984),
+    (3.4 * VEGAmag, 'johnson_v', None, 0.02865984),
+    (3.4 * VEGAmag, 'johnson_i', None, 0.01387486),
+    (3.4 * VEGAmag, 5500 * u.AA, None, 0.02774623),
+    (3.4 * VEGAmag, None, -25.0 * VEGAmag, 0.14694669),
+    (3.4 * u.ABmag, None, -25.0 * u.ABmag, 0.14694669),
+))
+def test_magnitude_reflectance(mag, wfb, M_sun, ref):
+    xsec = 6.648e5 * u.km**2
+    r = mag.to('1/sr', magnitude_reflectance(xsec, wfb, M_sun))
+    assert r.unit == u.sr**-1
+    assert np.isclose(r.value, ref)
+
+
+@pytest.mark.parametrize('mag, wfb, M_sun, xsec', (
+    (3.4 * VEGAmag, None, None, 664800.062),
+    (3.4 * VEGAmag, 'johnson_v', None, 664800.062),
+    (3.4 * VEGAmag, 'johnson_i', None, 321844.372),
+    (3.4 * VEGAmag, 5500 * u.AA, None, 643607.586),
+    (3.4 * VEGAmag, None, -25.0 * VEGAmag, 3408608.03),
+    (3.4 * u.ABmag, None, -25.0 * u.ABmag, 3408608.03),
+))
+def test_magnitude_xsection(mag, wfb, M_sun, xsec):
+    ref = 0.02865984 / u.sr
+    xs = mag.to('km2', magnitude_xsection(ref, wfb, M_sun))
+    assert xs.unit == u.km**2
+    assert np.isclose(xs.value, xsec)
