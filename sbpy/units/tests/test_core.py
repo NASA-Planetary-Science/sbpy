@@ -108,7 +108,7 @@ def test_spectral_density_vega_synphot_import_fail():
 ))
 def test_magnitude_reflectance(mag, wfb, M_sun, ref):
     xsec = 6.648e5 * u.km**2
-    r = mag.to('1/sr', magnitude_reflectance(xsec, wfb, M_sun))
+    r = mag.to('1/sr', reflectance(cross_section=xsec, wfb=wfb, M_sun=M_sun))
     assert r.unit == u.sr**-1
     assert np.isclose(r.value, ref)
 
@@ -123,6 +123,6 @@ def test_magnitude_reflectance(mag, wfb, M_sun, ref):
 ))
 def test_magnitude_xsection(mag, wfb, M_sun, xsec):
     ref = 0.02865984 / u.sr
-    xs = mag.to('km2', magnitude_xsection(ref, wfb, M_sun))
+    xs = mag.to('km2', reflectance(reflectance=ref, wfb=wfb, M_sun=M_sun))
     assert xs.unit == u.km**2
     assert np.isclose(xs.value, xsec)
