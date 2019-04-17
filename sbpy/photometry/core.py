@@ -672,13 +672,12 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
                 par[p] = data[p]
                 valid = valid & np.isfinite(par[p])
             if valid.any():
+                valid = list(valid).index(True)
                 for p in self.param_names:
                     par[p] = par[p][valid]
                 meta = kwargs.pop('meta', OrderedDict())
                 meta.update({'targetname': data['targetname'][valid]})
                 kwargs['meta'] = meta
-                n_models = len(np.where(valid)[0])
-                kwargs['n_models'] = n_models
                 for p in self.param_names:
                     val = kwargs.pop(p, None)
                 kwargs.update(par)
@@ -686,14 +685,9 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
                     radius = data['diameter'][valid]/2
                 except KeyError:
                     pass
-                if n_models == 1:
-                    log.info("Model initialized with {} object.".format(n_models))
-                    log.info("See `.meta['targetname']` for object included.")
-                else:
-                    log.info("Model set initialized with {} objects.".format(n_models))
-                    log.info("See `.meta['targetname']` for objects included.")
+                log.info("Model initialized for {}.".format(meta['targetname']))
             else:
-                raise ValueError('no valid model parameters contained in `data` keyword')
+                raise ValueError('no valid model parameters found in `data` keyword')
         super().__init__(*args, **kwargs)
         self.radius = radius
         self.M_sun = M_sun
