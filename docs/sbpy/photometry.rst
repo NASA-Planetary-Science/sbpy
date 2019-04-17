@@ -104,20 +104,21 @@ The model class can also be initialized by a subclass of ``sbpy``'s
 model parameters:
 
   >>> from sbpy.data import Phys
-  >>> phys = Phys.from_sbdb(['Ceres', 'Pallas'])
+  >>> phys = Phys.from_sbdb('Ceres')
   >>> m = HG(data=phys)
-  INFO: Model set initialized with 2 objects. [sbpy.photometry.core]
-  INFO: See `.meta['targetname']` for objects included. [sbpy.photometry.core]
+  INFO: Model initialized for 1 Ceres. [sbpy.photometry.core]
   >>> print(m)
   Model: HG
   Inputs: ('x',)
   Outputs: ('y',)
-  Model set size: 2
+  Model set size: 1
   Parameters:
        H    G
       ---- ----
       3.34 0.12
-      4.13 0.11
+
+Note that  model set is not supported.  Only one model can be initialized with
+the first set of valid parameters in the input `~sbpy.data.DataClass`.
 
 To fit a photometric model, one may follow the standard procedure defined in
 ``astropy.modeling`` submodule, first initializing a model, then using one of
