@@ -562,71 +562,44 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
     >>> from sbpy.data import Phys, Orbit, Ephem
     >>>
     >>> # Initialize from physical parameters pulled from JPL SBDB
-    >>> phys = Phys.from_sbdb(['Ceres', 'Pallas', '12893', '3552'])
+    >>> phys = Phys.from_sbdb('Ceres')
     >>> print(phys['targetname','H','G'])
-    <QTable length=4>
-            targetname            H       G
-              str26            float64 float64
-    -------------------------- ------- -------
-                       1 Ceres    3.34    0.12
-                      2 Pallas    4.13    0.11
-     12893 Mommert (1998 QS55)    13.9     nan
-    3552 Don Quixote (1983 SA)    12.9     nan
+    <QTable length=1>
+    targetname    H       G
+       str7    float64 float64
+    ---------- ------- -------
+       1 Ceres    3.34    0.12
     >>> m = HG(data = phys)
-    INFO: Model set initialized with 2 objects. [sbpy.photometry.core]
-    INFO: See `.meta['targetname']` for objects included. [sbpy.photometry.core]
+    INFO: Model initialized for 1 Ceres. [sbpy.photometry.core]
     >>> print(m)
     Model: HG
     Inputs: ('x',)
     Outputs: ('y',)
-    Model set size: 2
+    Model set size: 1
     Parameters:
          H    G
         ---- ----
         3.34 0.12
-        4.13 0.11
     >>> print(m.meta['targetname'])
-    targetname
-    ----------
-       1 Ceres
-      2 Pallas
+    1 Ceres
+    >>> print(m.radius)
+    469.7 km
     >>>
     >>> # Initialize from orbital elements pulled from JPL Horizons that also
     >>> # contain the H and G parameters
-    >>> elem = Orbit.from_horizons(['Ceres','Pallas','Vesta'])
+    >>> elem = Orbit.from_horizons('Ceres')
     >>> print(elem['targetname','H','G'])
-    <QTable masked=True length=3>
+    <QTable masked=True length=1>
     targetname    H       G
                  mag
-       str8    float64 float64
+       str7    float64 float64
     ---------- ------- -------
        1 Ceres    3.34    0.12
-      2 Pallas    4.13    0.11
-       4 Vesta     3.2    0.32
     >>> m = HG(data=elem)
-    INFO: Model set initialized with 3 objects. [sbpy.photometry.core]
-    INFO: See `.meta['targetname']` for objects included. [sbpy.photometry.core]
-    >>> print(m)
-    Model: HG
-    Inputs: ('x',)
-    Outputs: ('y',)
-    Model set size: 3
-    Parameters:
-         H    G
-        mag
-        ---- ----
-        3.34 0.12
-        4.13 0.11
-         3.2 0.32
-    >>> print(m.meta['targetname'])
-    targetname
-    ----------
-       1 Ceres
-      2 Pallas
-       4 Vesta
+    INFO: Model initialized for 1 Ceres. [sbpy.photometry.core]
     >>>
     >>> # Failed initialization due to the lack of field 'G'
-    >>> phys = Phys.from_sbdb(['12893','3552'])
+    >>> phys = Phys.from_sbdb('12893')
     >>> print('G' in phys.column_names)
     False
     >>> m = HG(data=phys)
