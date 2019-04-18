@@ -30,6 +30,7 @@ import astropy.units as u
 from astropy.utils.exceptions import AstropyWarning
 from ..spectroscopy.vega import Vega
 from ..spectroscopy.sun import Sun
+from ..exceptions import SinglePointSpectrumError
 
 
 VEGA = u.def_unit(['VEGA', 'VEGAflux'],
@@ -204,12 +205,10 @@ def reflectance(cross_section=None, reflectance=None, wfb=None, M_sun=None):
                             ' conversions.'))
             return []
         sun = Sun.from_default()
-        if isinstance(wfb, u.Quantity):
+        try:
+            f_sun = sun.observe(wfb, unit='W/(m2 um)')
+        except SinglePointSpectrumError:
             f_sun = sun(wfb, unit='W/(m2 um)')
-        elif isinstance(wfb, (synphot.SpectralElement, str)):
-            f_sun = sun.filt(wfb, unit='W/(m2 um)')[1]
-        else:
-            raise ValueError('unrecognized type for `wfb`')
         f_sun_phys = f_sun.to(VEGA, spectral_density_vega(wfb))
         M_sun = f_sun_phys.to(VEGAmag)
         f_sun = f_sun.value
