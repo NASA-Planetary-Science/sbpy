@@ -138,12 +138,14 @@ def spectral_density_vega(wfb):
     ]
 
 
-@u.quantity_input(cross_section='km2', reflectance='1/sr')
-def reflectance(cross_section=None, reflectance=None, wfb=None, M_sun=None):
+@u.quantity_input(cross_section='km2', reflectance='1/sr',
+        f_sun=['W/(m2 um)', 'W/(m2 Hz)'])
+def reflectance(cross_section=None, reflectance=None, wfb=None, M_sun=None,
+        f_sun=None):
     """Reflectance related equivalencies.
 
-    Support conversion between reflectance, scattering cross-section, and total
-    magnitude.
+    Support conversion from/to reflectance and scattering cross-section
+    to/from total flux and magnitude.
 
     The default magnitude system is ``VEGAmag``, where the apparent magnitude
     of Vega is assumed to be 0 in all and any wavelengths and bands.  If other
@@ -156,16 +158,22 @@ def reflectance(cross_section=None, reflectance=None, wfb=None, M_sun=None):
         Total scattering cross-section
     reflectance : `astropy.units.Quantity`
         Average reflectance
-    wfb : `~astropy.units.Quantity`, `~synphot.SpectralElement`, string
+    wfb : `astropy.units.Quantity`, `synphot.SpectralElement`, string
         Wavelength, frequency, or a bandpass of the corresponding flux
         density being converted.  See
         :func:`~synphot.SpectralElement.from_filter()` for possible
-        bandpass names.  If provided, then this parameter overrides `M_sun`.
-    M_sun : `~astropy.units.Quantity`
+        bandpass names.  ``wfb`` overrides ``f_sun`` and ``M_sun`` if
+        present at the same time.
+    f_sun : `astropy.units.Quantity`
+        Solar flux in a unit convertible to the unit of the quantity to be
+        converted.  If ``wfb`` is not provided, then ``f_sun`` will be used in
+        the conversion.  ``f_sun`` overrides ``M_sun`` if both present.
+    M_sun : `astropy.units.Quantity`
         Solar magnitude in the same magnitude system as the quantity to be
-        converted.  If `wfb` is not provided, then `M_sun` will be used
-        in the conversion.  If neither `wfb` nor `M_sun` is present, then
-        the default V-band solar magnitude, -26.775 VEGAmag will be used.
+        converted.  If neither ``wfb`` nor ``f_sun`` is provided, then
+        ``M_sun`` will be used in the conversion.  If ``M_sun`` is not
+        present either, then the default V-band solar magnitude/flux will be
+        used.
 
     Returns
     -------
@@ -215,24 +223,36 @@ def reflectance(cross_section=None, reflectance=None, wfb=None, M_sun=None):
         M_sun = f_sun_phys.to(VEGAmag)
         f_sun_lam = f_sun_lam.value
         f_sun_nu = f_sun_nu.value
-    else:
-        if M_sun is None:
-            M_sun = -26.77471503 * VEGAmag
-            f_sun_lam = 1839.93273227  # W/(m2 um)
-            f_sun_nu = 1.86599755e-12  # W/(m2 Hz)
-        else:
-            if not hasattr(M_sun.unit, 'physical_unit'):
-                raise u.UnitTypeError('the magnitude system must be based on a physical unit')
-            f_sun_lam = None
+    elif f_sun is not None:
+        if f_sun.unit.is_equivalent('W/(m2 um)'):
+            f_sun_lam = f_sun.to('W/(m2 um)').value
             f_sun_nu = None
+        else:
+            f_sun_nu = f_sun.to('W/(m2 Hz)').value
+            f_sun_lam = None
+        M_sun = None
+    elif M_sun is not None:
+        if not hasattr(M_sun, 'unit'):
+            raise TypeError("Argument 'M_sun' has no 'unit' attribute.  "
+                "You may want to pass in an astropy Quantity instead.")
+        if not hasattr(M_sun.unit, 'physical_unit'):
+            raise u.UnitsError("Argument 'M_sun' must be in a magnitude "
+                "system based on a physical unit")
+        f_sun_lam = None
+        f_sun_nu = None
         f_sun_phys = M_sun.to(M_sun.unit.physical_unit)
+    else:
+        M_sun = -26.77471503 * VEGAmag  # Solar magnitude in 'Johnson-V'
+        f_sun_lam = 1839.93273227  # Solar flux in 'Johnson-V' in W/(m2 um)
+        f_sun_nu = 1.86599755e-12  # Solar flux in 'Johnson-V' in W/(m2 Hz)
     equiv = []
     if cross_section is not None:
         xsec = cross_section.to('au2').value
-        equiv.append((M_sun.unit.physical_unit,
-                      u.sr**-1,
-                      lambda flux: flux/(f_sun_phys*xsec),
-                      lambda ref: ref*f_sun_phys*xsec))
+        if M_sun is not None:
+            equiv.append((M_sun.unit.physical_unit,
+                          u.sr**-1,
+                          lambda flux: flux/(f_sun_phys*xsec),
+                          lambda ref: ref*f_sun_phys*xsec))
         if f_sun_lam is not None:
             equiv.append((u.Unit('W/(m2 um)'),
                           u.sr**-1,
@@ -243,12 +263,13 @@ def reflectance(cross_section=None, reflectance=None, wfb=None, M_sun=None):
                          u.sr**-1,
                          lambda flux: flux/(f_sun_nu*xsec),
                          lambda ref: ref*f_sun_nu*xsec))
-    if reflectance is not None:
+    elif reflectance is not None:
         ref = reflectance.to('1/sr').value
-        equiv.append((M_sun.unit.physical_unit,
-                      u.km**2,
-                      lambda flux: flux/(f_sun_phys*ref)*u.au.to('km')**2,
-                      lambda xsec: f_sun_phys*ref*xsec*u.km.to('au')**2))
+        if M_sun is not None:
+            equiv.append((M_sun.unit.physical_unit,
+                          u.km**2,
+                          lambda flux: flux/(f_sun_phys*ref)*u.au.to('km')**2,
+                          lambda xsec: f_sun_phys*ref*xsec*u.km.to('au')**2))
         if f_sun_lam is not None:
             equiv.append((u.Unit('W/(m2 um)'),
                           u.km**2,
