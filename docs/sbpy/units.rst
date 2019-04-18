@@ -116,8 +116,7 @@ reflectance spectrum:
   >>> flux = [1.636e-18, 1.157e-18, 8.523e-19, 5.262e-19, 1.9645e-19] \
   ...     * u.Unit('W/(m2 um)')
   >>> xsec = 0.0251 * u.km**2
-  >>> ref = flux.to('1/sr', reflectance(cross_section=xsec, wfb=wave))
-  WARNING: Source spectrum is tapered. [synphot.observation]
+  >>> ref = flux.to('1/sr', reflectance(cross_section=xsec, wfb=wave))  # doctest: +SKIP
   >>> print(ref)  # doctest: +FLOAT_CMP
   [0.0021763  0.00201223 0.0022041  0.00269637 0.00292785] 1 / sr
 
