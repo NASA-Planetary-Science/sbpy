@@ -221,6 +221,7 @@ def reflectance(cross_section=None, reflectance=None, wfb=None, M_sun=None,
             f_sun_nu = sun(wfb, unit='W/(m2 Hz)')
         f_sun_phys = f_sun_lam.to(VEGA, spectral_density_vega(wfb))
         M_sun = f_sun_phys.to(VEGAmag)
+        f_sun_phys = f_sun_phys.value
         f_sun_lam = f_sun_lam.value
         f_sun_nu = f_sun_nu.value
     elif f_sun is not None:
@@ -240,9 +241,10 @@ def reflectance(cross_section=None, reflectance=None, wfb=None, M_sun=None,
                 "system based on a physical unit")
         f_sun_lam = None
         f_sun_nu = None
-        f_sun_phys = M_sun.to(M_sun.unit.physical_unit)
+        f_sun_phys = M_sun.to(M_sun.unit.physical_unit).value
     else:
         M_sun = -26.77471503 * VEGAmag  # Solar magnitude in 'Johnson-V'
+        f_sun_phys = 5.12726792e+10  # Solar flux in VEGA
         f_sun_lam = 1839.93273227  # Solar flux in 'Johnson-V' in W/(m2 um)
         f_sun_nu = 1.86599755e-12  # Solar flux in 'Johnson-V' in W/(m2 Hz)
     equiv = []
