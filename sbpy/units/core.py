@@ -205,30 +205,44 @@ def reflectance(cross_section=None, reflectance=None, wfb=None, M_sun=None):
             return []
         sun = Sun.from_default()
         if isinstance(wfb, u.Quantity):
-            f_sun = sun(wfb).to(VEGA, spectral_density_vega(wfb))
+            f_sun = sun(wfb, unit='W/(m2 um)')
         elif isinstance(wfb, (synphot.SpectralElement, str)):
-            f_sun = sun.filt(wfb)[1].to(VEGA, spectral_density_vega(wfb))
+            f_sun = sun.filt(wfb, unit='W/(m2 um)')[1]
         else:
             raise ValueError('unrecognized type for `wfb`')
-        M_sun = f_sun.to(VEGAmag)
+        f_sun_phys = f_sun.to(VEGA, spectral_density_vega(wfb))
+        M_sun = f_sun_phys.to(VEGAmag)
         f_sun = f_sun.value
     else:
         if M_sun is None:
             M_sun = -26.77471503 * VEGAmag
-        if not hasattr(M_sun.unit, 'physical_unit'):
-            raise u.UnitTypeError('the magnitude system must be based on a physical unit')
-        f_sun = M_sun.to(M_sun.unit.physical_unit).value
+            f_sun = 1839.93273227
+        else:
+            if not hasattr(M_sun.unit, 'physical_unit'):
+                raise u.UnitTypeError('the magnitude system must be based on a physical unit')
+            f_sun = None # M_sun.to('W/(m2 um)', mag_equiv('johnson_v')).value
+        f_sun_phys = M_sun.to(M_sun.unit.physical_unit)
     equiv = []
     if cross_section is not None:
         xsec = cross_section.to('au2').value
         equiv.append((M_sun.unit.physical_unit,
                       u.sr**-1,
-                      lambda mag: mag/(f_sun*xsec),
-                      lambda ref: ref*f_sun*xsec))
+                      lambda flux: flux/(f_sun_phys*xsec),
+                      lambda ref: ref*f_sun_phys*xsec))
+        if f_sun is not None:
+            equiv.append((u.Unit('W/(m2 um)'),
+                          u.sr**-1,
+                          lambda flux: flux/(f_sun*xsec),
+                          lambda ref: ref*f_sun*xsec))
     if reflectance is not None:
         ref = reflectance.to('1/sr').value
         equiv.append((M_sun.unit.physical_unit,
                       u.km**2,
-                      lambda mag: mag/(f_sun*ref)*u.au.to('km')**2,
-                      lambda xsec: f_sun*ref*xsec*u.km.to('au')**2))
+                      lambda flux: flux/(f_sun_phys*ref)*u.au.to('km')**2,
+                      lambda xsec: f_sun_phys*ref*xsec*u.km.to('au')**2))
+        if f_sun is not None:
+            equiv.append((u.Unit('W/(m2 um)'),
+                          u.km**2,
+                          lambda flux: flux/(f_sun*ref)*u.au.to('km')**2,
+                          lambda xsec: f_sun*ref*xsec*u.km.to('au')**2))
     return equiv
