@@ -75,6 +75,53 @@ of `~synphot.spectrum.SpectralElement`:
   3.588524658721229e-09
 
 
+Reflectance Units
+-----------------
+
+``sbpy.units`` supports the conversions between reflected flux (often
+expressed in magnitude), and bidirectional reflectance (in unit of 1/sr) and
+scattering cross-section through function `~sbpy.units.reflectance`.
+
+For example, the absolute magnitude of Ceres in V-band is 3.4 in ``VEGAmag``
+system, the radius is 460 km, its disk-averaged bidirectional reflectance at 0
+phase angle can be calculated:
+
+  >>> import numpy as np
+  >>> from astropy import units as u
+  >>> from sbpy.units import reflectance, VEGAmag
+  >>> mag = 3.4 * VEGAmag
+  >>> radius = 460 * u.km
+  >>> cross_sec = np.pi * (radius)**2
+  >>> ref = mag.to('1/sr', reflectance(cross_section=cross_sec))
+  >>> print('{0:.4f}'.format(ref))
+  0.0287 1 / sr
+
+Users can supply solar flux via keyword ``f_sun``, or solar magnitude in any
+magnitude system via keyword ``M_sun`` as long as the quantity to be converted
+is in the same unit as the supplied solar flux or magnitude, respectively:
+
+  >>> ref = 0.0287 / u.sr
+  >>> flux_ceres = mag.to('W/(m2 um)', spectral_density_vega('johnson_v'))
+  >>> flux_sun = 1839.93273227 * u.Unit('W/(m2 um)')
+  >>> cross_sec = flux_ceres.to('km2', reflectance(reflectance=ref,
+  ...     f_sun=flux_sun))
+  >>> radius = np.sqrt(cross_sec/np.pi)
+  >>> print('{0:.2f}'.format(radius))
+  459.69 km
+
+`~sbpy.units.reflectance` can also support conversion between flux spectrum and
+reflectance spectrum:
+
+  >>> wave = [1.046, 1.179, 1.384, 1.739, 2.416] * u.um
+  >>> flux = [1.636e-18, 1.157e-18, 8.523e-19, 5.262e-19, 1.9645e-19] \
+  ...     * u.Unit('W/(m2 um)')
+  >>> xsec = 0.0251 * u.km**2
+  >>> ref = flux.to('1/sr', reflectance(cross_section=xsec, wfb=wave))
+  WARNING: Source spectrum is tapered. [synphot.observation]
+  >>> print(ref)  # doctest: +FLOAT_COMP
+  [0.0021763  0.00201223 0.0022041  0.00269637 0.00292785] 1 / sr
+
+
 Reference/API
 -------------
 .. automodapi:: sbpy.units
