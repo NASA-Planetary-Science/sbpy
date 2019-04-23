@@ -164,6 +164,7 @@ initialize a model directly from data by fitting.
 
       ------------------ ------------------ -------------------
       3.3391210178858013 0.6551118013498317 0.09728839079940735
+
   >>> # use class method .from_data
   >>> model4 = HG12.from_data(alpha, mag)
   >>> print(model4)  # doctest: +SKIP
