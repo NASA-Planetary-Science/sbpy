@@ -617,8 +617,6 @@ class Efrho(DustComaQuantity):
         bib.register('activity.dust.Efrho',
                      {'model': '2013Icar..225..475K'})
 
-        from numpy import pi
-
         if T is None:
             T = Tscale * 278 / np.sqrt(eph['rh'].to('au').value)
 
@@ -662,7 +660,7 @@ class Syndynes:
     def __init__(self, orb, date, location='500'):
         self.orb = orb
         self.date = date
-        raise NotImplemented
+        raise NotImplementedError
 
     def plot_syndynes(self, beta, age):
         """Plot syndynes for an observer.

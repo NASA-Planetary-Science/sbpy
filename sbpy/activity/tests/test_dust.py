@@ -1,13 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import os
 import sys
 import mock
 import pytest
 import numpy as np
 import astropy.units as u
-from astropy.tests.helper import remote_data
-from astropy.utils.data import get_pkg_data_filename
 import synphot
 from ..dust import *
 from ..core import CircularAperture
@@ -93,7 +90,7 @@ class TestAfrho:
         cm, and -26.93 → -26.92 mag.
 
         Woodward et al. photometry of C/2007 N3 (Lulin) in I-band.
-        Their magnitude has been modifιed from 8.49 to 7.97 according
+        Their magnitude has been modified from 8.49 to 7.97 according
         to their phase correction (0.03 mag/deg, phase angle 17.77
         deg).  Uncertainty is 0.06 mag.
 

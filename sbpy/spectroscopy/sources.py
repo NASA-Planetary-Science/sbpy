@@ -43,6 +43,7 @@ class SpectralSource(ABC):
     """
 
     def __init__(self, source, description=None):
+        # prevent any instantiation without synphot
         try:
             import synphot
         except ImportError:
