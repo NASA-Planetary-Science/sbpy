@@ -197,8 +197,7 @@ def _to_format(format):
                 for key, val in ref.items():
                     # This method avoids using multiple calls to the
                     # API that may impact rate limits
-                    # https://github.com/adsabs/adsabs-dev-api/blob/master/
-                    # export.md
+                    # https://github.com/adsabs/adsabs-dev-api/blob/master/Export_API.ipynb
                     query = ads.ExportQuery(list(val), format=format)
                     data = query.execute()
                     output += '% {:s}/{:s}:\n{:s}\n'.format(task, key,
