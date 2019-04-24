@@ -309,6 +309,9 @@ class TestHG:
         eph3 = ceres.mag(pha_test, append_results=True)
         assert np.isclose(eph3['mag'], mag2_test).all()
         assert set(eph3.column_names) == {'alpha', 'mag'}
+        eph4 = ceres.mag(eph3, append_results=True)
+        assert set(eph4.column_names) == {'alpha', 'mag', 'mag1'}
+        assert np.isclose(eph4['mag'], eph4['mag1']).all()
 
         ceres = HG(3.34 * u.mag, 0.12 * u.dimensionless_unscaled, radius=480)
         eph_dict = {'alpha': np.linspace(0, np.pi*0.9, 10)*u.rad,
@@ -365,6 +368,9 @@ class TestHG:
         assert np.isclose(eph3['ref'], ref2_test).all()
         assert set(eph4.column_names) == {'alpha', 'ref'}
         assert np.isclose(eph4['ref'], ref2_norm_test).all()
+        eph5 = ceres.ref(eph3, append_results=True)
+        assert set(eph5.column_names) == {'alpha', 'ref', 'ref1'}
+        assert np.isclose(eph5['ref'], eph5['ref1']).all()
 
         ceres = HG(3.34, 0.12, radius=480)
         eph_dict = {'alpha': np.linspace(0, np.pi*0.9, 10)*u.rad,
