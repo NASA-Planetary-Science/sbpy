@@ -1135,7 +1135,7 @@ class HG(DiskIntegratedPhaseFunc):
             func = func.value
         func = -2.5 * np.log10(func)
         if isinstance(hh, u.Quantity):
-            func = func * u.mag
+            func = func * hh.unit
         return hh + func
 
     @staticmethod
@@ -1277,7 +1277,7 @@ class HG1G2(HG12BaseClass):
             func = func.value
         func = -2.5 * np.log10(func)
         if isinstance(h, u.Quantity):
-            func = func * u.mag
+            func = func * h.unit
         return h + func
 
     @staticmethod
