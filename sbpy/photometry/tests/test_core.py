@@ -116,14 +116,14 @@ class TestLinear():
              7.398082392240209, 8.197443189653612, 8.996803987067015,
              9.796164784480418, 10.59552558189382, 11.394886379307223,
              12.194247176720626])
-        eph = linphase.mag(pha_test)
+        eph = linphase.mag(pha_test, append_results=True)
         assert np.isclose(eph['mag'], mag_test).all()
         assert np.isclose(eph['alpha'], pha_test).all()
         assert set(eph.column_names) == {'alpha', 'mag'}
 
         linphase = LinearPhaseFunc(5 * u.mag, 0.04 * u.mag/u.deg, radius=300)
         pha_test = np.linspace(0, 180, 10) * u.deg
-        eph = linphase.mag(pha_test)
+        eph = linphase.mag(pha_test, append_results=True)
         mag_test = np.array([5., 5.8, 6.6, 7.4, 8.2, 9., 9.8, 10.6, 11.4, 12.2])*u.mag
         if LooseVersion(astropy.__version__) >= req_ver:
             assert u.isclose(eph['mag'], mag_test).all()
@@ -141,18 +141,18 @@ class TestLinear():
             [1., 0.47891196, 0.22935666,
              0.10984165, 0.05260448, 0.02519291, 0.01206519, 0.00577816,
              0.00276723, 0.00132526])
-        eph = linphase.ref(pha_test)
+        eph = linphase.ref(pha_test, append_results=True)
         assert np.isclose(eph['ref'], ref_test).all()
         assert np.isclose(eph['alpha'], pha_test).all()
         assert set(eph.column_names) == {'alpha', 'ref'}
-        eph_norm = linphase.ref(pha_test, normalized=0)
+        eph_norm = linphase.ref(pha_test, normalized=0, append_results=True)
         assert np.isclose(eph_norm['ref'], ref_norm_test).all()
         assert np.isclose(eph_norm['alpha'], pha_test).all()
         assert set(eph_norm.column_names) == {'alpha', 'ref'}
 
         linphase = LinearPhaseFunc(5 * u.mag, 0.04 * u.mag/u.deg, radius=300)
         pha_test = np.linspace(0, 180, 10) * u.deg
-        eph = linphase.ref(pha_test)
+        eph = linphase.ref(pha_test, append_results=True)
         ref_test = np.array(
           [1.59389035e-02, 7.62883887e-03, 3.65139185e-03, 1.74766602e-03,
            8.36485548e-04, 4.00367155e-04, 1.91627768e-04, 9.17188165e-05,
@@ -165,7 +165,7 @@ class TestLinear():
             assert u.isclose(eph['ref'], ref_test).all()
             assert u.isclose(eph['alpha'], pha_test).all()
         assert set(eph.column_names) == {'alpha', 'ref'}
-        eph_norm = linphase.ref(pha_test, normalized=0*u.deg)
+        eph_norm = linphase.ref(pha_test, normalized=0*u.deg, append_results=True)
         if LooseVersion(astropy.__version__) >= req_ver:
             assert u.isclose(eph_norm['ref'], ref_norm_test).all()
             assert u.isclose(eph_norm['alpha'], pha_test).all()
@@ -298,7 +298,7 @@ class TestHG:
              8.813984838536113, 9.366879943505342, 10.024055427421063,
              10.886692329621765, 12.143261499943726, 14.18326309145893,
              18.48388800989832])
-        eph1 = ceres.mag(eph_test)
+        eph1 = ceres.mag(eph_test, append_results=True)
         assert set(eph1.column_names) == {'alpha', 'delta', 'mag', 'r'}
         assert np.isclose(eph1['mag'], mag1_test).all()
         pha_test = np.linspace(0, np.pi*0.9, 10)
@@ -306,7 +306,7 @@ class TestHG:
             [3.34, 4.313146162557345, 4.864559927048081, 5.380803492224645,
              5.9336985971938745, 6.590874081109595, 7.453510983310297,
              8.710080153632259, 10.750081745147462, 15.050706663586855])
-        eph3 = ceres.mag(pha_test)
+        eph3 = ceres.mag(pha_test, append_results=True)
         assert np.isclose(eph3['mag'], mag2_test).all()
         assert set(eph3.column_names) == {'alpha', 'mag'}
 
@@ -320,7 +320,7 @@ class TestHG:
              8.813984838536113, 9.366879943505342, 10.024055427421063,
              10.886692329621765, 12.143261499943726, 14.18326309145893,
              18.48388800989832]) * u.mag
-        eph1 = ceres.mag(eph_test)
+        eph1 = ceres.mag(eph_test, append_results=True)
         assert set(eph1.column_names) == {'alpha', 'delta', 'mag', 'r'}
         if LooseVersion(astropy.__version__) >= req_ver:
             assert u.isclose(eph1['mag'], mag1_test).all()
@@ -330,7 +330,7 @@ class TestHG:
              5.9336985971938745, 6.590874081109595, 7.453510983310297,
              8.710080153632259, 10.750081745147462,
              15.050706663586855]) * u.mag
-        eph3 = ceres.mag(pha_test)
+        eph3 = ceres.mag(pha_test, append_results=True)
         if LooseVersion(astropy.__version__) >= req_ver:
             assert u.isclose(eph3['mag'], mag2_test).all()
         assert set(eph3.column_names) == {'alpha', 'mag'}
@@ -347,7 +347,7 @@ class TestHG:
              0.0014383641304522461, 0.0006498514365555728,
              0.0002042614521939071, 3.1202240400267656e-05,
              5.942043286373853e-07])
-        eph1 = ceres.ref(eph_test)
+        eph1 = ceres.ref(eph_test, append_results=True)
         assert set(eph1.column_names) == {'alpha', 'delta', 'ref', 'r'}
         assert np.isclose(eph1['ref'], ref1_test).all()
         pha_test = np.linspace(0, np.pi*0.9, 10)
@@ -359,8 +359,8 @@ class TestHG:
             [1.00000000e+00, 4.08076452e-01, 2.45570407e-01, 1.52643601e-01,
              9.17319364e-02, 5.00783911e-02, 2.26253657e-02, 7.11161011e-03,
              1.08634383e-03, 2.06879441e-05])
-        eph3 = ceres.ref(pha_test)
-        eph4 = ceres.ref(pha_test, normalized=0*u.deg)
+        eph3 = ceres.ref(pha_test, append_results=True)
+        eph4 = ceres.ref(pha_test, normalized=0*u.deg, append_results=True)
         assert set(eph3.column_names) == {'alpha', 'ref'}
         assert np.isclose(eph3['ref'], ref2_test).all()
         assert set(eph4.column_names) == {'alpha', 'ref'}
@@ -377,7 +377,7 @@ class TestHG:
              0.0014383641304522461, 0.0006498514365555728,
              0.0002042614521939071, 3.1202240400267656e-05,
              5.942043286373853e-07])
-        eph1 = ceres.ref(eph_test)
+        eph1 = ceres.ref(eph_test, append_results=True)
         assert set(eph1.column_names) == {'alpha', 'delta', 'ref', 'r'}
         if LooseVersion(astropy.__version__) >= req_ver:
             assert u.isclose(eph1['ref'], ref1_test*u.dimensionless_unscaled).all()
@@ -390,8 +390,8 @@ class TestHG:
             [1.00000000e+00, 4.08076452e-01, 2.45570407e-01, 1.52643601e-01,
              9.17319364e-02, 5.00783911e-02, 2.26253657e-02, 7.11161011e-03,
              1.08634383e-03, 2.06879441e-05])
-        eph3 = ceres.ref(pha_test)
-        eph4 = ceres.ref(pha_test, normalized=0*u.deg)
+        eph3 = ceres.ref(pha_test, append_results=True)
+        eph4 = ceres.ref(pha_test, normalized=0*u.deg, append_results=True)
         assert set(eph3.column_names) == {'alpha', 'ref'}
         assert set(eph4.column_names) == {'alpha', 'ref'}
         if LooseVersion(astropy.__version__) >= req_ver:
@@ -520,7 +520,7 @@ class TestHG1G2:
                              9.29834638, 9.96574599, 10.72080704,
                              11.52317465, 12.15094612,
                              18.65369516, 18.65389398])
-        assert np.isclose(themis.mag(pha_test)['mag'], mag_test).all()
+        assert np.isclose(themis.mag(pha_test), mag_test).all()
 
         themis = HG1G2(7.063*u.mag, 0.62*u.dimensionless_unscaled, 0.14*u.dimensionless_unscaled, radius=100)
         pha_test = np.linspace(0, np.pi, 10)*u.rad
@@ -529,7 +529,7 @@ class TestHG1G2:
                              11.52317465, 12.15094612,
                              18.65369516, 18.65389398])*u.mag
         if LooseVersion(astropy.__version__) >= req_ver:
-            assert u.isclose(themis.mag(pha_test)['mag'], mag_test).all()
+            assert u.isclose(themis.mag(pha_test), mag_test).all()
 
     def test_ref(self):
         themis = HG1G2(7.063, 0.62, 0.14, radius=100)
@@ -539,7 +539,7 @@ class TestHG1G2:
              2.73755213e-03, 1.48048003e-03, 7.38546998e-04,
              3.52720817e-04, 1.97843827e-04, 4.95704528e-07,
              4.95613763e-07])
-        assert np.isclose(themis.ref(pha_test)['ref'], ref_test).all()
+        assert np.isclose(themis.ref(pha_test), ref_test).all()
 
         themis = HG1G2(7.063*u.mag, 0.62*u.dimensionless_unscaled, 0.14*u.dimensionless_unscaled, radius=100)
         pha_test = np.linspace(0, np.pi, 10)*u.rad
@@ -549,7 +549,7 @@ class TestHG1G2:
              3.52720817e-04, 1.97843827e-04, 4.95704528e-07,
              4.95613763e-07])/u.sr
         if LooseVersion(astropy.__version__) >= req_ver:
-            assert u.isclose(themis.ref(pha_test)['ref'], ref_test).all()
+            assert u.isclose(themis.ref(pha_test), ref_test).all()
 
     def test_g1g2_validator(self):
         with pytest.warns(RuntimeWarning):
@@ -651,13 +651,13 @@ class TestHG12:
         mag_test = np.array(
           [7.121, 8.07252953, 8.67890827, 9.2993879, 9.96817595, 10.72086969,
           11.51208664, 12.12722017, 18.70628001, 18.70647883])
-        assert np.isclose(themis.mag(pha_test)['mag'], mag_test).all()
+        assert np.isclose(themis.mag(pha_test), mag_test).all()
 
         themis = HG12(7.121*u.mag, 0.68*u.dimensionless_unscaled, radius=100)
         pha_test = np.linspace(0, np.pi, 10)*u.rad
         mag_test = mag_test * u.mag
         if LooseVersion(astropy.__version__) >= req_ver:
-            assert u.isclose(themis.mag(pha_test)['mag'], mag_test).all()
+            assert u.isclose(themis.mag(pha_test), mag_test).all()
 
     def test_ref(self):
         themis = HG12(7.121, 0.68, radius=100)
@@ -667,13 +667,13 @@ class TestHG12:
              2.73492734e-03, 1.47717032e-03, 7.38504380e-04,
              3.56341412e-04, 2.02214774e-04, 4.72268466e-07,
              4.72181992e-07])
-        assert np.isclose(themis.ref(pha_test)['ref'], ref_test).all()
+        assert np.isclose(themis.ref(pha_test), ref_test).all()
 
         themis = HG12(7.121*u.mag, 0.68*u.dimensionless_unscaled, radius=100)
         pha_test = np.linspace(0, np.pi, 10)*u.rad
         ref_test = ref_test / u.sr
         if LooseVersion(astropy.__version__) >= req_ver:
-            assert u.isclose(themis.ref(pha_test)['ref'], ref_test).all()
+            assert u.isclose(themis.ref(pha_test), ref_test).all()
 
     def test_g_validator(self):
         with pytest.warns(RuntimeWarning):
@@ -772,13 +772,13 @@ class TestHG12_Pen16:
         mag_test = np.array(
           [7.121, 8.07252953, 8.67890827, 9.2993879, 9.96817595, 10.72086969,
            11.51208664, 12.12722017, 18.70628001, 18.70647883])
-        assert np.isclose(themis.mag(pha_test)['mag'], mag_test).all()
+        assert np.isclose(themis.mag(pha_test), mag_test).all()
 
         themis = HG12_Pen16(7.121*u.mag, 0.68*u.dimensionless_unscaled, radius=100)
         pha_test = np.linspace(0, np.pi, 10)*u.rad
         mag_test = mag_test*u.mag
         if LooseVersion(astropy.__version__) >= req_ver:
-            assert u.isclose(themis.mag(pha_test)['mag'], mag_test).all()
+            assert u.isclose(themis.mag(pha_test), mag_test).all()
 
     def test_ref(self):
         themis = HG12_Pen16(7.121, 0.68, radius=100)
@@ -787,13 +787,13 @@ class TestHG12_Pen16:
             [2.03376585e-02, 8.46621202e-03, 4.84325842e-03, 2.73492734e-03,
              1.47717032e-03, 7.38504380e-04, 3.56341412e-04, 2.02214774e-04,
              4.72268466e-07, 4.72181992e-07])
-        assert np.isclose(themis.ref(pha_test)['ref'], ref_test).all()
+        assert np.isclose(themis.ref(pha_test), ref_test).all()
 
         themis = HG12_Pen16(7.121*u.mag, 0.68*u.dimensionless_unscaled, radius=100)
         pha_test = np.linspace(0, np.pi, 10)*u.rad
         ref_test = ref_test / u.sr
         if LooseVersion(astropy.__version__) >= req_ver:
-            assert u.isclose(themis.ref(pha_test)['ref'], ref_test).all()
+            assert u.isclose(themis.ref(pha_test), ref_test).all()
 
     def test_g_validator(self):
         with pytest.warns(RuntimeWarning):
