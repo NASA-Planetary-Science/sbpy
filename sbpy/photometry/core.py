@@ -61,6 +61,11 @@ def _process_ephem_input(eph, key=None):
             out = None
         else:
             out = eph[key]
+            if not isinstance(out, u.Quantity):
+                # When a column doesn't have a unit, ``out`` is not a
+                # `Quantity` but rather a `astropy.table.column.Column` object.
+                # This step is to ensure out as an array or Quantity.
+                out = out.data
     else:
         out = np.asanyarray(eph)
         if not np.issubdtype(out.dtype, np.number):
@@ -672,7 +677,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
     @property
     def geoalb(self):
         """Geometric albedo"""
-        alb = np.pi*self.ref(0)['ref'][0]
+        alb = np.pi*self.ref(0)
         if hasattr(alb, 'unit'):
             alb = alb*u.sr
         return alb
@@ -832,12 +837,13 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
             m0 = cls(*init)
         return m0.fit(eph, mag, fitter=fitter, **kwargs)
 
-    def mag(self, eph, **kwargs):
+    def mag(self, eph, append_results=False, **kwargs):
         """Calculate phase function in magnitude
 
         Parameters
         ----------
-        eph : `~sbpy.data.Ephem`, dict_like, float, or array_like of float
+        eph : `~sbpy.data.Ephem`, numbers, iterables of numbers, or
+            `~astropy.units.Quantity`
             If `~sbpy.data.Ephem` or dict_like, ephemerides of the object that
             can include phase angle, heliocentric and geocentric distances via
             keywords `phase`, `r` and `delta`.  If float or array_like, then
@@ -846,11 +852,21 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
             If no unit is provided via type `~astropy.units.Quantity`, then
             radians is assumed for phase angle, and au is assumed for
             distances.
+        append_results : bool
+            Controls the return of this method.
 
         Returns
         -------
-        `~sbpy.data.Ephem` object, with the calculated magnitudes added in
-        a new column.
+        `~astropy.units.Quantity`, array if ``append_results == False``
+        `~sbpy.data.Ephem` if ``append_results == True``
+
+        When ``apend_results == False``: The calculated magnitude will be
+        returned.
+
+        When ``append_results == True``:  If ``eph`` is a `~sbpy.data.Ephem`
+        object, then the calculated magnitude will be appended to ``eph`` as
+        a new column.  Otherwise a new `~sbpy.data.Ephem` object is created to
+        contain the input ``eph`` and the calculated magnitude in two columns.
 
         Examples
         --------
@@ -881,18 +897,27 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
             if isinstance(out, u.Quantity):
                 dist_corr = dist_corr*u.mag
             out = out - dist_corr
-        if eph is None:
-            eph = Ephem.from_dict({'alpha': pha, 'mag': out})
+        if append_results:
+            if eph is None:
+                eph = Ephem.from_dict({'alpha': pha, 'mag': out})
+            else:
+                name = 'mag'
+                i = 1
+                while name in eph.column_names:
+                    name = 'mag'+str(i)
+                    i += 1
+                eph.add_column(out, name=name)
+            return eph
         else:
-            eph.add_column(out, name='mag')
-        return eph
+            return out
 
-    def ref(self, eph, normalized=None, **kwargs):
+    def ref(self, eph, normalized=None, append_results=False, **kwargs):
         """Calculate phase function in average bidirectional reflectance
 
         Parameters
         ----------
-        eph : `~sbpy.data.Ephem`, dict_like, float, or array_like of float
+        eph : `~sbpy.data.Ephem`, numbers, iterables of numbers, or
+            `~astropy.units.Quantity`
             If `~sbpy.data.Ephem` or dict_like, ephemerides of the object that
             can include phase angle, heliocentric and geocentric distances via
             keywords `phase`, `r` and `delta`.  If float or array_like, then
@@ -901,11 +926,24 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
             If no unit is provided via type `~astropy.units.Quantity`, then
             radians is assumed for phase angle, and au is assumed for
             distances.
+        normalized : number, `~astropy.units.Quantity`
+            The angle to which the reflectance is normalized.
+        append_results : bool
+            Controls the return of this method.
 
         Returns
         -------
-        `~sbpy.data.Ephem` object, with the calculated reflectances added in a
-        new column.
+        `~astropy.units.Quantity`, array if ``append_results == False``
+        `~sbpy.data.Ephem` if ``append_results == True``
+
+        When ``apend_results == False``: The calculated reflectance will be
+        returned.
+
+        When ``append_results == True``:  If ``eph`` is a `~sbpy.data.Ephem`
+        object, then the calculated reflectance will be appended to ``eph`` as
+        a new column.  Otherwise a new `~sbpy.data.Ephem` object is created to
+        contain the input ``eph`` and the calculated reflectance in two
+        columns.
 
         Examples
         --------
@@ -938,11 +976,19 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
             out = mag2ref(out, self.radius, M_sun=self.M_sun)
             if normalized is not None:
                 out /= mag2ref(norm, self.radius, M_sun=self.M_sun)
-        if eph is None:
-            eph = Ephem.from_dict({'alpha': pha, 'ref': out})
+        if append_results:
+            if eph is None:
+                eph = Ephem.from_dict({'alpha': pha, 'ref': out})
+            else:
+                name = 'ref'
+                i = 1
+                while name in eph.column_names:
+                    name = 'ref'+str(i)
+                    i += 1
+                eph.add_column(out, name=name)
+            return eph
         else:
-            eph.add_column(out, name='ref')
-        return eph
+            return out
 
     def _phase_integral(self, integrator=quad):
         """Calculate phase integral with numerical integration
@@ -967,7 +1013,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         0.364
 
         """
-        def integrand(x): return 2*self.ref(x, normalized=0.)['ref']*np.sin(x)
+        def integrand(x): return 2*self.ref(x, normalized=0.)*np.sin(x)
         return integrator(integrand, 0, np.pi)[0]
 
 
