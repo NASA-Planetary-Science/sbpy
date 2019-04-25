@@ -9,7 +9,7 @@ import os
 import astropy.units as u
 from astropy.utils.state import ScienceState
 from astropy.utils.data import get_pkg_data_filename
-from ..core import SpectralStandard
+from ..sources import SpectralStandard
 from . import sources
 
 __doctest_requires__ = {'Sun': 'synphot'}

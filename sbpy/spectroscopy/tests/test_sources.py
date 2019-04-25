@@ -6,8 +6,9 @@ import pytest
 import numpy as np
 import astropy.units as u
 from astropy.tests.helper import remote_data
+from astropy.modeling.blackbody import blackbody_nu, blackbody_lambda
 import synphot
-from ..core import SpectralStandard
+from ..sources import SpectralStandard, BlackbodySource
 from ... import bib, units, utils
 from ... import exceptions as sbe
 
@@ -60,14 +61,31 @@ class TestSpectralStandard:
         s = Star(source)
         assert np.allclose(s.fluxd.to(f.unit).value, f.value)
 
+    def test_source(self):
+        w = u.Quantity(np.linspace(0.3, 1.0), 'um')
+        f = u.Quantity(np.ones(len(w)), 'W/(m2 um)')
+        source = synphot.SourceSpectrum(synphot.Empirical1D, points=w,
+                                        lookup_table=f)
+        s = Star(source)
+        f = s.source(w)
+        assert s.source == source
+
     # meta tested by Sun
 
-    def test_call_wavelength(self):
+    @pytest.mark.parametrize('unit', ('W/(m2 um)', units.VEGA))
+    def test_call_wavelength(self, unit):
+        from ..vega import Vega
+        vega = Vega.from_default()
         w = u.Quantity(np.linspace(0.3, 1.0), 'um')
         f = u.Quantity(0.5 * w.value + 0.1, 'W/(m2 um)')
         s = Star.from_array(w, f)
         w = np.linspace(0.31, 0.99) * u.um
-        assert np.allclose(s(w).value, 0.5 * w.value + 0.1, rtol=0.0005)
+
+        test = (0.5 * w.value + 0.1)
+        if unit == units.VEGA:
+            test /= vega(w).value
+
+        assert np.allclose(s(w, unit=unit).value, test, rtol=0.0005)
 
     def test_call_frequency(self):
         nu = u.Quantity(np.linspace(300, 1000), 'THz')
@@ -180,3 +198,28 @@ class TestSpectralStandard:
         s = Star.from_array(w, f)
         with pytest.raises(synphot.exceptions.SynphotError):
             s.color_index((None, None), u.ABmag)
+
+
+class TestBlackbodySource:
+    @pytest.mark.parametrize('T', (
+        300, 300 * u.K
+    ))
+    def test_init_temperature(self, T):
+        BB = BlackbodySource(T)
+        assert BB.T.value == 300
+
+    def test_init_temperature_error(self):
+        with pytest.raises(TypeError):
+            BlackbodySource()
+
+    def test_repr(self):
+        BB = BlackbodySource(278)
+        assert repr(BB) == '<BlackbodySource: T=278.0 K>'
+
+    @pytest.mark.parametrize('B', (blackbody_nu, blackbody_lambda))
+    def test_call(self, B):
+        w = np.logspace(-0.5, 3) * u.um
+        f = B(w, 300 * u.K) * np.pi * u.sr
+        BB = BlackbodySource(300 * u.K)
+        test = BB(w, unit=f.unit).value
+        assert np.allclose(test, f.value)

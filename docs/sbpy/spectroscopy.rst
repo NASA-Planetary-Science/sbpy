@@ -143,7 +143,7 @@ model does account for the effects of photolysis.
 
 Spectral standards and photometric calibration
 ----------------------------------------------
-`sbpy` photometric calibration is partially based on spectra of the Sun and Vega.  There are built-in spectra for each, and users may provide their own spectra.
+`sbpy`'s photometric calibration is partially based on spectra of the Sun and Vega.  There are built-in spectra for each, and users may provide their own spectra.
 
 The spectrum of `Bohlin (2014) <https://dx.doi.org/10.1088/0004-6256/147/6/127>`_ is the default and only built-in spectrum for Vega.  It is distributed with `sbpy`.  Four solar spectra are built-in:
 
