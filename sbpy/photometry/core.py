@@ -54,8 +54,9 @@ def _process_ephem_input(eph, key=None):
     if eph is None:
         return None, None
     if not isinstance(eph, (Ephem, list, tuple, np.ndarray, Number,
-        u.Quantity)):
-        raise TypeError('`~sbpy.data.Ephem`, numbers, iterables of numbers, or `~astropy.units.Quantity` expected, {0} received'.format(type(eph)))
+                            u.Quantity)):
+        raise TypeError(
+            '`~sbpy.data.Ephem`, numbers, iterables of numbers, or `~astropy.units.Quantity` expected, {0} received'.format(type(eph)))
     if isinstance(eph, Ephem):
         if key is None:
             out = None
@@ -654,7 +655,8 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
                 for p in self.param_names:
                     par[p] = par[p][valid]
                 meta = kwargs.pop('meta', OrderedDict())
-                meta.update({'targetname': data['targetname'][valid]})
+                if 'targetname' in data.column_names:
+                    meta.update({'targetname': data['targetname'][valid]})
                 kwargs['meta'] = meta
                 for p in self.param_names:
                     val = kwargs.pop(p, None)
@@ -663,9 +665,14 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
                     radius = data['diameter'][valid]/2
                 except KeyError:
                     pass
-                log.info("Model initialized for {}.".format(meta['targetname']))
+                if 'targetname' in meta.keys():
+                    log.info("Model initialized for {}.".format(
+                        meta['targetname']))
+                else:
+                    log.info("Model initialized.")
             else:
-                raise ValueError('no valid model parameters found in `data` keyword')
+                raise ValueError(
+                    'no valid model parameters found in `data` keyword')
         super().__init__(*args, **kwargs)
         self.radius = radius
         self.M_sun = M_sun
@@ -1093,7 +1100,8 @@ class HG(DiskIntegratedPhaseFunc):
         and a warning will be issued.
         """
         if np.any(value > 1.194):
-            warnings.warn('G parameter could result in a non-monotonic phase function', RuntimeWarning)
+            warnings.warn(
+                'G parameter could result in a non-monotonic phase function', RuntimeWarning)
 
     @staticmethod
     def _hgphi(pha, i):
@@ -1250,7 +1258,8 @@ class HG1G2(HG12BaseClass):
         potentially be non-monotoic, and a warning will be issued.
         """
         if np.any(value < 0) or np.any(value + self.G2 > 1):
-            warnings.warn('G1, G2 parameter combination might result in a non-monotonic phase function', RuntimeWarning)
+            warnings.warn(
+                'G1, G2 parameter combination might result in a non-monotonic phase function', RuntimeWarning)
 
     @G2.validator
     def G2(self, value):
@@ -1260,7 +1269,8 @@ class HG1G2(HG12BaseClass):
         potentially be non-monotoic, and a warning will be issued.
         """
         if np.any(value < 0) or np.any(value + self.G1 > 1):
-            warnings.warn('G1, G2 parameter combination might result in a non-monotonic phase function', RuntimeWarning)
+            warnings.warn(
+                'G1, G2 parameter combination might result in a non-monotonic phase function', RuntimeWarning)
 
     @property
     def _G1(self):
@@ -1336,7 +1346,8 @@ class HG12(HG12BaseClass):
         non-monotoic, and a warning will be issued.
         """
         if np.any(value < -0.70) or np.any(value > 1.30):
-            warnings.warn('G12 parameter could result in a non-monotonic phase function', RuntimeWarning)
+            warnings.warn(
+                'G12 parameter could result in a non-monotonic phase function', RuntimeWarning)
 
     @property
     def _G1(self):
