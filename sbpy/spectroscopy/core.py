@@ -222,24 +222,17 @@ def einstein_coeff(temp_estimate, transition_freq, mol_tag):
     return au / u.s
 
 
-def photod_rate(time, time_scale, target, id_type, observatory, time_format,
-                mol_tag):
+def photod_rate(ephemobj, mol_tag):
     # imported here to avoid circular dependency with activity.gas
     from ..activity.gas import photo_timescale
+    from ..data import Ephem
 
-    epoch = Time(time, scale=time_scale, format=time_format)
-    obj = Horizons(id=target, epochs=epoch.jd, location=observatory,
-                   id_type=id_type)
+    if not isinstance(ephemobj, Ephem):
+        raise ValueError('ephemobj must be a `sbpy.data.ephem` instance.')
 
-    try:
-        orb = obj.ephemerides()
-
-    except ValueError:
-
-        raise
-
-    delta = (orb['delta'].data * u.au).to('m')
-    r = (orb['r'].data)
+    orb = ephemobj
+    delta = (orb['delta']).to('m')
+    r = (orb['r'])
     cat = JPLSpec.get_species_table()
     mol = cat[cat['TAG'] == mol_tag]
     name = mol['NAME'].data[0]
@@ -258,8 +251,7 @@ def photod_rate(time, time_scale, target, id_type, observatory, time_format,
 
 
 def total_number(integrated_line, temp_estimate, transition_freq, mol_tag,
-                 aper, b, time, target, time_scale, id_type, observatory,
-                 time_format):
+                 aper, b, ephemobj):
     """
     Basic equation relating number of molecules with observed integrated flux.
     This is given by equation 10 in
@@ -285,8 +277,8 @@ def total_number(integrated_line, temp_estimate, transition_freq, mol_tag,
                                                   transition_freq,
                                                   mol_tag))).decompose()
 
-    photod = photod_rate(time, time_scale, target, id_type, observatory,
-                         time_format, mol_tag)
+    photod = photod_rate(ephemobj, mol_tag)
+
     beta = photod["beta"]
 
     sigma = (1./2. * beta * b * con.c / (transition_freq * aper)).value
@@ -456,10 +448,8 @@ class Spectrum():
         """
 
     def prodrate_np(self, spectra, temp_estimate, transition_freq,
-                    mol_tag, time, target, vgas=1 * u.km/u.s,
-                    aper=25 * u.m, observatory='500', b=1.2,
-                    time_format='iso', time_scale='utc',
-                    id_type='designation'):
+                    mol_tag, ephemobj, vgas=1 * u.km/u.s,
+                    aper=25 * u.m, b=1.2):
         """
         | Returns production rate based on Drahus 2012 model referenced. Includes
         | no photodissociation
@@ -577,17 +567,6 @@ class Spectrum():
         assert isinstance(vgas, u.Quantity)
         assert isinstance(aper, u.Quantity)
         assert isinstance(spectra, u.Quantity)  # K * km / s
-        assert isinstance(time, str), "Input time as string, i.e. '2018-05-14'"
-        assert isinstance(time_scale, str), "Input time scale as string, i.e.\
-                                             'utc' see astropy.time.Time for \
-                                              more info"
-        assert isinstance(target, str), "Object name should be a string and\
-                                         should be identifiable through \
-                                         astroquery.jplhorizons"
-        assert isinstance(observatory, str), "Observatory should be a string\
-                                              and identified through \
-                                              astroquery.jplhorizons,\
-                                              i.e. '500' (geocentric)"
 
         if type(transition_freq) == list:
 
@@ -631,8 +610,8 @@ class Spectrum():
             gu = sum(gu_list) / float(len(gu_list))
             energy_J = sum(energy_J_list) / float(len(energy_J_list))
 
-            photod = photod_rate(time, time_scale, target, id_type, observatory,
-                                 time_format, mol_tag)
+            photod = photod_rate(ephemobj, mol_tag)
+
             delta = photod["delta"]
 
             calc = ((16*np.pi*k*t_freq.decompose() *
@@ -662,8 +641,8 @@ class Spectrum():
 
             au = einstein_coeff(temp_estimate, transition_freq, mol_tag)
 
-            photod = photod_rate(time, time_scale, target, id_type, observatory,
-                                 time_format, mol_tag)
+            photod = photod_rate(ephemobj, mol_tag)
+            
             delta = photod["delta"]
 
             calc = ((16*np.pi*k*t_freq.decompose() *
@@ -678,10 +657,8 @@ class Spectrum():
         return q
 
     def production_rate(self, coma, integrated_line, temp_estimate,
-                        transition_freq, mol_tag, time, target,
-                        aper=25 * u.m, observatory='500', b=1.2,
-                        time_format='iso', time_scale='utc',
-                        id_type='designation'):
+                        transition_freq, mol_tag, ephemobj,
+                        aper=25 * u.m, b=1.2):
         """
         Calculate production rate for `GasComa`
 
@@ -785,8 +762,7 @@ class Spectrum():
         # integrated_line = self.integrated_flux(transition_freq) - not yet implemented
 
         molecules = total_number(integrated_line, temp_estimate,
-                                 transition_freq, mol_tag, aper, b, time, target,
-                                 time_scale, id_type, observatory, time_format)
+                                 transition_freq, mol_tag, aper, b, ephemobj)
 
         model_molecules = coma.total_number(aper)
 
