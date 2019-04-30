@@ -2,11 +2,13 @@ import os
 
 import numpy as np
 import astropy.units as u
+from astropy.time import Time
 from astropy.tests.helper import remote_data
 from astropy.table import Table
 from astroquery.lamda import Lamda
 from astroquery.jplspec import JPLSpec
 from ...activity.gas import Haser, photo_timescale
+from ...data import Ephem
 from .. import Spectrum, einstein_coeff
 
 
@@ -33,14 +35,14 @@ def test_remote_prodrate_simple_hcn():
 
     for i in range(0, 28):
 
-        time = hcn['Time'][i]
+        time = Time(hcn['Time'][i], format='iso')
         spectra = hcn['T_B'][i] * u.K * u.km / u.s
+        ephemobj = Ephem.from_horizons(target, epochs=time.jd, id_type='id')
 
         s = Spectrum(spectra, dispersionaxis, unit)
 
         q = s.prodrate_np(spectra, temp_estimate, transition_freq,
-                          mol_tag, time, target, vgas, aper, b=b,
-                          id_type='id')
+                          mol_tag, ephemobj, vgas, aper, b=b)
 
         q = np.log10(q.value)
 
@@ -76,14 +78,14 @@ def test_remote_prodrate_simple_ch3oh():
 
     for i in range(0, 20):
 
-        time = ch3oh['Time'][i]
+        time = Time(ch3oh['Time'][i], format='iso')
         spectra = ch3oh['T_B'][i] * u.K * u.km / u.s
+        ephemobj = Ephem.from_horizons(target, epochs=time.jd, id_type='id')
 
         s = Spectrum(spectra, dispersionaxis, unit)
 
         q = s.prodrate_np(spectra, temp_estimate, transition_freq,
-                          mol_tag, time, target, vgas, aper, b=b,
-                          id_type='id')
+                          mol_tag, ephemobj, vgas, aper, b=b)
 
         q = np.log10(q.value)
 
@@ -162,15 +164,16 @@ def test_Haser_prodrate():
 
     for i in range(0, 5):
 
-        time = co['Time'][i]
+        time = Time(co['Time'][i], format='iso')
         spectra = co['T_B'][i] * u.K * u.km / u.s
+        ephemobj = Ephem.from_horizons(target, epochs=time.jd)
 
         parent = photo_timescale('CO') * vgas
 
         coma = Haser(Q_estimate, vgas, parent)
 
         Q = spec.production_rate(coma, spectra, temp_estimate,
-                                 transition_freq, mol_tag, time, target,
+                                 transition_freq, mol_tag, ephemobj,
                                  aper=aper, b=b)
 
         q_found.append(np.log10(Q.value)[0])

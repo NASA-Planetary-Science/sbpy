@@ -222,24 +222,17 @@ def einstein_coeff(temp_estimate, transition_freq, mol_tag):
     return au / u.s
 
 
-def photod_rate(time, time_scale, target, id_type, observatory, time_format,
-                mol_tag):
+def photod_rate(ephemobj, mol_tag):
     # imported here to avoid circular dependency with activity.gas
     from ..activity.gas import photo_timescale
+    from ..data import Ephem
 
-    epoch = Time(time, scale=time_scale, format=time_format)
-    obj = Horizons(id=target, epochs=epoch.jd, location=observatory,
-                   id_type=id_type)
+    if not isinstance(ephemobj, Ephem):
+        raise ValueError('ephemobj must be a `sbpy.data.ephem` instance.')
 
-    try:
-        orb = obj.ephemerides()
-
-    except ValueError:
-
-        raise
-
-    delta = (orb['delta'].data * u.au).to('m')
-    r = (orb['r'].data)
+    orb = ephemobj
+    delta = (orb['delta']).to('m')
+    r = (orb['r'])
     cat = JPLSpec.get_species_table()
     mol = cat[cat['TAG'] == mol_tag]
     name = mol['NAME'].data[0]
@@ -258,8 +251,7 @@ def photod_rate(time, time_scale, target, id_type, observatory, time_format,
 
 
 def total_number(integrated_line, temp_estimate, transition_freq, mol_tag,
-                 aper, b, time, target, time_scale, id_type, observatory,
-                 time_format):
+                 aper, b, ephemobj):
     """
     Basic equation relating number of molecules with observed integrated flux.
     This is given by equation 10 in
@@ -285,8 +277,8 @@ def total_number(integrated_line, temp_estimate, transition_freq, mol_tag,
                                                   transition_freq,
                                                   mol_tag))).decompose()
 
-    photod = photod_rate(time, time_scale, target, id_type, observatory,
-                         time_format, mol_tag)
+    photod = photod_rate(ephemobj, mol_tag)
+
     beta = photod["beta"]
 
     sigma = (1./2. * beta * b * con.c / (transition_freq * aper)).value
@@ -456,10 +448,8 @@ class Spectrum():
         """
 
     def prodrate_np(self, spectra, temp_estimate, transition_freq,
-                    mol_tag, time, target, vgas=1 * u.km/u.s,
-                    aper=25 * u.m, observatory='500', b=1.2,
-                    time_format='iso', time_scale='utc',
-                    id_type='designation'):
+                    mol_tag, ephemobj, vgas=1 * u.km/u.s,
+                    aper=25 * u.m, b=1.2):
         """
         | Returns production rate based on Drahus 2012 model referenced. Includes
         | no photodissociation
@@ -485,14 +475,8 @@ class Spectrum():
         temp_estimate : `~astropy.units.Quantity`
             Estimated temperature in Kelvins
 
-        time : str
-            Time of observation of any format supported by `~astropy.time`
-
-        target : str
-            | Target designation, if there is more than one aparition you
-            | will be prompted to pick a more specific identifier from a
-            | displayed table and change the parameter id_type to 'id'.
-            | Look at `~astroquery.jplhorizons` for more information.
+        ephemobj: `~sbpy.data.Ephem` object
+            An `~sbpy.data.Ephem` object that holds ephemerides information
 
         mol_tag : int or str
             Molecule identifier. Make sure it is an exclusive identifier.
@@ -503,26 +487,10 @@ class Spectrum():
         aper : `~astropy.units.Quantity`
             Telescope aperture in meters. Default is 25 m
 
-        observatory : str
-            | Observatory identifier as per `~astroquery.jplhorizons`
-            | Default is geocentric ('500')
-
         b : int
             | Dimensionless factor intrinsic to every antenna. Typical
             | value, and the default for this model, is 1.22. See
             | references for more information on this parameter.
-
-        time_format : str
-            | Time format, see `~astropy.time` for more information
-            | Default is 'iso' which corresponds to 'YYYY-MM-DD HH:MM:SS'
-
-        time_scale : str
-            | Time scale, see `~astropy.time` for mor information.
-            | Default is 'utc'
-
-        id_type : str
-            | ID type for target. See `~astroquery.jplhorizons` for more.
-            | Default is 'designation'
 
         Returns
         -------
@@ -533,11 +501,15 @@ class Spectrum():
         --------
         >>> import astropy.units as u  # doctest: +SKIP
 
+        >>> from astropy.time import Time # doctest: +SKIP
+
+        >>> from sbpy.data import Ephem # doctest: +SKIP
+
         >>> from sbpy.spectroscopy import prodrate_np  # doctest: +SKIP
 
         >>> temp_estimate = 33. * u.K  # doctest: +SKIP
 
-        >>> target = '900918'  # doctest: +SKIP
+        >>> target = '103P'  # doctest: +SKIP
 
         >>> vgas = 0.8 * u.km / u.s  # doctest: +SKIP
 
@@ -551,11 +523,12 @@ class Spectrum():
 
         >>> spectra = 1.22 * u.K * u.km / u.s  # doctest: +SKIP
 
-        >>> time = '2010-11-3 00:48:06'  # doctest: +SKIP
+        >>> time = Time('2010-11-3 00:48:06', format='iso')  # doctest: +SKIP
+
+        >>> ephemobj = Ephem(target, epochs=time.jd, id_type='id') # doctest: +SKIP
 
         >>> q = prodrate_np(spectra, temp_estimate, transition_freq, # doctest: +SKIP
-                            mol_tag, time, target, vgas, aper,
-                            b=b, id_type='id')
+                            mol_tag, ephemobj, vgas, aper, b=b)
 
         >>> q  # doctest: +SKIP
         <Quantity 1.0432591198553935e+25 1 / s>
@@ -577,17 +550,6 @@ class Spectrum():
         assert isinstance(vgas, u.Quantity)
         assert isinstance(aper, u.Quantity)
         assert isinstance(spectra, u.Quantity)  # K * km / s
-        assert isinstance(time, str), "Input time as string, i.e. '2018-05-14'"
-        assert isinstance(time_scale, str), "Input time scale as string, i.e.\
-                                             'utc' see astropy.time.Time for \
-                                              more info"
-        assert isinstance(target, str), "Object name should be a string and\
-                                         should be identifiable through \
-                                         astroquery.jplhorizons"
-        assert isinstance(observatory, str), "Observatory should be a string\
-                                              and identified through \
-                                              astroquery.jplhorizons,\
-                                              i.e. '500' (geocentric)"
 
         if type(transition_freq) == list:
 
@@ -631,8 +593,8 @@ class Spectrum():
             gu = sum(gu_list) / float(len(gu_list))
             energy_J = sum(energy_J_list) / float(len(energy_J_list))
 
-            photod = photod_rate(time, time_scale, target, id_type, observatory,
-                                 time_format, mol_tag)
+            photod = photod_rate(ephemobj, mol_tag)
+
             delta = photod["delta"]
 
             calc = ((16*np.pi*k*t_freq.decompose() *
@@ -662,8 +624,8 @@ class Spectrum():
 
             au = einstein_coeff(temp_estimate, transition_freq, mol_tag)
 
-            photod = photod_rate(time, time_scale, target, id_type, observatory,
-                                 time_format, mol_tag)
+            photod = photod_rate(ephemobj, mol_tag)
+
             delta = photod["delta"]
 
             calc = ((16*np.pi*k*t_freq.decompose() *
@@ -678,10 +640,8 @@ class Spectrum():
         return q
 
     def production_rate(self, coma, integrated_line, temp_estimate,
-                        transition_freq, mol_tag, time, target,
-                        aper=25 * u.m, observatory='500', b=1.2,
-                        time_format='iso', time_scale='utc',
-                        id_type='designation'):
+                        transition_freq, mol_tag, ephemobj,
+                        aper=25 * u.m, b=1.2):
         """
         Calculate production rate for `GasComa`
 
@@ -702,38 +662,16 @@ class Spectrum():
         mol_tag : int or str
             Molecule identifier. Make sure it is an exclusive identifier.
 
-        time : str
-            Time of observation of any format supported by `~astropy.time`
-
-        target : str
-            | Target designation, if there is more than one aparition you
-            | will be prompted to pick a more specific identifier from a
-            | displayed table and change the parameter id_type to 'id'.
-            | Look at `~astroquery.jplhorizons` for more information.
+        ephemobj: `~sbpy.data.Ephem` object
+            An `~sbpy.data.Ephem` object that holds ephemerides information
 
         aper : `~astropy.units.Quantity`
             Telescope aperture in meters. Default is 25 m
-
-        observatory : str
-            | Observatory identifier as per `~astroquery.jplhorizons`
-            | Default is geocentric ('500')
 
         b : int
             | Dimensionless factor intrinsic to every antenna. Typical
             | value, and the default for this model, is 1.22. See
             | references for more information on this parameter.
-
-        time_format : str
-            | Time format, see `~astropy.time` for more information
-            | Default is 'iso' which corresponds to 'YYYY-MM-DD HH:MM:SS'
-
-        time_scale : str
-            | Time scale, see `~astropy.time` for mor information.
-            | Default is 'utc'
-
-        id_type : str
-            | ID type for target. See `~astroquery.jplhorizons` for more.
-            | Default is 'designation'
 
         Returns
         -------
@@ -743,6 +681,9 @@ class Spectrum():
         Examples
         --------
         >>> from sbpy.activity.gas import Haser # doctest: +SKIP
+        >>> from sbpy.data import Ephem # doctest: +SKIP
+        >>> from astropy.time import Time # doctest: +SKIP
+
         >>> coma = Haser(Q, v, parent) # doctest: +SKIP
         >>> Q = spec.production_rate(coma, molecule='H2O') # doctest: +SKIP
 
@@ -755,7 +696,8 @@ class Spectrum():
         >>> b = 0.74 # doctest: +SKIP
         >>> vgas = 0.5 * u.km / u.s # doctest: +SKIP
 
-        >>> time = '2017-12-22 05:24:20' # doctest: +SKIP
+        >>> time = Time('2017-12-22 05:24:20', format = 'iso') # doctest: +SKIP
+        >>> ephemobj = Ephem(target, epochs=time.jd) # doctest: +SKIP
         >>> spectra = 0.26 * u.K * u.km / u.s # doctest: +SKIP
 
         >>> parent = photo_timescale('CO') * vgas # doctest: +SKIP
@@ -763,7 +705,7 @@ class Spectrum():
         >>> coma = Haser(Q_estimate, vgas, parent) # doctest: +SKIP
 
         >>> Q = spec.production_rate(coma, spectra, temp_estimate, # doctest: +SKIP
-                                     transition_freq, mol_tag, time, target,
+                                     transition_freq, mol_tag, ephemobj,
                                      aper=aper, b=b) # doctest: +SKIP
 
         >>> print(Q) # doctest: +SKIP
@@ -785,8 +727,7 @@ class Spectrum():
         # integrated_line = self.integrated_flux(transition_freq) - not yet implemented
 
         molecules = total_number(integrated_line, temp_estimate,
-                                 transition_freq, mol_tag, aper, b, time, target,
-                                 time_scale, id_type, observatory, time_format)
+                                 transition_freq, mol_tag, aper, b, ephemobj)
 
         model_molecules = coma.total_number(aper)
 

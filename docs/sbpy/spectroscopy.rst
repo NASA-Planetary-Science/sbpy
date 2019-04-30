@@ -14,10 +14,12 @@ JPLSpec Constants and Line Intensity Integral Conversion
 `sbpy.spectroscopy` has a function called ``molecular_data`` which takes care of
 querying the JPL Molecular Spectral Catalog through the use of
 `astroquery.jplspec` and calculates all the necessary constants needed for both
-production rate and Einstein coefficient calculations. The function
-``intensity_conversion`` takes care of converting the intensity line integral at
-300 K found in JPL Spec catalog and convert it closer to the temperature given
-by the user.
+production rate and Einstein coefficient calculations. ``molecular_data``
+returns an `sbpy.data.phys` instance with quantities in the order of: Transition
+Frequency, Temperature, Integrated line intensity at 300 K, and Partition
+function at 300 K. The function ``intensity_conversion`` takes care of
+converting the intensity line integral at 300 K found in JPL Spec catalog and
+convert it closer to the temperature given by the user.
 
 .. code-block:: python
 
@@ -82,18 +84,21 @@ section.
 .. code-block:: python
 
   >>> from sbpy.spectroscopy import prodrate_np
+  >>> from astropy.time import Time
+  >>> from sbpy.data import Ephem
   >>> temp_estimate = 33. * u.K
-  >>> target = '900918'
+  >>> target = '103P'
   >>> vgas = 0.8 * u.km / u.s
   >>> aper = 30 * u.m
   >>> b = 1.13
   >>> mol_tag = 27001
   >>> transition_freq = 265.886434 * u.MHz
   >>> spectra = 1.22 * u.K * u.km / u.s
-  >>> time = '2010-11-3 00:48:06'
+  >>> time = Time('2010-11-3 00:48:06', format='iso')
+  >>> ephemobj = Ephem(target, epochs=time.jd, id_type='id')
   >>> q = prodrate_np(spectra, temp_estimate, transition_freq,
-                            mol_tag, time, target, vgas, aper,
-                            b=b, id_type='id')
+                            mol_tag, ephemobj, vgas, aper,
+                            b=b)
 
   >>> q
   <Quantity 1.0432591198553935e+25 1 / s>
@@ -113,6 +118,8 @@ model does account for the effects of photolysis.
 .. code-block:: python
 
   >>> from sbpy.activity.gas import Haser
+  >>> from astropy.time import Time
+  >>> from sbpy.data import Ephem
   >>> coma = Haser(Q, v, parent)
   >>> Q = spec.production_rate(coma, molecule='H2O')
 
@@ -126,6 +133,7 @@ model does account for the effects of photolysis.
   >>> vgas = 0.5 * u.km / u.s
 
   >>> time = '2017-12-22 05:24:20'
+  >>> ephemobj = Ephem(target, epochs=time.jd)
   >>> spectra = 0.26 * u.K * u.km / u.s
 
   >>> parent = photo_timescale('CO') * vgas
@@ -133,7 +141,7 @@ model does account for the effects of photolysis.
   >>> coma = Haser(Q_estimate, vgas, parent)
 
   >>> Q = spec.production_rate(coma, spectra, temp_estimate,
-                               transition_freq, mol_tag, time, target,
+                               transition_freq, mol_tag, ephemobj,
                                aper=aper, b=b)
 
   >>> print(Q)
@@ -169,7 +177,7 @@ The names of the built-in sources are stored as an internal array.  They can be 
 
   >>> from sbpy.spectroscopy import Sun
   >>> Sun.show_builtin()
-      name                                description                           
+      name                                description
   ------------ -----------------------------------------------------------------
      E490_2014                E490-00a (2014) reference solar spectrum (Table 3)
    E490_2014LR E490-00a (2014) low resolution reference solar spectrum (Table 4)
