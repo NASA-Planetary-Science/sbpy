@@ -509,7 +509,7 @@ class Spectrum():
 
         >>> temp_estimate = 33. * u.K  # doctest: +SKIP
 
-        >>> target = '900918'  # doctest: +SKIP
+        >>> target = '103P'  # doctest: +SKIP
 
         >>> vgas = 0.8 * u.km / u.s  # doctest: +SKIP
 
@@ -625,7 +625,7 @@ class Spectrum():
             au = einstein_coeff(temp_estimate, transition_freq, mol_tag)
 
             photod = photod_rate(ephemobj, mol_tag)
-            
+
             delta = photod["delta"]
 
             calc = ((16*np.pi*k*t_freq.decompose() *
