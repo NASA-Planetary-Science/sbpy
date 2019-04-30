@@ -475,14 +475,8 @@ class Spectrum():
         temp_estimate : `~astropy.units.Quantity`
             Estimated temperature in Kelvins
 
-        time : str
-            Time of observation of any format supported by `~astropy.time`
-
-        target : str
-            | Target designation, if there is more than one aparition you
-            | will be prompted to pick a more specific identifier from a
-            | displayed table and change the parameter id_type to 'id'.
-            | Look at `~astroquery.jplhorizons` for more information.
+        ephemobj: `~sbpy.data.Ephem` object
+            An `~sbpy.data.Ephem` object that holds ephemerides information
 
         mol_tag : int or str
             Molecule identifier. Make sure it is an exclusive identifier.
@@ -493,26 +487,10 @@ class Spectrum():
         aper : `~astropy.units.Quantity`
             Telescope aperture in meters. Default is 25 m
 
-        observatory : str
-            | Observatory identifier as per `~astroquery.jplhorizons`
-            | Default is geocentric ('500')
-
         b : int
             | Dimensionless factor intrinsic to every antenna. Typical
             | value, and the default for this model, is 1.22. See
             | references for more information on this parameter.
-
-        time_format : str
-            | Time format, see `~astropy.time` for more information
-            | Default is 'iso' which corresponds to 'YYYY-MM-DD HH:MM:SS'
-
-        time_scale : str
-            | Time scale, see `~astropy.time` for mor information.
-            | Default is 'utc'
-
-        id_type : str
-            | ID type for target. See `~astroquery.jplhorizons` for more.
-            | Default is 'designation'
 
         Returns
         -------
@@ -522,6 +500,10 @@ class Spectrum():
         Examples
         --------
         >>> import astropy.units as u  # doctest: +SKIP
+
+        >>> from astropy.time import Time # doctest: +SKIP
+
+        >>> from sbpy.data import Ephem # doctest: +SKIP
 
         >>> from sbpy.spectroscopy import prodrate_np  # doctest: +SKIP
 
@@ -541,11 +523,12 @@ class Spectrum():
 
         >>> spectra = 1.22 * u.K * u.km / u.s  # doctest: +SKIP
 
-        >>> time = '2010-11-3 00:48:06'  # doctest: +SKIP
+        >>> time = Time('2010-11-3 00:48:06', format='iso')  # doctest: +SKIP
+
+        >>> ephemobj = Ephem(target, epochs=time.jd, id_type='id') # doctest: +SKIP
 
         >>> q = prodrate_np(spectra, temp_estimate, transition_freq, # doctest: +SKIP
-                            mol_tag, time, target, vgas, aper,
-                            b=b, id_type='id')
+                            mol_tag, ephemobj, vgas, aper, b=b)
 
         >>> q  # doctest: +SKIP
         <Quantity 1.0432591198553935e+25 1 / s>
@@ -679,38 +662,16 @@ class Spectrum():
         mol_tag : int or str
             Molecule identifier. Make sure it is an exclusive identifier.
 
-        time : str
-            Time of observation of any format supported by `~astropy.time`
-
-        target : str
-            | Target designation, if there is more than one aparition you
-            | will be prompted to pick a more specific identifier from a
-            | displayed table and change the parameter id_type to 'id'.
-            | Look at `~astroquery.jplhorizons` for more information.
+        ephemobj: `~sbpy.data.Ephem` object
+            An `~sbpy.data.Ephem` object that holds ephemerides information
 
         aper : `~astropy.units.Quantity`
             Telescope aperture in meters. Default is 25 m
-
-        observatory : str
-            | Observatory identifier as per `~astroquery.jplhorizons`
-            | Default is geocentric ('500')
 
         b : int
             | Dimensionless factor intrinsic to every antenna. Typical
             | value, and the default for this model, is 1.22. See
             | references for more information on this parameter.
-
-        time_format : str
-            | Time format, see `~astropy.time` for more information
-            | Default is 'iso' which corresponds to 'YYYY-MM-DD HH:MM:SS'
-
-        time_scale : str
-            | Time scale, see `~astropy.time` for mor information.
-            | Default is 'utc'
-
-        id_type : str
-            | ID type for target. See `~astroquery.jplhorizons` for more.
-            | Default is 'designation'
 
         Returns
         -------
@@ -720,6 +681,9 @@ class Spectrum():
         Examples
         --------
         >>> from sbpy.activity.gas import Haser # doctest: +SKIP
+        >>> from sbpy.data import Ephem # doctest: +SKIP
+        >>> from astropy.time import Time # doctest: +SKIP
+
         >>> coma = Haser(Q, v, parent) # doctest: +SKIP
         >>> Q = spec.production_rate(coma, molecule='H2O') # doctest: +SKIP
 
@@ -732,7 +696,8 @@ class Spectrum():
         >>> b = 0.74 # doctest: +SKIP
         >>> vgas = 0.5 * u.km / u.s # doctest: +SKIP
 
-        >>> time = '2017-12-22 05:24:20' # doctest: +SKIP
+        >>> time = Time('2017-12-22 05:24:20', format = 'iso') # doctest: +SKIP
+        >>> ephemobj = Ephem(target, epochs=time.jd) # doctest: +SKIP
         >>> spectra = 0.26 * u.K * u.km / u.s # doctest: +SKIP
 
         >>> parent = photo_timescale('CO') * vgas # doctest: +SKIP
@@ -740,7 +705,7 @@ class Spectrum():
         >>> coma = Haser(Q_estimate, vgas, parent) # doctest: +SKIP
 
         >>> Q = spec.production_rate(coma, spectra, temp_estimate, # doctest: +SKIP
-                                     transition_freq, mol_tag, time, target,
+                                     transition_freq, mol_tag, ephemobj,
                                      aper=aper, b=b) # doctest: +SKIP
 
         >>> print(Q) # doctest: +SKIP
