@@ -167,7 +167,7 @@ class TestSpectralStandard:
         f = u.Quantity(np.ones(len(w)), 'W/(m2 um)')
         s = Star.from_array(w, f)
         fluxd = s.filt('johnson_v', unit='W/(m2 um)')[1]
-        assert np.isclose(fluxd.value, 1)
+        assert np.isclose(fluxd.value, 0.1)
 
     def test_filt_vegamag(self):
         w = u.Quantity(np.linspace(0.3, 1.0), 'um')
