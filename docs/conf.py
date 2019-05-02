@@ -179,5 +179,9 @@ if eval(setup_cfg.get('edit_on_github')):
 github_issues_url = 'https://github.com/{0}/issues/'.format(
     setup_cfg['github_project'])
 
+# add sphinx-automodapi manually to extensions
+extensions += ['sphinx-automodapi']
+
+
 # -- compile list of field names
 #import compile_fieldnames
