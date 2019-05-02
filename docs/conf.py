@@ -30,20 +30,10 @@ import os
 import sys
 
 try:
-    from sphinx_astropy.conf import *
+    from sphinx_astropy.conf.v1 import *
 except ImportError:
     print('ERROR: the documentation requires the sphinx-astropy package to be installed')
     sys.exit(1)
-
-try:
-    import astropy_helpers
-except ImportError:
-    # Building from inside the docs/ directory?
-    if os.path.basename(os.getcwd()) == 'docs':
-        a_h_path = os.path.abspath(os.path.join('..', 'astropy_helpers'))
-        if os.path.isdir(a_h_path):
-            sys.path.insert(1, a_h_path)
-
 
 # Get configuration information from setup.cfg
 try:
@@ -167,7 +157,7 @@ man_pages = [('index', project.lower(), project + u' Documentation',
 # -- Options for the edit_on_github extension ---------------------------------
 
 if eval(setup_cfg.get('edit_on_github')):
-    extensions += ['astropy_helpers.sphinx.ext.edit_on_github']
+    extensions += ['sphinx_astropy.ext.edit_on_github']
 
     versionmod = __import__(setup_cfg['package_name'] + '.version')
     edit_on_github_project = setup_cfg['github_project']
