@@ -112,13 +112,13 @@ C-extensions are utilized.
 Designed as an ``Astropy`` affiliated package, ``sbpy`` utilizes a
 wide range of functionality of ``Astropy``, including its table,
 constants, units, and modeling submodules, and other affiliated
-packages like [@astroquery]. ``sbpy``'s API is deliberately emulating
+packages like astroquery [@astroquery]. ``sbpy``'s API is deliberately emulating
 that of ``Astropy`` wherever possible in order to enable user-friendly
 and consistent access to its functionality.
 
 ``sbpy`` is setup in a highly modular class-based fashion, roughly
-separated by the individual tasks listed above. The following
-schematic provides an overview of these modules and their
+separated by the individual tasks listed above. Figure 1 provides
+an overview of these modules and their
 interrelations as indicated through colored symbols. The main modules,
 shown as black boxes, interact through data containers for
 ephemerides and observations (red box symbol), orbits (blue triangle),
