@@ -48,10 +48,7 @@ import sys
 from distutils import log
 from distutils.debug import DEBUG
 
-try:
-    from ConfigParser import ConfigParser, RawConfigParser
-except ImportError:
-    from configparser import ConfigParser, RawConfigParser
+from configparser import ConfigParser, RawConfigParser
 
 import pkg_resources
 
@@ -123,20 +120,22 @@ if SETUP_CFG.has_option('options', 'python_requires'):
 
     if not req.specifier.contains(python_version):
         if parent_package is None:
-            print("ERROR: Python {} is required by this package".format(req.specifier))
+            message = "ERROR: Python {} is required by this package\n".format(req.specifier)
         else:
-            print("ERROR: Python {} is required by {}".format(req.specifier, parent_package))
+            message = "ERROR: Python {} is required by {}\n".format(req.specifier, parent_package)
+        sys.stderr.write(message)
         sys.exit(1)
 
 if sys.version_info < __minimum_python_version__:
 
     if parent_package is None:
-        print("ERROR: Python {} or later is required by astropy-helpers".format(
-            __minimum_python_version__))
+        message = "ERROR: Python {} or later is required by astropy-helpers\n".format(
+            __minimum_python_version__)
     else:
-        print("ERROR: Python {} or later is required by astropy-helpers for {}".format(
-            __minimum_python_version__, parent_package))
+        message = "ERROR: Python {} or later is required by astropy-helpers for {}\n".format(
+            __minimum_python_version__, parent_package)
 
+    sys.stderr.write(message)
     sys.exit(1)
 
 _str_types = (str, bytes)
@@ -146,14 +145,14 @@ _str_types = (str, bytes)
 # issues with either missing or misbehaving pacakges (including making sure
 # setuptools itself is installed):
 
-# Check that setuptools 1.0 or later is present
+# Check that setuptools 30.3 or later is present
 from distutils.version import LooseVersion
 
 try:
     import setuptools
-    assert LooseVersion(setuptools.__version__) >= LooseVersion('1.0')
+    assert LooseVersion(setuptools.__version__) >= LooseVersion('30.3')
 except (ImportError, AssertionError):
-    print("ERROR: setuptools 1.0 or later is required by astropy-helpers")
+    sys.stderr.write("ERROR: setuptools 30.3 or later is required by astropy-helpers\n")
     sys.exit(1)
 
 # typing as a dependency for 1.6.1+ Sphinx causes issues when imported after
