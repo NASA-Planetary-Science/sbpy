@@ -30,6 +30,12 @@ import os
 import sys
 
 try:
+    from sphinx_astropy.conf import *
+except ImportError:
+    print('ERROR: the documentation requires the sphinx-astropy package to be installed')
+    sys.exit(1)
+
+try:
     import astropy_helpers
 except ImportError:
     # Building from inside the docs/ directory?
@@ -180,7 +186,7 @@ github_issues_url = 'https://github.com/{0}/issues/'.format(
     setup_cfg['github_project'])
 
 # add sphinx-automodapi manually to extensions
-extensions += ['sphinx-automodapi']
+#extensions += ['sphinx-automodapi']
 
 
 # -- compile list of field names
