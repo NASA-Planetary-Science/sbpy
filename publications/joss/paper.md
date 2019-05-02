@@ -1,4 +1,4 @@
---
+---
 title: 'sbpy: A Python module for small-body planetary astronomy'
 tags:
   - python
