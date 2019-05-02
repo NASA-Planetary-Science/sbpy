@@ -60,7 +60,7 @@ Most requirements should be resolved during the installation process. However, w
 
 .. code-block:: bash
 
-    $ pip install git+https://github.com/astropy/astroquery.git
+    $ pip install --pre astroquery
 
 Also, if you want to use `pyoorb
 <https://github.com/oorb/oorb/tree/master/python>`__, you will have to
@@ -108,7 +108,7 @@ The `sbpy` team maintains a `tutorial repository
 <https://github.com/NASA-Planetary-Science/sbpy-tutorial>`__ providing
 tutorials and learning materials used in workshops. Upcoming workshops
 are also announced on this website.
-   
+
 
 Current Status
 --------------
@@ -117,7 +117,7 @@ This package is currently under heavy development. For an overview on
 the expected structure and functionality of `sbpy`, please refer to
 :doc:`structure` page; the :doc:`status` provides an overview on the
 implementation status of all modules and functions.
-	  
+
 The current development version status is as follows:
 
 .. image:: https://travis-ci.org/NASA-Planetary-Science/sbpy.svg?branch=master
@@ -127,7 +127,7 @@ The current development version status is as follows:
 .. image:: https://coveralls.io/repos/github/NASA-Planetary-Science/sbpy/badge.svg?branch=master
     :target: https://coveralls.io/github/NASA-Planetary-Science/sbpy?branch=master
     :alt: Coveralls status
-	
+
 .. image:: https://readthedocs.org/projects/sbpy/badge/?version=latest
     :target: http://sbpy.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
@@ -137,13 +137,13 @@ More information on `sbpy`
 --------------------------
 
 .. toctree::
-   :maxdepth: 1  
+   :maxdepth: 1
 
    contributing.rst
    structure.rst
    status.rst
 
-   
+
 Reference/API
 -------------
 
@@ -176,7 +176,7 @@ Acknowledgments
 `sbpy` is supported by NASA PDART Grant No. 80NSSC18K0987.
 
 If you use `sbpy` in your work, please acknowledge it using the following line:
-   
+
    "*This work made use of sbpy (http://sbpy.org), a community-driven Python package for small-body planetary astronomy supported by NASA PDART Grant No. 80NSSC18K0987.*"
 
 and also please consider using the `~sbpy.bib` reference tracking
