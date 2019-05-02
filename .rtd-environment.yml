@@ -10,9 +10,9 @@ dependencies:
     - Cython
     - matplotlib
     - scipy
-    - sphinx-automodapi
     - pip
     - pip:
       - "git+https://github.com/astropy/astroquery.git"
       - ads
       - synphot
+      - sphinx-automodapi
