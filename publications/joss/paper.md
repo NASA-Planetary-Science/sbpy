@@ -29,11 +29,14 @@ authors:
   - name: Giannina Guzman
     orcid: 0000-0001-6340-8220
     affiliation: 4
-  - name: Josef Ďurech
+  - name: Brigitta Sipőcz
+    orcid:  0000-0002-3713-6337
     affiliation: 5
+  - name: Josef Ďurech
+    affiliation: 6
   - name: Mikael Granvik
     orcid: 0000-0002-5624-1888
-    affiliation: 6
+    affiliation: 7
   - name: Will Grundy
     orcid: 0000-0002-8296-6540
     affiliation: 1
@@ -42,7 +45,7 @@ authors:
     affiliation: 1
   - name: Antti Penttilä
     orcid: 0000-0001-7403-1721
-    affiliation: 6
+    affiliation: 7
   - name: Nalin Samarasinha
     orcid: 0000-0001-8925-7010
     affiliation: 3
@@ -55,10 +58,12 @@ affiliations:
    index: 3
  - name: Villanova University, US
    index: 4
- - name: Charles Universiy, Prague, Czech Republic
+ - name: DIRAC Institute, Department of Astronomy, University of Washington
    index: 5
- - name: University of Helsinki, Finland
+ - name: Charles Universiy, Prague, Czech Republic
    index: 6
+ - name: University of Helsinki, Finland
+   index: 7
 
 date: 31 March 2019
 bibliography: paper.bib
