@@ -145,12 +145,22 @@ def reflectance(cross_section=None, reflectance=None, wfb=None, M_sun=None,
     """Reflectance related equivalencies.
 
     Support conversion from/to reflectance and scattering cross-section
-    to/from total flux and magnitude.
+    to/from total flux and magnitude at 1 au for both heliocentric and
+    observer distances.
 
     The default magnitude system is ``VEGAmag``, where the apparent magnitude
-    of Vega is assumed to be 0 in all and any wavelengths and bands.  If other
-    magnitude system is used, then it is implicitly inferred from the solar
-    magnitude passed by keyword 'M_sun'.
+    of Vega is assumed to be 0 in all and any wavelengths and bands.  If
+    another magnitude system is used, then it is implicitly inferred from the
+    solar magnitude passed by keyword ``M_sun``.
+
+    The default V-band solar magnitude and flux adopted by this function are:
+        M_sun('johnson_v') = -26.7747 VEGAmag
+        f_sun('johnson_v') = 1839.93 W / (m2 µm)
+        f_sun('johnson_v') = 1.86600e-12 W / (m2 Hz)
+    These values are based on the default solar spectrum adopted by `sbpy`
+    "E490-00a (2014) reference solar spectrum (Table 3)", doi:10.1520/E0490.
+    If other wavelength/frequency or bandpass is used, then it has to be passed
+    via parameter ``wfb``.
 
     Parameters
     ----------
@@ -183,6 +193,8 @@ def reflectance(cross_section=None, reflectance=None, wfb=None, M_sun=None,
     Examples
     --------
     >>> # Convertion between scattering cross-section and reflectance
+    >>> # Note that these examples assumes V-band magnitude and uses the
+    >>> # Built-in default V-magnitude of the Sun -26.77 VEGAmag.
     >>> import numpy as np
     >>> from astropy import units as u
     >>> from sbpy.units import reflectance, VEGAmag
@@ -206,17 +218,12 @@ def reflectance(cross_section=None, reflectance=None, wfb=None, M_sun=None,
     3.40 mag(VEGA)
     """
     if wfb is not None:
-        try:
-            import synphot
-        except ImportError:
-            warn(AstropyWarning('synphot required for Vega-based magnitude'
-                            ' conversions.'))
-            return []
         sun = Sun.from_default()
         try:
             f_sun_lam = sun.observe(wfb, unit='W/(m2 um)')
             f_sun_nu = sun.observe(wfb, unit='W/(m2 Hz)')
         except SinglePointSpectrumError:
+            warn(AstropyWarning('Solar spectrum is interpolated.'))
             f_sun_lam = sun(wfb, unit='W/(m2 um)')
             f_sun_nu = sun(wfb, unit='W/(m2 Hz)')
         f_sun_phys = f_sun_lam.to(VEGA, spectral_density_vega(wfb))
