@@ -154,7 +154,7 @@ def test_reflectance_spec():
 
     Use Tempel 1 spectrum collected by Deep Impact HRI-IR at
     2005-07-04 05:32 UT as the standard.  Data file
-    'data/hi05070405_9000036-avg-spec.txt'
+    'data/hi05070405_9000036-avg-spec.txt', data from McLaughlin et al (2014).
     """
     fn = get_pkg_data_filename(os.path.join(
         'data', 'hi05070405_9000036-avg-spec.txt'))
@@ -172,8 +172,8 @@ def test_reflectance_spec():
     ref2 = spec.to('1/sr', reflectance(cross_section=xsec, f_sun=t1['flux_sun']*u.Unit('W/(m2 um)')))
     ref3 = spec_nu.to('1/sr', reflectance(cross_section=xsec, f_sun=t1['flux_sun_nu']*u.Unit('W/(m2 Hz)')))
     assert ref1.unit == '1/sr'
-    assert np.isclose(ref1.value, t1['ref']).all()
+    assert np.allclose(ref1.value, t1['ref'])
     assert ref2.unit == '1/sr'
-    assert np.isclose(ref2.value, t1['ref']).all()
+    assert np.allclose(ref2.value, t1['ref'])
     assert ref3.unit == '1/sr'
-    assert np.isclose(ref3.value, t1['ref']).all()
+    assert np.allclose(ref3.value, t1['ref'])

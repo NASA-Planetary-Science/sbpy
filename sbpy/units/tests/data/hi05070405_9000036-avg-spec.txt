@@ -11,7 +11,8 @@
 # J-Y Li 2019 Apr 18
 #
 # Added columns 'flux_sun', 'flux_sun_nu', ref
-# Solar fluxes are calculated with sbpy.spectroscopy.Sun.from_default().observe()
+# Solar fluxes are calculated using "E490-00a (2014) reference solar spectrum
+# (Table 3)", doi:10.1520/E0490
 # Reference is calculated with sbpy.units.spectral() equivalencies with
 #   cross_section = (ifov * delta)**2, wfb = wave
 # where ifov = 1e-5 radians, delta = 15828 km, rh = 1.5 au
