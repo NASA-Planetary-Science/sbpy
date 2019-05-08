@@ -157,7 +157,7 @@ def test_reflectance_spec():
     'data/hi05070405_9000036-avg-spec.txt', data from McLaughlin et al (2014).
     """
     fn = os.path.join(os.path.dirname(__file__), 'data',
-        'hi05070405_9000036_avg_spec.txt')
+        'hi05070405_9000036-avg-spec.txt')
     t1 = ascii.read(fn)
     ifov = 1e-5 * u.rad
     delta = 15828 * u.km
