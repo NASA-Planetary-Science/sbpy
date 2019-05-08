@@ -144,21 +144,28 @@ def reflectance(cross_section=None, reflectance=None, wfb=None, M_sun=None,
         f_sun=None):
     """Reflectance related equivalencies.
 
-    Support conversion from/to reflectance and scattering cross-section
-    to/from total flux and magnitude at 1 au for both heliocentric and
-    observer distances.
+    Supports conversion from/to reflectance and scattering cross-section
+    to/from total flux or magnitude at 1 au for both heliocentric and observer
+    distances.
 
-    The default magnitude system is ``VEGAmag``, where the apparent magnitude
-    of Vega is assumed to be 0 in all and any wavelengths and bands.  If
-    another magnitude system is used, then it is implicitly inferred from the
-    solar magnitude passed by keyword ``M_sun``.
+    The default bandpass is Johnson V and the solar spectrum model is
+    E490-00a (2014) reference solar spectrum (Table 3), doi:10.1520/E0490.  If
+    the user does not specify a wavelength, frequency, or bandpass via
+    ``wfb``, then `~sbpy.units.VEGAmag` and spectral flux density
+    equivalencies will be provided for the V-band.
 
-    The default V-band solar magnitude and flux adopted by this function are:
+    Users wanting conversions with magnitude systems incompatible with these
+    units will need to define ``M_sun`` in that system or add equivalencies to
+    convert from the magnitude system to physical units or Vega-based
+    magnitudes.
+
+    The V-band solar magnitude and flux for the default solar spectrum model
+    are:
+
         M_sun('johnson_v') = -26.7747 VEGAmag
         f_sun('johnson_v') = 1839.93 W / (m2 µm)
         f_sun('johnson_v') = 1.86600e-12 W / (m2 Hz)
-    These values are based on the default solar spectrum adopted by `sbpy`
-    "E490-00a (2014) reference solar spectrum (Table 3)", doi:10.1520/E0490.
+
     If other wavelength/frequency or bandpass is used, then it has to be passed
     via parameter ``wfb``.
 
