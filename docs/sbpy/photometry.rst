@@ -48,7 +48,7 @@ Renormalize to 1.0 μm:
 Disk-integrated Phase Function Models
 -------------------------------------
 
-Disk-integrated phase function referrs to the brightness or reflectance of
+Disk-integrated phase function refers to the brightness or reflectance of
 an asteroid, often measured in magnitude, with respect to phase angle.  The IAU
 adopted a number of models to describe the phase function of asteroids,
 including the two-parameter H, G system (Bowell et al. 1989), the
