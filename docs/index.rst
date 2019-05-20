@@ -82,11 +82,11 @@ Using GitHub
 
 This way of installing `sbpy` is recommended if you plan to contribute
 to the module. The current development version of `sbpy` can be
-obtained from `GitHub <https://github.com/mommermi/sbpy>`__ using
+obtained from `GitHub <https://github.com/NASA-Planetary-Science/sbpy>`__ using
 
 .. code-block:: bash
 
-    $ git clone https://github.com/mommermi/sbpy.git
+    $ git clone https://github.com/NASA-Planetary-Science/sbpy.git
 
 This will create a new directory (``sbpy/``). In this directory, run
 
