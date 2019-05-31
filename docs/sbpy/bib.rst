@@ -123,7 +123,7 @@ MNRAS (`~sbpy.bib.to_mnras`)
 Please note that the NASA ADS API is still experimental and suffers
 from hickups. Queries might fail, leading to warnings. If you perform
 a query, please check if there are any warning messages included. If
-so, please re-try the query until it is successfull.
+so, please re-try the query until it is successful.
 
 Other bibliography styles, for instance in accordance to specific
 journal rules, can be readily implemented.
