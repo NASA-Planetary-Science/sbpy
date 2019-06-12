@@ -19,6 +19,73 @@ different services and `~sbpy.data.Names` provides functions
 related to naming conventions for asteroids and comets.
 
 
+What are Ephem, Orbit, and Phys and How to Use Them?
+----------------------------------------------------
+
+Although the data container classes `~sbpy.data.Ephem`,
+`~sbpy.data.Orbit`, and `~sbpy.data.Phys` look very similar and are
+based on the same base class (`~sbpy.data.DataClass`), there are
+subtle differences. The container classes have been introduced to
+minimize confusion between properties of different natures, i.e.,
+mixing apples with oranges. For instance, it would not make sense to
+add a *diameter* field to an ``Ephem`` object holding observational
+data including epochs and magnitudes, since the diameter of a body is
+unlikely to change over the course of observations. Furthermore,
+providing separate data containers for different properties enables
+the implementation of specifically designed methods to query and
+modify the data held by these classes.
+
+So what are the data containers supposed to be used for?
+
+Ephem
+^^^^^
+
+`~sbpy.data.Ephem` was originally designed to hold
+**ephemerides**. However, instances of this class should be used in
+general to hold *properties that vary with time or as a function of
+another property* (e.g., wavelength). Hence, `~sbpy.data.Ephem` can be
+used to hold all kinds of **observations** (e.g., magnitudes and/or
+coordinates as a function of time) but also **spectra** (e.g., flux as
+a function of wavelength).
+
+`~sbpy.data.Ephem` currently provides convenience functions to query
+ephemerides from the JPL Horizons system
+(`~sbpy.data.Ephem.from_horizons`) and the Minor Planet Center
+(`~sbpy.data.Ephem.from_mpc`), as well as a convience function to
+derive ephemerides from an `~sbpy.data.Orbit` object using `pyoorb
+<https://github.com/oorb/oorb/tree/master/python>`_.
+
+Orbit
+^^^^^
+
+`~sbpy.data.Orbit` should be used to hold **orbital elements** of one
+or several bodies. Elements can be retrieved using the convenience
+function `~sbpy.data.Orbit.from_horizons`, propagated using
+`~sbpy.data.Orbit.oo_propagate`, and transformed into other frames
+using `~sbpy.data.Orbit.oo_transform`.
+
+Phys
+^^^^
+
+`~sbpy.data.Phys` objects are meant to hold **physical properties**
+that do not change over time. Known physical properties can currently
+be queried from the JPL Small-Body Database Browser system using
+`~sbpy.data.Phys.from_sbdb`.
+
+
+Names
+^^^^^
+
+`~sbpy.data.Names` objects are somewhat different from the other data
+containers, as they don't hold properties but only object
+**names**. These names can be used to identify object nature
+(`~sbpy.data.Names.asteroi_or_comet`) and they can be parsed to
+extract individual identifier components
+(`~sbpy.data.Names.parse_asteroid` and
+`~sbpy.data.Names.parse_comet`).
+
+
+
 How to use Ephem, Orbit, and Phys objects
 -----------------------------------------
 
