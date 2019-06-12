@@ -33,21 +33,50 @@ that are stable and which you can already use for your research. We
 will indicate which functions are ready to be tested on this dedicated
 `status page <status.rst>`_. Keep in mind that there might be issues,
 so feel free to compare the function results with your own results. If
-you find a problem, please create an `issue report <https://github.com/NASA-Planetary-Science/sbpy/issues>`__.
+you find a problem, please create an `issue report
+<https://github.com/NASA-Planetary-Science/sbpy/issues>`__.
 
-Coding
-------
+Code Contributions
+------------------
 
 If you would like to implement (or modify) some functionality
-yourself, you are welcome to do so. Before you write any code, please
-inform the developer via an `issue report <https://github.com/NASA-Planetary-Science/sbpy/issues>`__ of your
-plans, so that duplication of works can be prevented.
+yourself, you are welcome to do so, but please adhere to `astropy's
+contributing guildelines <http://www.astropy.org/contribute.html>`__;
+this link also provides a general guide to the workflow involving git
+and other hints.
 
-If your plans have been approved by the developers, please check the
-`wiki <https://github.com/NASA-Planetary-Science/sbpy/wiki>`_ for some
-development guidelines or `sbpy` functionality. After reading the
-guidelines, fork the `sbpy` repository and work on that code. Once you
-are done, please issue a pull request, linking to your original issue
-report. Please follow the `astropy code of conduct`_.
+This is the proposed workflow for code contributions:
+
+* Before you write any code, please inform the developer via an `issue
+  report <https://github.com/NASA-Planetary-Science/sbpy/issues>`__ of
+  your plans, so that duplication of work can be prevented.
+* Given that `sbpy` is supported by a NASA grant, the developers have
+  to maintain the package's stability and integrity; hence, the
+  developers' decisions have to be followed at any time.
+* If your plans have been approved by the developers, they will point
+  you to a place in the code where your contribution can be
+  implemented.
+* Fork the latest version of the `sbpy` repository from
+  `https://github.com/NASA-Planetary-Science/sbpy
+  <https://github.com/NASA-Planetary-Science/sbpy>`__, clone it to
+  your machine, and create a new branch with a descriptive name
+  relevant to your project. Implement your code into this new branch.
+* To make your code compatible with the `sbpy` API, please follow the
+  `function/method design guidelines
+  <https://github.com/NASA-Planetary-Science/sbpy/wiki/function-method-design>`_.
+* All `sbpy` code contributions require docstrings in agreement with
+  the `sbpy` `docstring guidelines
+  <https://github.com/NASA-Planetary-Science/sbpy/wiki/docstring-guidelines>`__,
+  unit tests, and useful `documentation
+  <http://docs.astropy.org/en/latest/development/docguide.html>`__.
+  Code should be written following the `astropy coding guidelines
+  <http://docs.astropy.org/en/latest/development/codeguide.html>`__.
+* `sbpy` follows the `astropy testing guidelines
+  <http://docs.astropy.org/en/latest/development/testguide.html>`__.
+* Once you are done working on your code, push your branch to your
+  forked repository on github and create a pull request describing
+  your code and linking to your original issue report.
+  
+Please follow the `astropy code of conduct`_ at any time.
 
 .. _astropy code of conduct: http://docs.astropy.org/en/latest/development/codeguide.html
