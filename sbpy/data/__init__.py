@@ -16,10 +16,14 @@ class Conf():
         ['targetname', 'id', 'Object', 'Target Identifier'],
 
         # orbital elements
+        ['a', 'sma', 'Semi-Major Axis'],
+        ['e', 'ecc', 'Eccentricity'],
         ['i', 'inc', 'incl', 'Inclination'],
         ['epoch', 'datetime_jd', 'JD', 'Date', 'date', 'Epoch'],
-        ['Omega', 'longnode', 'Longitude of the Ascending Node'],
+        ['Omega', 'longnode', 'node', 'Longitude of the Ascending Node'],
         ['w', 'argper', 'Argument of the Periapsis'],
+        ['M', 'mean_anom', 'Mean Anomaly'],
+        ['v', 'true_anom', 'True Anomaly'],
 
         # ephemerides
         ['r', 'rh', 'r_hel', 'heldist', 'Heliocentric Distance'],
@@ -55,6 +59,9 @@ class Conf():
         ['d', 'D', 'diam', 'diameter', 'Diameter'],
         ['R', 'radius', 'Radius'],
         ['pv', 'pV', 'p_v', 'p_V', 'V-band Geometric Albedo'],
+        ['A', 'bondalbedo', 'Bond Albedo'],
+        ['eta', 'Infrared Beaming Parameter'],
+        ['emissivity', 'Emissivity'],
     ]
 
     fieldname_idx = {}
