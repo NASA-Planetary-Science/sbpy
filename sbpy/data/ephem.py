@@ -227,9 +227,10 @@ class Ephem(DataClass):
 
         Notes
         -----
-        See `~astroquery.mpc.MPC.get_ephemerides` and the Minor Planet
-        Ephemeris Service user's guide [MPES]_ for details, including
-        accetable target names.
+        * All properties are provided in the J2000.0 reference system.
+        * See `~astroquery.mpc.MPC.get_ephemerides` and the Minor
+          Planet Ephemeris Service user's guide [MPES]_ for details,
+          including accetable target names.
 
 
         References
@@ -358,65 +359,6 @@ class Ephem(DataClass):
         >>> from astropy.time import Time  # doctest: +SKIP
         >>> epoch = Time('2018-05-14', scale='utc')  # doctest: +SKIP
         >>> eph = Ephem.from_imcce('ceres', '568', epoch)  # doctest: +SKIP
-
-        not yet implemented
-
-        """
-
-    @classmethod
-    def from_lowell(cls, targetid, epoch, observatory='500'):
-        """
-        Load orbital elements from
-        Lowell Observatory's `astorb <http://asteroid.lowell.edu/>`_.
-
-        Parameters
-        ----------
-        targetid : str, mandatory
-            target identifier
-        epochs : astropy Time instance or iterable, optional, default ``None``
-            epoch of elements; if ``None`` is provided, current date is used
-        observatory : str, optional, default '500' (geocentric)
-            location of observer
-
-        Returns
-        -------
-        `~Ephem` object
-
-        Examples
-        --------
-        >>> from sbpy.data import Ephem  # doctest: +SKIP
-        >>> from astropy.time import Time  # doctest: +SKIP
-        >>> epoch = Time('2018-05-14', scale='utc')  # doctest: +SKIP
-        >>> eph = Ephem.from_lowell('ceres', '568', epoch)  # doctest: +SKIP
-
-        not yet implemented
-
-        """
-
-    @classmethod
-    def from_pyephem(cls, orb, location, epoch):
-        """
-        Derives ephemerides using
-        `PyEphem <http://rhodesmill.org/pyephem/>`_.
-
-        Parameters
-        ----------
-        orb : ``~Orbit`` object, mandatory
-            complete set of orbital elements
-        location : str or dictionary, mandatory
-            name of location or a dictionary fully describing the location
-        epoch : astropy ``Time`` object
-
-        Examples
-        --------
-        >>> from sbpy.data import Ephem, Orbit  # doctest: +SKIP
-        >>> orb = Orbit.from_...  # doctest: +SKIP
-        >>> eph = Ephem.from_pyephem(orb,  # doctest: +SKIP
-        >>>                          location={'name': 'Flagstaff',  # doctest: +SKIP
-        >>>                                    'geolon': 35.199167,  # doctest: +SKIP
-        >>>                                    'geolat': -111.631111,  # doctest: +SKIP
-        >>>                                    'altitude': '2106'},  # doctest: +SKIP
-        >>>                          epoch=epoch)  # doctest: +SKIP
 
         not yet implemented
 
