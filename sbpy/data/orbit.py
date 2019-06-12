@@ -45,7 +45,7 @@ class Orbit(DataClass):
             ``'name'`` (asteroid or comet name), ``'asteroid_name'``,
             ``'comet_name'``, ``'id'`` (Horizons id).
             Default: ``'smallbody'``
-        epochs : `~astropy.time.Time` object or iterable thereof, or dictionary, optional
+        epochs : `~astropy.time.Time` object or iterable thereof, or dict, optional
             Epochs of elements to be queried; a list, tuple or
             `~numpy.ndarray` of `~astropy.time.Time` objects or Julian
             Dates as floats should be used for a number of discrete
@@ -60,6 +60,17 @@ class Orbit(DataClass):
         **kwargs : optional
             Arguments that will be provided to
             `astroquery.jplhorizons.HorizonsClass.elements`.
+
+        Notes
+        -----
+        * For detailed explanations of the queried fields, refer to
+          `astroquery.jplhorizons.HorizonsClass.elements <https://astroquery.readthedocs.io/en/latest/api/astroquery.jplhorizons.HorizonsClass.html#astroquery.jplhorizons.HorizonsClass.elements>`_ and the
+          `JPL Horizons documentation <https://ssd.jpl.nasa.gov/?horizons_doc>`_.
+        * By default, elements are provided in the J2000.0 reference
+          system and relative to the ecliptic and mean equinox of the
+          reference epoch. Different settings can be chosen using
+          additional keyword arguments as used by
+          `astroquery.jplhorizons.HorizonsClass.elements <https://astroquery.readthedocs.io/en/latest/api/astroquery.jplhorizons.HorizonsClass.html#astroquery.jplhorizons.HorizonsClass.elements>`_.
 
         Returns
         -------
@@ -124,7 +135,7 @@ class Orbit(DataClass):
                 all_elem = vstack([all_elem, elem])
 
         # identify time scales returned by Horizons query
-        timescales = ['TT'] * len(all_elem)
+        timescales = ['TDB'] * len(all_elem)
         all_elem.add_column(Column(timescales, name='timescale'))
 
         if bib.status() is None or bib.status():
@@ -156,54 +167,6 @@ class Orbit(DataClass):
 
         """
 
-    @classmethod
-    def from_astdys(cls, targetid):
-        """Load orbital elements from AstDyS
-        (http://hamilton.dm.unipi.it/astdys/).
-
-        Parameters
-        ----------
-        targetid: str, mandatory
-            target identifier
-
-        Returns
-        -------
-        `~Orbit` object
-
-        Examples
-        --------
-        >>> from sbpy.data import Orbit  # doctest: +SKIP
-        >>> orb = Orbit.from_mpc('ceres')  # doctest: +SKIP
-
-        not yet implemented
-
-        """
-
-    @classmethod
-    def from_rebound(cls, sim):
-        """Obtain orbital elements from REBOUND
-        (https://github.com/hannorein/rebound) simulation instance.
-
-        Parameters
-        ----------
-        sim: REBOUND simulation instance, mandatory
-            Simulation from which to obtain orbital elements.
-
-        Returns
-        -------
-        `~Orbit` object
-
-        Examples
-        --------
-        >>> from sbpy.data import Orbit  # doctest: +SKIP
-        >>> orb=Orbit.from...  # doctest: +SKIP
-        >>> sim=Orbit.integrate(orb, time=1000*u.year)  # doctest: +SKIP
-        >>> future_orb=Orbit.from_rebound(sim)  # doctest: +SKIP
-
-        not yet implemented
-
-        """
-
     # functions using pyoorb
 
     def _to_oo(self, timescale=None):
@@ -214,6 +177,15 @@ class Orbit(DataClass):
         timescale : str (``UTC``|``UT1``|``TT``|``TAI``)
             overrides timescale provided in `~Orbit` object; Default:
             ``None``.
+
+        Notes
+        -----
+        * If no ``timescale`` field is provided in the orbit table and the
+          ``timescale`` option is not used (None), ``timescale=UTC`` is
+          assumed.
+        * ``TDB`` times are currently used as ``TT`` times, introducing
+          uncertainties of less than 0.002 seconds in the timing.
+
         """
 
         # identify orbit type based on available table columns
@@ -231,11 +203,26 @@ class Orbit(DataClass):
             raise ValueError(
                 'orbit type cannot be determined from elements')
 
-        if timescale is None:
+        # rename TDB to TT, if ``timescale`` fields available
+        if ('timescale' in self.column_names and
+                any(self.table['timescale'] == 'TDB')):
+            self.table['timescale'][self.table['timescale'] == 'TDB'] = 'TT'
+
+        if timescale is not None:
+            # override timescale, if provided
+            timescale_ = [conf.oorb_timeScales[timescale]] * len(self.table)
+        elif 'timescale' not in self.column_names:
+            # assume UTC if no timescale information provided
+            timescale_ = [conf.oorb_timeScales['UTC']] * len(self.table)
+        else:
+            # use ``timescale`` field information
             timescale_ = [conf.oorb_timeScales[t]
                           for t in self.table['timescale']]
-        else:
-            timescale_ = [conf.oorb_timeScales[timescale]] * len(self.table)
+
+        # implant ``targetname`` field information, if not available
+        if 'targetname' not in self.column_names:
+            self.table['targetname'] = ['orbit_'+str(i) for i in
+                                        range(len(self.table))]
 
         # assemble orbit array for oorb_ephemeris
         if orbittype == 'COM':
@@ -385,8 +372,7 @@ class Orbit(DataClass):
             if (colname in default_units.keys() and
                 not isinstance(self[colname],
                                (u.Quantity, u.CompositeUnit))):
-                self[colname].unit = \
-                    default_units[colname]
+                self[colname].unit = default_units[colname]
 
         oo_orbits, err = pyoorb.pyoorb.oorb_element_transformation(
             in_orbits=self._to_oo(timescale),
@@ -534,8 +520,7 @@ class Orbit(DataClass):
             if (colname in default_units.keys() and
                 not isinstance(self[colname],
                                (u.Quantity, u.CompositeUnit))):
-                self[colname].unit = \
-                    default_units[colname]
+                self[colname].unit = default_units[colname]
 
         if isinstance(epoch, Time):
             ooepoch = [epoch.jd-2400000.5, conf.oorb_timeScales[timescale]]
