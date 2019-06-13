@@ -64,13 +64,13 @@ class Orbit(DataClass):
         Notes
         -----
         * For detailed explanations of the queried fields, refer to
-          `astroquery.jplhorizons.HorizonsClass.elements <https://astroquery.readthedocs.io/en/latest/api/astroquery.jplhorizons.HorizonsClass.html#astroquery.jplhorizons.HorizonsClass.elements>`_ and the
+          `astroquery.jplhorizons.HorizonsClass.elements` and the
           `JPL Horizons documentation <https://ssd.jpl.nasa.gov/?horizons_doc>`_.
         * By default, elements are provided in the J2000.0 reference
           system and relative to the ecliptic and mean equinox of the
           reference epoch. Different settings can be chosen using
           additional keyword arguments as used by
-          `astroquery.jplhorizons.HorizonsClass.elements <https://astroquery.readthedocs.io/en/latest/api/astroquery.jplhorizons.HorizonsClass.html#astroquery.jplhorizons.HorizonsClass.elements>`_.
+          `astroquery.jplhorizons.HorizonsClass.elements`.
 
         Returns
         -------

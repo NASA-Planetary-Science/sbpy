@@ -65,12 +65,12 @@ class Ephem(DataClass):
         Notes
         -----
         * For detailed explanations of the queried fields, refer to
-          `astroquery.jplhorizons.HorizonsClass.ephemerides <https://astroquery.readthedocs.io/en/latest/api/astroquery.jplhorizons.HorizonsClass.html#astroquery.jplhorizons.HorizonsClass.ephemerides>`_ and the
+          `astroquery.jplhorizons.HorizonsClass.ephemerides` and the
           `JPL Horizons documentation <https://ssd.jpl.nasa.gov/?horizons_doc>`_.
         * By default, all properties are provided in the J2000.0 reference
           system. Different settings can be chosen using
           additional keyword arguments as used by
-          `astroquery.jplhorizons.HorizonsClass.ephemerides <https://astroquery.readthedocs.io/en/latest/api/astroquery.jplhorizons.HorizonsClass.html#astroquery.jplhorizons.HorizonsClass.ephemerides>`_.
+          `astroquery.jplhorizons.HorizonsClass.ephemerides`.
 
         Returns
         -------
@@ -228,7 +228,7 @@ class Ephem(DataClass):
         Notes
         -----
         * All properties are provided in the J2000.0 reference system.
-        * See `~astroquery.mpc.MPC.get_ephemerides` and the Minor
+        * See `astroquery.mpc.MPC.get_ephemerides` and the Minor
           Planet Ephemeris Service user's guide [MPES]_ for details,
           including accetable target names.
 
