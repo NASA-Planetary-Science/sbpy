@@ -157,7 +157,8 @@ man_pages = [('index', project.lower(), project + u' Documentation',
 # -- Options for the edit_on_github extension ---------------------------------
 
 if eval(setup_cfg.get('edit_on_github')):
-    extensions += ['sphinx_astropy.ext.edit_on_github']
+    extensions += ['sphinx_astropy.ext.edit_on_github',
+                   'sphinx.ext.intersphinx']
 
     versionmod = __import__(setup_cfg['package_name'] + '.version')
     edit_on_github_project = setup_cfg['github_project']
@@ -175,3 +176,7 @@ github_issues_url = 'https://github.com/{0}/issues/'.format(
 
 # -- compile list of field names
 #import compile_fieldnames
+
+# --- intersphinx setup
+intersphinx_mapping['astroquery'] = (
+    'https://astroquery.readthedocs.io/en/latest/', None)
