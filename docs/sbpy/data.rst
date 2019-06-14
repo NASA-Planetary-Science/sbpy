@@ -79,7 +79,7 @@ Names
 `~sbpy.data.Names` objects are somewhat different from the other data
 containers, as they don't hold properties but only object
 **names**. These names can be used to identify object nature
-(`~sbpy.data.Names.asteroi_or_comet`) and they can be parsed to
+(`~sbpy.data.Names.asteroid_or_comet`) and they can be parsed to
 extract individual identifier components
 (`~sbpy.data.Names.parse_asteroid` and
 `~sbpy.data.Names.parse_comet`).
