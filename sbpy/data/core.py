@@ -313,6 +313,8 @@ class DataClass():
         """Return columns or rows from data table (``self._table``); checks
         for and may use alternative field names."""
 
+        print(ident, type(ident))
+
         # iterable
         if isinstance(ident, (list, tuple, ndarray)):
             if all([isinstance(i, str) for i in ident]):
@@ -332,6 +334,8 @@ class DataClass():
         elif isinstance(ident, str):
             self = self._convert_columns(ident)
             ident = self._translate_columns(ident)[0]
+        elif isinstance(ident, int):
+            return QTable(self._table[ident])
 
         # return as element from self_table
         return self._table[ident]
