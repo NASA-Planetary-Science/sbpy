@@ -60,7 +60,7 @@ affiliations:
    index: 4
  - name: DIRAC Institute, Department of Astronomy, University of Washington
    index: 5
- - name: Charles Universiy, Prague, Czech Republic
+ - name: Charles University, Prague, Czech Republic
    index: 6
  - name: University of Helsinki, Finland
    index: 7
@@ -121,7 +121,7 @@ packages like ``astroquery`` [@astroquery]. ``sbpy``'s API is deliberately emula
 that of ``Astropy`` wherever possible in order to enable user-friendly
 and consistent access to its functionality.
 
-``sbpy`` is setup in a highly modular class-based fashion, roughly
+``sbpy`` is set up in a highly modular class-based fashion, roughly
 separated by the individual tasks listed above. Figure 1 provides
 an overview of these modules and their
 interrelations as indicated through colored symbols. The main modules,
