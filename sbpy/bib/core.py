@@ -126,11 +126,15 @@ def cite(key, reference):
     Examples
     --------
     >>> @cite('method', '1687pnpm.book.....N')
-    >>> def force(mass, accelleration):
-    >>>     return mass * accelleration
+    ... def force(mass, accelleration):
+    ...     return mass * accelleration
     >>>
     >>> with Tracking(to_text):
-    >>>     print(force(1, 2))
+    ...     print(force(1, 2))
+    2
+    sbpy.bib.core.force:
+      method:
+          Newton 1687, Philosophiae Naturalis Principia Mathematica. Auctore Js. Newton
 
     """
 
