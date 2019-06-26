@@ -8,7 +8,7 @@ from astropy.table import Table
 from astroquery.lamda import Lamda
 from astroquery.jplspec import JPLSpec
 from .. import Haser, photo_timescale
-from ....data import Ephem
+from ....data import Ephem, Phys
 from .. import LTE, einstein_coeff
 
 
@@ -42,7 +42,7 @@ def test_remote_prodrate_simple_hcn():
         lte = LTE()
 
         q = lte.from_Drahus(spectra, temp_estimate, transition_freq,
-                          mol_tag, ephemobj, vgas, aper, b=b)
+                            mol_tag, ephemobj, vgas, aper, b=b)
 
         q = np.log10(q.value)
 
@@ -85,7 +85,7 @@ def test_remote_prodrate_simple_ch3oh():
         lte = LTE()
 
         q = lte.from_Drahus(spectra, temp_estimate, transition_freq,
-                          mol_tag, ephemobj, vgas, aper, b=b)
+                            mol_tag, ephemobj, vgas, aper, b=b)
 
         q = np.log10(q.value)
 
@@ -173,8 +173,8 @@ def test_Haser_prodrate():
         lte = LTE()
 
         Q = lte.from_Haser(coma, spectra, temp_estimate,
-                                 transition_freq, mol_tag, ephemobj,
-                                 aper=aper, b=b)
+                           transition_freq, mol_tag, ephemobj,
+                           aper=aper, b=b)
 
         q_found.append(np.log10(Q.value)[0])
 

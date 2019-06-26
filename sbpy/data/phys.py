@@ -14,7 +14,6 @@ import warnings
 from collections import OrderedDict
 
 from numpy import ndarray, array, isnan, nan
-from scipy import interpolate
 import astropy.units as u
 import astropy.constants as con
 from astroquery.jplsbdb import SBDB
@@ -196,6 +195,11 @@ class Phys(DataClass):
                 | Degrees of freedom
 
         """
+        try:
+            from scipy import interpolate
+        except ImportError:
+            raise ImportError('Optional package scipy is needed for this \
+                               function. Please install scipy.')
 
         query = JPLSpec.query_lines(min_frequency=(transition_freq - (1 * u.GHz)),
                                     max_frequency=(transition_freq + (1 * u.GHz)),

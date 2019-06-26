@@ -28,8 +28,7 @@ __all__ = [
     'fluorescence_band_strength',
 
     'Haser',
-    'Vectorial',
-    'GasComa'
+    'Vectorial'
 ]
 
 from warnings import warn

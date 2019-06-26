@@ -62,6 +62,15 @@ class Conf():
         ['A', 'bondalbedo', 'Bond Albedo'],
         ['eta', 'Infrared Beaming Parameter'],
         ['emissivity', 'Emissivity'],
+        ['Transition frequency', 't_freq', 'transition_freq'],
+        ['Temperature', 'temppartfn', 'Temperature for Partition Function'],
+        ['Integrated line intensity at 300 K', 'lgint'],
+        ['Partition function at 300 K', 'partfn300'],
+        ['Partition function at designated temperature', 'partfn'],
+        ['Upper state degeneracy', 'dgup'],
+        ['Upper level energy in Joules', 'eup_j'],
+        ['Lower level energy in Joules', 'elo_j'],
+        ['Degrees of freedom', 'degfr']
     ]
 
     fieldname_idx = {}
