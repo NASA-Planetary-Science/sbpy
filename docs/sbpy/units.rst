@@ -101,7 +101,7 @@ magnitude system via keyword ``M_sun`` as long as the quantity to be converted
 is in the same unit as the supplied solar flux or magnitude, respectively:
 
   >>> ref = 0.0287 / u.sr
-  >>> flux_ceres = mag.to('W/(m2 um)', spectral_density_vega('johnson_v'))
+  >>> flux_ceres = mag.to('W/(m2 um)', spectral_density_vega('johnson_v')) # doctest: +IGNORE_OUTPUT
   >>> flux_sun = 1839.93273227 * u.Unit('W/(m2 um)')
   >>> cross_sec = flux_ceres.to('km2', reflectance(reflectance=ref,
   ...     f_sun=flux_sun))
