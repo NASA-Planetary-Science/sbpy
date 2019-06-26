@@ -156,8 +156,8 @@ def test_reflectance_spec():
     2005-07-04 05:32 UT as the standard.  Data file
     'data/hi05070405_9000036-avg-spec.txt', data from McLaughlin et al (2014).
     """
-    fn = os.path.join(os.path.dirname(__file__), 'data',
-        'hi05070405_9000036-avg-spec.txt')
+    fn = get_pkg_data_filename(os.path.join('data',
+        'hi05070405_9000036-avg-spec.txt'))
     t1 = ascii.read(fn)
     ifov = 1e-5 * u.rad
     delta = 15828 * u.km
