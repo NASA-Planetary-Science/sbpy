@@ -5,6 +5,7 @@ from ...units import hundred_nm
 from ...utils import get_bandpass
 from ..core import SpectralGradient
 
+
 class TestSpectralGradient():
     def test_new(self):
         S = SpectralGradient(100 / u.um, wave=(525, 575) * u.nm)
