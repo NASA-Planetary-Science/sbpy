@@ -188,11 +188,14 @@ class Phys(DataClass):
 
         """
 
-        query = JPLSpec.query_lines(min_frequency=(transition_freq - (1 * u.MHz)),
-                                    max_frequency=(transition_freq + (1 * u.MHz)),
+        query = JPLSpec.query_lines(min_frequency=(transition_freq - (1 * u.GHz)),
+                                    max_frequency=(transition_freq + (1 * u.GHz)),
                                     molecule=mol_tag)
 
         freq_list = query['FREQ']
+
+        if freq_list[0] == 'Zero lines we':
+            #introduce sbpy warnings into here
 
         t_freq = min(list(freq_list.quantity),
                      key=lambda x: abs(x-transition_freq))
