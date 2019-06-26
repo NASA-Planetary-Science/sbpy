@@ -18,7 +18,7 @@ from .sun import Sun
 
 conf.horizons_server = 'https://ssd.jpl.nasa.gov/horizons_batch.cgi'
 
-__all__ = ['Spectrum', 'SpectralModel']
+__all__ = ['Spectrum', 'SpectralModel', 'SpectralGradient']
 
 
 class SpectralGradient(u.SpecificTypeQuantity):
