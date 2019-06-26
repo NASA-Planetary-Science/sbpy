@@ -6,10 +6,23 @@ sbpy classes and functions can automatically report citations to the
 user through a bibliography registry.
 """
 
-__all__ = ['register', 'reset', 'status', 'stop', 'track', 'Tracking',
-           'to_text', 'to_bibtex', 'to_aastex', 'to_icarus', 'to_mnras']
+__all__ = [
+    'register',
+    'reset',
+    'status',
+    'stop',
+    'track',
+    'Tracking',
+    'cite',
+    'to_text',
+    'to_bibtex',
+    'to_aastex',
+    'to_icarus',
+    'to_mnras'
+]
 
 import warnings
+from functools import wraps
 from collections import OrderedDict
 import atexit
 from astropy import log
@@ -79,12 +92,60 @@ def track():
 
 
 class Tracking:
+    def __init__(self, reporter=None):
+        self.reporter = reporter
 
     def __enter__(self):
         track()
 
     def __exit__(self, type, value, tb):
         stop()
+        if self.reporter is not None:
+            print(self.reporter())
+
+
+def cite(key, reference):
+    """Decorator that registers citations with ``sbpy.bib``.
+
+
+    Parameters
+    ----------
+    key : string
+        Citation key, e.g., 'method', or 'beaming parameter'.
+
+    reference : string
+        A NASA ADS key, DOI, or text describing the reference.
+
+
+    Returns
+    -------
+    decorator : function
+        Function decorator.
+
+
+    Examples
+    --------
+    >>> @cite('method', '1687pnpm.book.....N')
+    ... def force(mass, accelleration):
+    ...     return mass * accelleration
+    >>>
+    >>> with Tracking(to_text):
+    ...     print(force(1, 2))
+    2
+    sbpy.bib.core.force:
+      method:
+          Newton 1687, Philosophiae Naturalis Principia Mathematica. Auctore Js. Newton
+
+    """
+
+    def decorator(f):
+        @wraps(f)
+        def wrapper(*args, **kwargs):
+            task = '.'.join((f.__module__, f.__name__))
+            register(task, {key: reference})
+            return f(*args, **kwargs)
+        return wrapper
+    return decorator
 
 
 def to_text(filter=None):

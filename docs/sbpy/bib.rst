@@ -56,9 +56,9 @@ Bibliography tracking can also be used in a context manager:
 
     >>> from sbpy import bib
     >>> from sbpy.data import Ephem
-    >>> with bib.Tracking():
+    >>> with bib.Tracking(to_text):
     ...     eph = Ephem.from_horizons('Ceres', epochs=None, location='500')
-    >>> print(bib.to_text())  # doctest: +SKIP
+    ...     # doctest: +SKIP
     sbpy.data.Ephem.from_horizons:
       data service:
           Giorgini, Yeomans, Chamberlin et al. 1996, AAS/Division for Planetary Sciences Meeting Abstracts #28, 25.04
