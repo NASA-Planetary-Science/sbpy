@@ -8,9 +8,8 @@ import astropy.units as u
 from astropy.tests.helper import remote_data
 from astropy.modeling.blackbody import blackbody_nu, blackbody_lambda
 import synphot
-from ..sources import SpectralStandard, BlackbodySource
+from ..sources import SpectralStandard, BlackbodySource, SinglePointSpectrumError
 from ... import bib, units, utils
-from ... import exceptions as sbe
 
 
 class Star(SpectralStandard):
@@ -146,9 +145,9 @@ class TestSpectralStandard:
         w = u.Quantity(np.linspace(0.3, 1.0), 'um')
         f = u.Quantity(np.ones(len(w)), 'W/(m2 um)')
         s = Star.from_array(w, f)
-        with pytest.raises(sbe.SinglePointSpectrumError):
+        with pytest.raises(SinglePointSpectrumError):
             s.observe(1 * u.um)
-        with pytest.raises(sbe.SinglePointSpectrumError):
+        with pytest.raises(SinglePointSpectrumError):
             s.observe([1] * u.um)
 
     def test_bibcode(self):

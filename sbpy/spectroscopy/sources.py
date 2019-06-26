@@ -15,8 +15,12 @@ __all__ = [
 from abc import ABC
 import numpy as np
 import astropy.units as u
-from ..exceptions import SinglePointSpectrumError
+from ..exceptions import SbpyException
 from ..bib import register
+
+
+class SinglePointSpectrumError(SbpyException):
+    '''Single point provided, but multiple values expected.'''
 
 
 class SpectralSource(ABC):

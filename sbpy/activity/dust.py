@@ -39,7 +39,7 @@ from astropy.utils.exceptions import AstropyWarning
 from .. import bib
 from ..spectroscopy import Sun, BlackbodySource
 from ..data import Ephem
-from ..exceptions import SinglePointSpectrumError
+from ..spectroscopy.sources import SinglePointSpectrumError
 from .core import Aperture, rho_as_length
 
 
