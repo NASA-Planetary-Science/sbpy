@@ -3,4 +3,5 @@ import os
 
 
 def get_package_data():
-    return {'sbpy.units.tests': 'data/hi05070405_9000036-avg-spec.txt'}
+    return {'sbpy.units.tests': [os.path.join('data',
+                                 'hi05070405_9000036-avg-spec.txt')]}
