@@ -6,11 +6,9 @@ created on June 23, 2017
 """
 
 import numpy as np
-from scipy import interpolate
 import astropy.constants as con
 import astropy.units as u
 from astropy.time import Time
-from astroquery.jplspec import JPLSpec
 from astroquery.jplhorizons import Horizons, conf
 from astropy import log
 from ..bib import register
@@ -22,97 +20,6 @@ conf.horizons_server = 'https://ssd.jpl.nasa.gov/horizons_batch.cgi'
 
 __all__ = ['Spectrum', 'SpectralModel', 'SpectralGradient', 'molecular_data',
            'einstein_coeff', 'intensity_conversion']
-
-
-def molecular_data(temp_estimate, transition_freq, mol_tag):
-    """
-    Returns relevant constants from JPLSpec catalog and energy calculations
-
-    Parameters
-    ----------
-    temp_estimate : `~astropy.units.Quantity`
-        Estimated temperature in Kelvins
-
-    transition_freq : `~astropy.units.Quantity`
-        Transition frequency in MHz
-
-    mol_tag : int or str
-        Molecule identifier. Make sure it is an exclusive identifier.
-
-    Returns
-    -------
-    Molecular data : `~sbpy.data.Phys` instance
-        Quantities in the following order:
-            | Transition frequency
-            | Temperature
-            | Integrated line intensity at 300 K
-            | Partition function at 300 K
-            | Partition function at designated temperature
-            | Upper state degeneracy
-            | Upper level energy in Joules
-            | Lower level energy in Joules
-            | Degrees of freedom
-
-    """
-
-    query = JPLSpec.query_lines(min_frequency=(transition_freq - (1 * u.MHz)),
-                                max_frequency=(transition_freq + (1 * u.MHz)),
-                                molecule=mol_tag)
-
-    freq_list = query['FREQ']
-
-    t_freq = min(list(freq_list.quantity),
-                 key=lambda x: abs(x-transition_freq))
-
-    data = query[query['FREQ'] == t_freq.value]
-
-    df = int(data['DR'].data)
-
-    lgint = float(data['LGINT'].data)
-
-    lgint = 10**lgint * u.nm * u.nm * u.MHz
-
-    elo = float(data['ELO'].data) / u.cm
-
-    gu = float(data['GUP'].data)
-
-    cat = JPLSpec.get_species_table()
-
-    mol = cat[cat['TAG'] == mol_tag]
-
-    temp_list = cat.meta['Temperature (K)'] * u.K
-
-    part = list(mol['QLOG1', 'QLOG2', 'QLOG3', 'QLOG4', 'QLOG5', 'QLOG6',
-                    'QLOG7'][0])
-
-    temp = temp_estimate
-
-    f = interpolate.interp1d(temp_list, part, 'linear')
-
-    partition = 10**(f(temp_estimate.value))
-
-    part300 = 10 ** (float(mol['QLOG1'].data))
-
-    # yields in 1/cm
-    energy = elo + (t_freq.to(1/u.cm, equivalencies=u.spectral()))
-
-    energy_J = energy.to(u.J, equivalencies=u.spectral())
-    elo_J = elo.to(u.J, equivalencies=u.spectral())
-
-    quantities = [t_freq, temp, lgint, part300,
-                  partition, gu, energy_J, elo_J, df]
-    names = ('Transition frequency',
-             'Temperature',
-             'Integrated line intensity at 300 K',
-             'Partition function at 300 K',
-             'Partition function at designated temperature',
-             'Upper state degeneracy',
-             'Upper level energy in Joules',
-             'Lower level energy in Joules',
-             'Degrees of freedom')
-    result = Phys.from_array(quantities, names)
-
-    return result
 
 
 def intensity_conversion(temp_estimate, transition_freq, mol_tag):
@@ -137,7 +44,7 @@ def intensity_conversion(temp_estimate, transition_freq, mol_tag):
 
     """
 
-    mol_data = molecular_data(temp_estimate, transition_freq, mol_tag)
+    mol_data = Phys.from_jplspec(temp_estimate, transition_freq, mol_tag)
 
     temp = mol_data[0][1]
     lgint = mol_data[0][2]
@@ -193,7 +100,7 @@ def einstein_coeff(temp_estimate, transition_freq, mol_tag):
 
     """
 
-    mol_data = molecular_data(temp_estimate, transition_freq, mol_tag)
+    mol_data = Phys.from_jplspec(temp_estimate, transition_freq, mol_tag)
 
     t_freq = mol_data[0][0]
     temp = mol_data[0][1]
@@ -854,7 +761,7 @@ class Spectrum():
 
                 assert isinstance(transition_freq[i], u.Quantity)
 
-                mol_data = molecular_data(temp_estimate, transition_freq[i],
+                mol_data = Phys.from_jplspec(temp_estimate, transition_freq[i],
                                           mol_tag)
 
                 t_freq = mol_data[0][0]
@@ -896,7 +803,7 @@ class Spectrum():
 
             assert isinstance(transition_freq, u.Quantity)
 
-            mol_data = molecular_data(temp_estimate, transition_freq, mol_tag)
+            mol_data = Phys.from_jplspec(temp_estimate, transition_freq, mol_tag)
 
             t_freq = mol_data[0][0]
             temp = mol_data[0][1]

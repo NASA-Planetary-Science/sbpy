@@ -12,8 +12,11 @@ created on June 04, 2017
 from collections import OrderedDict
 
 from numpy import ndarray, array, isnan, nan
+from scipy import interpolate
 import astropy.units as u
+import astropy.constants as con
 from astroquery.jplsbdb import SBDB
+from astroquery.jplspec import JPLSpec
 
 from .core import DataClass
 from .. import bib
@@ -152,6 +155,97 @@ class Phys(DataClass):
 
         # assemble data as Phys object
         return cls.from_array(coldata, names=columnnames)
+
+    @classmethod
+    def from_jplspec(cls, temp_estimate, transition_freq, mol_tag):
+        """
+        Returns relevant constants from JPLSpec catalog and energy calculations
+
+        Parameters
+        ----------
+        temp_estimate : `~astropy.units.Quantity`
+            Estimated temperature in Kelvins
+
+        transition_freq : `~astropy.units.Quantity`
+            Transition frequency in MHz
+
+        mol_tag : int or str
+            Molecule identifier. Make sure it is an exclusive identifier.
+
+        Returns
+        -------
+        Molecular data : `~sbpy.data.Phys` instance
+            Quantities in the following order:
+                | Transition frequency
+                | Temperature
+                | Integrated line intensity at 300 K
+                | Partition function at 300 K
+                | Partition function at designated temperature
+                | Upper state degeneracy
+                | Upper level energy in Joules
+                | Lower level energy in Joules
+                | Degrees of freedom
+
+        """
+
+        query = JPLSpec.query_lines(min_frequency=(transition_freq - (1 * u.MHz)),
+                                    max_frequency=(transition_freq + (1 * u.MHz)),
+                                    molecule=mol_tag)
+
+        freq_list = query['FREQ']
+
+        t_freq = min(list(freq_list.quantity),
+                     key=lambda x: abs(x-transition_freq))
+
+        data = query[query['FREQ'] == t_freq.value]
+
+        df = int(data['DR'].data)
+
+        lgint = float(data['LGINT'].data)
+
+        lgint = 10**lgint * u.nm * u.nm * u.MHz
+
+        elo = float(data['ELO'].data) / u.cm
+
+        gu = float(data['GUP'].data)
+
+        cat = JPLSpec.get_species_table()
+
+        mol = cat[cat['TAG'] == mol_tag]
+
+        temp_list = cat.meta['Temperature (K)'] * u.K
+
+        part = list(mol['QLOG1', 'QLOG2', 'QLOG3', 'QLOG4', 'QLOG5', 'QLOG6',
+                        'QLOG7'][0])
+
+        temp = temp_estimate
+
+        f = interpolate.interp1d(temp_list, part, 'linear')
+
+        partition = 10**(f(temp_estimate.value))
+
+        part300 = 10 ** (float(mol['QLOG1'].data))
+
+        # yields in 1/cm
+        energy = elo + (t_freq.to(1/u.cm, equivalencies=u.spectral()))
+
+        energy_J = energy.to(u.J, equivalencies=u.spectral())
+        elo_J = elo.to(u.J, equivalencies=u.spectral())
+
+        quantities = [t_freq, temp, lgint, part300, partition, gu, energy_J, elo_J, df]
+        names = ('Transition frequency',
+                 'Temperature',
+                 'Integrated line intensity at 300 K',
+                 'Partition function at 300 K',
+                 'Partition function at designated temperature',
+                 'Upper state degeneracy',
+                 'Upper level energy in Joules',
+                 'Lower level energy in Joules',
+                 'Degrees of freedom')
+        result = cls.from_array(quantities, names)
+
+        return result
+
 
     @classmethod
     def from_lowell(cls, targetid):
