@@ -9,6 +9,8 @@ Class for storing and querying physical properties
 created on June 04, 2017
 """
 
+import warnings
+
 from collections import OrderedDict
 
 from numpy import ndarray, array, isnan, nan
@@ -20,8 +22,15 @@ from astroquery.jplspec import JPLSpec
 
 from .core import DataClass
 from .. import bib
+from ..exceptions import SbpyWarning
 
 __all__ = ['Phys']
+
+
+class JPLSpecQueryFailed(SbpyWarning):
+    '''
+    Raise warning if molecular data query fails
+    '''
 
 
 class Phys(DataClass):
@@ -195,7 +204,9 @@ class Phys(DataClass):
         freq_list = query['FREQ']
 
         if freq_list[0] == 'Zero lines we':
-            #introduce sbpy warnings into here
+            raise JPLSpecQueryFailed("Zero lines were found by JPLSpec in \
+                                       a +/- 1 GHz range from your provided \
+                                       transition frequency.")
 
         t_freq = min(list(freq_list.quantity),
                      key=lambda x: abs(x-transition_freq))
