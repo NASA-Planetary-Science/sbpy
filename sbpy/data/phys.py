@@ -246,7 +246,6 @@ class Phys(DataClass):
 
         return result
 
-
     @classmethod
     def from_lowell(cls, targetid):
         """Load physical properties from Lowell Observatory
