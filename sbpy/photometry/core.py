@@ -168,7 +168,6 @@ def mag2ref(mag, radius, M_sun=None):
         return ref
 
 
-
 class _spline(object):
 
     """Cubic spline class
