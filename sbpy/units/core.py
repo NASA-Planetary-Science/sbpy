@@ -30,7 +30,7 @@ import astropy.units as u
 from astropy.utils.exceptions import AstropyWarning
 from ..spectroscopy.vega import Vega
 from ..spectroscopy.sun import Sun
-from ..exceptions import SinglePointSpectrumError
+from ..spectroscopy.sources import SinglePointSpectrumError
 
 
 VEGA = u.def_unit(['VEGA', 'VEGAflux'],
