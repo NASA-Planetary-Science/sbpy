@@ -162,6 +162,7 @@ Reference/API
    sbpy/utils.rst
    sbpy/obsutil.rst
    sbpy/bib.rst
+   sbpy/exceptions.rst
 
 
 External packages that have been modified as part of `sbpy`

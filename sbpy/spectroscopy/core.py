@@ -96,7 +96,8 @@ def molecular_data(temp_estimate, transition_freq, mol_tag):
     energy_J = energy.to(u.J, equivalencies=u.spectral())
     elo_J = elo.to(u.J, equivalencies=u.spectral())
 
-    quantities = [t_freq, temp, lgint, part300, partition, gu, energy_J, elo_J, df]
+    quantities = [t_freq, temp, lgint, part300,
+                  partition, gu, energy_J, elo_J, df]
     names = ('Transition frequency',
              'Temperature',
              'Integrated line intensity at 300 K',
