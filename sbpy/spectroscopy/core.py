@@ -16,7 +16,6 @@ from astropy import log
 from ..bib import register
 from ..data import Phys
 from .sun import Sun
-from ..units import hundred_nm
 
 
 conf.horizons_server = 'https://ssd.jpl.nasa.gov/horizons_batch.cgi'
@@ -454,6 +453,7 @@ class SpectralGradient(u.SpecificTypeQuantity):
         6.27819572 % / 100 nm
 
         """
+        from ..units import hundred_nm
 
         eff_wave = SpectralGradient._eff_wave(wfb)
 
