@@ -6,11 +6,8 @@ created on June 23, 2017
 
 """
 
-__all__ = ['ref2mag', 'mag2ref',
-           'DiskIntegratedPhaseFunc', 'LinearPhaseFunc', 'HG',
-           'HG12', 'HG1G2', 'HG12_Pen16', 'DiskFunctionModel', 'LommelSeeliger',
-           'Lambert', 'LunarLambert', 'PhaseFunctionModel', 'ROLOPhase',
-           'ResolvedPhotometricModelClass', 'ROLO']
+__all__ = ['ref2mag', 'mag2ref', 'DiskIntegratedPhaseFunc', 'LinearPhaseFunc',
+           'HG', 'HG12BaseClass', 'HG12', 'HG1G2', 'HG12_Pen16']
 
 from collections import OrderedDict
 import warnings
@@ -1171,87 +1168,3 @@ class HG12_Pen16(HG12):
         p2 = -0.53513350
         ddg = 1.085736205*((phi3-phi1)*p1+(phi3-phi2)*p2)/dom
         return [ddh, ddg]
-
-
-class DiskFunctionModel(FittableModel):
-    """Base class for disk-function model"""
-    pass
-
-
-class LommelSeeliger(DiskFunctionModel):
-    """Lommel-Seeliger model class"""
-
-    inputs = ('i', 'e')
-    outputs = ('d',)
-
-    @staticmethod
-    def evaluate(i, e):
-        mu0 = np.cos(i)
-        mu = np.cos(e)
-        return mu0/(mu0+mu)
-
-
-class Lambert(DiskFunctionModel):
-    """Lambert model class"""
-
-    inputs = ('i',)
-    outputs = ('d',)
-
-    @staticmethod
-    def evaluate(i):
-        return np.cos(i)
-
-
-class LunarLambert(DiskFunctionModel):
-    """Lunar-Lambert model, or McEwen model class"""
-    inputs = ('i', 'e')
-    outputs = ('d',)
-
-    L = Parameter(default=0.1, description='Partition parameter')
-
-    @staticmethod
-    def evaluate(i, e, L):
-        return (1-L) * LommelSeeliger.evaluate(i, e) + L * Lambert.evaluate(i)
-
-
-class PhaseFunctionModel(FittableModel):
-    """Base class for phase function model"""
-    inputs = ('a',)
-    outputs = ('f',)
-
-
-class ROLOPhase(PhaseFunctionModel):
-    """ROLO phase function model class"""
-    A0 = Parameter(default=0.1, min=0., description='ROLO A0 parameter')
-    A1 = Parameter(default=0.1, min=0., description='ROLO A1 parameter')
-    C0 = Parameter(default=0.1, min=0., description='ROLO C0 parameter')
-    C1 = Parameter(default=0.1, description='ROLO C1 parameter')
-    C2 = Parameter(default=0.1, description='ROLO C2 parameter')
-    C3 = Parameter(default=0.1, description='ROLO C3 parameter')
-    C4 = Parameter(default=0.1, description='ROLO C4 parameter')
-
-    @staticmethod
-    def evaluate(pha, c0, c1, a0, a1, a2, a3, a4):
-        pha2 = pha*pha
-        return c0*np.exp(-c1*pha)+a0+a1*pha+a2*pha2+a3*pha*pha2+a4*pha2*pha2
-
-    @staticmethod
-    def fit_deriv(pha, c0, c1, a0, a1, a2, a3, a4):
-        pha2 = pha*pha
-        dc0 = np.exp(-c1*pha)
-        if hasattr(pha, '__iter__'):
-            dda = np.ones(len(pha))
-        else:
-            dda = 1.
-        return [dc0, -c0*c1*dc0, dda, pha, pha2, pha*pha2, pha2*pha2]
-
-
-class ResolvedPhotometricModelClass(object):
-    """Base class for disk-resolved photometric model"""
-    # composite model as the product of a disk function and a phase function
-    pass
-
-
-class ROLO(ResolvedPhotometricModelClass):
-    """ROLO disk-resolved photometric model"""
-    pass
