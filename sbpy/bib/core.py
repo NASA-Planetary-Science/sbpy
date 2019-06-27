@@ -28,7 +28,7 @@ import atexit
 from astropy import log
 
 
-def register(task, citation):
+def register(task, citations):
     """Register a citation with the `sbpy` bibliography tracker.
 
 
@@ -37,11 +37,12 @@ def register(task, citation):
     task : string
         The name of the source module requesting a citation.
 
-    citation : dict
-        A dictionary of a single NASA Astrophysics Data System (ADS)
-        bibcode to cite.  The key references the aspect that requires
-        citation, e.g., `{'method': '1998Icar..131..291H'}`, or
-        `{'beaming parameter': '2013Icar..226.1138F'}`.
+    citations : dict
+        A dictionary of NASA Astrophysics Data System (ADS) bibcodes,
+        DOIs, or free-form strings to cite.  The key references the
+        aspect that requires citation, e.g., `{'method':
+        '1998Icar..131..291H'}`, or `{'beaming parameter':
+        '2013Icar..226.1138F'}`.
 
     """
     global _bibliography, _track
@@ -104,18 +105,20 @@ class Tracking:
             print(self.reporter())
 
 
-def cite(key, reference):
-    """Decorator that registers citations with ``sbpy.bib``.
+def cite(citations):
+    """Decorator that registers citations within ``sbpy``.
 
+    This decorator is the primary mechanism for registering citations.
+    As an alternative, `~register` may be called directly.
 
     Parameters
     ----------
-    key : string
-        Citation key, e.g., 'method', or 'beaming parameter'.
-
-    reference : string
-        A NASA ADS key, DOI, or text describing the reference.
-
+    citations : dict
+        A dictionary of NASA Astrophysics Data System (ADS) bibcodes,
+        DOIs, or free-form strings to cite.  The key references the
+        aspect that requires citation, e.g., `{'method':
+        '1998Icar..131..291H'}`, or `{'parameter : beaming':
+        '2013Icar..226.1138F'}`.
 
     Returns
     -------
@@ -125,7 +128,7 @@ def cite(key, reference):
 
     Examples
     --------
-    >>> @cite('method', '1687pnpm.book.....N')
+    >>> @cite({'method': '1687pnpm.book.....N'})
     ... def force(mass, accelleration):
     ...     return mass * accelleration
     >>>
