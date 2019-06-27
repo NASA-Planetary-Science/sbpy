@@ -260,8 +260,8 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
     ...
     >>> linear_phasefunc = LinearPhaseFunc(5, 2.29, radius=300)
     >>> pha = np.linspace(0, 180, 200)
-    >>> mag = linear_phasefunc.mag(np.deg2rad(pha))
-    >>> ref = linear_phasefunc.ref(np.deg2rad(pha))
+    >>> mag = linear_phasefunc.to_mag(np.deg2rad(pha))
+    >>> ref = linear_phasefunc.to_ref(np.deg2rad(pha))
     >>> geoalb = linear_phasefunc.geoalb
     >>> phaseint = linear_phasefunc.phaseint
     >>> bondalb = linear_phasefunc.bondalb
@@ -398,7 +398,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
     @property
     def geoalb(self):
         """Geometric albedo"""
-        alb = np.pi*self.ref(0)
+        alb = np.pi*self.to_ref(0)
         if hasattr(alb, 'unit'):
             alb = alb*u.sr
         return alb
@@ -558,7 +558,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
             m0 = cls(*init)
         return m0.fit(eph, mag, fitter=fitter, **kwargs)
 
-    def mag(self, eph, append_results=False, **kwargs):
+    def to_mag(self, eph, append_results=False, **kwargs):
         """Calculate phase function in magnitude
 
         Parameters
@@ -600,10 +600,10 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         >>> eph = Ephem.from_dict({'alpha': np.linspace(0,np.pi*0.9,200),
         ...              'r': np.repeat(2.7*u.au, 200),
         ...              'delta': np.repeat(1.8*u.au, 200)})
-        >>> mag1 = ceres_hg.mag(eph)
+        >>> mag1 = ceres_hg.to_mag(eph)
         >>> # parameter `eph` as numpy array
         >>> pha = np.linspace(0, 180, 200)
-        >>> mag2 = ceres_hg.mag(np.deg2rad(pha))
+        >>> mag2 = ceres_hg.to_mag(np.deg2rad(pha))
         """
         self._check_unit()
         eph, pha = _process_ephem_input(eph, 'alpha')
@@ -632,7 +632,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         else:
             return out
 
-    def ref(self, eph, normalized=None, append_results=False, **kwargs):
+    def to_ref(self, eph, normalized=None, append_results=False, **kwargs):
         """Calculate phase function in average bidirectional reflectance
 
         Parameters
@@ -677,10 +677,10 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         >>> eph = Ephem.from_dict({'alpha': np.linspace(0,np.pi*0.9,200),
         ...              'r': np.repeat(2.7*u.au, 200),
         ...              'delta': np.repeat(1.8*u.au, 200)})
-        >>> ref1 = ceres_hg.ref(eph)
+        >>> ref1 = ceres_hg.to_ref(eph)
         >>> # parameter `eph` as numpy array
         >>> pha = np.linspace(0, 180, 200)
-        >>> ref2 = ceres_hg.mag(np.deg2rad(pha))
+        >>> ref2 = ceres_hg.to_ref(np.deg2rad(pha))
         """
         self._check_unit()
         eph, pha = _process_ephem_input(eph, 'alpha')
@@ -734,7 +734,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         0.364
 
         """
-        def integrand(x): return 2*self.ref(x, normalized=0.)*np.sin(x)
+        def integrand(x): return 2*self.to_ref(x, normalized=0.)*np.sin(x)
         return integrator(integrand, 0, np.pi)[0]
 
 
@@ -749,8 +749,8 @@ class LinearPhaseFunc(DiskIntegratedPhaseFunc):
     >>>
     >>> linear_phasefunc = LinearPhaseFunc(5, 2.29, radius=300)
     >>> pha = np.linspace(0, 180, 200)
-    >>> mag = linear_phasefunc.mag(np.deg2rad(pha))
-    >>> ref = linear_phasefunc.ref(np.deg2rad(pha))
+    >>> mag = linear_phasefunc.to_mag(np.deg2rad(pha))
+    >>> ref = linear_phasefunc.to_ref(np.deg2rad(pha))
     >>> geoalb = linear_phasefunc.geoalb
     >>> phaseint = linear_phasefunc.phaseint
     >>> bondalb = linear_phasefunc.bondalb
