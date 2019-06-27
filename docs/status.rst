@@ -13,6 +13,20 @@ tested.
 If you are or have been working on code, please indicate its status
 here.
 
+The current development version status is as follows:
+
+.. image:: https://travis-ci.org/NASA-Planetary-Science/sbpy.svg?branch=master
+    :target: https://travis-ci.org/NASA-Planetary-Science/sbpy
+    :alt: Travis-CI status
+
+.. image:: https://coveralls.io/repos/github/NASA-Planetary-Science/sbpy/badge.svg?branch=master
+    :target: https://coveralls.io/github/NASA-Planetary-Science/sbpy?branch=master
+    :alt: Coveralls status
+
+.. image:: https://readthedocs.org/projects/sbpy/badge/?version=latest
+    :target: http://sbpy.readthedocs.io/en/latest/?badge=latest
+    :alt: Documentation Status
+
 Legend
 ~~~~~~
 

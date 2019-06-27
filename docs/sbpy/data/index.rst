@@ -396,15 +396,15 @@ Writing object data to a file
 By default, the data are written in ASCII format, but other formats
 are available, too (cf. `~astropy.table.Table.write`).
 
-Alternative field names
-^^^^^^^^^^^^^^^^^^^^^^^
+``DataClass`` Property Names
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+``sbpy`` uses a wide range of properties from the ``DataClass`` objects, such as heliocentric distance, radius, or transition frequency.  A complete list is provided in :ref:`propertynames`.
 
 It is common practice to use a set of different names for the same
 property. For instance, the orbital inclination can be referred to as
 ``'i'``, ``'inc'``, or ``'incl'`` - it's a matter of personal
 taste. `~sbpy.data.DataClass` accounts for this fact and is able to
-provide a number of alternative field or property names, as suggested
-above.
+provide a number of alternative names.
 
 As an example, if your `~sbpy.data.Orbit` object has a column named
 ``'incl'`` but you try to get column ``'i'``, the object will
@@ -418,7 +418,7 @@ The definition of alternative field names is done in the file
 automatically tested for potential naming conflicts, i.e., different
 properties that share the same alternative field names, and a human-readable list is compiled upon building `sbpy`.
 
-The list of alternative field names is available here: :ref:`alternative_fieldnames`.
+The list of alternative field names is documented at :ref:`propertynames`.
 
 Field conversions
 ^^^^^^^^^^^^^^^^^
