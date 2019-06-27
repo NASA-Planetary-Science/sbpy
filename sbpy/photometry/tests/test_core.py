@@ -146,6 +146,21 @@ class TestHG:
         with pytest.raises(KeyError):
             m = HG.from_phys(phys)
 
+    def test_to_phys(self):
+        phys = Phys.from_sbdb('Ceres')
+        m = HG.from_phys(phys)
+        p = m.to_phys()
+        assert isinstance(p, Phys)
+        for k in p.column_names:
+            if p[k].dtype.kind == 'f':
+                if isinstance(p[k], u.Quantity):
+                    assert p[k].unit == phys[k].unit
+                    assert np.isclose(p[k].value, phys[k].value)
+                else:
+                    assert np.isclose(p[k], phys[k])
+            else:
+                assert p[k] == phys[k]
+
     def test_evaluate(self):
         pha_test = np.linspace(0, np.pi, 10)
         phi_test = np.array(
