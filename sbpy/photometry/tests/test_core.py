@@ -131,9 +131,11 @@ class TestHG:
         assert ceres.H.unit == u.mag
         assert np.isclose(ceres.G.value, 0.12)
         assert ceres.G.unit == u.dimensionless_unscaled
+
+    def test_from_phys(self):
         # test initialization from `sbpy.data.DataClass`
         phys = Phys.from_sbdb('Ceres')
-        m = HG(data=phys)
+        m = HG.from_phys(phys)
         assert np.all(m.meta['targetname'] == phys['targetname'])
         assert np.isclose(m.H.value, phys['H'])
         assert np.isclose(m.G.value, phys['G'])
@@ -142,7 +144,7 @@ class TestHG:
         # is not present
         phys = Phys.from_sbdb('12893')
         with pytest.raises(KeyError):
-            m = HG(data=phys)
+            m = HG.from_phys(phys)
 
     def test_evaluate(self):
         pha_test = np.linspace(0, np.pi, 10)
@@ -366,11 +368,13 @@ class TestHG1G2:
         assert themis.G1.unit == u.dimensionless_unscaled
         assert np.isclose(themis.G2.value, 0.14)
         assert themis.G2.unit == u.dimensionless_unscaled
+
+    def test_from_phys(self):
         # initialization with Phys, will cause exception because G1, G2 are
         # not generally unavailable.
         phys = Phys.from_sbdb(['Ceres'])
         with pytest.raises(KeyError):
-            m = HG1G2(data=phys)
+            m = HG1G2.from_phys(phys)
 
     def test__G1_G2(self):
         themis = HG1G2(7.063, 0.62, 0.14, radius=100*u.km, M_sun=-26.74)
