@@ -1,9 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import os
 import pytest
-import time
-from ...thermal import NEATM
-from .. import (track, stop, register, reset, to_text, to_bibtex,
+from .. import (track, stop, register, reset, cite, show, to_text, to_bibtex,
                 to_aastex, to_icarus, to_mnras, Tracking)
 
 
@@ -64,6 +62,34 @@ def data_path(filename):
 #     print(to_text().split())
 
 
+def test_register_single():
+    reset()
+    with Tracking():
+        register('test1', {'track_this': 'bibcode1'})
+
+    assert (set(['test1:', 'track_this:', 'bibcode1'])
+            == set(show().split()))
+
+
+def test_register_list():
+    reset()
+    with Tracking():
+        register('test1', {'track_this': ['bibcode1', 'bibcode2']})
+
+    assert (set(['test1:', 'track_this:', 'bibcode1', 'bibcode2'])
+            == set(show().split()))
+
+
+def test_register_double():
+    reset()
+    with Tracking():
+        register('test1', {'track_this': ['bibcode1', 'bibcode2']})
+        register('test1', {'track_this': ['bibcode2']})
+        register('test1', {'track_this': ['bibcode3']})
+
+    assert show().count('bibcode2') == 1
+
+
 def test_Tracking():
     reset()
 
@@ -79,13 +105,12 @@ def test_Tracking():
     assert set(['test1:', 'track_this:', 'bibcode1', 'bibcode2',
                 'track_this_too:', 'bibcode', 'test2:', 'track_this:',
                 'bibcode', 'test3:', 'track_this:', 'bibcode',
-                'and_track_that:', 'bibcode']) == set(to_text().split())
+                'and_track_that:', 'bibcode']) == set(show().split())
     # different builds will have different orders for bibcode 1 and 2, to
     # avoid the build failing because of this we use sets
 
 
-def test_to_text_filter():
-
+def test_filter():
     with Tracking():
         register('test1', {'track_this': 'bibcode1'})
         register('test1', {'software': 'bibcode2'})
@@ -97,7 +122,7 @@ def test_to_text_filter():
     assert set(['test1:', 'software:', 'bibcode2',
                 'test2:', 'software:', 'bibcode',
                 'test3:', 'software:',
-                'bibcode']) == set(to_text(filter='software').split())
+                'bibcode']) == set(show(filter='software').split())
     # different builds will have different orders for bibcode 1 and 2, to
     # avoid the build failing because of this we use sets
 
@@ -108,6 +133,6 @@ def test_Tracking_issue_64():
     with Tracking():
         gamma_H2O = photo_lengthscale('H2O')
         gamma_OH = photo_lengthscale('OH')
-    words = to_text().split()
+    words = show().split()
     assert 'OH' in words
     assert 'H2O' in words

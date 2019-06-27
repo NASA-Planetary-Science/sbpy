@@ -14,6 +14,7 @@ __all__ = [
     'track',
     'Tracking',
     'cite',
+    'show',
     'to_text',
     'to_bibtex',
     'to_aastex',
@@ -23,7 +24,7 @@ __all__ = [
 
 import warnings
 from functools import wraps
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 import atexit
 from astropy import log
 
@@ -39,32 +40,42 @@ def register(task, citations):
 
     citations : dict
         A dictionary of NASA Astrophysics Data System (ADS) bibcodes,
-        DOIs, or free-form strings to cite.  The key references the
-        aspect that requires citation, e.g., `{'method':
-        '1998Icar..131..291H'}`, or `{'beaming parameter':
-        '2013Icar..226.1138F'}`.
+        DOIs, or free-form strings to cite.  The key is the aspect
+        that requires citation.
+
+
+    Examples
+    --------
+    >>> register('sbpy.thermal.neatm', {
+    ...     'method': '1998Icar..131..291H',
+    ...     'parameter: beaming': '2013Icar..226.1138F'
+    ... })
+
+    Citations may also be a list.
+
+    >>> register('user task', {
+    ...     'classification': ['1950BAN....11...91O',
+    ...                        '1978M&P....19..305W']
+    ... })
 
     """
+
     global _bibliography, _track
     if _track:
-        if task in _bibliography:
-            for newsubtask, newcitation in citations.items():
-                if newsubtask in _bibliography[task].keys():
-                    _bibliography[task][newsubtask].update([newcitation])
-                else:
-                    _bibliography[task][newsubtask] = set(
-                        [list(citations.values())[0]])
-        else:
-            thiscitation = OrderedDict()
-            for newsubtask, newcitation in citations.items():
-                thiscitation[newsubtask] = set([list(citations.values())[0]])
-            _bibliography[task] = thiscitation
+        for key, citation in citations.items():
+            c = [citation] if isinstance(citation, str) else list(citation)
+            _bibliography[task][key].update(c)
+
+
+def _bibliography_task_generator():
+    """Generator for empty bibliography tasks."""
+    return defaultdict(set)
 
 
 def reset():
     """Reset `sbpy` bibliography tracking."""
     global _bibliography
-    _bibliography = OrderedDict()
+    _bibliography = defaultdict(_bibliography_task_generator)
 
 
 def stop():
@@ -152,15 +163,15 @@ def cite(citations):
 
 
 def _filter(filter):
-    """Private function that does the bib key filtering."""
+    """Private function that filters by key."""
     if filter is None:
         return _bibliography
 
-    filtered = {}
+    filtered = defaultdict(OrderedDict)
     for task, ref in _bibliography.items():
-        citations = {key: ref[key] for key in ref if key == filter}
-        if len(citations):
-            filtered[task] = citations
+        for key in ref:
+            if key.startswith(filter):
+                filtered[task][key] = ref[key]
 
     return filtered
 
@@ -187,11 +198,11 @@ def show(filter=None):
 
     output = ''
     for task, ref in _filter(filter).items():
-        output += '{:s}\n'.format(task)
+        output += '{:s}:\n'.format(task)
         for key, citations in ref.items():
             output += '  {:s}:\n'.format(key)
             for citation in citations:
-                output += '    {:s}'.format(citation)
+                output += '    {:s}\n'.format(citation)
 
     return output
 
@@ -420,4 +431,4 @@ def _report_at_exit():
 
 
 _track = False  # default is no bibliography tracking
-_bibliography = OrderedDict()
+reset()  # creates empty _bibliography
