@@ -19,7 +19,7 @@ from astropy.modeling import (FittableModel, Fittable1DModel,
 from astropy.table import Column
 import astropy.units as u
 from astropy import log
-from ..data import DataClass, Ephem
+from ..data import Ephem, Phys
 
 
 def _process_ephem_input(eph, key=None):
@@ -418,6 +418,55 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         out.M_sun = M_sun
         return out
 
+    def to_phys(self):
+        """Wrap the model into a `sbpy.data.Phys` object
+
+        Returns
+        -------
+        `~sbpy.data.Phys` object
+
+        Examples
+        --------
+        >>> from sbpy.photometry import HG
+        >>> from sbpy.data import Phys
+        >>>
+        >>> # Initialize from physical parameters pulled from JPL SBDB
+        >>> phys = Phys.from_sbdb('Ceres')
+        >>> print(phys['targetname','radius','H','G'])
+        <QTable length=1>
+        targetname  radius    H       G
+                      km
+           str7    float64 float64 float64
+        ---------- ------- ------- -------
+           1 Ceres   469.7    3.34    0.12
+        >>> m = HG.from_phys(phys)
+        INFO: Model initialized for 1 Ceres. [sbpy.photometry.core]
+        >>> p = m.to_phys()
+        >>> print(type(p))
+        <class 'sbpy.data.phys.Phys'>
+        >>> print(p)
+        <QTable length=1>
+        targetname diameter    H       G
+                      km
+           str7    float64  float64 float64
+        ---------- -------- ------- -------
+           1 Ceres    939.4    3.34    0.12
+        """
+        cols = {}
+        if (self.meta is not None) and ('targetname' in self.meta.keys()):
+            val = self.meta['targetname']
+            if isinstance(val, str):
+                val = [val]
+            cols['targetname'] = val
+        if self.radius is not None:
+            cols['diameter'] = self.radius * 2
+        for p in self.param_names:
+            val = getattr(self, p)
+            if val.quantity is None:
+                cols[p] = val.value
+            else:
+                cols[p] = val.quantity
+        return Phys.from_dict(cols)
 
     def fit(self, eph, mag, fitter=None, return_fitter=False, **kwargs):
         """Fit disk-integrated phase function model to magnitude data and the
