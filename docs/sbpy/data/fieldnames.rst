@@ -56,8 +56,8 @@ List of Alternative Field Names
                **RA*cos(Dec) Rate**                        ``RA*cos(Dec)_rate``, ``dra cos(dec)``, ``dRA cos(Dec)``, ``dra*cos(dec)``, ``dRA*cos(Dec)``
                        **Dec Rate** ``dec_rate``, ``DEC_rate``, ``Dec_rate``, ``dec_rates``, ``DEC_rates``, ``Dec_rates``, ``dDec``, ``dDEC``, ``ddec``
                   **Proper Motion**                                                                                           ``mu``, ``Proper motion``
-        **Proper Motion Direction**                                                                                         ``Direction``, ``directin``
-              **Solar Phase Angle**                                                                                ``alpha``, ``phaseangle``, ``Phase``
+        **Proper Motion Direction**                                                                                        ``Direction``, ``direction``
+              **Solar Phase Angle**                                                                     ``alpha``, ``phaseangle``, ``Phase``, ``phase``
                **Solar Elongation**                                      ``elong``, ``solarelong``, ``solarelongation``, ``elongation``, ``Elongation``
                **V-band Magnitude**                                                                                                     ``V``, ``Vmag``
 **Heliocentric Ecliptic Longitude**                                                      ``hlon``, ``EclLon``, ``ecllon``, ``HelEclLon``, ``helecllon``
