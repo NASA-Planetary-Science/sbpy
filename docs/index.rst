@@ -10,7 +10,7 @@ planetary astronomy in the form of an `astropy`_ affiliated package.
 
 .. Important:: `sbpy` is functional, but incomplete, and under heavy development.  Expect API changes between v0.1 and v0.2.  However, the code's functionality will remain the same.  Starting with v0.2, we expect most modules will have a stable API.
 
-.. Important:: For an overview on the expected structure and functionality of `sbpy`, please refer to the :doc:`structure` page; the :doc:`status` page provides an overview on the implementation status of all modules and functions.
+For an overview on the expected structure and functionality of `sbpy`, please refer to the :doc:`structure` page; the :doc:`status` page provides an overview on the implementation status of all modules and functions.
 
 
 ***************
@@ -36,7 +36,7 @@ Data Structures: Orbits, Ephemerides, Observations, and Physical Properties
 ---------------------------------------------------------------------------
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
    sbpy/data/index.rst
    sbpy/data/fieldnames.rst
@@ -45,7 +45,7 @@ Photometry and Spectroscopy
 ---------------------------
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
    sbpy/spectroscopy/index.rst
    sbpy/spectroscopy/sources.rst
@@ -55,7 +55,7 @@ Activity
 --------
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
    sbpy/activity/index.rst
 
@@ -76,7 +76,7 @@ Developer Documentation
 ***********************
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
    development/index.rst
 

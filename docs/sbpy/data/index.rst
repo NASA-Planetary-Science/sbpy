@@ -398,7 +398,7 @@ are available, too (cf. `~astropy.table.Table.write`).
 
 ``DataClass`` Property Names
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-``sbpy`` uses a wide range of properties from the ``DataClass`` objects, such as heliocentric distance, radius, or transition frequency.  A complete list is provided in :ref:`_propertynames`.
+``sbpy`` uses a wide range of properties from the ``DataClass`` objects, such as heliocentric distance, radius, or transition frequency.  A complete list is provided in :ref:`propertynames`.
 
 It is common practice to use a set of different names for the same
 property. For instance, the orbital inclination can be referred to as
@@ -418,7 +418,7 @@ The definition of alternative field names is done in the file
 automatically tested for potential naming conflicts, i.e., different
 properties that share the same alternative field names, and a human-readable list is compiled upon building `sbpy`.
 
-The list of alternative field names is available here: :ref:`alternative_fieldnames`.
+The list of alternative field names is documented at :ref:`propertynames`.
 
 Field conversions
 ^^^^^^^^^^^^^^^^^
