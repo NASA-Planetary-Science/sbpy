@@ -21,6 +21,7 @@ converting the intensity line integral at 300 K found in JPL Spec catalog and
 convert it closer to the temperature given by the user.
 
 .. code-block:: python
+.. doctest-skip::
 
    >>> from sbpy.spectroscopy import molecular_data, intensity_conversion
    >>> import astropy.units as u
@@ -44,6 +45,7 @@ convert it closer to the temperature given by the user.
       <Quantity 3.52359898e-22 J>,
       <Quantity 1.76181853e-22 J>]
 
+.. doctest-skip::
    >>> intl
       <Quantity 3.99731047636546 MHz nm2>
 
@@ -55,6 +57,7 @@ Einstein coefficient
 for a specific molecule and transition frequency.
 
 .. code-block:: python
+.. doctest-skip::
 
    >>> from sbpy.spectroscopy import einstein_coeff
    >>> e = einstein_coeff(temp_estimate, transition_freq, mol_tag, vgas)
@@ -81,6 +84,7 @@ that are optional or needed for the module follow the link under Reference/API
 section.
 
 .. code-block:: python
+.. doctest-skip::
 
   >>> from sbpy.spectroscopy import prodrate_np
   >>> from astropy.time import Time
@@ -96,9 +100,7 @@ section.
   >>> time = Time('2010-11-3 00:48:06', format='iso')
   >>> ephemobj = Ephem(target, epochs=time.jd, id_type='id')
   >>> q = prodrate_np(spectra, temp_estimate, transition_freq,
-                            mol_tag, ephemobj, vgas, aper,
-                            b=b)
-
+  ...                 mol_tag, ephemobj, vgas, aper, b=b)
   >>> q
   <Quantity 1.0432591198553935e+25 1 / s>
 
@@ -115,13 +117,14 @@ to scale the model Q and output the new production rate from the result. This
 model does account for the effects of photolysis.
 
 .. code-block:: python
-
+.. doctest-skip::
+   
   >>> from sbpy.activity.gas import Haser
   >>> from astropy.time import Time
   >>> from sbpy.data import Ephem
-  >>> coma = Haser(Q, v, parent)
   >>> Q = spec.production_rate(coma, molecule='H2O')
-
+  >>> coma = Haser(Q, v, parent)
+  >>>
   >>> Q_estimate = 2.8*10**(28) / u.s
   >>> transition_freq = (230.53799 * u.GHz).to('MHz')
   >>> aper = 10 * u.m
@@ -130,19 +133,19 @@ model does account for the effects of photolysis.
   >>> target = 'C/2016 R2'
   >>> b = 0.74
   >>> vgas = 0.5 * u.km / u.s
-
+  >>>
   >>> time = '2017-12-22 05:24:20'
   >>> ephemobj = Ephem(target, epochs=time.jd)
   >>> spectra = 0.26 * u.K * u.km / u.s
-
+  >>>
   >>> parent = photo_timescale('CO') * vgas
-
+  >>>
   >>> coma = Haser(Q_estimate, vgas, parent)
-
+  >>>
   >>> Q = spec.production_rate(coma, spectra, temp_estimate,
                                transition_freq, mol_tag, ephemobj,
                                aper=aper, b=b)
-
+  >>>
   >>> print(Q)
       <Quantity [1.64403219e+28] 1 / s>
 

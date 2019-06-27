@@ -114,7 +114,7 @@ Plot solar spectra
 
 Solar spectra in Sun objects can be plotted at the native resolution of the data, or rebinned. Plot the solar spectrum at the native resolution, and at a resolution of ~25:
 
-.. doctest-requires:: synphot
+.. doctest-skip::
 
   >>> import astropy.units as u
   >>> import numpy as np
