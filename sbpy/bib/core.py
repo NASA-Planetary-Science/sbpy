@@ -48,16 +48,16 @@ def register(task, citations):
     global _bibliography, _track
     if _track:
         if task in _bibliography:
-            for newsubtask, newcitation in citation.items():
+            for newsubtask, newcitation in citations.items():
                 if newsubtask in _bibliography[task].keys():
                     _bibliography[task][newsubtask].update([newcitation])
                 else:
                     _bibliography[task][newsubtask] = set(
-                        [list(citation.values())[0]])
+                        [list(citations.values())[0]])
         else:
             thiscitation = OrderedDict()
-            for newsubtask, newcitation in citation.items():
-                thiscitation[newsubtask] = set([list(citation.values())[0]])
+            for newsubtask, newcitation in citations.items():
+                thiscitation[newsubtask] = set([list(citations.values())[0]])
             _bibliography[task] = thiscitation
 
 
@@ -145,14 +145,67 @@ def cite(citations):
         @wraps(f)
         def wrapper(*args, **kwargs):
             task = '.'.join((f.__module__, f.__name__))
-            register(task, {key: reference})
+            register(task, citations)
             return f(*args, **kwargs)
         return wrapper
     return decorator
 
 
+def _filter(filter):
+    """Private function that does the bib key filtering."""
+    if filter is None:
+        return _bibliography
+
+    filtered = {}
+    for task, ref in _bibliography.items():
+        citations = {key: ref[key] for key in ref if key == filter}
+        if len(citations):
+            filtered[task] = citations
+
+    return filtered
+
+
+def show(filter=None):
+    """Show current bibliography.
+
+    Bibcodes are not coverted to text.  Use this function when you do
+    not have the NASA `~ads` module or internet access.
+
+
+    Parameters
+    ----------
+    filter : string, optional
+        Filter the bibliography by key, showing only those that start
+        with this string.
+
+
+    Returns
+    -------
+    bibliography : string
+
+    """
+
+    output = ''
+    for task, ref in _filter(filter).items():
+        output += '{:s}\n'.format(task)
+        for key, citations in ref.items():
+            output += '  {:s}:\n'.format(key)
+            for citation in citations:
+                output += '    {:s}'.format(citation)
+
+    return output
+
+
 def to_text(filter=None):
-    """convert bibcodes to human readable text
+    """Convert bibcodes to human readable text.
+
+
+    Parameters
+    ----------
+    filter : string, optional
+        Filter the bibliography by key, showing only those that start
+        with this string.
+
 
     Returns
     -------
@@ -164,13 +217,9 @@ def to_text(filter=None):
     import ads
 
     output = ''
-    for task, ref in _bibliography.items():
+    for task, ref in _filter(filter).items():
         output += '{:s}:\n'.format(task)
         try:
-            if filter is None:
-                pass
-            else:
-                ref = {i: ref[i] for i in ref if i == filter}
             for key, value in ref.items():
                 output += '  {:s}:\n'.format(key)
                 for citation in value:
@@ -233,14 +282,18 @@ def to_text(filter=None):
     return output
 
 
-def _to_format(format):
+def _to_format(format, filter=None):
     """Convert bibcodes to a range of different output formats.
 
 
     Parameters
     ----------
     format : string
-        Output format: ``bibtex`` | ``aastex``  | ``icarus`` | ``mnras``
+        Output format: ``bibtex`` | ``aastex``  | ``icarus`` | ``mnras``.
+
+    filter : string, optional
+        Filter the bibliography by key, showing only those that start
+        with this string.
 
 
     Returns
@@ -254,7 +307,7 @@ def _to_format(format):
     import ads
 
     output = ''
-    for task, ref in _bibliography.items():
+    for task, ref in _filter(filter).items():
         with warnings.catch_warnings():
             # warnings.filterwarnings('error')
             try:
@@ -278,8 +331,15 @@ def _to_format(format):
     return output
 
 
-def to_bibtex():
+def to_bibtex(filter=None):
     """Convert bibliography to BibTeX format.
+
+
+    Parameters
+    ----------
+    filter : string, optional
+        Filter the bibliography by key, showing only those that start
+        with this string.
 
 
     Returns
@@ -288,11 +348,18 @@ def to_bibtex():
         ADS data in BibTeX format.
 
     """
-    return _to_format('bibtex')
+    return _to_format('bibtex', filter=filter)
 
 
-def to_aastex():
+def to_aastex(filter=None):
     """Convert bibliography to AASTeX format.
+
+
+    Parameters
+    ----------
+    filter : string, optional
+        Filter the bibliography by key, showing only those that start
+        with this string.
 
 
     Returns
@@ -301,11 +368,18 @@ def to_aastex():
         ADS data in AASTeX format.
 
     """
-    return _to_format('aastex')
+    return _to_format('aastex', filter=filter)
 
 
-def to_icarus():
+def to_icarus(filter=None):
     """Convert bibliography to Icarus LATeX format.
+
+
+    Parameters
+    ----------
+    filter : string, optional
+        Filter the bibliography by key, showing only those that start
+        with this string.
 
 
     Returns
@@ -314,11 +388,18 @@ def to_icarus():
         ADS data in Icarus LATeX format.
 
     """
-    return _to_format('icarus')
+    return _to_format('icarus', filter=filter)
 
 
-def to_mnras():
+def to_mnras(filter=None):
     """Convert bibliography to MNRAS LATeX format.
+
+
+    Parameters
+    ----------
+    filter : string, optional
+        Filter the bibliography by key, showing only those that start
+        with this string.
 
 
     Returns
@@ -327,7 +408,7 @@ def to_mnras():
         ADS data in MNRAS LATeX format.
 
     """
-    return _to_format('mnras')
+    return _to_format('mnras', filter=filter)
 
 
 @atexit.register
