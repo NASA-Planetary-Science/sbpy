@@ -14,9 +14,13 @@ from astropy.table import QTable, Column, vstack
 import astropy.units as u
 
 from . import conf
+from .. import exceptions
 
-__all__ = ['DataClass', 'mpc_observations', 'sb_search', 'image_search',
-           'pds_ferret']
+__all__ = ['DataClass', 'DataClassError']
+
+
+class DataClassError(exceptions.SbpyException):
+    pass
 
 
 class DataClass():
@@ -40,32 +44,31 @@ class DataClass():
 
     """
 
-    def __init__(self, data):
+    def __init__(self):
         self._table = QTable()
-        # self.altkeys = {}  # dictionary for alternative column names
 
-        if (len(data.items()) == 1 and 'table' in data.keys()):
-            # single item provided named 'table' -> already Table object
-            self._table = QTable(data['table'])
-        else:
-            # treat kwargs as dictionary
-            for key, val in data.items():
-                try:
-                    unit = val.unit
-                    val = val.value
-                except AttributeError:
-                    unit = None
+        # if (len(data.items()) == 1 and 'table' in data.keys()):
+        #     # single item provided named 'table' -> already Table object
+        #     self._table = QTable(data['table'])
+        # else:
+        #     # treat kwargs as dictionary
+        #     for key, val in data.items():
+        #         try:
+        #             unit = val.unit
+        #             val = val.value
+        #         except AttributeError:
+        #             unit = None
 
-                # check if val is already list-like
-                try:
-                    val[0]
-                except (TypeError, IndexError):
-                    val = [val]
+        #         # check if val is already list-like
+        #         try:
+        #             val[0]
+        #         except (TypeError, IndexError):
+        #             val = [val]
 
-                self._table[key] = Column(val, unit=unit)
+        #         self._table[key] = Column(val, unit=unit)
 
     @classmethod
-    def from_dict(cls, data):
+    def from_dict(cls, data, meta={}):
         """Create `~sbpy.data.DataClass` object from dictionary or list of
         dictionaries.
 
@@ -116,17 +119,164 @@ class DataClass():
         2.7674 0.0756 10.59321
 
         """
-        if isinstance(data, (dict, OrderedDict)):
-            return cls(data)
-        elif isinstance(data, (list, ndarray, tuple)):
-            # build table from first dict and append remaining rows
-            tab = cls(data[0])
-            for row in data[1:]:
-                tab.add_rows(row)
-            return tab
+        # if isinstance(data, (dict, OrderedDict)):
+        #     return cls(data)
+        # elif isinstance(data, (list, ndarray, tuple)):
+        #     # build table from first dict and append remaining rows
+        #     tab = cls(data[0])
+        #     for row in data[1:]:
+        #         tab.add_rows(row)
+        #     return tab
+        # else:
+        #     raise DataClassError('data must be a dictionary or a '
+        #                          'list of dictionaries.')
+        self = cls()
+        self._table = QTable(data, meta=meta)
+        return self
+
+    @classmethod
+    def from_columns(cls, columns, names, units=None, meta={}):
+        """Create `~sbpy.data.DataClass` object from a sequence. If that
+        sequence is one-dimensional, it is interpreted as
+        a single column; it it is two-dimensional, it is interpreted as a
+        sequence of columns.
+
+        Parameters
+        ----------
+        columns : list, `~numpy.ndarray`, tuple, or `~astropy.units.Quantity`
+            Data that will be ingested in `DataClass` object. A
+            one-dimensional sequence is interpreted as a single column.
+            A two-dimensional sequence is interpreted as a sequence of
+            columns, each of which must have the same length.
+        names : str or list
+            Column names, must have the same number of names as data columns.
+
+        Returns
+        -------
+        `DataClass` object
+
+        Examples
+        --------
+        >>> from sbpy.data import DataClass
+        >>> import astropy.units as u
+        >>> dat = DataClass.from_columns([[1, 2, 3]*u.deg,
+        ...                               [4, 5, 6]*u.km,
+        ...                               ['a', 'b', 'c']],
+        ...                              names=('a', 'b', 'c'))
+        >>> print(dat.table)
+         a   b   c
+        deg  km
+        --- --- ---
+        1.0 4.0   a
+        2.0 5.0   b
+        3.0 6.0   c
+
+        """
+
+        if isinstance(columns, (list, ndarray, tuple, u.Quantity)):
+            # reorganize columns, if necessary
+            try:
+                array(columns).shape[1]
+            except IndexError:
+                columns = [columns]
+            # reorganize names, if necessary
+            if isinstance(names, str):
+                names = [names]
         else:
-            raise TypeError('this function requires a dictionary or a '
-                            'list of dictionaries')
+            raise DataClassError('columns must be a list, tuple, '
+                                 'numpy array, or a Quantity')
+
+        if units is not None:
+            columns = [v*u for v, u in list(zip(columns, units))]
+
+        self = cls()
+        self._table = QTable(columns, names=names, meta=meta)
+        return self
+
+    @classmethod
+    def from_rows(cls, rows, names, units=None, meta={}):
+        """Create `~sbpy.data.DataClass` object from a sequence. If that
+        sequence is one-dimensional, it is interpreted as
+        a single row; it it is two-dimensional, it is interpreted as a
+        sequence of rows.
+
+        Parameters
+        ----------
+        rows : list, `~numpy.ndarray`, or tuple
+            Data that will be ingested in `DataClass` object. A
+            one-dimensional sequence is interpreted as a single row.
+            A two-dimensional sequence is interpreted as a sequence of
+            rows, each of which must have the same length.
+        names : str or list
+            Column names, must have the same number of names as data columns
+            in each row.
+
+        Returns
+        -------
+        `DataClass` object
+
+        Examples
+        --------
+        >>> from sbpy.data import DataClass
+        >>> import astropy.units as u
+        >>> dat = DataClass.from_columns([[1*u.deg, 2, 3]*u.deg,
+        ...                               [4, 5, 6]*u.km,
+        ...                               ['a', 'b', 'c']],
+        ...                              names=('a', 'b', 'c'))
+        >>> print(dat.table)
+         a   b   c
+        deg  km
+        --- --- ---
+        1.0 4.0   a
+        2.0 5.0   b
+        3.0 6.0   c
+
+        """
+
+        if isinstance(names, str):
+            names = [names]
+        if isinstance(units, str):
+            units = [units]
+        if units is not None and len(names) != len(units):
+            raise DataClassError('Must provide the same number of names '
+                                 'and units.')
+
+        if units is None:
+            try:
+                units = [v.unit for v in rows[0]]
+            except TypeError:
+                raise DataClassError('No units provided.')
+
+        # turn rows into columns and convert Quantities, if necessary
+        columns = []
+        if all([isinstance(el, u.Quantity) for row in rows for el in row]):
+            # units provided in rows
+            # unify units per column, then strip units
+            columns = array([[vj.to(units[j]).value
+                              for j, vj in enumerate(vi)]
+                             for vi in rows]).transpose()
+        elif all([not isinstance(el, u.Quantity) for row in rows
+                  for el in row]):
+            # no units provided in rows
+            columns = array(rows).transpose()
+        else:
+            raise DataClassError(
+                'Not clear which units to apply. Either must all elements '
+                'of rows be Quantities and units=None, or all elements of '
+                'rows must be unit-less sequences and units must not be '
+                'None.')
+
+        # if units is not None:
+        #     unit_rows = []
+        #     for row in rows:
+        #         unit_rows.append(list(v*u for v, u in list(zip(row, units))))
+        # else:
+        #     unit_rows = rows
+
+        return cls.from_columns(columns=columns,
+                                units=units,
+                                names=names,
+                                meta=meta)
 
     @classmethod
     def from_array(cls, data, names):

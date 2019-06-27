@@ -132,13 +132,11 @@ class Conf():
 
 conf = Conf()
 
-from .core import (DataClass, mpc_observations, sb_search,
-                   image_search, pds_ferret)
+from .core import DataClass, DataClassError
 from .ephem import Ephem
 from .orbit import Orbit
 from .phys import Phys
 from .names import Names, natural_sort_key
 
 __all__ = ['DataClass', 'Ephem', 'Orbit', 'Phys', 'Names', 'conf', 'Conf',
-           'mpc_observations', 'sb_search', 'image_search',
-           'pds_ferret']
+           'DataClassError']
