@@ -271,61 +271,6 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
     Bond albedo is 0.0184
     >>> print('Phase integral is {0:.3}'.format(phaseint))
     Phase integral is 0.368
-
-    Initialization with subclass of `~sbpy.data.DataClass`:
-
-    The subclassed models can either be initialized by model parameters, or by
-    subclass of `~sbpy.data.DataClass`.  Below example uses the `HG` model
-    class.
-
-    >>> from sbpy.photometry import HG
-    >>> from sbpy.data import Phys, Orbit, Ephem
-    >>>
-    >>> # Initialize from physical parameters pulled from JPL SBDB
-    >>> phys = Phys.from_sbdb('Ceres')       # doctest: +REMOTE_DATA
-    >>> print(phys['targetname','H','G'])    # doctest: +REMOTE_DATA
-    <QTable length=1>
-    targetname    H       G
-       str7    float64 float64
-    ---------- ------- -------
-       1 Ceres    3.34    0.12
-    >>> m = HG(data = phys)                  # doctest: +REMOTE_DATA
-    INFO: Model initialized for 1 Ceres. [sbpy.photometry.core]
-    >>> print(m)                             # doctest: +REMOTE_DATA
-    Model: HG
-    Inputs: ('x',)
-    Outputs: ('y',)
-    Model set size: 1
-    Parameters:
-         H    G
-        ---- ----
-        3.34 0.12
-    >>> print(m.meta['targetname'])          # doctest: +REMOTE_DATA
-    1 Ceres
-    >>> print(m.radius)                      # doctest: +REMOTE_DATA
-    469.7 km
-    >>>
-    >>> # Initialize from orbital elements pulled from JPL Horizons that also
-    >>> # contain the H and G parameters
-    >>> elem = Orbit.from_horizons('Ceres')  # doctest: +REMOTE_DATA
-    >>> print(elem['targetname','H','G'])    # doctest: +REMOTE_DATA
-    <QTable masked=True length=1>
-    targetname    H       G
-                 mag
-       str7    float64 float64
-    ---------- ------- -------
-       1 Ceres    3.34    0.12
-    >>> m = HG(data=elem)                    # doctest: +REMOTE_DATA
-    INFO: Model initialized for 1 Ceres. [sbpy.photometry.core]
-    >>>
-    >>> # Failed initialization due to the lack of field 'G'
-    >>> phys = Phys.from_sbdb('12893')       # doctest: +REMOTE_DATA
-    >>> print('G' in phys.field_names)      # doctest: +REMOTE_DATA
-    False
-    >>> m = HG(data=phys)                    # doctest: +REMOTE_DATA
-    Traceback (most recent call last):
-      File "<stdin>", line 1, in <module>
-    KeyError: 'field G not available.'
     """
 
     # Some phase function models are defined in magnitude space, such as the
@@ -340,53 +285,19 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
     # Whether or not the model input is allowed to be dimensionless
     input_units_allow_dimensionless = {'x': True}
 
-    def __init__(self, *args, radius=None, M_sun=None, data=None, **kwargs):
+    def __init__(self, *args, radius=None, M_sun=None, **kwargs):
         """Initialize DiskIntegratedPhaseFunc
 
         Parameters
         ----------
-        radius : float or astropy.units.Quantity
+        radius : astropy.units.Quantity, optional
             Radius of object, in km if a float.  Needed for magnitude and
             reflectance conversion
-        M_sun : float or astropy.units.Quantity
+        M_sun : float or astropy.units.Quantity, optional
             Solar magnitude.  Needed for magnitude and reflectance conversion.
             If not supplied, the V-band solar magnitude assumed.  See
             `~ref2mag` and `~mag2ref`
-        data : `astropy.data.DataClass`
-            If present, the model class will be initialized by a
-            `astropy.data.DataClass` object.  This parameter overrides all
-            other relevant parameters, including model parameters and
-            `n_models`.
         """
-        if isinstance(data, DataClass):
-            par = {}
-            valid = np.ones(len(data), dtype=bool)
-            for p in self.param_names:
-                par[p] = data[p]
-                valid = valid & np.isfinite(par[p])
-            if valid.any():
-                valid = list(valid).index(True)
-                for p in self.param_names:
-                    par[p] = par[p][valid]
-                meta = kwargs.pop('meta', OrderedDict())
-                if 'targetname' in data.field_names:
-                    meta.update({'targetname': data['targetname'][valid]})
-                kwargs['meta'] = meta
-                for p in self.param_names:
-                    val = kwargs.pop(p, None)
-                kwargs.update(par)
-                try:
-                    radius = data['diameter'][valid]/2
-                except KeyError:
-                    pass
-                if 'targetname' in meta.keys():
-                    log.info("Model initialized for {}.".format(
-                        meta['targetname']))
-                else:
-                    log.info("Model initialized.")
-            else:
-                raise ValueError(
-                    'no valid model parameters found in `data` keyword')
         super().__init__(*args, **kwargs)
         self.radius = radius
         self.M_sun = M_sun
@@ -412,6 +323,101 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
     def phaseint(self):
         """Phase integral"""
         return self._phase_integral()
+
+    @classmethod
+    def from_phys(cls, phys, M_sun=None, **kwargs):
+        """Initialize an object from `~sbpy.data.Phys` object
+
+        Parameters
+        ----------
+        phys : `~sbpy.data.Phys`
+            Contains the parameters needed to initialize the model class
+            object.  If the required field is not found, then an `KeyError`
+            exception will be thrown.
+        M_sun : float or astropy.units.Quantity, optional
+            Solar magnitude.  Needed for magnitude and reflectance conversion.
+            If not supplied, the V-band solar magnitude assumed.  See
+            `~ref2mag` and `~mag2ref`
+
+        Returns
+        ------
+        Object of `DiskIntegratedPhaseFunc` subclass
+            The phase function model object
+
+        Examples
+        --------
+        Initialization with `~sbpy.data.Phys`.  This example uses the `HG`
+        model class.
+
+        >>> from sbpy.photometry import HG
+        >>> from sbpy.data import Phys
+        >>>
+        >>> # Initialize from physical parameters pulled from JPL SBDB
+        >>> phys = Phys.from_sbdb('Ceres')
+        >>> print(phys['targetname','H','G'])
+        <QTable length=1>
+        targetname    H       G
+           str7    float64 float64
+        ---------- ------- -------
+           1 Ceres    3.34    0.12
+        >>> m = HG.from_phys(phys)
+        INFO: Model initialized for 1 Ceres. [sbpy.photometry.core]
+        >>> print(m)
+        Model: HG
+        Inputs: ('x',)
+        Outputs: ('y',)
+        Model set size: 1
+        Parameters:
+             H    G
+            ---- ----
+            3.34 0.12
+        >>> print(m.meta['targetname'])
+        1 Ceres
+        >>> print(m.radius)
+        469.7 km
+        >>>
+        >>> # Failed initialization due to the lack of field 'G'
+        >>> phys = Phys.from_sbdb('12893')
+        >>> print('G' in phys.column_names)
+        False
+        >>> m = HG.from_phys(phys)
+        Traceback (most recent call last):
+          File "<stdin>", line 1, in <module>
+        KeyError: 'field G not available.'
+        """
+
+        par = {}
+        valid = np.ones(len(phys), dtype=bool)
+        for p in cls.param_names:
+            par[p] = phys[p]
+            valid = valid & np.isfinite(par[p])
+        if valid.any():
+            valid = list(valid).index(True)
+            for p in cls.param_names:
+                par[p] = par[p][valid]
+            meta = kwargs.pop('meta', OrderedDict())
+            if 'targetname' in phys.column_names:
+                meta.update({'targetname': phys['targetname'][valid]})
+            kwargs['meta'] = meta
+            for p in cls.param_names:
+                val = kwargs.pop(p, None)
+            try:
+                par['radius'] = phys['diameter'][valid]/2
+            except KeyError:
+                pass
+            if 'targetname' in meta.keys():
+                log.info("Model initialized for {}.".format(
+                    meta['targetname']))
+            else:
+                log.info("Model initialized.")
+            kwargs.update(par)
+        else:
+            raise ValueError(
+                'no valid model parameters found in `data` keyword')
+        out = cls(**kwargs)
+        out.M_sun = M_sun
+        return out
+
 
     def fit(self, eph, mag, fitter=None, return_fitter=False, **kwargs):
         """Fit disk-integrated phase function model to magnitude data and the
