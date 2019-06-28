@@ -1,15 +1,15 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-================
-sbpy Data Module
-================
+=====================
+sbpy.data core module
+=====================
 
 created on June 22, 2017
 """
 
 from copy import deepcopy
 from collections import OrderedDict
-from numpy import ndarray, array
+from numpy import ndarray, array, hstack
 from astropy.table import QTable, Column, vstack
 import astropy.units as u
 
@@ -217,9 +217,9 @@ class DataClass():
         units are assigned using the optional ``units`` keyword argument.
 
         >>> eph = Ephem.from_columns([[1, 2, 3, 4],
-        ...                               [90, 50, 30, 10]],
-        ...                              names=['r', 'alpha'],
-        ...                              units=['au', 'deg'])
+        ...                           [90, 50, 30, 10]],
+        ...                          names=['r', 'alpha'],
+        ...                          units=['au', 'deg'])
         >>> eph
         <QTable length=4>
            r     alpha
@@ -384,11 +384,11 @@ class DataClass():
     @classmethod
     def from_table(cls, table, meta={}, **kwargs):
         """Create `DataClass` object from `~astropy.table.Table` or
-        `astropy.table.QTable` object.
+        `~astropy.table.QTable` object.
 
         Parameters
         ----------
-        table : astropy `Table` object, mandatory
+        table : `~astropy.table.Table` object
              Data that will be ingested in `DataClass` object.
         meta : dictionary, optional
             Meta data that will be stored in the data table. If ``table``
@@ -646,7 +646,7 @@ class DataClass():
 
     @property
     def meta(self):
-        """Enables access to the ``meta`` data of the underlying data table.
+        """Enables access to the meta data of the underlying data table.
 
         Examples
         --------
@@ -682,10 +682,10 @@ class DataClass():
 
         Parameters
         ----------
-        rows: list, tuple, `~numpy.ndarray`, dict, or `~collections.OrderedDict`
+        rows : list, tuple, `~numpy.ndarray`, dict, or `~collections.OrderedDict`
             Data to be appended to the table; required to have the same
             length as the existing table, as well as the same units.
-        join_type: str, optional
+        join_type : str, optional
             Defines which columns are kept in the output table: ``inner``
             only keeps those columns that appear in both the original
             table and the rows to be added; ``outer`` will keep all
@@ -694,16 +694,16 @@ class DataClass():
 
         Returns
         -------
-        n: int, the total number of rows in the data table
+        int, the total number of rows in the data table
 
         Examples
         --------
         >>> from sbpy.data import DataClass
         >>> import astropy.units as u
-        >>> dat = DataClass.from_array([[1, 2, 3]*u.Unit('m'),
-        ...                             [4, 5, 6]*u.m/u.s,
-        ...                             ['a', 'b', 'c']],
-        ...                            names=('a', 'b', 'c'))
+        >>> dat = DataClass.from_columns([[1, 2, 3]*u.m),
+        ...                               [4, 5, 6]*u.m/u.s,
+        ...                               ['a', 'b', 'c']],
+        ...                              names=('a', 'b', 'c'))
         >>> dat.add_rows({'a': 5*u.m, 'b': 8*u.m/u.s, 'c': 'e'})
         4
         >>> print(dat.table)
@@ -750,28 +750,28 @@ class DataClass():
 
         Parameters
         ----------
-        data: list, `~numpy.ndarray`, or tuple
+        data : list, `~numpy.ndarray`, or tuple
             Data to be filled into the table; required to have the same
             length as the existing table's number rows.
-        name: str
+        name : str
             Name of the new column; must be different from already existing
             column names.
-        **kwargs: additional parameters
+        kwargs : additional parameters
             Additional optional parameters will be passed on to
             `~astropy.table.Table.add_column`.
 
         Returns
         -------
-        n: int, the total number of columns in the data table
+        int, the total number of columns in the data table
 
         Examples
         --------
         >>> from sbpy.data import DataClass
         >>> import astropy.units as u
-        >>> dat = DataClass.from_array([[1, 2, 3]*u.Unit('m'),
-        ...                             [4, 5, 6]*u.m/u.s,
-        ...                             ['a', 'b', 'c']],
-        ...                            names=('a', 'b', 'c'))
+        >>> dat = DataClass.from_columns([[1, 2, 3]*u.m),
+        ...                               [4, 5, 6]*u.m/u.s,
+        ...                               ['a', 'b', 'c']],
+        ...                              names=('a', 'b', 'c'))
         >>> dat.add_column([10, 20, 30]*u.kg, name='d')
         4
         >>> print(dat.table)
@@ -792,7 +792,7 @@ class DataClass():
 
         Parameters
         ----------
-        data : list or iterable `astropy.units.Quantity` object
+        data : list or iterable `~astropy.units.Quantity` object
             Data to be added in a new column in form of a one-dimensional
             sequence or a two-dimensional nested sequence. Each element in
             ``data``
@@ -892,5 +892,4 @@ class DataClass():
         # add new column
         _newtable.add_column(Column(_newcolumn, name=name, unit=unit))
 
-
-self._table = _newtable
+        self._table = _newtable
