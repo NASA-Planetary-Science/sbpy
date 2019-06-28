@@ -1,17 +1,15 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import os
 import pytest
-from .. import (track, stop, register, reset, cite, show, to_text, to_bibtex,
-                to_aastex, to_icarus, to_mnras, Tracking)
-
-
-# get file path of a static data file for testing
-def data_path(filename):
-    data_dir = os.path.join(os.path.dirname(__file__), 'data')
-    return os.path.join(data_dir, filename)
+from ..core import *
 
 
 # skip function tests utilizing ads.ExportQuery for now as it is unstable
+
+# get file path of a static data file for testing
+# def data_path(filename):
+#     data_dir = os.path.join(os.path.dirname(__file__), 'data')
+#     return os.path.join(data_dir, filename)
 
 # @pytest.mark.remote_data
 # def test_text():
@@ -92,14 +90,15 @@ def test_register_double():
 
 def test_Tracking():
     reset()
-
     with Tracking():
+        assert status()
         register('test1', {'track_this': 'bibcode1'})
         register('test1', {'track_this': 'bibcode2'})
         register('test1', {'track_this_too': 'bibcode'})
         register('test2', {'track_this': 'bibcode'})
         register('test3', {'track_this': 'bibcode',
                            'and_track_that': 'bibcode'})
+    assert not status()
 
     register('test', {'do not track this': 'bibcode'})
     assert set(['test1:', 'track_this:', 'bibcode1', 'bibcode2',
@@ -108,6 +107,40 @@ def test_Tracking():
                 'and_track_that:', 'bibcode']) == set(show().split())
     # different builds will have different orders for bibcode 1 and 2, to
     # avoid the build failing because of this we use sets
+
+
+def test_Tracking_issue_64():
+    from sbpy.activity import photo_lengthscale
+    reset()
+    with Tracking():
+        gamma_H2O = photo_lengthscale('H2O')
+        gamma_OH = photo_lengthscale('OH')
+    words = show().split()
+    assert 'OH' in words
+    assert 'H2O' in words
+
+
+def test_Tracking_reporter(capsys):
+    reset()
+    with Tracking(reporter=show):
+        register('test1', {'track_this': 'bibcode1'})
+    captured = capsys.readouterr()
+    assert (set(['test1:', 'track_this:', 'bibcode1'])
+            == set(captured.out.split()))
+
+
+def test_cite():
+
+    @cite({'method': '1687pnpm.book.....N'})
+    def force(mass, accelleration):
+        return mass * accelleration
+
+    reset()
+    track()
+    force(1, 2)
+    assert (set(['sbpy.bib.tests.test_bib.force:', 'method:',
+                 '1687pnpm.book.....N'])
+            == set(show().split()))
 
 
 def test_filter():
@@ -125,14 +158,3 @@ def test_filter():
                 'bibcode']) == set(show(filter='software').split())
     # different builds will have different orders for bibcode 1 and 2, to
     # avoid the build failing because of this we use sets
-
-
-def test_Tracking_issue_64():
-    from sbpy.activity import photo_lengthscale
-    reset()
-    with Tracking():
-        gamma_H2O = photo_lengthscale('H2O')
-        gamma_OH = photo_lengthscale('OH')
-    words = show().split()
-    assert 'OH' in words
-    assert 'H2O' in words

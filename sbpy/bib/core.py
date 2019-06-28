@@ -424,11 +424,11 @@ def to_mnras(filter=None):
 
 @atexit.register
 def _report_at_exit():
-    if _track:
+    if status():
         log.info('Thank you for using sbpy.  ' +
                  'Your session results were based on:\n' +
                  to_text())
 
 
-_track = False  # default is no bibliography tracking
+stop()  # default is no bibliography tracking
 reset()  # creates empty _bibliography
