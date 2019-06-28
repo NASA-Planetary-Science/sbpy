@@ -12,34 +12,35 @@ designed methods and tools used.
 ADS Query Requirements for the `sbpy.bib` Module
 ------------------------------------------------
 
-In order to use the `~sbpy.bib` functionality and obtain author names from
-the bibcode provided by the user, the user has to have the `ads` module
-installed. More information on this module is found in:
-<a href="https://ads.readthedocs.io/en/latest/"> ads Docs </a>. In order
-for the ads queries, essential to `sbpy.bib`, to work the user has to have
-the module installed, and their own personal developer key.
-As stated in the documentation:
+In order to use the `~sbpy.bib` functionality and obtain author names
+from the bibcode provided by the user, the user has to have the `~ads`
+module installed. More information on this module is found in the `ads
+Docs <https://ads.readthedocs.io/en/latest/>`_. In order for the
+`~ads` queries, essential to `~sbpy.bib`, to work the user has to have
+the module installed, and their own personal developer key.  As stated
+in the documentation:
 
-1. You'll need an API key from NASA ADS labs. Sign up for the newest version
-of ADS search at <a href="https://ui.adsabs.harvard.edu"> ADS search </a>,
-visit account settings and generate a new API token.
+1. You'll need an API key from NASA ADS labs. Get `an ADS account
+<https://ui.adsabs.harvard.edu/user/account/register>`_, visit account
+settings and generate a new API token.
 
-2. When you get your API key, save it to a file called `~/.ads/dev_key` or
-save it as an environment variable named `ADS_DEV_KEY`
+2. When you get your API key, save it to a file called ``~/.ads/dev_key`` or
+save it as an environment variable named ``ADS_DEV_KEY``
 
-3. From terminal type `pip install ads`
+3. Install the `ads` python module, e.g., if using pip: ``pip install ads``
 
 How to use `~sbpy.bib`
 ----------------------
 
-Use `~sbpy.bib.track` to enable citation tracking. Every method called
-after activating the tracking will register citations relevant to
-it. Each citation is associated with a tag that enables the user to
-identify which aspect of the method the citation is relevant to:
+Use `~sbpy.bib.track()` to enable citation tracking. Every method
+called after activating the tracking will register any relevant
+citations. Each citation is associated with a tag that enables the
+user to identify which aspect of the method the citation is relevant
+to:
 
     >>> from sbpy import bib, data
     >>> bib.track()
-    >>> eph = data.Ephem.from_horizons('433', epochs=None, location='500')
+    >>> eph = data.Ephem.from_horizons('433')
     >>> print(bib.to_text())  # doctest: +SKIP
     sbpy.data.Ephem.from_horizons:
       data service:
@@ -54,23 +55,41 @@ simple text form.
 
 Bibliography tracking can also be used in a context manager:
 
-    >>> from sbpy import bib
-    >>> from sbpy.data import Ephem
+    >>> from sbpy import bib, data
     >>> with bib.Tracking(to_text):
-    ...     eph = Ephem.from_horizons('Ceres', epochs=None, location='500')
+    ...     eph = data.Ephem.from_horizons('Ceres')
     ...     # doctest: +SKIP
     sbpy.data.Ephem.from_horizons:
       data service:
           Giorgini, Yeomans, Chamberlin et al. 1996, AAS/Division for Planetary Sciences Meeting Abstracts #28, 25.04
+
+Automatic reporting
+-------------------
+
+If tracking is enabled when Python exits, the bibliography will be automatically reported.  ``ipython`` users can enable tracking at startup so that no citations are left behind.  For example, add the following to a startup script, such as ``~/.ipython/profile_default/startup/99-user.py``:
+
+.. code-block:: python
+
+    import sbpy.bib
+    sbpy.bib.track()
+
 
 Output formats
 --------------
 
 Bibliographies can be generated in different output formats:
 
+Unformatted (`~sbpy.bib.show`)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    >>> bib.show() # doctest: +SKIP
+    sbpy.data.Ephem.from_horizons:
+      data service:
+        1996DPS....28.2504G
+
+
 Simple text (`~sbpy.bib.to_text`)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    >>> bib.to_text()  # doctest: +SKIP
+    >>> bib.to_text() # doctest: +SKIP
     sbpy.data.Ephem.from_horizons:
       data service:
           Giorgini, Yeomans, Chamberlin et al. 1996, AAS/Division for Planetary Sciences Meeting Abstracts #28, 25.04

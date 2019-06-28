@@ -14,6 +14,7 @@ __all__ = [
     'track',
     'Tracking',
     'cite',
+    'show',
     'to_text',
     'to_bibtex',
     'to_aastex',
@@ -23,12 +24,12 @@ __all__ = [
 
 import warnings
 from functools import wraps
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 import atexit
 from astropy import log
 
 
-def register(task, citation):
+def register(task, citations):
     """Register a citation with the `sbpy` bibliography tracker.
 
 
@@ -37,33 +38,44 @@ def register(task, citation):
     task : string
         The name of the source module requesting a citation.
 
-    citation : dict
-        A dictionary of a single NASA Astrophysics Data System (ADS)
-        bibcode to cite.  The key references the aspect that requires
-        citation, e.g., `{'method': '1998Icar..131..291H'}`, or
-        `{'beaming parameter': '2013Icar..226.1138F'}`.
+    citations : dict
+        A dictionary of NASA Astrophysics Data System (ADS) bibcodes,
+        DOIs, or free-form strings to cite.  The key is the aspect
+        that requires citation.
+
+
+    Examples
+    --------
+    >>> register('sbpy.thermal.neatm', {
+    ...     'method': '1998Icar..131..291H',
+    ...     'parameter: beaming': '2013Icar..226.1138F'
+    ... })
+
+    Citations may also be a list.
+
+    >>> register('user task', {
+    ...     'classification': ['1950BAN....11...91O',
+    ...                        '1978M&P....19..305W']
+    ... })
 
     """
+
     global _bibliography, _track
     if _track:
-        if task in _bibliography:
-            for newsubtask, newcitation in citation.items():
-                if newsubtask in _bibliography[task].keys():
-                    _bibliography[task][newsubtask].update([newcitation])
-                else:
-                    _bibliography[task][newsubtask] = set(
-                        [list(citation.values())[0]])
-        else:
-            thiscitation = OrderedDict()
-            for newsubtask, newcitation in citation.items():
-                thiscitation[newsubtask] = set([list(citation.values())[0]])
-            _bibliography[task] = thiscitation
+        for key, citation in citations.items():
+            c = [citation] if isinstance(citation, str) else list(citation)
+            _bibliography[task][key].update(c)
+
+
+def _bibliography_task_generator():
+    """Generator for empty bibliography tasks."""
+    return defaultdict(set)
 
 
 def reset():
     """Reset `sbpy` bibliography tracking."""
     global _bibliography
-    _bibliography = OrderedDict()
+    _bibliography = defaultdict(_bibliography_task_generator)
 
 
 def stop():
@@ -104,18 +116,20 @@ class Tracking:
             print(self.reporter())
 
 
-def cite(key, reference):
-    """Decorator that registers citations with ``sbpy.bib``.
+def cite(citations):
+    """Decorator that registers citations within ``sbpy``.
 
+    This decorator is the primary mechanism for registering citations.
+    As an alternative, `~register` may be called directly.
 
     Parameters
     ----------
-    key : string
-        Citation key, e.g., 'method', or 'beaming parameter'.
-
-    reference : string
-        A NASA ADS key, DOI, or text describing the reference.
-
+    citations : dict
+        A dictionary of NASA Astrophysics Data System (ADS) bibcodes,
+        DOIs, or free-form strings to cite.  The key references the
+        aspect that requires citation, e.g., `{'method':
+        '1998Icar..131..291H'}`, or `{'parameter : beaming':
+        '2013Icar..226.1138F'}`.
 
     Returns
     -------
@@ -125,7 +139,7 @@ def cite(key, reference):
 
     Examples
     --------
-    >>> @cite('method', '1687pnpm.book.....N')
+    >>> @cite({'method': '1687pnpm.book.....N'})
     ... def force(mass, accelleration):
     ...     return mass * accelleration
     >>>
@@ -142,14 +156,67 @@ def cite(key, reference):
         @wraps(f)
         def wrapper(*args, **kwargs):
             task = '.'.join((f.__module__, f.__name__))
-            register(task, {key: reference})
+            register(task, citations)
             return f(*args, **kwargs)
         return wrapper
     return decorator
 
 
+def _filter(filter):
+    """Private function that filters by key."""
+    if filter is None:
+        return _bibliography
+
+    filtered = defaultdict(OrderedDict)
+    for task, ref in _bibliography.items():
+        for key in ref:
+            if key.startswith(filter):
+                filtered[task][key] = ref[key]
+
+    return filtered
+
+
+def show(filter=None):
+    """Show current bibliography.
+
+    Bibcodes are not coverted to text.  Use this function when you do
+    not have the NASA `~ads` module or internet access.
+
+
+    Parameters
+    ----------
+    filter : string, optional
+        Filter the bibliography by key, showing only those that start
+        with this string.
+
+
+    Returns
+    -------
+    bibliography : string
+
+    """
+
+    output = ''
+    for task, ref in _filter(filter).items():
+        output += '{:s}:\n'.format(task)
+        for key, citations in ref.items():
+            output += '  {:s}:\n'.format(key)
+            for citation in citations:
+                output += '    {:s}\n'.format(citation)
+
+    return output
+
+
 def to_text(filter=None):
-    """convert bibcodes to human readable text
+    """Convert bibcodes to human readable text.
+
+
+    Parameters
+    ----------
+    filter : string, optional
+        Filter the bibliography by key, showing only those that start
+        with this string.
+
 
     Returns
     -------
@@ -161,13 +228,9 @@ def to_text(filter=None):
     import ads
 
     output = ''
-    for task, ref in _bibliography.items():
+    for task, ref in _filter(filter).items():
         output += '{:s}:\n'.format(task)
         try:
-            if filter is None:
-                pass
-            else:
-                ref = {i: ref[i] for i in ref if i == filter}
             for key, value in ref.items():
                 output += '  {:s}:\n'.format(key)
                 for citation in value:
@@ -230,14 +293,18 @@ def to_text(filter=None):
     return output
 
 
-def _to_format(format):
+def _to_format(format, filter=None):
     """Convert bibcodes to a range of different output formats.
 
 
     Parameters
     ----------
     format : string
-        Output format: ``bibtex`` | ``aastex``  | ``icarus`` | ``mnras``
+        Output format: ``bibtex`` | ``aastex``  | ``icarus`` | ``mnras``.
+
+    filter : string, optional
+        Filter the bibliography by key, showing only those that start
+        with this string.
 
 
     Returns
@@ -251,7 +318,7 @@ def _to_format(format):
     import ads
 
     output = ''
-    for task, ref in _bibliography.items():
+    for task, ref in _filter(filter).items():
         with warnings.catch_warnings():
             # warnings.filterwarnings('error')
             try:
@@ -275,8 +342,15 @@ def _to_format(format):
     return output
 
 
-def to_bibtex():
+def to_bibtex(filter=None):
     """Convert bibliography to BibTeX format.
+
+
+    Parameters
+    ----------
+    filter : string, optional
+        Filter the bibliography by key, showing only those that start
+        with this string.
 
 
     Returns
@@ -285,11 +359,18 @@ def to_bibtex():
         ADS data in BibTeX format.
 
     """
-    return _to_format('bibtex')
+    return _to_format('bibtex', filter=filter)
 
 
-def to_aastex():
+def to_aastex(filter=None):
     """Convert bibliography to AASTeX format.
+
+
+    Parameters
+    ----------
+    filter : string, optional
+        Filter the bibliography by key, showing only those that start
+        with this string.
 
 
     Returns
@@ -298,11 +379,18 @@ def to_aastex():
         ADS data in AASTeX format.
 
     """
-    return _to_format('aastex')
+    return _to_format('aastex', filter=filter)
 
 
-def to_icarus():
+def to_icarus(filter=None):
     """Convert bibliography to Icarus LATeX format.
+
+
+    Parameters
+    ----------
+    filter : string, optional
+        Filter the bibliography by key, showing only those that start
+        with this string.
 
 
     Returns
@@ -311,11 +399,18 @@ def to_icarus():
         ADS data in Icarus LATeX format.
 
     """
-    return _to_format('icarus')
+    return _to_format('icarus', filter=filter)
 
 
-def to_mnras():
+def to_mnras(filter=None):
     """Convert bibliography to MNRAS LATeX format.
+
+
+    Parameters
+    ----------
+    filter : string, optional
+        Filter the bibliography by key, showing only those that start
+        with this string.
 
 
     Returns
@@ -324,16 +419,16 @@ def to_mnras():
         ADS data in MNRAS LATeX format.
 
     """
-    return _to_format('mnras')
+    return _to_format('mnras', filter=filter)
 
 
 @atexit.register
 def _report_at_exit():
-    if _track:
+    if status():
         log.info('Thank you for using sbpy.  ' +
                  'Your session results were based on:\n' +
                  to_text())
 
 
-_track = False  # default is no bibliography tracking
-_bibliography = OrderedDict()
+stop()  # default is no bibliography tracking
+reset()  # creates empty _bibliography
