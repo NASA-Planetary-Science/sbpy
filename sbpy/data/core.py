@@ -26,7 +26,8 @@ class DataClassError(exceptions.SbpyException):
 class DataClass():
     """`~sbpy.data.DataClass` serves as the base class for all data
     container classes in `sbpy` in order to provide consistent
-    functionality throughout all these classes.
+    functionality. Classes derived from `~sbpy.data.DataClass` have
+    the following properties:
 
     The core of `~sbpy.data.DataClass` is an `~astropy.table.QTable`
     object (referred to as the `data table` below) - a type of
@@ -34,54 +35,94 @@ class DataClass():
     formalism on a per-column base - which already provides most of
     the required functionality. `~sbpy.data.DataClass` objects can be
     manually generated from dictionaries
-    (`~sbpy.data.DataClass.from_dict`), `~numpy.array`-like
-    (`~sbpy.data.DataClass.from_array`) objects, or directly from
-    another `~astropy.table.QTable` object.
+    (`~sbpy.data.DataClass.from_dict`), list-like objects on a
+    per-column basis (`~sbpy.data.DataClass.from_columns`) or a
+    per-row basis (`~sbpy.data.DataClass.from_rows`), or directly from
+    another `~astropy.table.QTable` object. It is possible to write
+    `~sbpy.data.DataClass` objects to a file and from a file.
+
+    `~sbpy.data.DataClass` objects can hold meta data that are stored
+    as `~astropy.table.QTable` meta data and can be accessed as a
+    `~sbpy.data.DataClass` property. Furthermore,
+    `~sbpy.data.DataClass` objects have the ability to recognize
+    alternative names for properties stored in the data table and even
+    do transformations.
 
     A few high-level functions for table data access or modification
     are provided; other, more complex modifications can be applied to
     the underlying table object (`~sbpy.data.DataClass.table`) directly.
-
     """
 
     def __init__(self):
         self._table = QTable()
 
-        # if (len(data.items()) == 1 and 'table' in data.keys()):
-        #     # single item provided named 'table' -> already Table object
-        #     self._table = QTable(data['table'])
-        # else:
-        #     # treat kwargs as dictionary
-        #     for key, val in data.items():
-        #         try:
-        #             unit = val.unit
-        #             val = val.value
-        #         except AttributeError:
-        #             unit = None
-
-        #         # check if val is already list-like
-        #         try:
-        #             val[0]
-        #         except (TypeError, IndexError):
-        #             val = [val]
-
-        #         self._table[key] = Column(val, unit=unit)
-
-    @classmethod
-    def from_dict(cls, data, meta={}):
-        """Create `~sbpy.data.DataClass` object from dictionary or list of
-        dictionaries.
+    @staticmethod
+    def _unit_apply(val, unit):
+        """Convenience function that applies a unit to a value, or converts
+        a `~astropy.units.Quantity` to this units if possible.
 
         Parameters
         ----------
-        data : `~collections.OrderedDict`, dictionary or list (or similar) of
-             dictionaries Data that will be ingested in
-             `~sbpy.data.DataClass` object.  Each dictionary creates a
-             row in the data table. Dictionary keys are used as column
-             names; corresponding values must be scalar (cannot be
-             lists or arrays). If a list of dictionaries is provided,
-             all dictionaries have to provide the same set of keys
-             (and units, if used at all).
+        val : `~astropy.units.Quantity` or unit-less type
+            Input value.
+        unit : str or None
+            Unit into which ``val`` will be converted. If None, ``val`` is
+            considered not to be a `~astropy.units.Quantity`.
+
+        Returns
+        -------
+        `~astropy.units.Quantity` or other
+
+        """
+        if unit is None:
+            return val
+        elif isinstance(val, u.Quantity):
+            return val.to(unit)
+        else:
+            return val * u.Unit(unit)
+
+    @staticmethod
+    def _unit_convert_strip(val, unit):
+        """Convenience function that transforms `~astropy.units.Quantities`
+        and then strips the unit, but leaves non-Quantities untouched.
+
+        Parameters
+        ----------
+        val : `~astropy.units.Quantity` or unit-less type
+            Input value.
+        unit : str or None
+            Unit into which ``val`` will be converted. If None, ``val`` is
+            considered not to be a `~astropy.units.Quantity`.
+
+        Returns
+        -------
+        unit-less type
+        """
+        if unit is None:
+            return val
+        else:
+            return DataClass._unit_apply(val, unit).value
+
+    @classmethod
+    def from_dict(cls, data, meta={}, **kwargs):
+        """Create `~sbpy.data.DataClass` object from dictionary.
+
+        Parameters
+        ----------
+        data : `~collections.OrderedDict` or dictionary
+            Data that will be ingested in `~sbpy.data.DataClass`
+            object. Each item in the dictionary will form a column in
+            the data table. The item key will be used as column name,
+            the item value, which must be a list-like
+            `~astropy.units.Quantity`, will be used as data. All
+            columns, i.e., all item values, must have the same length.
+        meta : dictionary, optional
+            Meta data that will be stored in the data table. Default:
+            empty dictionary
+        kwargs : additional keyword arguments, optional
+            Additional keyword arguments that will be passed on to
+            `~astropy.table.QTable` in the creation of the underlying
+            data table.
 
         Returns
         -------
@@ -89,56 +130,41 @@ class DataClass():
 
         Examples
         --------
+        The following example creates a single-row `~sbpy.data.Orbit`
+        object.
+
         >>> import astropy.units as u
         >>> from sbpy.data import Orbit
-        >>> orb = Orbit.from_dict({'a': 2.7674*u.au,
-        ...                        'e': 0.0756,
-        ...                        'i': 10.59321*u.deg})
+        >>> orb = Orbit.from_dict({'a': [2.7674]*u.au,
+        ...                        'e': [0.0756],
+        ...                        'i': [10.59321]*u.deg})
 
         Since dictionaries have no specific order, the ordering of the
         column in the example above is not defined. If your data table
-        requires a specific order, use an ``OrderedDict``:
+        requires a specific order, use ``OrderedDict``:
 
         >>> from collections import OrderedDict
-        >>> orb = Orbit.from_dict(OrderedDict([('a', 2.7674*u.au),
-        ...                                    ('e', 0.0756),
-        ...                                    ('i', 10.59321*u.deg)]))
+        >>> orb = Orbit.from_dict(OrderedDict([('a', [2.7674, 3.123]*u.au),
+        ...                                    ('e', [0.0756, 0.021]),
+        ...                                    ('i', [10.59, 3.21]*u.deg)]))
         >>> print(orb)
-        <QTable length=1>
+        <QTable length=2>
            a       e       i
            AU             deg
         float64 float64 float64
-        ------- ------- --------
-         2.7674  0.0756 10.59321
-        >>> print(orb.column_names) # doctest: +SKIP
-        <TableColumns names=('a','e','i')>
-        >>> print(orb.table['a', 'e', 'i'])
-          a      e       i
-          AU            deg
-        ------ ------ --------
-        2.7674 0.0756 10.59321
-
+        ------- ------- -------
+         2.7674  0.0756   10.59
+          3.123   0.021    3.21
         """
-        # if isinstance(data, (dict, OrderedDict)):
-        #     return cls(data)
-        # elif isinstance(data, (list, ndarray, tuple)):
-        #     # build table from first dict and append remaining rows
-        #     tab = cls(data[0])
-        #     for row in data[1:]:
-        #         tab.add_rows(row)
-        #     return tab
-        # else:
-        #     raise DataClassError('data must be a dictionary or a '
-        #                          'list of dictionaries.')
         self = cls()
-        self._table = QTable(data, meta=meta)
+        self._table = QTable(data, meta=meta, **kwargs)
         return self
 
     @classmethod
-    def from_columns(cls, columns, names, units=None, meta={}):
+    def from_columns(cls, columns, names, units=None, meta={}, **kwargs):
         """Create `~sbpy.data.DataClass` object from a sequence. If that
         sequence is one-dimensional, it is interpreted as
-        a single column; it it is two-dimensional, it is interpreted as a
+        a single column; if it is two-dimensional, it is interpreted as a
         sequence of columns.
 
         Parameters
@@ -148,8 +174,20 @@ class DataClass():
             one-dimensional sequence is interpreted as a single column.
             A two-dimensional sequence is interpreted as a sequence of
             columns, each of which must have the same length.
-        names : str or list
+        names : str or list-like
             Column names, must have the same number of names as data columns.
+        units : str or list-like, optional
+            Unit labels (as provided by `~astropy.units.Unit`) in which
+            the data provided in ``columns`` will be stored in the underlying
+            table. If None is provided, the units as provided by ``columns``
+            are used. Default: None
+        meta : dictionary, optional
+            Meta data that will be stored in the data table. Default:
+            empty dictionary
+        kwargs : additional keyword arguments, optional
+            Additional keyword arguments that will be passed on to
+            `~astropy.table.QTable` in the creation of the underlying
+            data table.
 
         Returns
         -------
@@ -157,20 +195,60 @@ class DataClass():
 
         Examples
         --------
-        >>> from sbpy.data import DataClass
-        >>> import astropy.units as u
-        >>> dat = DataClass.from_columns([[1, 2, 3]*u.deg,
-        ...                               [4, 5, 6]*u.km,
-        ...                               ['a', 'b', 'c']],
-        ...                              names=('a', 'b', 'c'))
-        >>> print(dat.table)
-         a   b   c
-        deg  km
-        --- --- ---
-        1.0 4.0   a
-        2.0 5.0   b
-        3.0 6.0   c
+        The following example creates a single-column `~sbpy.data.Ephem`
+        object.
 
+        >>> from sbpy.data import Ephem
+        >>> import astropy.units as u
+        >>> eph = Ephem.from_columns([1, 2, 3, 4]*u.au,
+        ...                          names='a')
+        >>> eph
+        <QTable length=4>
+           a
+           AU
+        float64
+        -------
+            1.0
+            2.0
+            3.0
+            4.0
+
+        This example creates a two-column `~sbpy.data.Ephem` object in which
+        units are assigned using the optional ``units`` keyword argument.
+
+        >>> eph = Ephem.from_columns([[1, 2, 3, 4],
+        ...                               [90, 50, 30, 10]],
+        ...                              names=['r', 'alpha'],
+        ...                              units=['au', 'deg'])
+        >>> eph
+        <QTable length=4>
+           r     alpha
+           AU     deg
+        float64 float64
+        ------- -------
+            1.0    90.0
+            2.0    50.0
+            3.0    30.0
+            4.0    10.0
+
+        If units are provided in ``columns`` and ``units``, those units in
+        ``columns`` will be transformed into those in ``units`` on a
+        per-column basis.
+
+        >>> eph = Ephem.from_columns([[1, 2, 3, 4]*u.au,
+        ...                           [90, 50, 30, 10]*u.deg],
+        ...                           names=['r', 'alpha'],
+        ...                           units=['km', 'rad'])
+        >>> eph
+        <QTable length=4>
+                r                 alpha
+                km                 rad
+             float64             float64
+        ------------------ -------------------
+               149597870.7  1.5707963267948966
+               299195741.4  0.8726646259971648
+        448793612.09999996  0.5235987755982988
+               598391482.8 0.17453292519943295
         """
 
         if isinstance(columns, (list, ndarray, tuple, u.Quantity)):
@@ -187,17 +265,25 @@ class DataClass():
                                  'numpy array, or a Quantity')
 
         if units is not None:
-            columns = [v*u for v, u in list(zip(columns, units))]
+            if all([isinstance(col, u.Quantity) for col in columns]):
+                # if columns has units, transform to `units`
+                columns = [val.to(unit) for val, unit in
+                           list(zip(columns, units))]
+            else:
+                # if columns has no units, apply `units`
+                columns = [val*u.Unit(unit) if unit is not None else val
+                           for val, unit in
+                           list(zip(columns, units))]
 
         self = cls()
-        self._table = QTable(columns, names=names, meta=meta)
+        self._table = QTable(columns, names=names, meta=meta, **kwargs)
         return self
 
     @classmethod
-    def from_rows(cls, rows, names, units=None, meta={}):
+    def from_rows(cls, rows, names, units=None, meta={}, **kwargs):
         """Create `~sbpy.data.DataClass` object from a sequence. If that
         sequence is one-dimensional, it is interpreted as
-        a single row; it it is two-dimensional, it is interpreted as a
+        a single row; if it is two-dimensional, it is interpreted as a
         sequence of rows.
 
         Parameters
@@ -210,6 +296,18 @@ class DataClass():
         names : str or list
             Column names, must have the same number of names as data columns
             in each row.
+        units : str or list-like, optional
+            Unit labels (as provided by `~astropy.units.Unit`) in which
+            the data provided in ``rows`` will be stored in the underlying
+            table. If None is provided, the units as provided by ``rows``
+            are used. Default: None
+        meta : dictionary, optional
+            Meta data that will be stored in the data table. Default:
+            empty dictionary
+        kwargs : additional keyword arguments, optional
+            Additional keyword arguments that will be passed on to
+            `~astropy.table.QTable` in the creation of the underlying
+            data table.
 
         Returns
         -------
@@ -217,119 +315,89 @@ class DataClass():
 
         Examples
         --------
-        >>> from sbpy.data import DataClass
-        >>> import astropy.units as u
-        >>> dat = DataClass.from_columns([[1*u.deg, 2, 3]*u.deg,
-        ...                               [4, 5, 6]*u.km,
-        ...                               ['a', 'b', 'c']],
-        ...                              names=('a', 'b', 'c'))
-        >>> print(dat.table)
-         a   b   c
-        deg  km
-        --- --- ---
-        1.0 4.0   a
-        2.0 5.0   b
-        3.0 6.0   c
+        The following example creates a single-row `~sbpy.data.Phys` object.
 
+        >>> from sbpy.data import Phys
+        >>> import astropy.units as u
+        >>> phys = Phys.from_rows([1*u.km, 0.05, 17*u.mag],
+        ...                       names=['diam', 'pv', 'absmag'])
+        >>> phys
+        <QTable length=1>
+          diam     pv    absmag
+           km             mag
+        float64 float64 float64
+        ------- ------- -------
+            1.0    0.05    17.0
+
+        Providing ``units`` allows providing unit-less data in ``rows``:
+
+        >>> phys = Phys.from_rows([[1, 0.05, 17],
+        ...                        [2, 0.05, 16]],
+        ...                       names=['diam', 'pv', 'absmag'],
+        ...                       units=['km', None, 'mag'])
+        >>> phys
+        <QTable length=2>
+          diam     pv    absmag
+           km             mag
+        float64 float64 float64
+        ------- ------- -------
+            1.0    0.05    17.0
+            2.0    0.05    16.0
         """
 
         if isinstance(names, str):
             names = [names]
-        if isinstance(units, str):
+        if isinstance(units, (str, u.Unit)):
             units = [units]
         if units is not None and len(names) != len(units):
             raise DataClassError('Must provide the same number of names '
                                  'and units.')
 
         if units is None:
+            # get units used in `rows`
+            # first check whether `rows` is a single row or multiple rows
             try:
-                units = [v.unit for v in rows[0]]
+                iter(rows[0])
             except TypeError:
-                raise DataClassError('No units provided.')
+                # convert rows to list of list
+                rows = [rows]
 
-        # turn rows into columns and convert Quantities, if necessary
-        columns = []
-        if all([isinstance(el, u.Quantity) for row in rows for el in row]):
-            # units provided in rows
-            # unify units per column, then strip units
-            columns = array([[vj.to(units[j]).value
-                              for j, vj in enumerate(vi)]
-                             for vi in rows]).transpose()
-        elif all([not isinstance(el, u.Quantity) for row in rows
-                  for el in row]):
-            # no units provided in rows
-            columns = array(rows).transpose()
-        else:
-            raise DataClassError(
-                'Not clear which units to apply. Either must all elements '
-                'of rows be Quantities and units=None, or all elements of '
-                'rows must be unit-less sequences and units must not be '
-                'None.')
+            # extract units
+            units = []
+            for col in rows[0]:
+                if isinstance(col, u.Quantity):
+                    units.append(col.unit)
+                else:
+                    units.append(None)
 
-        # if units is not None:
-        #     unit_rows = []
-        #     for row in rows:
-        #         unit_rows.append(list(v*u for v, u in list(zip(row, units))))
-        # else:
-        #     unit_rows = rows
+        # build unit-less array of columns from rows
+        columns = array([[cls._unit_convert_strip(vj, units[j])
+                          for j, vj in enumerate(vi)]
+                         for vi in rows]).transpose()
 
         return cls.from_columns(columns=columns,
                                 units=units,
                                 names=names,
-                                meta=meta)
+                                meta=meta,
+                                **kwargs)
 
     @classmethod
-    def from_array(cls, data, names):
-        """Create `~sbpy.data.DataClass` object from list, `~numpy.ndarray`,
-        or tuple.
-
-        Parameters
-        ----------
-        data : list, `~numpy.ndarray`, or tuple
-            Data that will be ingested in `DataClass` object. A one
-            dimensional sequence will be interpreted as a single row. Each
-            element that is itself a sequence will be interpreted as a
-            column.
-        names : list
-            Column names, must have the same number of names as data columns.
-
-        Returns
-        -------
-        `DataClass` object
-
-        Examples
-        --------
-        >>> from sbpy.data import DataClass
-        >>> import astropy.units as u
-        >>> dat = DataClass.from_array([[1, 2, 3]*u.deg,
-        ...                             [4, 5, 6]*u.km,
-        ...                             ['a', 'b', 'c']],
-        ...                            names=('a', 'b', 'c'))
-        >>> print(dat.table)
-         a   b   c
-        deg  km
-        --- --- ---
-        1.0 4.0   a
-        2.0 5.0   b
-        3.0 6.0   c
-
-        """
-
-        if isinstance(data, (list, ndarray, tuple)):
-            return cls.from_dict(OrderedDict(zip(names, data)))
-        else:
-            raise TypeError('this function requires a list, tuple or a '
-                            'numpy array')
-
-    @classmethod
-    def from_table(cls, data):
+    def from_table(cls, table, meta={}, **kwargs):
         """Create `DataClass` object from `~astropy.table.Table` or
         `astropy.table.QTable` object.
 
         Parameters
         ----------
-        data : astropy `Table` object, mandatory
+        table : astropy `Table` object, mandatory
              Data that will be ingested in `DataClass` object.
+        meta : dictionary, optional
+            Meta data that will be stored in the data table. If ``table``
+            already holds meta data, ``meta`` will be added. Default:
+            empty dictionary
+        kwargs : additional keyword arguments, optional
+            Additional keyword arguments that will be passed on to
+            `~astropy.table.QTable` in the creation of the underlying
+            data table.
 
         Returns
         -------
@@ -353,10 +421,11 @@ class DataClass():
          3.0      6.0
         """
 
-        return cls({'table': data})
+        self = cls()
+        self._table = QTable(table, meta={**table.meta, **meta}, **kwargs)
 
     @classmethod
-    def from_file(cls, filename, **kwargs):
+    def from_file(cls, filename, meta={}, **kwargs):
         """Create `DataClass` object from a file using
         `~astropy.table.Table.read`.
 
@@ -364,7 +433,12 @@ class DataClass():
         ----------
         filename : str
              Name of the file that will be read and parsed.
-        **kwargs : additional parameters
+        meta : dictionary, optional
+             Meta data that will be stored in the data table. If the data
+             to be read
+             already holds meta data, ``meta`` will be added. Default:
+             empty dictionary
+        kwargs : additional parameters
              Optional parameters that will be passed on to
              `~astropy.table.Table.read`.
 
@@ -392,7 +466,11 @@ class DataClass():
 
         data = QTable.read(filename, **kwargs)
 
-        return cls({'table': data})
+        self = cls()
+        self._table = data
+        self._table.meta = {**self._table.meta, **meta}
+
+        return self
 
     def to_file(self, filename, format='ascii', **kwargs):
         """Write object to a file using
@@ -405,7 +483,7 @@ class DataClass():
         format : str, optional
              Data format in which the file should be written. Default:
              ``ASCII``
-        **kwargs : additional parameters
+        kwargs : additional parameters
              Optional parameters that will be passed on to
              `~astropy.table.Table.write`.
 
@@ -460,7 +538,7 @@ class DataClass():
         return self._table.__repr__()
 
     def __getitem__(self, ident):
-        """Return columns or rows from data table (``self._table``); checks
+        """Return columns or rows from data table(``self._table``); checks
         for and may use alternative field names."""
 
         # iterable
@@ -566,6 +644,26 @@ class DataClass():
         """Return a list of all column names in the data table."""
         return self._table.columns
 
+    @property
+    def meta(self):
+        """Enables access to the ``meta`` data of the underlying data table.
+
+        Examples
+        --------
+        >> > from sbpy.data import DataClass
+        >> > import astropy.units as u
+        >> > data = DataClass.from_columns([[1, 2, 3, 4]*u.kg,
+        ...                                [5, 6, 7, 8]*u.m],
+        ...                               names=['a', 'b'],
+        ...                               meta={'origin': 'measured'})
+        >> > data.meta  # meta data access
+        {'origin': 'measured'}
+        >> > data.meta['date'] = '2019-06-27'  # meta data modification
+        >> > data.meta['date']
+        '2019-06-27'
+        """
+        return self._table.meta
+
     def add_rows(self, rows, join_type='inner'):
         """Append additional rows to the existing data table. An individual
         row can be provided in list, tuple, `~numpy.ndarray`, or
@@ -584,10 +682,10 @@ class DataClass():
 
         Parameters
         ----------
-        rows : list, tuple, `~numpy.ndarray`, dict, or `~collections.OrderedDict`
+        rows: list, tuple, `~numpy.ndarray`, dict, or `~collections.OrderedDict`
             Data to be appended to the table; required to have the same
             length as the existing table, as well as the same units.
-        join_type : str, optional
+        join_type: str, optional
             Defines which columns are kept in the output table: ``inner``
             only keeps those columns that appear in both the original
             table and the rows to be added; ``outer`` will keep all
@@ -596,19 +694,19 @@ class DataClass():
 
         Returns
         -------
-        n : int, the total number of rows in the data table
+        n: int, the total number of rows in the data table
 
         Examples
         --------
-        >>> from sbpy.data import DataClass
-        >>> import astropy.units as u
-        >>> dat = DataClass.from_array([[1, 2, 3]*u.Unit('m'),
+        >> > from sbpy.data import DataClass
+        >> > import astropy.units as u
+        >> > dat = DataClass.from_array([[1, 2, 3]*u.Unit('m'),
         ...                             [4, 5, 6]*u.m/u.s,
         ...                             ['a', 'b', 'c']],
         ...                            names=('a', 'b', 'c'))
-        >>> dat.add_rows({'a': 5*u.m, 'b': 8*u.m/u.s, 'c': 'e'})
+        >> > dat.add_rows({'a': 5*u.m, 'b': 8*u.m/u.s, 'c': 'e'})
         4
-        >>> print(dat.table)
+        >> > print(dat.table)
          a    b    c
          m  m / s
         --- ----- ---
@@ -616,10 +714,10 @@ class DataClass():
         2.0   5.0   b
         3.0   6.0   c
         5.0   8.0   e
-        >>> dat.add_rows(([6*u.m, 9*u.m/u.s, 'f'],
+        >> > dat.add_rows(([6*u.m, 9*u.m/u.s, 'f'],
         ...               [7*u.m, 10*u.m/u.s, 'g']))
         6
-        >>> dat.add_rows(dat)
+        >> > dat.add_rows(dat)
         12
 
         """
@@ -652,31 +750,31 @@ class DataClass():
 
         Parameters
         ----------
-        data : list, `~numpy.ndarray`, or tuple
+        data: list, `~numpy.ndarray`, or tuple
             Data to be filled into the table; required to have the same
             length as the existing table's number rows.
-        name : str
+        name: str
             Name of the new column; must be different from already existing
             column names.
-        **kwargs : additional parameters
+        **kwargs: additional parameters
             Additional optional parameters will be passed on to
             `~astropy.table.Table.add_column`.
 
         Returns
         -------
-        n : int, the total number of columns in the data table
+        n: int, the total number of columns in the data table
 
         Examples
         --------
-        >>> from sbpy.data import DataClass
-        >>> import astropy.units as u
-        >>> dat = DataClass.from_array([[1, 2, 3]*u.Unit('m'),
+        >> > from sbpy.data import DataClass
+        >> > import astropy.units as u
+        >> > dat = DataClass.from_array([[1, 2, 3]*u.Unit('m'),
         ...                             [4, 5, 6]*u.m/u.s,
         ...                             ['a', 'b', 'c']],
         ...                            names=('a', 'b', 'c'))
-        >>> dat.add_column([10, 20, 30]*u.kg, name='d')
+        >> > dat.add_column([10, 20, 30]*u.kg, name='d')
         4
-        >>> print(dat.table)
+        >> > print(dat.table)
          a    b    c   d
          m  m / s      kg
         --- ----- --- ----
