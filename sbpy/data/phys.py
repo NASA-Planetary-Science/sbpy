@@ -209,10 +209,8 @@ class Phys(DataClass):
                                function. Please install scipy.')
 
         if isinstance(mol_tag, str):
-            query = JPLSpec.query_lines_async(min_frequency=
-                                              (transition_freq - (1 * u.GHz)),
-                                              max_frequency=(
-                                              transition_freq + (1 * u.GHz)),
+            query = JPLSpec.query_lines_async(min_frequency=(transition_freq - (1 * u.GHz)),
+                                              max_frequency=(transition_freq + (1 * u.GHz)),
                                               molecule=mol_tag,
                                               parse_name_locally=True,
                                               get_query_payload=True)

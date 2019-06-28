@@ -40,20 +40,18 @@ def test_remote_prodrate_simple_hcn():
     au = einstein_coeff(mol_data)
     mol_data.add_column([au.value] * au.unit, name='eincoeff')
     mol_data.add_column([1] * u.AU * u.AU * u.s, name='beta')
-    mol_data.add_column([1] * u.m, name='delta')
 
     for i in range(0, 28):
 
         time = Time(hcn['Time'][i], format='iso')
         integrated_flux = hcn['T_B'][i] * u.K * u.km / u.s
         ephemobj = Ephem.from_horizons(target, epochs=time.jd, id_type='id')
-        physobj = beta_factor(mol_data, ephemobj)
-        mol_data['beta'] = [physobj['beta'][0]]
-        mol_data['delta'] = [physobj['delta'][0]]
+        beta = beta_factor(mol_data, ephemobj)
+        mol_data['beta'] = beta
 
         lte = LTE()
 
-        q = lte.from_Drahus(integrated_flux, mol_data, vgas, aper, b=b)
+        q = lte.from_Drahus(integrated_flux, mol_data, ephemobj, vgas, aper, b=b)
 
         q = np.log10(q.value)
 
@@ -89,20 +87,18 @@ def test_remote_prodrate_simple_ch3oh():
     au = einstein_coeff(mol_data)
     mol_data.add_column([au.value] * au.unit, name='eincoeff')
     mol_data.add_column([1] * u.AU * u.AU * u.s, name='beta')
-    mol_data.add_column([1] * u.m, name='delta')
 
     for i in range(0, 20):
 
         time = Time(ch3oh['Time'][i], format='iso')
         integrated_flux = ch3oh['T_B'][i] * u.K * u.km / u.s
         ephemobj = Ephem.from_horizons(target, epochs=time.jd, id_type='id')
-        physobj = beta_factor(mol_data, ephemobj)
-        mol_data['beta'] = [physobj['beta'][0]]
-        mol_data['delta'] = [physobj['delta'][0]]
+        beta = beta_factor(mol_data, ephemobj)
+        mol_data['beta'] = beta
 
         lte = LTE()
 
-        q = lte.from_Drahus(integrated_flux, mol_data, vgas, aper, b=b)
+        q = lte.from_Drahus(integrated_flux, mol_data, ephemobj, vgas, aper, b=b)
 
         q = np.log10(q.value)
 
@@ -186,7 +182,6 @@ def test_Haser_prodrate():
     au = einstein_coeff(mol_data)
     mol_data.add_column([au.value] * au.unit, name='eincoeff')
     mol_data.add_column([1.] * u.AU * u.AU * u.s, name='beta')
-    mol_data.add_column([1.] * u.m, name='delta')
     mol_data.add_column([1.], name='total_number_nocd')
 
     q_found = []
@@ -196,9 +191,8 @@ def test_Haser_prodrate():
         time = Time(co['Time'][i], format='iso')
         integrated_flux = co['T_B'][i] * u.K * u.km / u.s
         ephemobj = Ephem.from_horizons(target, epochs=time.jd)
-        physobj = beta_factor(mol_data, ephemobj)
-        mol_data['beta'] = [physobj['beta'][0]]
-        mol_data['delta'] = [physobj['delta'][0]]
+        beta = beta_factor(mol_data, ephemobj)
+        mol_data['beta'] = beta
         tnum = total_number_nocd(integrated_flux, mol_data, aper, b)
 
         mol_data['total_number_nocd'] = tnum

@@ -22,8 +22,8 @@ __all__ = ['LTE', 'NonLTE', 'einstein_coeff',
 
 def intensity_conversion(mol_data):
     """
-    Returns conversion of the integrated line intensity to a chosen temperature
-    from the JPL molecular spectra catalog.
+    Returns conversion of the integrated line intensity at 300 K
+    (from the JPL molecular spectra catalog) to a chosen temperature
 
     Parameters
     ----------
@@ -31,28 +31,30 @@ def intensity_conversion(mol_data):
         `sbpy.data.phys` object that contains the following data:
             | Transition frequency in MHz
             | Temperature in Kelvins
-            | Integrated line intensity at 300 K
-            | Partition function at 300 K
-            | Partition function at designated temperature
-            | Upper state degeneracy
+            | Integrated line intensity at 300 K in MHz * nm**2
+            | Partition function at 300 K (Dimensionless)
+            | Partition function at designated temperature (Dimensionless)
+            | Upper state degeneracy (Dimensionless)
             | Upper level energy in Joules
             | Lower level energy in Joules
-            | Degrees of freedom
+            | Degrees of freedom (Dimensionless)
 
         Keywords that can be used for these values are found under
         `sbpy.data.conf.fieldnames` documentation. We recommend the use of the
         JPL Molecular Spectral Catalog and the use of
-        `sbpy.data.phys.from_jplspec`to obtain these values in order to maintain
-        consistency. Yet, if you wish to use your own molecular data, it is
-        possible. Make sure to inform yourself on the values needed for each
+        `sbpy.data.phys.from_jplspec` to obtain these values in order to maintain
+        consistency and because all calculations can be handled within `sbpy`
+        scope if JPLSpec is used. Yet, if you wish to use your own molecular data,
+        it is possible. Make sure to inform yourself on the values needed for each
         function, their units, and their interchangeable keywords as part of
         the Phys data class.
 
     Returns
     -------
     intl : `~astropy.Quantity`
-        Integrated line intensity at designated temperature, which can be appended
-        to the original `sbpy.phys` object for future calculations
+        Integrated line intensity at designated temperature in MHz * nm**2,
+        which can be appended to the original `sbpy.phys` object for future
+        calculations
 
     """
 
@@ -101,18 +103,18 @@ def einstein_coeff(mol_data):
         `sbpy.data.phys` object that contains the following data:
             | Transition frequency in MHz
             | Temperature in Kelvins
-            | Integrated line intensity at 300 K
-            | Partition function at 300 K
-            | Partition function at designated temperature
-            | Upper state degeneracy
+            | Integrated line intensity at 300 K in MHz * nm**2
+            | Partition function at 300 K (Dimensionless)
+            | Partition function at designated temperature (Dimensionless)
+            | Upper state degeneracy (Dimensionless)
             | Upper level energy in Joules
             | Lower level energy in Joules
-            | Degrees of freedom
+            | Degrees of freedom (Dimensionless)
 
         Keywords that can be used for these values are found under
         `sbpy.data.conf.fieldnames` documentation. We recommend the use of the
         JPL Molecular Spectral Catalog and the use of
-        `sbpy.data.phys.from_jplspec`to obtain these values in order to maintain
+        `sbpy.data.phys.from_jplspec` to obtain these values in order to maintain
         consistency. Yet, if you wish to use your own molecular data, it is
         possible. Make sure to inform yourself on the values needed for each
         function, their units, and their interchangeable keywords as part of
@@ -121,7 +123,7 @@ def einstein_coeff(mol_data):
     Returns
     -------
     einstein_coeff : `~astropy.Quantity`
-        Spontaneous emission coefficient, which can be appended
+        Spontaneous emission coefficient (1/s), which can be appended
         to the original `sbpy.phys` object for future calculations
 
     """
@@ -166,9 +168,12 @@ def einstein_coeff(mol_data):
 def beta_factor(mol_data, ephemobj):
     """
     | Returns beta factor based on timescales from `sbpy.activity.gas`
-    | and distance from the Sun. The calculation is timescale * (rsun)**2
+    | and distance from the Sun using an `sbpy.data.ephem` object.
+    | The calculation is timescale * (rsun)**2
     | if you wish to provide your own beta factor, you can calculate the equation
-    | expressed in units of AU**2 * s and append it to your mol_data phys object
+    | expressed in units of AU**2 * s , all that is needed is the timescale
+    | of the molecule and the distance of the comet from the Sun. Once you
+    | have the beta factor you can append it to your mol_data phys object
     | with the name 'beta' or any of its alternative names.
 
     Parameters
@@ -184,8 +189,9 @@ def beta_factor(mol_data, ephemobj):
         of the molecule and will treat it as such. If mol_tag is a string,
         then it will be assumed to be the human-readable name of the molecule.
         The molecule MUST be defined in `sbpy.activity.gas.timescale`, otherwise
-        this function cannot be used and the photodissociation rate
-        will have to be provided by the user for calculations.
+        this function cannot be used and the beta factor
+        will have to be provided by the user directly for calculations. The
+        user can obtain the beta factor from the formula provided above.
         Keywords that can be used for these values are found under
         `sbpy.data.conf.fieldnames` documentation. We recommend the use of the
         JPL Molecular Spectral Catalog and the use of
@@ -197,7 +203,7 @@ def beta_factor(mol_data, ephemobj):
 
     ephemobj : `sbpy.data.ephem`
         `sbpy.data.ephem` object holding ephemeride information including
-        distance from comet to Sun and from comet to observer
+        distance from comet to Sun ['r'] and from comet to observer ['delta']
 
     aper : `~astropy.units.Quantity`
         Telescope aperture in meters. Default is 25 m
@@ -210,7 +216,7 @@ def beta_factor(mol_data, ephemobj):
     Returns
     -------
     q : `~astropy.units.Quantity`
-        Beta factor 'beta' and distance from observer 'delta', which can be appended
+        Beta factor 'beta', which can be appended
         to the original `sbpy.phys` object for future calculations
     """
     # imported here to avoid circular dependency with activity.gas
@@ -242,9 +248,7 @@ def beta_factor(mol_data, ephemobj):
 
     beta = (timescale) * r**2
 
-    result = Phys.from_array((beta, delta), ('beta', 'delta'))
-
-    return result
+    return beta
 
 
 def total_number_nocd(integrated_flux, mol_data, aper, b):
@@ -307,7 +311,7 @@ def total_number_nocd(integrated_flux, mol_data, aper, b):
 class LTE():
     """ LTE Methods for calculating production_rate """
 
-    def from_Drahus(self, integrated_flux, mol_data, vgas=1 * u.km/u.s,
+    def from_Drahus(self, integrated_flux, mol_data, ephemobj, vgas=1 * u.km/u.s,
                     aper=25 * u.m, b=1.2):
         """
         | Returns production rate based on Drahus 2012 model referenced. Includes
@@ -316,19 +320,17 @@ class LTE():
         Parameters
         ----------
         integrated_flux : `~astropy.units.Quantity`
-            Line integral derived from spectral data
-            in Kelvins * km/s
+            Line integral derived from spectral data in Kelvins * km/s
 
         mol_data : `sbpy.data.phys`
             `sbpy.data.phys` object that contains AT LEAST the following data:
                 | Transition frequency in MHz
                 | Temperature in Kelvins
-                | Rovibrational Partition function at designated temperature (unitless)
+                | Partition function at designated temperature (unitless)
                 | Upper state degeneracy (unitless)
                 | Upper level energy in Joules
                 | Degrees of freedom (unitless)
                 | Einstein Coefficient (1/s)
-                | Delta - distance from observer in meters
 
             These fields can be given by the user directly or calculated using
             `sbpy.data.phys.from_jplspec`,
@@ -342,6 +344,10 @@ class LTE():
             use your own molecular data, it is possible. Make sure to inform
             yourself on the values needed for each function, their units, and
             their interchangeable keywords as part of the Phys data class.
+
+        ephemobj : `sbpy.data.ephem`
+            `sbpy.data.ephem` object holding ephemeride information including
+            distance from comet to Sun ['r'] and from comet to observer ['delta']
 
         vgas : `~astropy.units.Quantity`
             Gas velocity approximation in km / s. Default is 1 km / s
@@ -365,7 +371,7 @@ class LTE():
 
         >>> from astropy.time import Time # doctest: +SKIP
 
-        >>> from sbpy.data import Ephem # doctest: +SKIP
+        >>> from sbpy.data import Ephem, Phys # doctest: +SKIP
 
         >>> from sbpy.spectroscopy import prodrate_np  # doctest: +SKIP
 
@@ -383,14 +389,16 @@ class LTE():
 
         >>> transition_freq = 265.886434 * u.MHz  # doctest: +SKIP
 
-        >>> spectra = 1.22 * u.K * u.km / u.s  # doctest: +SKIP
+        >>> integrated_flux = 1.22 * u.K * u.km / u.s  # doctest: +SKIP
 
         >>> time = Time('2010-11-3 00:48:06', format='iso')  # doctest: +SKIP
 
         >>> ephemobj = Ephem(target, epochs=time.jd, id_type='id') # doctest: +SKIP
 
-        >>> q = prodrate_np(spectra, temp_estimate, transition_freq, # doctest: +SKIP
-                            mol_tag, ephemobj, vgas, aper, b=b)
+        >>> mol_data = Phys.from_jplspec(temp_estimate, transition_freq, mol_tag) # doctest: +SKIP
+
+        >>> q = prodrate_np(integrated_flux, mol_data # doctest: +SKIP
+                            ephemobj, vgas, aper, b=b)
 
         >>> q  # doctest: +SKIP
         <Quantity 1.0432591198553935e+25 1 / s>
@@ -424,7 +432,7 @@ class LTE():
 
         au = mol_data['eincoeff'][0]
 
-        delta = mol_data["delta"][0]
+        delta = ephemobj["delta"][0]
 
         calc = ((16*np.pi*k*t_freq.decompose() *
                  partition*vgas) / (np.sqrt(np.pi*np.log(2))
@@ -449,9 +457,9 @@ class LTE():
         mol_data: `sbpy.data.phys`
             `sbpy.data.phys` object that contains AT LEAST the following data:
 
-                | Total Number of Molecules. See
-                | `sbpy.activity.gas.total_number_nocd` if you do not know
-                | or have this datum
+                | Total Number of Molecules (See
+                | `sbpy.activity.gas.total_number_nocd` for a calculation
+                | of this datum if you don't wish to provide it yourself)
 
             This field can be given by the user directly or calculated using the
             necessary combinations of the following functions:

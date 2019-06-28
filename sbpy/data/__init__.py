@@ -74,7 +74,6 @@ class Conf():
         ['Integrated line intensity at desired temp', 'intl', 'lgint'],
         ['Einstein Coefficient', 'au', 'eincoeff'],
         ['Timescale * r^2', 'beta', 'beta_factor'],
-        ['Distance from Observer in meters', 'delta'],
         ['Total Number Obtained from Bockelee-Morvan', 'totnum', 'total_number_nocd'],
         ['Molecule Identifier', 'mol_tag', 'mol_name']
     ]
