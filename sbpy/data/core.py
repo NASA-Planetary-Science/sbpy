@@ -650,16 +650,16 @@ class DataClass():
 
         Examples
         --------
-        >> > from sbpy.data import DataClass
-        >> > import astropy.units as u
-        >> > data = DataClass.from_columns([[1, 2, 3, 4]*u.kg,
+        >>> from sbpy.data import DataClass
+        >>> import astropy.units as u
+        >>> data = DataClass.from_columns([[1, 2, 3, 4]*u.kg,
         ...                                [5, 6, 7, 8]*u.m],
         ...                               names=['a', 'b'],
         ...                               meta={'origin': 'measured'})
-        >> > data.meta  # meta data access
+        >>> data.meta  # meta data access
         {'origin': 'measured'}
-        >> > data.meta['date'] = '2019-06-27'  # meta data modification
-        >> > data.meta['date']
+        >>> data.meta['date'] = '2019-06-27'  # meta data modification
+        >>> data.meta['date']
         '2019-06-27'
         """
         return self._table.meta
@@ -698,15 +698,15 @@ class DataClass():
 
         Examples
         --------
-        >> > from sbpy.data import DataClass
-        >> > import astropy.units as u
-        >> > dat = DataClass.from_array([[1, 2, 3]*u.Unit('m'),
+        >>> from sbpy.data import DataClass
+        >>> import astropy.units as u
+        >>> dat = DataClass.from_array([[1, 2, 3]*u.Unit('m'),
         ...                             [4, 5, 6]*u.m/u.s,
         ...                             ['a', 'b', 'c']],
         ...                            names=('a', 'b', 'c'))
-        >> > dat.add_rows({'a': 5*u.m, 'b': 8*u.m/u.s, 'c': 'e'})
+        >>> dat.add_rows({'a': 5*u.m, 'b': 8*u.m/u.s, 'c': 'e'})
         4
-        >> > print(dat.table)
+        >>> print(dat.table)
          a    b    c
          m  m / s
         --- ----- ---
@@ -714,10 +714,10 @@ class DataClass():
         2.0   5.0   b
         3.0   6.0   c
         5.0   8.0   e
-        >> > dat.add_rows(([6*u.m, 9*u.m/u.s, 'f'],
+        >>> dat.add_rows(([6*u.m, 9*u.m/u.s, 'f'],
         ...               [7*u.m, 10*u.m/u.s, 'g']))
         6
-        >> > dat.add_rows(dat)
+        >>> dat.add_rows(dat)
         12
 
         """
@@ -766,15 +766,15 @@ class DataClass():
 
         Examples
         --------
-        >> > from sbpy.data import DataClass
-        >> > import astropy.units as u
-        >> > dat = DataClass.from_array([[1, 2, 3]*u.Unit('m'),
+        >>> from sbpy.data import DataClass
+        >>> import astropy.units as u
+        >>> dat = DataClass.from_array([[1, 2, 3]*u.Unit('m'),
         ...                             [4, 5, 6]*u.m/u.s,
         ...                             ['a', 'b', 'c']],
         ...                            names=('a', 'b', 'c'))
-        >> > dat.add_column([10, 20, 30]*u.kg, name='d')
+        >>> dat.add_column([10, 20, 30]*u.kg, name='d')
         4
-        >> > print(dat.table)
+        >>> print(dat.table)
          a    b    c   d
          m  m / s      kg
         --- ----- --- ----
@@ -785,3 +785,112 @@ class DataClass():
 
         self._table.add_column(Column(data, name=name), **kwargs)
         return len(self.column_names)
+
+    def apply(self, data, name, unit=None):
+        """Apply an arbitrarily shaped sequence as additional column to a
+        `~sbpy.data.DataClass` object and reshape it accordingly.
+
+        Parameters
+        ----------
+        data : list or iterable `astropy.units.Quantity` object
+            Data to be added in a new column in form of a one-dimensional
+            sequence or a two-dimensional nested sequence. Each element in
+            ``data``
+            corresponds to a row in the existing data table. If an element
+            of ``data`` is a list, the corresponding data table row is
+            duplicated by the number of elements in this list. If ``data`` is
+            provided as a flat list and has the same length as the current
+            data table, ``data`` will be simply added as a column to the data
+            table and the length of the data table will not change. If
+            ``data`` is provided as a `~astropy.units.Quantity` object, its
+            unit is adopted, unless ``unit`` is specified (not None).
+        name : str
+            Name of the new data column.
+        unit : `~astropy.units` object or str, optional
+            Unit to be applied to the new column. Default:
+            `None`
+
+        Returns
+        -------
+        None
+
+        Note
+        ----
+        As a result of this method, the length of the underlying data table
+        will be the same as the length of the flattened `data` parameter.
+
+        Examples
+        --------
+        >>> from sbpy.data import DataClass
+        >>> import astropy.units as u
+        >>> dat = DataClass.from_array([[1, 2, 3]*u.Unit('m'),
+        ...                             [4, 5, 6]*u.m/u.s,
+        ...                             ['a', 'b', 'c']],
+        ...                            names=('a', 'b', 'c'))
+        >>> dat.apply([[1], [2, 3], [4, 5, 6]], name='d', unit='kg')
+        >>> dat
+        <QTable length=6>
+           a       b     c      d
+           m     m / s          kg
+        float64 float64 str1 float64
+        ------- ------- ---- -------
+            1.0     4.0    a     1.0
+            2.0     5.0    b     2.0
+            2.0     5.0    b     3.0
+            3.0     6.0    c     4.0
+            3.0     6.0    c     5.0
+            3.0     6.0    c     6.0
+
+        ``dat`` was applied and those rows with multiple values
+        in the new column `d` were duplicated to match the order in `d`.
+
+        >>> dat.apply([10, 20, 30, 40, 50, 60], name='e')
+        >>> dat
+        <QTable length=6>
+           a       b     c      d       e
+           m     m / s          kg
+        float64 float64 str1 float64 float64
+        ------- ------- ---- ------- -------
+            1.0     4.0    a     1.0    10.0
+            2.0     5.0    b     2.0    20.0
+            2.0     5.0    b     3.0    30.0
+            3.0     6.0    c     4.0    40.0
+            3.0     6.0    c     5.0    50.0
+            3.0     6.0    c     6.0    60.0
+
+        In this case, the new column data provided to this method is
+        flat and has the same length as the underlying data
+        table. Hence, the new column data is simply added as a new
+        column.
+
+        """
+        _newtable = None
+
+        # strip units off Quantity objects
+        if isinstance(data, u.Quantity):
+            unit = data.unit
+            data = data.value
+
+        if len(data) != len(self.table):
+            raise DataClassError(
+                'Data parameter must have '
+                'same length as self._table')
+
+        _newcolumn = array([])
+        for i, val in enumerate(data):
+            if not isinstance(val, (list, tuple, ndarray)):
+                val = [val]
+            _newcolumn = hstack([_newcolumn, val])
+            # add corresponding row from _table for each element in val
+            for j in range(len(val)):
+                # initialize new QTable object
+                if _newtable is None:
+                    _newtable = QTable(self.table[0])
+                    continue
+                _newtable.add_row(self.table[i])
+
+        # add new column
+        _newtable.add_column(Column(_newcolumn, name=name, unit=unit))
+
+
+self._table = _newtable
