@@ -1,5 +1,6 @@
 import os
 
+import copy
 import numpy as np
 import astropy.units as u
 from astropy.time import Time
@@ -9,7 +10,7 @@ from astroquery.lamda import Lamda
 from astroquery.jplspec import JPLSpec
 from .. import Haser, photo_timescale
 from ....data import Ephem, Phys
-from .. import LTE, einstein_coeff
+from .. import LTE, einstein_coeff, intensity_conversion, beta_factor, total_number_nocd
 
 
 def data_path(filename):
@@ -32,17 +33,27 @@ def test_remote_prodrate_simple_hcn():
     q_found = []
     dispersionaxis = 1
     unit = u.Hz
+    mol_data = Phys.from_jplspec(temp_estimate, transition_freq, mol_tag)
+    intl = intensity_conversion(mol_data)
+    mol_data.add_column([intl.value] * intl.unit,
+                        name='Integrated line intensity at desired temp')
+    au = einstein_coeff(mol_data)
+    mol_data.add_column([au.value] * au.unit, name='eincoeff')
+    mol_data.add_column([1] * u.AU * u.AU * u.s, name='beta')
+    mol_data.add_column([1] * u.m, name='delta')
 
     for i in range(0, 28):
 
         time = Time(hcn['Time'][i], format='iso')
-        spectra = hcn['T_B'][i] * u.K * u.km / u.s
+        integrated_flux = hcn['T_B'][i] * u.K * u.km / u.s
         ephemobj = Ephem.from_horizons(target, epochs=time.jd, id_type='id')
+        physobj = beta_factor(mol_data, ephemobj)
+        mol_data['beta'] = [physobj['beta'][0]]
+        mol_data['delta'] = [physobj['delta'][0]]
 
         lte = LTE()
 
-        q = lte.from_Drahus(spectra, temp_estimate, transition_freq,
-                            mol_tag, ephemobj, vgas, aper, b=b)
+        q = lte.from_Drahus(integrated_flux, mol_data, vgas, aper, b=b)
 
         q = np.log10(q.value)
 
@@ -67,25 +78,31 @@ def test_remote_prodrate_simple_ch3oh():
     aper = 30 * u.m  # The aperture for telescope used (Drahus et al. 2012)
     b = 1.13  # Value taken from (Drahus et al. 2012)
     mol_tag = 32003
-    transition_freq = [(157.178987 * u.GHz).to('MHz'),
-                       (157.246062 * u.GHz).to('MHz'),
-                       (157.270832 * u.GHz).to('MHz'),
-                       (157.272338 * u.GHz).to('MHz'),
-                       (157.276019 * u.GHz).to('MHz')]
+    transition_freq = (157.178987 * u.GHz).to('MHz')
     q_found = []
     dispersionaxis = 1
     unit = u.Hz
+    mol_data = Phys.from_jplspec(temp_estimate, transition_freq, mol_tag)
+    intl = intensity_conversion(mol_data)
+    mol_data.add_column([intl.value] * intl.unit,
+                        name='Integrated line intensity at desired temp')
+    au = einstein_coeff(mol_data)
+    mol_data.add_column([au.value] * au.unit, name='eincoeff')
+    mol_data.add_column([1] * u.AU * u.AU * u.s, name='beta')
+    mol_data.add_column([1] * u.m, name='delta')
 
     for i in range(0, 20):
 
         time = Time(ch3oh['Time'][i], format='iso')
-        spectra = ch3oh['T_B'][i] * u.K * u.km / u.s
+        integrated_flux = ch3oh['T_B'][i] * u.K * u.km / u.s
         ephemobj = Ephem.from_horizons(target, epochs=time.jd, id_type='id')
+        physobj = beta_factor(mol_data, ephemobj)
+        mol_data['beta'] = [physobj['beta'][0]]
+        mol_data['delta'] = [physobj['delta'][0]]
 
         lte = LTE()
 
-        q = lte.from_Drahus(spectra, temp_estimate, transition_freq,
-                            mol_tag, ephemobj, vgas, aper, b=b)
+        q = lte.from_Drahus(integrated_flux, mol_data, vgas, aper, b=b)
 
         q = np.log10(q.value)
 
@@ -116,7 +133,12 @@ def test_einstein():
         transition_freq = transition_freq_list[i]
         mol_tag = mol_tag_list[i]
 
-        au = einstein_coeff(temp_estimate, transition_freq, mol_tag)
+        mol_data = Phys.from_jplspec(temp_estimate, transition_freq, mol_tag)
+        intl = intensity_conversion(mol_data)
+        mol_data.add_column([intl.value] * intl.unit,
+                            name='Integrated line intensity at desired temp')
+
+        au = einstein_coeff(mol_data)
 
         result.append(au.value)
 
@@ -157,14 +179,29 @@ def test_Haser_prodrate():
     vgas = 0.5 * u.km / u.s
     target = 'C/2016 R2'
     b = 0.74
+    mol_data = Phys.from_jplspec(temp_estimate, transition_freq, mol_tag)
+    intl = intensity_conversion(mol_data)
+    mol_data.add_column([intl.value] * intl.unit,
+                        name='Integrated line intensity at desired temp')
+    au = einstein_coeff(mol_data)
+    mol_data.add_column([au.value] * au.unit, name='eincoeff')
+    mol_data.add_column([1.] * u.AU * u.AU * u.s, name='beta')
+    mol_data.add_column([1.] * u.m, name='delta')
+    mol_data.add_column([1.], name='total_number_nocd')
 
     q_found = []
 
     for i in range(0, 5):
 
         time = Time(co['Time'][i], format='iso')
-        spectra = co['T_B'][i] * u.K * u.km / u.s
+        integrated_flux = co['T_B'][i] * u.K * u.km / u.s
         ephemobj = Ephem.from_horizons(target, epochs=time.jd)
+        physobj = beta_factor(mol_data, ephemobj)
+        mol_data['beta'] = [physobj['beta'][0]]
+        mol_data['delta'] = [physobj['delta'][0]]
+        tnum = total_number_nocd(integrated_flux, mol_data, aper, b)
+
+        mol_data['total_number_nocd'] = tnum
 
         parent = photo_timescale('CO') * vgas
 
@@ -172,9 +209,7 @@ def test_Haser_prodrate():
 
         lte = LTE()
 
-        Q = lte.from_Haser(coma, spectra, temp_estimate,
-                           transition_freq, mol_tag, ephemobj,
-                           aper=aper, b=b)
+        Q = lte.from_Haser(coma, mol_data, aper=aper)
 
         q_found.append(np.log10(Q.value)[0])
 

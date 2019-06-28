@@ -17,40 +17,55 @@ from ...data import Phys
 conf.horizons_server = 'https://ssd.jpl.nasa.gov/horizons_batch.cgi'
 
 __all__ = ['LTE', 'NonLTE', 'einstein_coeff',
-           'intensity_conversion']
+           'intensity_conversion', 'beta_factor', 'total_number_nocd']
 
 
-def intensity_conversion(temp_estimate, transition_freq, mol_tag):
+def intensity_conversion(mol_data):
     """
-    Returns conversion of integrated line intensity at designated temperature.
+    Returns conversion of the integrated line intensity to a chosen temperature
+    from the JPL molecular spectra catalog.
 
     Parameters
     ----------
-    transition_freq : `~astropy.units.Quantity`
-        Transition frequency in MHz
+    mol_data : `sbpy.data.phys`
+        `sbpy.data.phys` object that contains the following data:
+            | Transition frequency in MHz
+            | Temperature in Kelvins
+            | Integrated line intensity at 300 K
+            | Partition function at 300 K
+            | Partition function at designated temperature
+            | Upper state degeneracy
+            | Upper level energy in Joules
+            | Lower level energy in Joules
+            | Degrees of freedom
 
-    temp_estimate : `~astropy.units.Quantity`
-        Estimated temperature in Kelvins
-
-    mol_tag : int or str
-        Molecule identifier. Make sure it is an exclusive identifier.
+        Keywords that can be used for these values are found under
+        `sbpy.data.conf.fieldnames` documentation. We recommend the use of the
+        JPL Molecular Spectral Catalog and the use of
+        `sbpy.data.phys.from_jplspec`to obtain these values in order to maintain
+        consistency. Yet, if you wish to use your own molecular data, it is
+        possible. Make sure to inform yourself on the values needed for each
+        function, their units, and their interchangeable keywords as part of
+        the Phys data class.
 
     Returns
     -------
-    intl : `~astropy.units.Quantity`
-        Integrated line intensity at designated temperature
+    intl : `~astropy.Quantity`
+        Integrated line intensity at designated temperature, which can be appended
+        to the original `sbpy.phys` object for future calculations
 
     """
 
-    mol_data = Phys.from_jplspec(temp_estimate, transition_freq, mol_tag)
+    if not isinstance(mol_data, Phys):
+        raise ValueError('mol_data must be a `sbpy.data.phys` instance.')
 
-    temp = mol_data[0][1]
-    lgint = mol_data[0][2]
-    part300 = mol_data[0][3]
-    partition = mol_data[0][4]
-    energy_J = mol_data[0][6]
-    elo_J = mol_data[0][7]
-    df = mol_data[0][8]
+    temp = mol_data['Temperature'][0]
+    lgint = mol_data['lgint300'][0]
+    part300 = mol_data['partfn300'][0]
+    partition = mol_data['partfn'][0]
+    energy_J = mol_data['eup_j'][0]
+    elo_J = mol_data['elo_J'][0]
+    df = mol_data['degfr'][0]
 
     k = con.k_B.to('J/K')  # Boltzmann constant
 
@@ -76,44 +91,59 @@ def intensity_conversion(temp_estimate, transition_freq, mol_tag):
     return intl
 
 
-def einstein_coeff(temp_estimate, transition_freq, mol_tag):
+def einstein_coeff(mol_data):
     """
     Einstein coefficient from molecular data
 
     Parameters
     ----------
-    transition_freq : `~astropy.units.Quantity`
-        Transition frequency in MHz
+    mol_data : `sbpy.data.phys`
+        `sbpy.data.phys` object that contains the following data:
+            | Transition frequency in MHz
+            | Temperature in Kelvins
+            | Integrated line intensity at 300 K
+            | Partition function at 300 K
+            | Partition function at designated temperature
+            | Upper state degeneracy
+            | Upper level energy in Joules
+            | Lower level energy in Joules
+            | Degrees of freedom
 
-    temp_estimate : `~astropy.units.Quantity`
-        Estimated temperature in Kelvins
-
-    mol_tag : int or str
-        Molecule identifier. Make sure it is an exclusive identifier.
+        Keywords that can be used for these values are found under
+        `sbpy.data.conf.fieldnames` documentation. We recommend the use of the
+        JPL Molecular Spectral Catalog and the use of
+        `sbpy.data.phys.from_jplspec`to obtain these values in order to maintain
+        consistency. Yet, if you wish to use your own molecular data, it is
+        possible. Make sure to inform yourself on the values needed for each
+        function, their units, and their interchangeable keywords as part of
+        the data class.
 
     Returns
     -------
-    einstein_coeff : `~astropy.units.Quantity`
-        Spontaneous emission coefficient
+    einstein_coeff : `~astropy.Quantity`
+        Spontaneous emission coefficient, which can be appended
+        to the original `sbpy.phys` object for future calculations
 
     """
 
-    mol_data = Phys.from_jplspec(temp_estimate, transition_freq, mol_tag)
+    if not isinstance(mol_data, Phys):
+        raise ValueError('mol_data must be a `sbpy.data.phys` instance.')
 
-    t_freq = mol_data[0][0]
-    temp = mol_data[0][1]
-    lgint = mol_data[0][2]
-    part300 = mol_data[0][3]
-    partition = mol_data[0][4]
-    gu = mol_data[0][5]
-    energy_J = mol_data[0][6]
-    elo_J = mol_data[0][7]
+    temp = mol_data['Temperature'][0]
+    lgint = mol_data['lgint300'][0]
+    part300 = mol_data['partfn300'][0]
+    partition = mol_data['partfn'][0]
+    energy_J = mol_data['eup_j'][0]
+    elo_J = mol_data['elo_J'][0]
+    df = mol_data['degfr'][0]
+    t_freq = mol_data['t_freq'][0]
+    gu = mol_data['dgup'][0]
 
     h = con.h.to('J*s')  # Planck constant
 
     k = con.k_B.to('J/K')  # Boltzmann constant
 
-    intl = intensity_conversion(temp_estimate, transition_freq, mol_tag)
+    intl = mol_data['lgint'][0]
 
     if (h*t_freq/(k*temp)).decompose().value and \
             (h*t_freq/(k*300*u.K)).decompose().value < 1:
@@ -128,23 +158,81 @@ def einstein_coeff(temp_estimate, transition_freq, mol_tag):
                               np.exp(-(energy_J/(k*temp)).value))**(-1)
               * (2.7964e-16)).value
 
-    return au / u.s
+    au = au / u.s
+
+    return au
 
 
-def photod_rate(ephemobj, mol_tag):
+def beta_factor(mol_data, ephemobj):
+    """
+    | Returns beta factor based on timescales from `sbpy.activity.gas`
+    | and distance from the Sun. The calculation is timescale * (rsun)**2
+    | if you wish to provide your own beta factor, you can calculate the equation
+    | expressed in units of AU**2 * s and append it to your mol_data phys object
+    | with the name 'beta' or any of its alternative names.
+
+    Parameters
+    ----------
+
+    mol_data : `sbpy.data.phys`
+        `sbpy.data.phys` object that contains AT LEAST the following data:
+            | mol_tag: Molecular identifier (`int` or `str`)
+
+        This field can be given by the user directly or found using
+        `sbpy.data.phys.from_jplspec`. If the mol_tag is an integer, the
+        program will assume it is the JPL Spectral Molecular Catalog identifier
+        of the molecule and will treat it as such. If mol_tag is a string,
+        then it will be assumed to be the human-readable name of the molecule.
+        The molecule MUST be defined in `sbpy.activity.gas.timescale`, otherwise
+        this function cannot be used and the photodissociation rate
+        will have to be provided by the user for calculations.
+        Keywords that can be used for these values are found under
+        `sbpy.data.conf.fieldnames` documentation. We recommend the use of the
+        JPL Molecular Spectral Catalog and the use of
+        `sbpy.data.Phys.from_jplspec` to obtain
+        these values in order to maintain consistency. Yet, if you wish to
+        use your own molecular data, it is possible. Make sure to inform
+        yourself on the values needed for each function, their units, and
+        their interchangeable keywords as part of the Phys data class.
+
+    ephemobj : `sbpy.data.ephem`
+        `sbpy.data.ephem` object holding ephemeride information including
+        distance from comet to Sun and from comet to observer
+
+    aper : `~astropy.units.Quantity`
+        Telescope aperture in meters. Default is 25 m
+
+    b : int
+        | Dimensionless factor intrinsic to every antenna. Typical
+        | value, and the default for this model, is 1.22. See
+        | references for more information on this parameter.
+
+    Returns
+    -------
+    q : `~astropy.units.Quantity`
+        Beta factor 'beta' and distance from observer 'delta', which can be appended
+        to the original `sbpy.phys` object for future calculations
+    """
     # imported here to avoid circular dependency with activity.gas
     from .core import photo_timescale
     from ...data import Ephem
 
     if not isinstance(ephemobj, Ephem):
         raise ValueError('ephemobj must be a `sbpy.data.ephem` instance.')
+    if not isinstance(mol_data, Phys):
+        raise ValueError('mol_data must be a `sbpy.data.phys` instance.')
 
     orb = ephemobj
     delta = (orb['delta']).to('m')
     r = (orb['r'])
-    cat = JPLSpec.get_species_table()
-    mol = cat[cat['TAG'] == mol_tag]
-    name = mol['NAME'].data[0]
+
+    if not isinstance(mol_data['mol_tag'][0], str):
+        cat = JPLSpec.get_species_table()
+        mol = cat[cat['TAG'] == mol_data['mol_tag'][0]]
+        name = mol['NAME'].data[0]
+
+    else:
+        name = mol_data['mol_tag'][0]
 
     timescale = photo_timescale(name)
 
@@ -159,38 +247,57 @@ def photod_rate(ephemobj, mol_tag):
     return result
 
 
-def total_number_jplspec(integrated_line, temp_estimate, transition_freq,
-                         mol_tag, aper, b, ephemobj):
+def total_number_nocd(integrated_flux, mol_data, aper, b):
     """
-    Basic equation relating number of molecules with observed integrated flux.
+    Basic equation relating number of molecules with observed integrated flux
+    without the need for column density to be given
     This is given by equation 10 in
     https://ui.adsabs.harvard.edu/#abs/2004come.book..391B
+    and is derived from data from JPLSpec, feel free to use your own total number
+    to calculate production rate or use this function with your own molecular data
+    as long as you are aware of the needed data
 
     Parameters
     ----------
     integrated_line : `~astropy.units.Quantity`
         Integrated flux of emission line.
-    transition_freq : `~astropy.units.Quantity`
-        Transition frequency
+    mol_data : `sbpy.data.phys`
+        `sbpy.data.phys` object that contains AT LEAST the following data:
+            | Transition frequency in MHz
+            | Einstein Coefficient (1/s)
+            | Beta: (Timescale (in s) * r^2 (in au))
+
+        The values above can either be given by the user or obtained from the
+        functions `sbpy.activity.gas.productionrate.einstein_coeff` and
+        `sbpy.activity.gas.productionrate.beta_factor`
+        Keywords that can be used for these values are found under
+        `sbpy.data.conf.fieldnames` documentation. We recommend the use of the
+        JPL Molecular Spectral Catalog and the use of
+        `sbpy.data.phys.from_jplspec` to obtain
+        these values in order to maintain consistency. Yet, if you wish to
+        use your own molecular data, it is possible. Make sure to inform
+        yourself on the values needed for each function, their units, and
+        their interchangeable keywords as part of the Phys data class.
 
     Returns
     -------
     total_number : float
-        Total number of molecules within the aperture
+        Total number of molecules within the aperture (Dimensionless)
 
     """
+
+    if not isinstance(mol_data, Phys):
+        raise ValueError('mol_data must be a `sbpy.data.phys` instance.')
+
     register('Spectroscopy', {'Total Number (eq. 10)': '2004come.book..391B'})
-    cdensity = integrated_line
-    cdensity *= (8*np.pi*con.k_B*transition_freq**2 /
-                 (con.h*con.c**3 * einstein_coeff(temp_estimate,
-                                                  transition_freq,
-                                                  mol_tag))).decompose()
 
-    photod = photod_rate(ephemobj, mol_tag)
+    cdensity = integrated_flux
+    cdensity *= (8*np.pi*con.k_B*mol_data['t_freq'][0]**2 /
+                 (con.h*con.c**3 * mol_data['eincoeff'][0])).decompose()
 
-    beta = photod["beta"]
+    beta = mol_data['beta'][0]
 
-    sigma = (1./2. * beta * b * con.c / (transition_freq * aper)).value
+    sigma = (1./2. * beta * b * con.c / (mol_data['t_freq'][0] * aper)).value
 
     total_number = cdensity.decompose() * sigma * u.m * u.m / np.sqrt(np.log(2))
 
@@ -200,8 +307,7 @@ def total_number_jplspec(integrated_line, temp_estimate, transition_freq,
 class LTE():
     """ LTE Methods for calculating production_rate """
 
-    def from_Drahus(self, spectra, temp_estimate, transition_freq,
-                    mol_tag, ephemobj, vgas=1 * u.km/u.s,
+    def from_Drahus(self, integrated_flux, mol_data, vgas=1 * u.km/u.s,
                     aper=25 * u.m, b=1.2):
         """
         | Returns production rate based on Drahus 2012 model referenced. Includes
@@ -209,30 +315,33 @@ class LTE():
 
         Parameters
         ----------
-        spectra : `~astropy.units.Quantity`
-            Temperature brightness integral derived from spectra
+        integrated_flux : `~astropy.units.Quantity`
+            Line integral derived from spectral data
+            in Kelvins * km/s
 
-        transition_freq : `~astropy.units.Quantity` or list of this type
-            Transition frequency in MHz. If a list of more than one frequency
-            is given the function will find the average constants from all the
-            lines and use these to calculate the final production rate.
-            According to Drahus himself:
-            "One advantage of this approach is that the calculated production
-            rate is based on the high-S/N observation of the averaged line
-            profile and not the much lower S/N of a single line- as
-            long as the theory behind holds. In some cases, individual lines
-            may not even be detectable, but if their average is, one will be
-            able to calculate the production rate for some assumed rotational
-            temperature."
+        mol_data : `sbpy.data.phys`
+            `sbpy.data.phys` object that contains AT LEAST the following data:
+                | Transition frequency in MHz
+                | Temperature in Kelvins
+                | Rovibrational Partition function at designated temperature (unitless)
+                | Upper state degeneracy (unitless)
+                | Upper level energy in Joules
+                | Degrees of freedom (unitless)
+                | Einstein Coefficient (1/s)
+                | Delta - distance from observer in meters
 
-        temp_estimate : `~astropy.units.Quantity`
-            Estimated temperature in Kelvins
-
-        ephemobj: `~sbpy.data.Ephem` object
-            An `~sbpy.data.Ephem` object that holds ephemerides information
-
-        mol_tag : int or str
-            Molecule identifier. Make sure it is an exclusive identifier.
+            These fields can be given by the user directly or calculated using
+            `sbpy.data.phys.from_jplspec`,
+            `sbpy.activity.gas.productionrate.einstein_coeff`, and
+            `sbpy.activity.gas.productionrate.beta_factor`
+            Keywords that can be used for these values are found under
+            `sbpy.data.conf.fieldnames` documentation. We recommend the use of the
+            JPL Molecular Spectral Catalog and the use of
+            `sbpy.data.Phys.from_jplspec` to obtain
+            these values in order to maintain consistency. Yet, if you wish to
+            use your own molecular data, it is possible. Make sure to inform
+            yourself on the values needed for each function, their units, and
+            their interchangeable keywords as part of the Phys data class.
 
         vgas : `~astropy.units.Quantity`
             Gas velocity approximation in km / s. Default is 1 km / s
@@ -299,132 +408,68 @@ class LTE():
         register('Spectroscopy', {'Production Rate (No photodissociation)':
                                   '2012ApJ...756...80D'})
 
-        assert isinstance(temp_estimate, u.Quantity)
         assert isinstance(vgas, u.Quantity)
         assert isinstance(aper, u.Quantity)
-        assert isinstance(spectra, u.Quantity)  # K * km / s
+        assert isinstance(integrated_flux, u.Quantity)  # K * km / s
 
-        if type(transition_freq) == list:
+        t_freq = mol_data['t_freq'][0]
+        temp = mol_data['Temperature'][0]
+        partition = mol_data['partfn']
+        gu = mol_data['dgup'][0]
+        energy_J = mol_data['eup_j'][0]
+        h = con.h.to('J*s')  # Planck constant
+        k = con.k_B.to('J/K')  # Boltzmann constant
+        c = con.c.to('m/s')  # speed of light
+        vgas = vgas.to('m/s')
 
-            t_freq_list = []
-            temp_list = []
-            partition_list = []
-            gu_list = []
-            energy_J_list = []
-            au_list = []
-            h = con.h.to('J*s')  # Planck constant
-            k = con.k_B.to('J/K')  # Boltzmann constant
-            c = con.c.to('m/s')  # speed of light
-            vgas = vgas.to('m/s')
+        au = mol_data['eincoeff'][0]
 
-            for i in range(0, len(transition_freq)):
+        delta = mol_data["delta"][0]
 
-                assert isinstance(transition_freq[i], u.Quantity)
+        calc = ((16*np.pi*k*t_freq.decompose() *
+                 partition*vgas) / (np.sqrt(np.pi*np.log(2))
+                                    * h * c**2 * au * gu *
+                                    np.exp(-energy_J/(k*temp)))).decompose()
 
-                mol_data = Phys.from_jplspec(temp_estimate, transition_freq[i],
-                                          mol_tag)
+        q = integrated_flux*(calc * b * delta / aper)
 
-                t_freq = mol_data[0][0]
-                temp = mol_data[0][1]
-                partition = mol_data[0][4]
-                gu = mol_data[0][5]
-                energy_J = mol_data[0][6]
-
-                au = einstein_coeff(temp_estimate, transition_freq[i], mol_tag)
-
-                au_list.append(au)
-                t_freq_list.append(t_freq)
-                temp_list.append(temp)
-                partition_list.append(partition)
-                gu_list.append(gu)
-                energy_J_list.append(energy_J)
-
-            t_freq = t_freq_list[0]
-            temp = temp_list[0]
-            au = sum(au_list) / float(len(au_list))
-            partition = sum(partition_list) / float(len(partition_list))
-            gu = sum(gu_list) / float(len(gu_list))
-            energy_J = sum(energy_J_list) / float(len(energy_J_list))
-
-            photod = photod_rate(ephemobj, mol_tag)
-
-            delta = photod["delta"]
-
-            calc = ((16*np.pi*k*t_freq.decompose() *
-                     partition*vgas) / (np.sqrt(np.pi*np.log(2))
-                                        * h * c**2 * au * gu *
-                                        np.exp(-energy_J/(k*temp)))).decompose()
-
-            q = spectra*(calc * b * delta / aper)
-
-            q = q.to(u.Hz, equivalencies=u.spectral()).decompose()[0]
-
-        else:
-
-            assert isinstance(transition_freq, u.Quantity)
-
-            mol_data = Phys.from_jplspec(temp_estimate, transition_freq, mol_tag)
-
-            t_freq = mol_data[0][0]
-            temp = mol_data[0][1]
-            partition = mol_data[0][4]
-            gu = mol_data[0][5]
-            energy_J = mol_data[0][6]
-            h = con.h.to('J*s')  # Planck constant
-            k = con.k_B.to('J/K')  # Boltzmann constant
-            c = con.c.to('m/s')  # speed of light
-            vgas = vgas.to('m/s')
-
-            au = einstein_coeff(temp_estimate, transition_freq, mol_tag)
-
-            photod = photod_rate(ephemobj, mol_tag)
-
-            delta = photod["delta"]
-
-            calc = ((16*np.pi*k*t_freq.decompose() *
-                     partition*vgas) / (np.sqrt(np.pi*np.log(2))
-                                        * h * c**2 * au * gu *
-                                        np.exp(-energy_J/(k*temp)))).decompose()
-
-            q = spectra*(calc * b * delta / aper)
-
-            q = q.to(u.Hz, equivalencies=u.spectral()).decompose()[0]
+        q = q.to(u.Hz, equivalencies=u.spectral()).decompose()[0]
 
         return q
 
-    def from_Haser(self, coma, integrated_line, temp_estimate,
-                        transition_freq, mol_tag, ephemobj,
-                        aper=25 * u.m, b=1.2):
+    def from_Haser(self, coma, mol_data, aper=25 * u.m):
         """
         Calculate production rate for `GasComa`
 
         Parameters
         ----------
         coma : `sbpy.activity.gas.GasComa`
-            Gas coma model
+            Gas coma model for ratio calculation of production rate
 
-        integrated_line : `~astropy.units.Quantity`
-            Temperature brightness integral derived from spectra
+        mol_data: `sbpy.data.phys`
+            `sbpy.data.phys` object that contains AT LEAST the following data:
 
-        temp_estimate : `~astropy.units.Quantity`
-            Estimated temperature in Kelvins
+                | Total Number of Molecules. See
+                | `sbpy.activity.gas.total_number_nocd` if you do not know
+                | or have this datum
 
-        transition_freq : `~astropy.units.Quantity`
-            Transition frequency being analyzed
-
-        mol_tag : int or str
-            Molecule identifier. Make sure it is an exclusive identifier.
-
-        ephemobj: `~sbpy.data.Ephem` object
-            An `~sbpy.data.Ephem` object that holds ephemerides information
+            This field can be given by the user directly or calculated using the
+            necessary combinations of the following functions:
+            `sbpy.data.phys.from_jplspec`,
+            `sbpy.activity.gas.productionrate.einstein_coeff`,
+            `sbpy.activity.gas.productionrate.beta_factor`, and
+            `sbpy.activity.gas.productionrate.total_number`.
+            Keywords that can be used for these values are found under
+            `sbpy.data.conf.fieldnames` documentation. We recommend the use of the
+            JPL Molecular Spectral Catalog and the use of
+            `sbpy.data.Phys.from_jplspec` to obtain
+            these values in order to maintain consistency. Yet, if you wish to
+            use your own molecular data, it is possible. Make sure to inform
+            yourself on the values needed for each function, their units, and
+            their interchangeable keywords as part of the Phys data class.
 
         aper : `~astropy.units.Quantity`
             Telescope aperture in meters. Default is 25 m
-
-        b : int
-            | Dimensionless factor intrinsic to every antenna. Typical
-            | value, and the default for this model, is 1.22. See
-            | references for more information on this parameter.
 
         Returns
         -------
@@ -479,8 +524,7 @@ class LTE():
 
         # integrated_line = self.integrated_flux(transition_freq) - not yet implemented
 
-        molecules = total_number_jplspec(integrated_line, temp_estimate,
-                                 transition_freq, mol_tag, aper, b, ephemobj)
+        molecules = mol_data['total_number_nocd']
 
         model_molecules = coma.total_number(aper)
 

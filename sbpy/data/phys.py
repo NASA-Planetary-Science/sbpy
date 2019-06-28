@@ -178,7 +178,14 @@ class Phys(DataClass):
             Transition frequency in MHz
 
         mol_tag : int or str
-            Molecule identifier. Make sure it is an exclusive identifier.
+            Molecule identifier. Make sure it is an exclusive identifier,
+            although this function can take a regex as your molecule tag,
+            it will return an error if there is ambiguity on what the molecule
+            of interest is. The function
+            `~astroquery.jplspec.JPLSpec.query_lines_async`
+            with the option `parse_name_locally=True` can be used to parse
+            for the exclusive identifier of a molecule you might be interested
+            in. For more information, visit `astroquery.jplspec` documentation.
 
         Returns
         -------
@@ -200,6 +207,30 @@ class Phys(DataClass):
         except ImportError:
             raise ImportError('Optional package scipy is needed for this \
                                function. Please install scipy.')
+
+        if isinstance(mol_tag, str):
+            query = JPLSpec.query_lines_async(min_frequency=
+                                              (transition_freq - (1 * u.GHz)),
+                                              max_frequency=(
+                                              transition_freq + (1 * u.GHz)),
+                                              molecule=mol_tag,
+                                              parse_name_locally=True,
+                                              get_query_payload=True)
+
+            res = dict(query)
+            # python request payloads aren't stable (could be dictionary or list)
+            # depending on the version, so make sure to check back from time to time
+            if len(res['Mol']) > 1:
+                raise JPLSpecQueryFailed(("Ambiguious choice for molecule,\
+                                         more than one molecule was found for \
+                                         the given mol_tag. Please refine \
+                                         your search to one of the following tags\
+                                         {} by using JPLSpec.get_species_table()\
+                                         (as shown in JPLSpec documentation)\
+                                         to parse their names and choose your \
+                                         molecule of interest, or refine your\
+                                         regex to be more specific.\
+                                         ").format(res['Mol']))
 
         query = JPLSpec.query_lines(min_frequency=(transition_freq - (1 * u.GHz)),
                                     max_frequency=(transition_freq + (1 * u.GHz)),
@@ -250,7 +281,8 @@ class Phys(DataClass):
         energy_J = energy.to(u.J, equivalencies=u.spectral())
         elo_J = elo.to(u.J, equivalencies=u.spectral())
 
-        quantities = [t_freq, temp, lgint, part300, partition, gu, energy_J, elo_J, df]
+        quantities = [t_freq, temp, lgint, part300, partition, gu, energy_J,
+                      elo_J, df, mol_tag]
         names = ('Transition frequency',
                  'Temperature',
                  'Integrated line intensity at 300 K',
@@ -259,7 +291,7 @@ class Phys(DataClass):
                  'Upper state degeneracy',
                  'Upper level energy in Joules',
                  'Lower level energy in Joules',
-                 'Degrees of freedom')
+                 'Degrees of freedom', 'Molecule Identifier')
         result = cls.from_array(quantities, names)
 
         return result

@@ -64,13 +64,19 @@ class Conf():
         ['emissivity', 'Emissivity'],
         ['Transition frequency', 't_freq', 'transition_freq'],
         ['Temperature', 'temppartfn', 'Temperature for Partition Function'],
-        ['Integrated line intensity at 300 K', 'lgint'],
+        ['Integrated line intensity at 300 K', 'lgint300'],
         ['Partition function at 300 K', 'partfn300'],
         ['Partition function at designated temperature', 'partfn'],
         ['Upper state degeneracy', 'dgup'],
-        ['Upper level energy in Joules', 'eup_j'],
-        ['Lower level energy in Joules', 'elo_j'],
-        ['Degrees of freedom', 'degfr']
+        ['Upper level energy in Joules', 'eup_j', 'eup_J'],
+        ['Lower level energy in Joules', 'elo_j', 'elo_J'],
+        ['Degrees of freedom', 'degfr'],
+        ['Integrated line intensity at desired temp', 'intl', 'lgint'],
+        ['Einstein Coefficient', 'au', 'eincoeff'],
+        ['Timescale * r^2', 'beta', 'beta_factor'],
+        ['Distance from Observer in meters', 'delta'],
+        ['Total Number Obtained from Bockelee-Morvan', 'totnum', 'total_number_nocd'],
+        ['Molecule Identifier', 'mol_tag', 'mol_name']
     ]
 
     fieldname_idx = {}
