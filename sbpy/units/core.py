@@ -28,8 +28,8 @@ __all__ = [
 from warnings import warn
 import astropy.units as u
 from astropy.utils.exceptions import AstropyWarning
-from ..spectroscopy.vega import Vega
-from ..spectroscopy.sun import Sun
+from ..calib.vega import Vega
+from ..calib.sun import Sun
 from ..spectroscopy.sources import SinglePointSpectrumError
 
 
@@ -127,8 +127,8 @@ def spectral_density_vega(wfb):
         fnu0 = vega(wfb, unit='W/(m2 Hz)')
         flam0 = vega(wfb, unit='W/(m2 um)')
     elif isinstance(wfb, (synphot.SpectralElement, str)):
-        fnu0 = vega.filt(wfb, unit='W/(m2 Hz)')[1]
-        flam0 = vega.filt(wfb, unit='W/(m2 um)')[1]
+        fnu0 = vega.filt(wfb, unit='W/(m2 Hz)')[2]
+        flam0 = vega.filt(wfb, unit='W/(m2 um)')[2]
 
     return [
         (fnu0.unit, VEGA, lambda x: x / fnu0.value,
@@ -139,9 +139,9 @@ def spectral_density_vega(wfb):
 
 
 @u.quantity_input(cross_section='km2', reflectance='1/sr',
-        f_sun=['W/(m2 um)', 'W/(m2 Hz)'])
+                  f_sun=['W/(m2 um)', 'W/(m2 Hz)'])
 def reflectance(cross_section=None, reflectance=None, wfb=None, M_sun=None,
-        f_sun=None):
+                f_sun=None):
     """Reflectance related equivalencies.
 
     Supports conversion from/to reflectance and scattering cross-section
@@ -249,10 +249,10 @@ def reflectance(cross_section=None, reflectance=None, wfb=None, M_sun=None,
     elif M_sun is not None:
         if not hasattr(M_sun, 'unit'):
             raise TypeError("Argument 'M_sun' has no 'unit' attribute.  "
-                "You may want to pass in an astropy Quantity instead.")
+                            "You may want to pass in an astropy Quantity instead.")
         if not hasattr(M_sun.unit, 'physical_unit'):
             raise u.UnitsError("Argument 'M_sun' must be in a magnitude "
-                "system based on a physical unit")
+                               "system based on a physical unit")
         f_sun_lam = None
         f_sun_nu = None
         f_sun_phys = M_sun.to(M_sun.unit.physical_unit).value
@@ -276,9 +276,9 @@ def reflectance(cross_section=None, reflectance=None, wfb=None, M_sun=None,
                           lambda ref: ref*f_sun_lam*xsec))
         if f_sun_nu is not None:
             equiv.append((u.Unit('W/(m2 Hz)'),
-                         u.sr**-1,
-                         lambda flux: flux/(f_sun_nu*xsec),
-                         lambda ref: ref*f_sun_nu*xsec))
+                          u.sr**-1,
+                          lambda flux: flux/(f_sun_nu*xsec),
+                          lambda ref: ref*f_sun_nu*xsec))
     elif reflectance is not None:
         ref = reflectance.to('1/sr').value
         if M_sun is not None:

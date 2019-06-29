@@ -5,19 +5,18 @@ SBPy Vega Core Module
 =====================
 """
 
+__all__ = [
+    'Vega'
+]
+
 import os
 import astropy.units as u
 from astropy.utils.state import ScienceState
 from astropy.utils.data import get_pkg_data_filename
-from ..sources import SpectralStandard
+from ...spectroscopy.sources import SpectralStandard
 from . import sources
 
-__doctest_requires__ = {'Sun': 'synphot'}
-
-__all__ = [
-    'Vega',
-    'default_vega'
-]
+__doctest_requires__ = {'Vega': 'synphot'}
 
 
 class Vega(SpectralStandard):
@@ -102,7 +101,8 @@ class Vega(SpectralStandard):
     @classmethod
     def from_default(cls):
         """Return the `sbpy` default Vega spectrum."""
-        return default_vega.get()
+        from ...calib import vega_spectrum
+        return vega_spectrum.get()
 
     @staticmethod
     def show_builtin():
@@ -115,25 +115,46 @@ class Vega(SpectralStandard):
         Table(rows=rows, names=('name', 'description')).pprint(
             max_lines=-1, max_width=-1)
 
+    def filt(self, bp, unit='W / (m2 um)', **kwargs):
+        """Observe Vega through a single filter.
 
-class default_vega(ScienceState):
-    """Get/set the `sbpy` default Vega spectrum.
+        Uses the `sbpy` calibration system.  If `bp` has been set in
+        `~sbpy.calib.vega_fluxd`, then those values will be returned.
+        Otherwise, the Vega spectrum defined by this object will be
+        filtered with the provided bandpass.
 
-    To change it:
 
-    >>> from sbpy.spectroscopy import default_vega
-    >>> with default_vega(Vega.from_file(filename))  # doctest: +SKIP
-    ...     # Vega from filename in effect
-    ...     pass
+        Parameters
+        ----------
+        bp: string or `~synphot.SpectralElement`
+            The name of a filter, or a transmission spectrum as a
+            `~synphot.SpectralElement`.  See
+            `sbpy.spectroscopy.sources.SpectralSource` for built-in
+            filter names.
 
-    """
-    _value = 'Bohlin2014'
+        unit: string, `~astropy.units.Unit`, optional
+            Spectral flux density units of the output.
 
-    @classmethod
-    def validate(cls, value):
-        if isinstance(value, str):
-            return Vega.from_builtin(value)
-        elif isinstance(value, Vega):
-            return value
-        else:
-            raise TypeError("default_vega must be a string or Vega instance.")
+        **kwargs
+            Additional keyword arguments for
+            `~synphot.observation.Observation`, e.g., ``force``.
+
+
+        Returns
+        -------
+        lambda_eff: `~astropy.units.Quantity`
+            Effective wavelength.  ``None`` if it cannot be calculated.
+
+        lambda_pivot: `~astropy.units.Quantity`
+            Pivot wavelength.  ``None`` if it cannot be calculated.
+
+        fluxd: `~astropy.units.Quantity`
+            Spectral flux density.
+
+        """
+
+        from ...calib import vega_fluxd
+
+        source_fluxd = vega_fluxd.get()
+        return super().filt(bp, unit=unit, source_fluxd=source_fluxd,
+                            **kwargs)
