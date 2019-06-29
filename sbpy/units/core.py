@@ -72,7 +72,7 @@ def spectral_density_vega(wfb):
 
     Requires `~synphot`.
 
-    Uses the default `sbpy` Vega spectrum.
+    Uses the default `sbpy` Vega spectrum, or `~sbpy.calib.vega_fluxd`.
 
     Vega is assumed to have an apparent magnitude of 0 in the
     ``VEGAmag`` system, and 0.03 in the Johnson-Morgan, ``JMmag``,
@@ -100,9 +100,16 @@ def spectral_density_vega(wfb):
     >>> from sbpy.units import spectral_density_vega, VEGAmag
     >>> m = 0 * VEGAmag
     >>> fluxd = m.to(u.Jy, spectral_density_vega(5500 * u.AA))
-    >>> fluxd.value   # doctest: +FLOAT_CMP
-    3578.9571538333985
+    >>> print(fluxd)   # doctest: +FLOAT_CMP
+    3578.9571538333985 Jy
 
+    Use your favorite bandpass and zeropoint (Willmer 2018):
+    >>> from sbpy.calib import vega_fluxd
+    >>> cal = {'SDSS_r': 3255 * u.Jy, 'SDSS_r_lambda_pivot': 0.6176 * u.um}
+    >>> with vega_fluxd.set(cal):
+    ...     fluxd = m.to(u.Jy, spectral_density_vega('SDSS_r'))
+    ...     print(fluxd)    # doctest: +FLOAT_CMP
+    3255.0 Jy
 
     References
     ----------
@@ -127,8 +134,8 @@ def spectral_density_vega(wfb):
         fnu0 = vega(wfb, unit='W/(m2 Hz)')
         flam0 = vega(wfb, unit='W/(m2 um)')
     elif isinstance(wfb, (synphot.SpectralElement, str)):
-        fnu0 = vega.filt(wfb, unit='W/(m2 Hz)')[2]
-        flam0 = vega.filt(wfb, unit='W/(m2 um)')[2]
+        fnu0 = vega.observe(wfb, unit='W/(m2 Hz)')
+        flam0 = vega.observe(wfb, unit='W/(m2 um)')
 
     return [
         (fnu0.unit, VEGA, lambda x: x / fnu0.value,

@@ -12,6 +12,7 @@ from astropy.utils.data import get_pkg_data_filename
 import synphot
 from ..core import *
 from ...utils import get_bandpass
+from ...calib import vega_fluxd
 
 JohnsonV = get_bandpass('Johnson V')
 
