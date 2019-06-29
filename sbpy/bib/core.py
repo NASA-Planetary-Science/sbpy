@@ -122,6 +122,7 @@ def cite(citations):
     This decorator is the primary mechanism for registering citations.
     As an alternative, `~register` may be called directly.
 
+
     Parameters
     ----------
     citations : dict
@@ -130,6 +131,7 @@ def cite(citations):
         aspect that requires citation, e.g., `{'method':
         '1998Icar..131..291H'}`, or `{'parameter : beaming':
         '2013Icar..226.1138F'}`.
+
 
     Returns
     -------
@@ -144,7 +146,7 @@ def cite(citations):
     ...     return mass * accelleration
     >>>
     >>> with Tracking(to_text):
-    ...     print(force(1, 2))
+    ...     print(force(1, 2))    # doctest: +REMOTE_DATA
     2
     sbpy.bib.core.force:
       method:
@@ -155,9 +157,13 @@ def cite(citations):
     def decorator(f):
         @wraps(f)
         def wrapper(*args, **kwargs):
+            # only cite after successful call
+            result = f(*args, **kwargs)
+
             task = '.'.join((f.__module__, f.__name__))
             register(task, citations)
-            return f(*args, **kwargs)
+
+            return result
         return wrapper
     return decorator
 
