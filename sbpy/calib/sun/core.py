@@ -5,22 +5,27 @@ SBPy Sun Core Module
 ====================
 """
 
+__all__ = [
+    'Sun'
+]
+
 import os
 from astropy.utils.state import ScienceState
 from astropy.utils.data import get_pkg_data_filename
-from ..sources import SpectralStandard
+from ...spectroscopy.sources import SpectralStandard
 from . import sources
-
-__all__ = [
-    'Sun',
-    'default_sun'
-]
 
 __doctest_requires__ = {'Sun': 'synphot'}
 
 
 class Sun(SpectralStandard):
     """Solar spectrum.
+
+
+    Most functionality requires `synphot`.  An important exception is
+    `Sun.filt()`, which can use `sbpy.calib.solar_fluxd` for returning
+    flux densities and wavelengths.
+
 
     Parameters
     ----------
@@ -52,9 +57,11 @@ class Sun(SpectralStandard):
     Examples
     --------
     Get the default solar spectrum:
+
     >>> sun = Sun.from_default()
 
     Create solar standard from `synphot.SourceSpectrum`:
+
     >>> import astropy.constants as const
     >>> import synphot
     >>> source = (synphot.SourceSpectrum(synphot.BlackBody1D, temperature=5770)
@@ -62,6 +69,7 @@ class Sun(SpectralStandard):
     >>> sun = Sun(source, description='5770 K blackbody Sun')
 
     Create solar standard from an array:
+
     >>> import numpy as np
     >>> import astropy.units as u
     >>> import astropy.constants as const
@@ -72,6 +80,7 @@ class Sun(SpectralStandard):
     >>> sun = Sun.from_array(wave, fluxd, description='5770 K blackbody Sun')
 
     Create solar standard from a file:
+
     >>> sun = Sun.from_file('filename')        # doctest: +SKIP
 
     Interpolate to 0.62 μm:
@@ -79,6 +88,7 @@ class Sun(SpectralStandard):
     <Quantity 1720.5108871 W / (m2 um)>
 
     Observe as through a spectrometer:
+
     >>> import numpy as np
     >>> import astropy.units as u
     >>> sun = Sun.from_default()
@@ -86,9 +96,23 @@ class Sun(SpectralStandard):
     >>> fluxd = sun.observe(wave)              # doctest: +IGNORE_OUTPUT
 
     Observe as through a filter:
+
     >>> sun = Sun.from_default()
     >>> sun.observe('johnson_v')               # doctest: +FLOAT_CMP
     <Quantity [1839.93273227] W / (m2 um)>
+
+    Observe through a filter, using `sbpy`'s filter calibration system:
+
+    >>> from sbpy.calib import solar_fluxd
+    >>> import sbpy.units as sbu
+    >>> solar_fluxd.set({
+    ...     'V': -26.76 * sbu.VEGAmag,
+    ...     'V_lambda_eff': 548 * u.nm,
+    ...     'V_lambda_pivot': 551 * u.nm
+    ... })
+    >>> sun = Sun.from_default()
+    >>> print(sun.observe('V'))
+    -26.76 VEGAmag
 
     """
 
@@ -129,7 +153,8 @@ class Sun(SpectralStandard):
     @classmethod
     def from_default(cls):
         """Return the `sbpy` default solar spectrum."""
-        return default_sun.get()
+        from ...calib import solar_spectrum
+        return solar_spectrum.get()
 
     @staticmethod
     def show_builtin():
@@ -142,35 +167,46 @@ class Sun(SpectralStandard):
         Table(rows=rows, names=('name', 'description')).pprint(
             max_lines=-1, max_width=-1)
 
+    def filt(self, bp, unit='W / (m2 um)', **kwargs):
+        """Observe the Sun through a single filter.
 
-class default_sun(ScienceState):
-    """Get/set the `sbpy` default solar spectrum.
+        Uses the `sbpy` calibration system.  If `bp` has been set in
+        `~sbpy.calib.solar_fluxd`, then those values will be returned.
+        Otherwise, the solar spectrum defined by this object will be
+        filtered with the provided bandpass.
 
-    To retrieve the current default:
 
-    >>> sun = default_sun.get()
+        Parameters
+        ----------
+        bp: string or `~synphot.SpectralElement`
+            The name of a filter, or a transmission spectrum as a
+            `~synphot.SpectralElement`.  See
+            `sbpy.spectroscopy.sources.SpectralSource` for built-in
+            filter names.
 
-    To change it:
+        unit: string, `~astropy.units.Unit`, optional
+            Spectral flux density units of the output.
 
-    >>> from sbpy.spectroscopy import default_sun
-    >>> with default_sun.set('E490_2014'):
-    ...     # E490_2014 in effect
-    ...     pass
+        **kwargs
+            Additional keyword arguments for
+            `~synphot.observation.Observation`, e.g., ``force``.
 
-    Or, you may use a string:
 
-    >>> with default_sun.set('E490_2014LR'):
-    ...     # E490_2014LR in effect
-    ...     pass
+        Returns
+        -------
+        lambda_eff: `~astropy.units.Quantity`
+            Effective wavelength.  ``None`` if it cannot be calculated.
 
-    """
-    _value = 'E490_2014'
+        lambda_pivot: `~astropy.units.Quantity`
+            Pivot wavelength.  ``None`` if it cannot be calculated.
 
-    @classmethod
-    def validate(cls, value):
-        if isinstance(value, str):
-            return Sun.from_builtin(value)
-        elif isinstance(value, Sun):
-            return value
-        else:
-            raise TypeError("default_sun must be a string or Sun instance.")
+        fluxd: `~astropy.units.Quantity`
+            Spectral flux density.
+
+        """
+
+        from ...calib import solar_fluxd
+
+        source_fluxd = solar_fluxd.get()
+        return super().filt(bp, unit=unit, source_fluxd=source_fluxd,
+                            **kwargs)

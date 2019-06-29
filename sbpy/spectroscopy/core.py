@@ -13,7 +13,6 @@ from astroquery.jplhorizons import Horizons, conf
 from astropy import log
 from ..bib import register
 from ..data import Phys
-from .sun import Sun
 
 
 conf.horizons_server = 'https://ssd.jpl.nasa.gov/horizons_batch.cgi'
@@ -119,6 +118,7 @@ class SpectralGradient(u.SpecificTypeQuantity):
         spectrum.
 
         """
+        from ..calib import Sun
 
         eff_wave = (0, 0) * u.um
         sun = Sun.from_default()
