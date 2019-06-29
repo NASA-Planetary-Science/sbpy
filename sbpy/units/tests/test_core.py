@@ -11,6 +11,7 @@ from astropy.io import ascii
 from astropy.utils.data import get_pkg_data_filename
 import synphot
 from ..core import *
+from ...calib import vega_fluxd
 
 
 @pytest.mark.parametrize('unit,test', (
@@ -119,7 +120,7 @@ def test_reflectance_ref(mag, wfb, f_sun, M_sun, ref):
     """
     xsec = 6.648e5 * u.km**2
     r = mag.to('1/sr', reflectance(cross_section=xsec, wfb=wfb, f_sun=f_sun,
-        M_sun=M_sun))
+                                   M_sun=M_sun))
     assert r.unit == u.sr**-1
     assert np.isclose(r.value, ref)
 
@@ -157,20 +158,22 @@ def test_reflectance_spec():
     'data/hi05070405_9000036-avg-spec.txt', data from McLaughlin et al (2014).
     """
     fn = get_pkg_data_filename(os.path.join('data',
-        'hi05070405_9000036-avg-spec.txt'))
+                                            'hi05070405_9000036-avg-spec.txt'))
     t1 = ascii.read(fn)
     ifov = 1e-5 * u.rad
     delta = 15828 * u.km
     rh = 1.5 * u.au
     wave = t1['wave'] * u.um
     spec = (t1['spec'] * u.Unit('W/(m2 um sr)') * ifov**2).to('W/(m2 um)',
-        u.dimensionless_angles()) * delta.to('au').value**2 \
+                                                              u.dimensionless_angles()) * delta.to('au').value**2 \
         * rh.to('au').value**2
     spec_nu = spec.to('W/(m2 Hz)', u.spectral_density(wave))
     xsec = (ifov * delta).to('km', u.dimensionless_angles())**2
     ref1 = spec.to('1/sr', reflectance(cross_section=xsec, wfb=wave))
-    ref2 = spec.to('1/sr', reflectance(cross_section=xsec, f_sun=t1['flux_sun']*u.Unit('W/(m2 um)')))
-    ref3 = spec_nu.to('1/sr', reflectance(cross_section=xsec, f_sun=t1['flux_sun_nu']*u.Unit('W/(m2 Hz)')))
+    ref2 = spec.to('1/sr', reflectance(cross_section=xsec,
+                                       f_sun=t1['flux_sun']*u.Unit('W/(m2 um)')))
+    ref3 = spec_nu.to('1/sr', reflectance(cross_section=xsec,
+                                          f_sun=t1['flux_sun_nu']*u.Unit('W/(m2 Hz)')))
     assert ref1.unit == '1/sr'
     assert np.allclose(ref1.value, t1['ref'])
     assert ref2.unit == '1/sr'

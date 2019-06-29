@@ -562,6 +562,8 @@ class SpectralStandard(SpectralSource, ABC):
 
         """
 
+        from .. import units as sbu  # avoid circular dependency
+
         if bp in source_fluxd:
             fluxd = source_fluxd[bp]
             lambda_eff = source_fluxd.get(bp + '_lambda_eff')
@@ -569,8 +571,7 @@ class SpectralStandard(SpectralSource, ABC):
             if lambda_pivot is None:
                 equiv = None
             else:
-                equiv = [u.spectral_density(lambda_pivot)
-                         + u.spectral_density_vega(lambda_pivot)]
+                equiv = u.spectral_density(lambda_pivot)
             try:
                 fluxd = fluxd.to(unit, equiv)
             except u.UnitConversionError as e:
