@@ -95,7 +95,7 @@ class SpectralSource(ABC):
             synphot.Empirical1D, points=wave, lookup_table=fluxd,
             meta=meta)
 
-        return spectral_source
+        return cls(source, **kwargs)
 
     @classmethod
     def from_file(cls, filename, wave_unit=None, flux_unit=None,
@@ -139,11 +139,11 @@ class SpectralSource(ABC):
 
         spec = read_spec(fn, wave_unit=wave_unit, flux_unit=flux_unit)
         i = np.isfinite(spec[1] * spec[2])
-        spectral_source._source = synphot.SourceSpectrum(
+        source = synphot.SourceSpectrum(
             synphot.Empirical1D, points=spec[1][i], lookup_table=spec[2][i],
             meta={'header': spec[0]})
 
-        return spectral_source
+        return cls(source, **kwargs)
 
     @property
     def description(self):
@@ -576,7 +576,7 @@ class SpectralStandard(SpectralSource, ABC):
             except u.UnitConversionError as e:
                 raise type(e)(
                     '{}  Is "{}_lambda_pivot" required and'
-                    ' was it provided?'.format(e.message, bp))
+                    ' was it provided?'.format(e, bp))
         else:
             lambda_eff, lambda_pivot, fluxd = (
                 super().filt(bp, unit=unit, **kwargs))
