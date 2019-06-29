@@ -14,11 +14,12 @@ synonymously. As an example, heliocentric distance can be addressed as
 ``'r'`` or ``'heldist'``:
 
     >>> from sbpy.data import Ephem
-    >>> ceres = Ephem.from_horizons('Ceres')
-    >>> print(ceres['r']) # doctest: +IGNORE_OUTPUT
-    [2.69866993] AU
-    >>> print(ceres['heldist']) # doctest: +IGNORE_OUTPUT
-    [2.69866993] AU
+    >>> import astropy.units as u
+    >>> ceres = Ephem({'r': 2.7 * u.au})
+    >>> print(ceres['r'])      # doctest: +REMOTE_DATA +IGNORE_OUTPUT
+    [2.70] AU
+    >>> print(ceres['heldist']) # doctest: +REMOTE_DATA +IGNORE_OUTPUT
+    [2.70] AU
 
 The list of alternative field names is always up to date, but not
 complete.
