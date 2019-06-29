@@ -17,11 +17,6 @@ class Star(SpectralStandard):
 
 
 class TestSpectralStandard:
-    def test_init_importerror(self):
-        with mock.patch.dict(sys.modules, {'synphot': None}):
-            with pytest.raises(ImportError):
-                s = Star(None)
-
     def test_from_array(self):
         w = u.Quantity(np.linspace(0.3, 1.0), 'um')
         f = u.Quantity(np.ones(len(w)), 'W/(m2 um)')

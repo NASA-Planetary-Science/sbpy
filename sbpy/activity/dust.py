@@ -37,7 +37,8 @@ import astropy.units as u
 
 from astropy.utils.exceptions import AstropyWarning
 from .. import bib
-from ..spectroscopy import Sun, BlackbodySource
+from ..calib import Sun
+from ..spectroscopy import BlackbodySource
 from ..data import Ephem
 from ..spectroscopy.sources import SinglePointSpectrumError
 from .core import Aperture, rho_as_length
@@ -398,11 +399,6 @@ class Afrho(DustComaQuantity):
         Phi : callable, optional
             Phase function, see :func:`~Afrho.to_phase`.
 
-        S : `~astropy.units.Quantity`, optional
-            Solar flux density at 1 au and ``wave``.  If ``None``,
-            then the default solar spectrum will be used via
-            `~sbpy.spectroscopy.sun.default_sun`.
-
         Returns
         -------
         fluxd : `~astropy.units.Quantity`
@@ -442,6 +438,9 @@ class Afrho(DustComaQuantity):
                       Phi=None, S=None):
         bib.register('activity.dust.Afrho', {
                      'model': '1984AJ.....89..579A'})
+
+        # get solar flux density
+        sun = Sun.from_default()
 
         # check solar flux density
         if S is None:

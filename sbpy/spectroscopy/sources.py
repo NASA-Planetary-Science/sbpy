@@ -23,11 +23,16 @@ except ImportError:
     synphot = None
 
 from ..exceptions import SbpyException
-from ..bib import register
+from .. import bib
 
 
 class SinglePointSpectrumError(SbpyException):
-    '''Single point provided, but multiple values expected.'''
+    """Single point provided, but multiple values expected."""
+
+
+class UndefinedSourceError(SbpyException):
+    """SpectralStandard may be initialized without a source, but then
+    the functionality will be limited."""
 
 
 class SpectralSource(ABC):
@@ -82,8 +87,11 @@ class SpectralSource(ABC):
             Passed to object initialization.
 
         """
-        spectral_source = cls(None, **kwargs)
-        spectral_source._source = synphot.SourceSpectrum(
+        if synphot is None:
+            raise ImportError(
+                'synphot required for {}.'.format(cls.__name__))
+
+        source = synphot.SourceSpectrum(
             synphot.Empirical1D, points=wave, lookup_table=fluxd,
             meta=meta)
 
@@ -114,7 +122,9 @@ class SpectralSource(ABC):
 
         """
 
-        spectral_source = cls(None, **kwargs)
+        if synphot is None:
+            raise ImportError(
+                'synphot required for {}.'.format(cls.__name__))
 
         if filename.lower().endswith(('.fits', '.fit', '.fz')):
             read_spec = synphot.specio.read_fits_spec
@@ -467,14 +477,14 @@ class SpectralStandard(SpectralSource, ABC):
 
     Parameters
     ----------
-    source : `~synphot.SourceSpectrum`
+    source : `~synphot.SourceSpectrum`, optional
         The source spectrum.
 
     description : string, optional
         A brief description of the source spectrum.
 
     bibcode : string, optional
-        Bibliography code for `sbpy.bib.register`.
+        Bibliography code for citation (see `sbpy.bib.register`).
 
 
     Attributes
@@ -486,15 +496,20 @@ class SpectralStandard(SpectralSource, ABC):
 
     """
 
-    def __init__(self, source, description=None, bibcode=None):
+    def __init__(self, source=None, description=None, bibcode=None):
         self._source = source
         self._description = description
         self._bibcode = bibcode
+        self._bibtask = '.'.join((self.__module__, self.__class__.__name__))
 
     @property
     def source(self):
+        if self._source is None:
+            raise UndefinedSourceError('The source is not defined.')
+
         if self._bibcode is not None:
-            register('spectroscopy', {self._description: self._bibcode})
+            bib.register(self._bibtask, {self._description: self._bibcode})
+
         return self._source
 
     def filt(self, bp, unit='W / (m2 um)', source_fluxd={}, **kwargs):
