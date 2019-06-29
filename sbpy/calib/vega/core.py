@@ -13,8 +13,14 @@ import os
 import astropy.units as u
 from astropy.utils.state import ScienceState
 from astropy.utils.data import get_pkg_data_filename
+from astropy.table import Table
 from ...spectroscopy.sources import SpectralStandard
 from . import sources
+
+try:
+    import synphot
+except ImportError:
+    synphot = None
 
 __doctest_requires__ = {'Vega': 'synphot'}
 
@@ -57,8 +63,24 @@ class Vega(SpectralStandard):
     Create Vega from a file:
     >>> vega = Vega.from_file('filename')        # doctest: +SKIP
 
-    Evaluate Vega at 1 μm:
-    >>> print(vega(1 * u.um))                    # doctest: +SKIP
+    Evaluate Vega at 1 μm (interpolation):
+    >>> print(vega(1 * u.um))                    # doctest: +FLOAT_CMP
+    6.326492514857613e-09 W / (m2 um)
+
+    Observe Vega through as if through a spectrometer:
+    >>> wave = np.linspace(0.4, 0.6) * u.um
+    >>> spec = vega.observe(wave)
+
+    Observe Vega through a filter:
+    >>> V = sbpy.util.get_bandpass('Johnson V')
+    >>> fluxd = vega.observe(V)
+
+    User provided calibration:
+    >>> from sbpy.calib import vega_fluxd
+    >>> vega = Vega(None)
+    >>> with vega_fluxd.set({'V': 3674 * u.Jy}):
+    >>>     print(vega.observe('V'))
+    3674.0 Jy
 
     """
 
@@ -100,14 +122,21 @@ class Vega(SpectralStandard):
 
     @classmethod
     def from_default(cls):
-        """Return the `sbpy` default Vega spectrum."""
-        from ...calib import vega_spectrum
-        return vega_spectrum.get()
+        """``Vega`` object with the `sbpy` default Vega spectrum.
+
+        The spectrum will be ``None`` if `synphot` is not available.
+
+        """
+        from .. import vega_spectrum
+        if synphot:
+            vega = vega_spectrum.get()
+        else:
+            vega = cls(None)
+        return vega
 
     @staticmethod
     def show_builtin():
         """List built-in Vega spectra."""
-        from astropy.table import Table
         rows = []
         for name in sources.available:
             source = getattr(sources, name)

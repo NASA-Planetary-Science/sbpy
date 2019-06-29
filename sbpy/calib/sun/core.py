@@ -12,8 +12,14 @@ __all__ = [
 import os
 from astropy.utils.state import ScienceState
 from astropy.utils.data import get_pkg_data_filename
+from astropy.table import Table
 from ...spectroscopy.sources import SpectralStandard
 from . import sources
+
+try:
+    import synphot
+except ImportError:
+    synphot = None
 
 __doctest_requires__ = {'Sun': 'synphot'}
 
@@ -152,14 +158,21 @@ class Sun(SpectralStandard):
 
     @classmethod
     def from_default(cls):
-        """Return the `sbpy` default solar spectrum."""
-        from ...calib import solar_spectrum
-        return solar_spectrum.get()
+        """``Sun`` object with the `sbpy` default solar spectrum.
+
+        The spectrum will be ``None`` if `synphot` is not available.
+
+        """
+        from .. import solar_spectrum
+        if synphot:
+            sun = solar_spectrum.get()
+        else:
+            sun = cls(None)
+        return sun
 
     @staticmethod
     def show_builtin():
         """List built-in solar spectra."""
-        from astropy.table import Table
         rows = []
         for name in sources.available:
             source = getattr(sources, name)
