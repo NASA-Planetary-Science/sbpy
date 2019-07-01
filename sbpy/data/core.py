@@ -79,7 +79,10 @@ class DataClass():
         elif isinstance(val, u.Quantity):
             return val.to(unit)
         else:
-            return val * u.Unit(unit)
+            if unit is not None:
+                return val * u.Unit(unit)
+            else:
+                return val
 
     @staticmethod
     def _unit_convert_strip(val, unit):
@@ -187,6 +190,19 @@ class DataClass():
         >>> orb.meta['targetname']
         'some asteroid'
         """
+
+        for key, val in data.items():
+            if isinstance(val, (str, bytes)):
+                data[key] = [val]
+            else:
+                try:
+                    val[0]
+                except TypeError:
+                    if isinstance(val, u.Quantity):
+                        data[key] = [val.value]*val.unit
+                    else:
+                        data[key] = [val]
+
         self = cls()
         self._table = QTable(data, meta=meta, **kwargs)
         return self
@@ -295,7 +311,7 @@ class DataClass():
 
         if units is not None:
             if all([isinstance(col, u.Quantity) for col in columns]):
-                # if columns has units, transform to `units`
+                # if all columns have units, transform to `units`
                 columns = [val.to(unit) for val, unit in
                            list(zip(columns, units))]
             else:
@@ -402,12 +418,13 @@ class DataClass():
                 else:
                     units.append(None)
 
-        # build unit-less array of columns from rows
-        columns = array([[cls._unit_convert_strip(vj, units[j])
+        # build unit-less list of columns from rows
+        stripped_rows = [[cls._unit_convert_strip(vj, units[j])
                           for j, vj in enumerate(vi)]
-                         for vi in rows]).transpose()
+                         for vi in rows]
+        stripped_cols = list(map(list, zip(*stripped_rows)))
 
-        return cls.from_columns(columns=columns,
+        return cls.from_columns(columns=stripped_cols,
                                 units=units,
                                 names=names,
                                 meta=meta,
@@ -717,7 +734,8 @@ class DataClass():
         ...                              names=('a', 'b', 'c'))
         >>> dat.add_rows({'a': 5*u.m, 'b': 8*u.m/u.s, 'c': 'e'})
         4
-        >>> print(dat.table)
+        >>> dat.table
+        <QTable length=4>
          a    b    c
          m  m / s
         --- ----- ---
@@ -805,7 +823,8 @@ class DataClass():
         ...                              names=('a', 'b', 'c'))
         >>> dat.add_columns([10, 20, 30]*u.kg, name='d')
         4
-        >>> print(dat.table)
+        >>> dat.table
+        <QTable length=3>
          a    b    c   d
          m  m / s      kg
         --- ----- --- ----
