@@ -6,7 +6,8 @@ __all__ = [
     'solar_fluxd',
     'vega_fluxd',
     'Sun',
-    'Vega'
+    'Vega',
+    'UndefinedSourceError'
 ]
 
 import os
@@ -96,18 +97,17 @@ class SpectralStandard(SpectralSource, ABC):
 
         try:
             parameters = getattr(cls._sources, name).copy()
-
-            if not _is_url(parameters['filename']):
-                # find in the module's location
-                parameters['filename'] = get_pkg_data_filename(
-                    os.path.join('data', parameters['filename']))
-
-            return cls.from_file(**parameters)
         except AttributeError:
             msg = 'Unknown spectrum "{}".  Valid spectra:\n'.format(
-                name) + cls.show_builtin()
+                name) + cls.show_builtin(print=False)
+            raise UndefinedSourceError(msg)
 
-            raise ValueError(msg)
+        if not _is_url(parameters['filename']):
+            # find in the module's location
+            parameters['filename'] = get_pkg_data_filename(
+                os.path.join('data', parameters['filename']))
+
+        return cls.from_file(**parameters)
 
     @classmethod
     def from_default(cls):
@@ -122,15 +122,22 @@ class SpectralStandard(SpectralSource, ABC):
             standard = cls(None)
         return standard
 
-    @staticmethod
-    def show_builtin():
+    @classmethod
+    def show_builtin(cls, print=True):
         """List built-in spectra."""
+        from builtins import print as print_func
         rows = []
         for name in cls._sources.available:
             source = getattr(cls._sources, name)
             rows.append((name, source['description']))
-        Table(rows=rows, names=('name', 'description')).pprint(
+        tab = Table(rows=rows, names=('name', 'description')).pformat(
             max_lines=-1, max_width=-1)
+        tab = '\n'.join(tab)
+
+        if print:
+            print_func(tab)
+        else:
+            return tab
 
     @property
     def source(self):

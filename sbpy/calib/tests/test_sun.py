@@ -30,7 +30,7 @@ class TestSun:
         assert sun.description == solar_sources.E490_2014LR['description']
 
     def test_from_builtin_unknown(self):
-        with pytest.raises(ValueError):
+        with pytest.raises(UndefinedSourceError):
             Sun.from_builtin('not a solar spectrum')
 
     def test_from_default(self):
@@ -84,9 +84,8 @@ class TestSun:
         """
         sun = Sun.from_builtin('E490_2014')
         V = get_bandpass('johnson v')
-        fluxd = sun.observe(V, unit='erg/(s cm2 AA)')
+        weff, fluxd = sun.observe_bandpass(V, unit='erg/(s cm2 AA)')
         assert np.isclose(weff.value, 5502, rtol=0.001)
-        assert np.isclose(weff.value, 5498, rtol=0.001)
         assert np.isclose(fluxd.value, 183.94, rtol=0.0003)
 
     def test_filt_vegamag(self):
