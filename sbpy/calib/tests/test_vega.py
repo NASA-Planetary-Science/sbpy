@@ -1,7 +1,9 @@
+import sys
 import pytest
 import numpy as np
 import astropy.units as u
 from astropy.tests.helper import remote_data
+from .. import core
 from .. import *
 
 try:
@@ -19,6 +21,12 @@ class TestVega:
 
         vega = Vega.from_array([1, 2] * u.um, [1, 2] * u.Jy)
         assert repr(vega) == '<Vega>'
+
+    def test_source_error(self, monkeypatch):
+        monkeypatch.setattr(core, 'synphot', None)
+        vega = Vega.from_default()
+        with pytest.raises(UndefinedSourceError):
+            vega.source
 
     def test_from_builtin(self):
         vega = Vega.from_builtin('Bohlin2014')
@@ -56,3 +64,16 @@ class TestVega:
             vega = Vega(None)
             fluxd = vega.observe('V', unit='Jy')
         assert np.isclose(fluxd.value, 3631)
+
+    def test_observe_vega_missing_lambda_pivot(self):
+        with pytest.raises(u.UnitConversionError):
+            with vega_fluxd.set({'filter1': 1 * u.Jy}):
+                vega = Vega()
+                fluxd = vega.observe(['filter1'], unit='W/(m2 um)')
+
+    def test_observe_vega_list(self):
+        with vega_fluxd.set({'filter1': 1 * u.Jy, 'filter2': 2 * u.Jy}):
+            vega = Vega()
+            fluxd = vega.observe(['filter1', 'filter2'], unit='Jy')
+
+        assert np.allclose(fluxd.value, [1, 2])

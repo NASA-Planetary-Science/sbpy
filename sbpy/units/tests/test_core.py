@@ -2,7 +2,6 @@
 
 import os
 import sys
-import mock
 import importlib
 import pytest
 import numpy as np
@@ -95,9 +94,9 @@ def test_spectral_density_vega_bp(filename, fluxd, to, tol):
         assert np.isclose(v.value, to.value, rtol=tol)
 
 
-def test_spectral_density_vega_synphot_import_fail():
-    with mock.patch.dict(sys.modules, {'synphot': None}):
-        assert spectral_density_vega(1 * u.um) == []
+def test_spectral_density_vega_synphot_import_fail(monkeypatch):
+    monkeypatch.setattr(core, 'synphot', None)
+    assert spectral_density_vega(1 * u.um) == []
 
 
 @pytest.mark.parametrize('mag, wfb, f_sun, M_sun, ref', (
