@@ -59,7 +59,7 @@ class DataClass():
     @staticmethod
     def _unit_apply(val, unit):
         """Convenience function that applies a unit to a value, or converts
-        a `~astropy.units.Quantity` to this units if possible.
+        a `~astropy.units.Quantity` to this unit if possible.
 
         Parameters
         ----------
@@ -113,8 +113,8 @@ class DataClass():
             Data that will be ingested in `~sbpy.data.DataClass`
             object. Each item in the dictionary will form a column in
             the data table. The item key will be used as column name,
-            the item value, which must be a list-like
-            `~astropy.units.Quantity`, will be used as data. All
+            the item value, which must be list-like or a
+            `~astropy.units.Quantity` vector, will be used as data. All
             columns, i.e., all item values, must have the same length.
         meta : dictionary, optional
             Meta data that will be stored in the data table. Default:
@@ -131,23 +131,50 @@ class DataClass():
         Examples
         --------
         The following example creates a single-row `~sbpy.data.Orbit`
-        object.
+        object (the other `~DataClass` objects work the exact same way).
 
         >>> import astropy.units as u
         >>> from sbpy.data import Orbit
         >>> orb = Orbit.from_dict({'a': [2.7674]*u.au,
         ...                        'e': [0.0756],
         ...                        'i': [10.59321]*u.deg})
+        >>> orb
+        <QTable length=1>
+           a       e       i
+           AU             deg
+        float64 float64 float64
+        ------- ------- --------
+         2.7674  0.0756 10.59321
+
+        Note how the values of the dictionaries are defined as lists
+        although only single values are provided; if a unit is
+        provided for either element in the dictionary, the
+        corresponding `~astropy.units.Unit` has to be multiplied to
+        this list, forming a `~astropy.units.Quantity` vector. A double-row
+        `~sbpy.data.Orbit` example would look like this:
+
+        >>> orb = Orbit.from_dict({'a': [2.7674, 3.123]*u.au,
+        ...                        'e': [0.0756, 0.021],
+        ...                        'i': [10.59321, 3.21]*u.deg})
+        >>> orb
+        <QTable length=2>
+           a       e       i
+           AU             deg
+        float64 float64 float64
+        ------- ------- --------
+         2.7674  0.0756 10.59321
+          3.123   0.021     3.21
 
         Since dictionaries have no specific order, the ordering of the
         column in the example above is not defined. If your data table
-        requires a specific order, use ``OrderedDict``:
+        requires a specific order, use ``OrderedDict``. This example
+        also shows the use of meta data.
 
         >>> from collections import OrderedDict
         >>> orb = Orbit.from_dict(OrderedDict([('a', [2.7674, 3.123]*u.au),
         ...                                    ('e', [0.0756, 0.021]),
         ...                                    ('i', [10.59, 3.21]*u.deg)]))
-        >>> print(orb)
+        >>> orb
         <QTable length=2>
            a       e       i
            AU             deg
@@ -155,6 +182,10 @@ class DataClass():
         ------- ------- -------
          2.7674  0.0756   10.59
           3.123   0.021    3.21
+        >>> orb.meta
+        {'targetname': 'some asteroid'}
+        >>> orb.meta['targetname']
+        'some asteroid'
         """
         self = cls()
         self._table = QTable(data, meta=meta, **kwargs)
@@ -164,8 +195,8 @@ class DataClass():
     def from_columns(cls, columns, names, units=None, meta={}, **kwargs):
         """Create `~sbpy.data.DataClass` object from a sequence. If that
         sequence is one-dimensional, it is interpreted as
-        a single column; if it is two-dimensional, it is interpreted as a
-        sequence of columns.
+        a single column; if the sequence is two-dimensional, it is
+        interpreted as a sequence of columns.
 
         Parameters
         ----------
@@ -179,8 +210,11 @@ class DataClass():
         units : str or list-like, optional
             Unit labels (as provided by `~astropy.units.Unit`) in which
             the data provided in ``columns`` will be stored in the underlying
-            table. If None is provided, the units as provided by ``columns``
-            are used. Default: None
+            table. If None, the units as provided by ``columns``
+            are used. If the units provided in ``units`` differ from those
+            used in ``colums``, ``columns`` will be transformed to the units
+            provided in ``units``. Must have the same length as ``names``
+            and the individual data columns in ``columns``. Default: None
         meta : dictionary, optional
             Meta data that will be stored in the data table. Default:
             empty dictionary
@@ -232,7 +266,7 @@ class DataClass():
             4.0    10.0
 
         If units are provided in ``columns`` and ``units``, those units in
-        ``columns`` will be transformed into those in ``units`` on a
+        ``columns`` will be transformed into those units in ``units`` on a
         per-column basis.
 
         >>> eph = Ephem.from_columns([[1, 2, 3, 4]*u.au,
@@ -252,11 +286,6 @@ class DataClass():
         """
 
         if isinstance(columns, (list, ndarray, tuple, u.Quantity)):
-            # reorganize columns, if necessary
-            try:
-                array(columns).shape[1]
-            except IndexError:
-                columns = [columns]
             # reorganize names, if necessary
             if isinstance(names, str):
                 names = [names]
@@ -283,13 +312,13 @@ class DataClass():
     def from_rows(cls, rows, names, units=None, meta={}, **kwargs):
         """Create `~sbpy.data.DataClass` object from a sequence. If that
         sequence is one-dimensional, it is interpreted as
-        a single row; if it is two-dimensional, it is interpreted as a
-        sequence of rows.
+        a single row; if the sequence is two-dimensional, it is
+        interpreted as a sequence of rows.
 
         Parameters
         ----------
         rows : list, `~numpy.ndarray`, or tuple
-            Data that will be ingested in `DataClass` object. A
+            Data that will be ingested in `~DataClass` object. A
             one-dimensional sequence is interpreted as a single row.
             A two-dimensional sequence is interpreted as a sequence of
             rows, each of which must have the same length.
@@ -299,8 +328,11 @@ class DataClass():
         units : str or list-like, optional
             Unit labels (as provided by `~astropy.units.Unit`) in which
             the data provided in ``rows`` will be stored in the underlying
-            table. If None is provided, the units as provided by ``rows``
-            are used. Default: None
+            table. If None, the units as provided by ``rows``
+            are used. If the units provided in ``units`` differ from those
+            used in ``rows``, ``rows`` will be transformed to the units
+            provided in ``units``. Must have the same length as ``names``
+            and the individual data rows in ``rows``. Default: None
         meta : dictionary, optional
             Meta data that will be stored in the data table. Default:
             empty dictionary
@@ -389,7 +421,8 @@ class DataClass():
         Parameters
         ----------
         table : `~astropy.table.Table` object
-             Data that will be ingested in `DataClass` object.
+             Data that will be ingested in `DataClass` object. Must be a
+             `~astropy.table.Table` or `~astropy.table.QTable` object.
         meta : dictionary, optional
             Meta data that will be stored in the data table. If ``table``
             already holds meta data, ``meta`` will be added. Default:
@@ -412,7 +445,8 @@ class DataClass():
         ...               [4,5,6]*u.m/u.s,],
         ...              names=['mass', 'velocity'])
         >>> dat = DataClass.from_table(tab)
-        >>> print(dat.table)
+        >>> dat.table
+        <QTable length=3>
         mass velocity
          kg   m / s
         ---- --------
@@ -420,7 +454,6 @@ class DataClass():
          2.0      5.0
          3.0      6.0
         """
-
         self = cls()
         self._table = QTable(table, meta={**table.meta, **meta}, **kwargs)
 
@@ -452,8 +485,9 @@ class DataClass():
         `~astropy.table.Table.read`. Please refer to the documentation of
         that function for additional information on optional parameters
         and data formats that are available. Furthermore, note that this
-        function is not able to identify units. If you want to work with
-        `~astropy.units` you have to assign them manually to the object
+        function may not able to identify units, depending on the
+        file format used. If you want to work with
+        `~astropy.units` you may have to assign them manually to the object
         columns.
 
         Examples
@@ -497,8 +531,8 @@ class DataClass():
         `~astropy.table.Table.write`. Please refer to the
         documentation of that function for additional information on
         optional parameters and data formats that are
-        available. Furthermore, note that this function is not able to
-        write unit information to the file.
+        available. Furthermore, note that this function may not be able to
+        write unit information to the file, depending on the file format.
 
         Examples
         --------
@@ -508,8 +542,7 @@ class DataClass():
         ...                             [4, 5, 6]*u.km,
         ...                             ['a', 'b', 'c']],
         ...                            names=('a', 'b', 'c'))
-        >>> dat.to_file('test.txt')
-
+        >>> dat.to_file('test.txt')  # doctest: +SKIP
         """
 
         self._table.write(filename, format=format, **kwargs)
@@ -517,20 +550,6 @@ class DataClass():
     def __len__(self):
         """Get number of data elements in _table"""
         return len(self._table)
-
-    def __getattr__(self, field):
-        """Get attribute from ``self._table` (columns, rows); checks
-        for and may use alternative field names."""
-
-        if field in dir(self):
-            return self.field
-        else:
-            try:
-                field = self._translate_columns(field)[0]
-                return self._table[field]
-            except (KeyError, IndexError, AttributeError):
-                raise AttributeError('Attribute {:s} not available.'.format(
-                    field))
 
     def __repr__(self):
         """Return representation of the underlying data table
@@ -665,26 +684,18 @@ class DataClass():
         return self._table.meta
 
     def add_rows(self, rows, join_type='inner'):
-        """Append additional rows to the existing data table. An individual
-        row can be provided in list, tuple, `~numpy.ndarray`, or
-        dictionary form. Multiple rows can be provided in the form of
-        a list, tuple, or `~numpy.ndarray` of individual
-        rows. Multiple rows can also be provided in the form of a
-        `~astropy.table.QTable` or another `~sbpy.data.DataClass`
-        object. Parameter ``join_type`` defines which columns appear
-        in the final output table: ``inner`` only keeps those columns
-        that appear in both the original table and the rows to be
-        added; ``outer`` will keep all columns and populate some with
-        placeholders, if necessary. In case of a list, the list
-        elements must be in the same order as the table columns. In
-        either case, matching `~astropy.units` must be provided in
-        ``rows`` if used in the data table.
+        """Append additional rows to the existing data table.
 
         Parameters
         ----------
-        rows : list, tuple, `~numpy.ndarray`, dict, or `~collections.OrderedDict`
-            Data to be appended to the table; required to have the same
-            length as the existing table, as well as the same units.
+        rows : list-like, dict-like, `~DataClass`, or `~astropy.table.QTable`
+            Data to be appended to the table. ``rows`` should either be
+            list-like (as described in `~DataClass.from_rows`), dict-like
+            (as described in `~DataClass.from_dict`), or already in the
+            form of a `~DataClass` object or `~astropy.table.QTable`. All
+            rows provided are required
+            to have the same length as the existing table, as well as
+            compatible units.
         join_type : str, optional
             Defines which columns are kept in the output table: ``inner``
             only keeps those columns that appear in both the original
@@ -694,7 +705,7 @@ class DataClass():
 
         Returns
         -------
-        int, the total number of rows in the data table
+        total number of rows in the data table
 
         Examples
         --------
@@ -721,48 +732,68 @@ class DataClass():
         12
 
         """
-        if isinstance(rows, QTable):
-            self._table = vstack([self._table, rows], join_type=join_type)
-        if isinstance(rows, DataClass):
-            self._table = vstack([self._table, rows.table],
-                                 join_type=join_type)
+        # if isinstance(rows, QTable):
+        #     self._table = vstack([self._table, rows], join_type=join_type)
+        # if isinstance(rows, DataClass):
+        #     self._table = vstack([self._table, rows.table],
+        #                          join_type=join_type)
+        # if isinstance(rows, (dict, OrderedDict)):
+        #     # reorder dict-likes
+        #     try:
+        #         newrows = [rows[colname] for colname in self._table.columns]
+        #     except KeyError as e:
+        #         raise ValueError('data for column {0} missing in row {1}'.
+        #                          format(e, rows))
+        #     self.add_rows(newrows)
+        # if isinstance(rows, (list, ndarray, tuple)):
+        #     if (not isinstance(rows[0], (u.quantity.Quantity, float)) and
+        #             isinstance(rows[0], (dict, OrderedDict,
+        #                                  list, ndarray, tuple))):
+        #         for subrow in rows:
+        #             self.add_rows(subrow)
+        #     else:
+        #         self._table.add_row(rows)
+
+        if isinstance(rows, (QTable, DataClass)):
+            newdata = rows
         if isinstance(rows, (dict, OrderedDict)):
-            try:
-                newrow = [rows[colname] for colname in self._table.columns]
-            except KeyError as e:
-                raise ValueError('data for column {0} missing in row {1}'.
-                                 format(e, rows))
-            self.add_rows(newrow)
+            newdata = DataClass.from_dict(rows)
         if isinstance(rows, (list, ndarray, tuple)):
-            if (not isinstance(rows[0], (u.quantity.Quantity, float)) and
-                    isinstance(rows[0], (dict, OrderedDict,
-                                         list, ndarray, tuple))):
-                for subrow in rows:
-                    self.add_rows(subrow)
-            else:
-                self._table.add_row(rows)
+            newdata = DataClass.from_rows(rows)
+
+        self._table = vstack([self._table, newdata], join_type=join_type)
+
         return len(self._table)
 
-    def add_column(self, data, name, **kwargs):
-        """Append a single column to the current data table. The lenght of
-        the input list, `~numpy.ndarray`, or tuple must match the current
-        number of rows in the data table.
+    def add_columns(self, columns, name, join_type='inner', **kwargs):
+        """Append additional columns to the current data table.
 
         Parameters
         ----------
-        data : list, `~numpy.ndarray`, or tuple
-            Data to be filled into the table; required to have the same
-            length as the existing table's number rows.
-        name : str
-            Name of the new column; must be different from already existing
+        columns : list-like, dict-like, `~DataClass`, or `~astropy.table.QTable`
+            Data to be appended to the table. ``columns`` should either be
+            list-like (as described in `~DataClass.from_columns`), dict-like
+            (as described in `~DataClass.from_dict`), or already in the
+            form of a `~DataClass` object or `~astropy.table.QTable`. All
+            columns provided are required
+            to have the same length as the existing table, as well as
+            compatible units.
+        names : str or list-like
+            Names of the new columns; must be different from already existing
             column names.
+        join_type : str, optional
+            Defines which rows are kept in the output table: ``inner``
+            only keeps those rows that appear in both the original
+            table and the columns to be added; ``outer`` will keep all
+            rows and populate them with placeholders, if necessary.
+            Default: ``inner``
         kwargs : additional parameters
             Additional optional parameters will be passed on to
             `~astropy.table.Table.add_column`.
 
         Returns
         -------
-        int, the total number of columns in the data table
+        total number of columns in the data table
 
         Examples
         --------
@@ -772,7 +803,7 @@ class DataClass():
         ...                               [4, 5, 6]*u.m/u.s,
         ...                               ['a', 'b', 'c']],
         ...                              names=('a', 'b', 'c'))
-        >>> dat.add_column([10, 20, 30]*u.kg, name='d')
+        >>> dat.add_columns([10, 20, 30]*u.kg, name='d')
         4
         >>> print(dat.table)
          a    b    c   d
@@ -783,7 +814,18 @@ class DataClass():
         3.0   6.0   c 30.0
         """
 
-        self._table.add_column(Column(data, name=name), **kwargs)
+        # self._table.add_column(Column(data, name=name), **kwargs)
+        # return len(self.column_names)
+
+        if isinstance(columns, (QTable, DataClass)):
+            newdata = columns
+        if isinstance(columns, (dict, OrderedDict)):
+            newdata = DataClass.from_dict(columns)
+        if isinstance(columns, (list, ndarray, tuple)):
+            newdata = DataClass.from_columns(columns)
+
+        self._table = hstack([self._table, newdata], join_type=join_type)
+
         return len(self.column_names)
 
     def apply(self, data, name, unit=None):
