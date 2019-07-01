@@ -12,27 +12,28 @@ __all__ = [
     'BlackbodySource'
 ]
 
-from abc import ABC
 import numpy as np
+from abc import ABC
 import astropy.units as u
 from astropy.utils.data import download_file, _is_url
 
 try:
     import synphot
+    from synphot import SpectralElement
 except ImportError:
     synphot = None
+
+    class SpectralElement:
+        pass
 
 from ..exceptions import SbpyException
 from .. import bib
 
+__doctest_requires__ = {'Sun': 'synphot'}
+
 
 class SinglePointSpectrumError(SbpyException):
     """Single point provided, but multiple values expected."""
-
-
-class UndefinedSourceError(SbpyException):
-    """SpectralStandard may be initialized without a source, but then
-    the functionality will be limited."""
 
 
 class SpectralSource(ABC):
@@ -213,6 +214,7 @@ class SpectralSource(ABC):
     def observe(self, wfb, unit=None, **kwargs):
         """Observe source as through filters or spectrometer.
 
+        Calls `observe_bandpass` or `observe_spectrum` as appropriate.
 
         Parameters
         ----------
@@ -221,7 +223,7 @@ class SpectralSource(ABC):
             list of ``SpectralElement``s.
 
         unit : string, `~astropy.units.Unit`, optional
-            Spectral units of the output (flux density).  If ``None``,
+            Spectral flux density units for the output.  If ``None``,
             the default depends on ``wfb``: W/(m2 μm) for wavelengths
             or bandpasses, Jy for frequencies.
 
@@ -244,83 +246,36 @@ class SpectralSource(ABC):
 
         Notes
         -----
-        Method adapted from AstroBetter post by Jessica Lu:
+        Method for spectra adapted from AstroBetter post by Jessica Lu:
         http://www.astrobetter.com/blog/2013/08/12/python-tip-re-sampling-spectra-with-pysynphot/
 
         """
 
-        if synphot is None:
-            raise ImportError(
-                'synphot required for {}.observe.'.format(self.__name__))
-
-        from .. import units as sbu  # avoid circular dependency
-
-        # promote single bandpasses to a list, but preserve number of
-        # dimensions
-        if isinstance(wfb, (synphot.SpectralElement, str)):
-            ndim = 0
-            wfb = [wfb]
+        if isinstance(wfb, (list, tuple, SpectralElement)):
+            lambda_eff, fluxd = self.observe_bandpass(
+                wfb, unit=unit, **kwargs)
+        elif isinstance(wfb, u.Quantity):
+            fluxd = self.observe_spectrum(wfb, **kwargs)
         else:
-            ndim = np.ndim(wfb)
-
-        if isinstance(wfb, (tuple, list)):
-            if unit is None:
-                unit = u.Unit('W/(m2 um)')
-            else:
-                unit = u.Unit(unit)
-
-            fluxd = np.ones(len(wfb)) * unit
-            for i in range(len(wfb)):
-                fluxd[i] = self.filt(wfb[i], unit=unit, **kwargs)[2]
-        else:
-            if np.size(wfb) == 1:
-                raise SinglePointSpectrumError(
-                    'Multiple wavelengths or frequencies required for '
-                    'observe.  Consider interpolation with {}() instead.'
-                    .format(self.__class__.__name__))
-
-            if unit is None:
-                if wfb.unit.is_equivalent('m'):
-                    unit = u.Unit('W/(m2 um)')
-                else:
-                    unit = u.Jy
-            else:
-                unit = u.Unit(unit)
-
-            specele = synphot.SpectralElement(synphot.ConstFlux1D(1))
-
-            # Use force='taper' to prevent PartialOverlap execption.
-            # Specele is defined over all wavelengths, but most
-            # spectral standards are not.
-            kwargs['force'] = kwargs.get('force', 'taper')
-
-            obs = synphot.Observation(
-                self.source, specele, binset=wfb, **kwargs)
-
-            if unit.is_equivalent(sbu.VEGAmag):
-                fluxd = obs.sample_binned(flux_unit='W/(m2 um)').to(
-                    unit, sbu.spectral_density_vega(wfb))
-            else:
-                fluxd = obs.sample_binned(flux_unit=unit)
-
-        if np.ndim(fluxd) != ndim:
-            # likely need a squeeze
-            fluxd = fluxd.squeeze()
+            raise TypeError('Unsupported type for `wfb` type: {}'
+                            .format(type(wfd)))
 
         return fluxd
 
-    def filt(self, bp, unit='W / (m2 um)', **kwargs):
-        """Observe the source through a single filter.
+    def observe_bandpass(self, bp, unit=None, **kwargs):
+        """Observe through a bandpass.
+
+        Requires `~synphot`.
+
 
         Parameters
         ----------
-        bp: string or `~synphot.SpectralElement`
-            The name of a filter, or a transmission spectrum as a
-            `~synphot.SpectralElement`.  See Notes for built-in filter
-            names.
+        bp : `~synphot.SpectralElement`, list, or tuple
+            Bandpass.
 
-        unit: string, `~astropy.units.Unit`, optional
-            Spectral flux density units of the output.
+        unit : string, `~astropy.units.Unit`, optional
+            Spectral flux density units for the output.  The default
+            is W/(m2 μm).
 
         **kwargs
             Additional keyword arguments for
@@ -329,84 +284,132 @@ class SpectralSource(ABC):
 
         Returns
         -------
-        lambda_eff: `~astropy.units.Quantity`
-            Effective wavelength.
+        lambda_eff : `~astropy.units.Quantity`
+            Effective wavelength(s) of the observation(s).
 
-        lambda_pivot: `~astropy.units.Quantity`
-            Pivot wavelength.
+        fluxd : `~astropy.units.Quantity`
+            The spectrum rebinned.
 
-        fluxd: `~astropy.units.Quantity`
-            Spectral flux density.
+        """
+
+        from .. import units as sbu  # avoid circular dependency
+
+        # promote single bandpasses to a list, but preserve number of
+        # dimensions
+        if isinstance(bp, (SpectralElement, str)):
+            ndim = 0
+            bp = [bp]
+        else:
+            ndim = np.ndim(bp)
+
+        if unit is None:
+            unit = u.Unit('W/(m2 um)')
+        else:
+            unit = u.Unit(unit)
+
+        fluxd = np.ones(len(bp)) * unit
+        for i in range(len(bp)):
+            obs = synphot.Observation(self.source, bp[i], **kwargs)
+            lambda_eff = obs.effective_wavelength()
+            lambda_pivot = obs.bandpass.pivot()
+            _fluxd = obs.effstim('W/(m2 um)')
+
+            if unit.is_equivalent(sbu.VEGAmag):
+                fluxd[i] = _fluxd.to(unit, sbu.spectral_density_vega(bp[i]))
+            else:
+                fluxd[i] = _fluxd.to(unit, u.spectral_density(lambda_pivot))
+
+        if np.ndim(fluxd) != ndim:
+            fluxd = fluxd.squeeze()
+
+        return lambda_eff, fluxd
+
+    def observe_spectrum(self, wave_or_freq, unit=None, **kwargs):
+        """Observe source as through a spectrometer.
+
+        Parameters
+        ----------
+        wave_or_freq : `~astropy.units.Quantity`
+            Wavelengths or frequencies of the spectrum.  Spectral bins
+            will be centered at these values.  The length must be
+            larger than 1.
+
+        unit : string, `~astropy.units.Unit`, optional
+            Spectral flux density units for the output.  If ``None``,
+            the default is W/(m2 μm) for wavelengths, Jy for
+            frequencies.
+
+        **kwargs
+            Additional keyword arguments for
+            `~synphot.observation.Observation`, e.g., ``force``.
+
+
+        Returns
+        -------
+        fluxd : `~astropy.units.Quantity`
+            The spectrum rebinned.
+
+
+        Raises
+        ------
+        SinglePointSpectrumError - If requested wavelengths or
+            frequencies has only one value.
 
 
         Notes
         -----
-
-        Filter reference data is from STScI's Calibration Reference
-        Data System.
-
-        * ``'bessel_j'`` (Bessel * J*)
-        * ``'bessel_h'`` (Bessel * H*)
-        * ``'bessel_k'`` (Bessel * K*)
-        * ``'cousins_r'`` (Cousins * R*)
-        * ``'cousins_i'`` (Cousins * I*)
-        * ``'johnson_u'`` (Johnson * U*)
-        * ``'johnson_b'`` (Johnson * B*)
-        * ``'johnson_v'`` (Johnson * V*)
-        * ``'johnson_r'`` (Johnson * R*)
-        * ``'johnson_i'`` (Johnson * I*)
-        * ``'johnson_j'`` (Johnson * J*)
-        * ``'johnson_k'`` (Johnson * K*)
+        Method for spectra adapted from AstroBetter post by Jessica Lu:
+        http://www.astrobetter.com/blog/2013/08/12/python-tip-re-sampling-spectra-with-pysynphot/
 
         """
 
-        if synphot is None:
-            raise ImportError(
-                'synphot required for {}.filt.'.format(cls.__name__))
-
         from .. import units as sbu  # avoid circular dependency
 
-        if isinstance(bp, str):
-            bp = synphot.SpectralElement.from_filter(bp)
+        if np.size(wave_or_freq) == 1:
+            raise SinglePointSpectrumError(
+                'Multiple wavelengths or frequencies required for '
+                'observe.  Consider interpolation with {}() instead.'
+                .format(self.__class__.__name__))
 
-        obs = synphot.Observation(self.source, bp, **kwargs)
-        lambda_eff = obs.effective_wavelength()
-        lambda_pivot = obs.bandpass.pivot()
-        _unit = u.Unit(unit)
-
-        if _unit.is_equivalent(sbu.VEGAmag):
-            fluxd = obs.effstim('W/(m2 um)').to(
-                _unit, sbu.spectral_density_vega(bp))
+        if unit is None:
+            if wave_or_freq.unit.is_equivalent('m'):
+                unit = u.Unit('W/(m2 um)')
+            else:
+                unit = u.Jy
         else:
-            fluxd = obs.effstim(flux_unit=_unit)
+            unit = u.Unit(unit)
 
-        return lambda_eff, lambda_pivot, fluxd
+        specele = synphot.SpectralElement(synphot.ConstFlux1D(1))
 
-    def color_index(self, wfb, unit, equivalencies=[], equiv_func=None):
+        # Use force='taper' to prevent PartialOverlap execption.
+        # Specele is defined over all wavelengths, but most
+        # spectral standards are not.
+        kwargs['force'] = kwargs.get('force', 'taper')
+
+        obs = synphot.Observation(
+            self.source, specele, binset=wave_or_freq, **kwargs)
+
+        if unit.is_equivalent(sbu.VEGAmag):
+            fluxd = obs.sample_binned(flux_unit='W/(m2 um)').to(
+                unit, sbu.spectral_density_vega(wave_or_freq))
+        else:
+            fluxd = obs.sample_binned(flux_unit=unit)
+
+        return fluxd
+
+    def color_index(self, wfb, unit):
         """Color index (magnitudes) and effective wavelengths.
 
 
         Parameters
         ----------
-        wfb : two-element `~astropy.units.Quantity` or tuple
+        wfb : `~astropy.units.Quantity` or tuple of `~synphot.SectralElement`
             Wavelengths, frequencies, or bandpasses of the
-            measurement.  See :func:`~observe`.
+            measurement.
 
         unit : string or `~astropy.units.MagUnit`
             Units for the output, e.g., ``astropy.units.ABmag`` or
             ``sbpy.units.VEGAmag``.
-
-        equivalencies : list, optional
-            List of unit equivalencies for magnitude-flux-density
-            conversion.
-
-        equiv_func : callable, optional
-            A function that takes the effective wavelength of the
-            observation and generates an equivalency list, e.g., use
-            :func:`~sbpy.units.spectral_density_vega` for Vega-based
-            magnitude conversions.
-            :func:`~sbpy.units.spectral_density` is automatically
-            included.
 
 
         Returns
@@ -425,15 +428,10 @@ class SpectralSource(ABC):
         for i in range(2):
             if isinstance(wfb[i], u.Quantity):
                 eff_wave[i] = wfb[i].to(u.um, u.spectral())
-                f = self(eff_wave[i])
+                m[i] = self(eff_wave[i], unit=unit)
             else:
-                eff_wave[i], f = self.filt(wfb[i])
+                eff_wave[i], m[i] = self.observe_bandpass(wfb[i], unit=unit)
 
-            eqv = u.spectral_density(eff_wave[i])
-            if equiv_func is not None:
-                eqv.extend(equiv_func(eff_wave[i]))
-
-            m[i] = f.to(m.unit, equivalencies + eqv)
         ci = m[0] - m[1]
 
         return eff_wave, ci
@@ -469,117 +467,3 @@ class BlackbodySource(SpectralSource):
     @property
     def T(self):
         return self._T
-
-
-class SpectralStandard(SpectralSource, ABC):
-    """Abstract base class for SBPy spectral standards.
-
-
-    Parameters
-    ----------
-    source : `~synphot.SourceSpectrum`, optional
-        The source spectrum.
-
-    description : string, optional
-        A brief description of the source spectrum.
-
-    bibcode : string, optional
-        Bibliography code for citation (see `sbpy.bib.register`).
-
-
-    Attributes
-    ----------
-    wave        - Wavelengths of the source spectrum.
-    fluxd       - Source spectrum.
-    description - Brief description of the source spectrum.
-    meta        - Meta data from `source`, if any.
-
-    """
-
-    def __init__(self, source=None, description=None, bibcode=None):
-        self._source = source
-        self._description = description
-        self._bibcode = bibcode
-        self._bibtask = '.'.join((self.__module__, self.__class__.__name__))
-
-    @property
-    def source(self):
-        if self._source is None:
-            raise UndefinedSourceError('The source is not defined.')
-
-        if self._bibcode is not None:
-            bib.register(self._bibtask, {self._description: self._bibcode})
-
-        return self._source
-
-    def filt(self, bp, unit='W / (m2 um)', source_fluxd={}, **kwargs):
-        """Observe the standard through a single filter.
-
-        Uses the `sbpy` calibration system.  If `bp` has been set in
-        `~sbpy.calib.solar_fluxd`, then those values will be returned.
-        Otherwise, the solar spectrum defined by this object will be
-        filtered with the provided bandpass.
-
-
-        Parameters
-        ----------
-        bp: string or `~synphot.SpectralElement`
-            The name of a filter, or a transmission spectrum as a
-            `~synphot.SpectralElement`.  See
-            `sbpy.spectroscopy.sources.SpectralSource` for built-in
-            filter names.
-
-        unit: string, `~astropy.units.Unit`, optional
-            Spectral flux density units of the output.
-
-        source_fluxd : dict
-            Specific flux densities and wavelengths to use for filter
-            bandpasses specified as strings in `bp`.  If the name of
-            the filter is BP, then the keys would be:
-
-                BP : flux density
-                BP_lambda_eff : effective wavelength
-                BP_lambda_pivot : pivot wavelength
-
-            Multiple bandpasses may be specified in the same
-            dictionary.
-
-        **kwargs
-            Additional keyword arguments for
-            `~synphot.observation.Observation`, e.g., ``force``.
-
-
-        Returns
-        -------
-        lambda_eff: `~astropy.units.Quantity`
-            Effective wavelength.  ``None`` if it cannot be calculated.
-
-        lambda_pivot: `~astropy.units.Quantity`
-            Pivot wavelength.  ``None`` if it cannot be calculated.
-
-        fluxd: `~astropy.units.Quantity`
-            Spectral flux density.
-
-        """
-
-        from .. import units as sbu  # avoid circular dependency
-
-        if bp in source_fluxd:
-            fluxd = source_fluxd[bp]
-            lambda_eff = source_fluxd.get(bp + '_lambda_eff')
-            lambda_pivot = source_fluxd.get(bp + '_lambda_pivot')
-            if lambda_pivot is None:
-                equiv = None
-            else:
-                equiv = u.spectral_density(lambda_pivot)
-            try:
-                fluxd = fluxd.to(unit, equiv)
-            except u.UnitConversionError as e:
-                raise type(e)(
-                    '{}  Is "{}_lambda_pivot" required and'
-                    ' was it provided?'.format(e, bp))
-        else:
-            lambda_eff, lambda_pivot, fluxd = (
-                super().filt(bp, unit=unit, **kwargs))
-
-        return lambda_eff, lambda_pivot, fluxd

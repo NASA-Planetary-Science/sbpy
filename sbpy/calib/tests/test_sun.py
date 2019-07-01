@@ -4,9 +4,8 @@ import pytest
 import numpy as np
 import astropy.units as u
 from astropy.tests.helper import remote_data
-from ....units import JMmag, VEGAmag
-from ....utils import get_bandpass
-from ...core import solar_spectrum, solar_fluxd
+from ...units import JMmag, VEGAmag
+from ...utils import get_bandpass
 from .. import *
 
 try:
@@ -28,7 +27,7 @@ class TestSun:
 
     def test_from_builtin(self):
         sun = Sun.from_builtin('E490_2014LR')
-        assert sun.description == sources.E490_2014LR['description']
+        assert sun.description == solar_sources.E490_2014LR['description']
 
     def test_from_builtin_unknown(self):
         with pytest.raises(ValueError):
@@ -37,7 +36,7 @@ class TestSun:
     def test_from_default(self):
         with solar_spectrum.set('E490_2014LR'):
             sun = Sun.from_default()
-            assert sun.description == sources.E490_2014LR['description']
+            assert sun.description == solar_sources.E490_2014LR['description']
 
     def test_call_single_wavelength(self):
         with solar_spectrum.set('E490_2014'):
@@ -85,7 +84,7 @@ class TestSun:
         """
         sun = Sun.from_builtin('E490_2014')
         V = get_bandpass('johnson v')
-        weff, pivot, fluxd = sun.filt(V, unit='erg/(s cm2 AA)')
+        fluxd = sun.observe(V, unit='erg/(s cm2 AA)')
         assert np.isclose(weff.value, 5502, rtol=0.001)
         assert np.isclose(weff.value, 5498, rtol=0.001)
         assert np.isclose(fluxd.value, 183.94, rtol=0.0003)
@@ -99,7 +98,7 @@ class TestSun:
         """
         sun = Sun.from_builtin('E490_2014')
         V = get_bandpass('johnson v')
-        weff, pivot, fluxd = sun.filt(V, unit=JMmag)
+        fluxd = sun.observe(V, unit=JMmag)
         assert np.isclose(fluxd.value, -26.75, atol=0.006)
 
     def test_filt_abmag(self):
@@ -111,7 +110,7 @@ class TestSun:
         """
         sun = Sun.from_builtin('E490_2014')
         V = get_bandpass('johnson v')
-        weff, pivot, fluxd = sun.filt(V, unit=u.ABmag)
+        fluxd = sun.observe(V, unit=u.ABmag)
         assert np.isclose(fluxd.value, -26.77, atol=0.007)
 
     def test_filt_stmag(self):
@@ -123,13 +122,13 @@ class TestSun:
         """
         sun = Sun.from_builtin('E490_2014')
         V = get_bandpass('johnson v')
-        weff, pivot, fluxd = sun.filt(V, unit=u.STmag)
+        fluxd = sun.observe(V, unit=u.STmag)
         assert np.isclose(fluxd.value, -26.76, atol=0.003)
 
     def test_filt_solar_fluxd(self):
         with solar_fluxd.set({'V': -26.76 * VEGAmag}):
             sun = Sun(None)
-            weff, pivot, fluxd = sun.filt('V', unit=VEGAmag)
+            fluxd = sun.observe('V', unit=VEGAmag)
         assert np.isclose(fluxd.value, -26.76)
 
     def test_meta(self):
@@ -147,12 +146,11 @@ class TestSun:
         """
         sun = Sun.from_builtin('Kurucz1993')
         V = get_bandpass('johnson v')
-        weff, pivot, fluxd = sun.filt(V, unit=u.ABmag)
+        fluxd = sun.observe(V, unit=u.ABmag)
         assert np.isclose(fluxd.value, -26.77, atol=0.005)
 
     def test_show_builtin(self, capsys):
-        from ..sources import available
         Sun.show_builtin()
         captured = capsys.readouterr()
-        for spec in available:
+        for spec in solar_sources.available:
             assert spec in captured.out
