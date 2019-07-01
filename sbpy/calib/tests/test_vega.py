@@ -25,7 +25,7 @@ class TestVega:
         assert vega.description == vega_sources.Bohlin2014['description']
 
     def test_from_builtin_unknown(self):
-        with pytest.raises(ValueError):
+        with pytest.raises(UndefinedSourceError):
             Vega.from_builtin('not a vega spectrum')
 
     def test_from_default(self):
@@ -51,8 +51,8 @@ class TestVega:
         for spec in vega_sources.available:
             assert spec in captured.out
 
-    def test_filt_vega_fluxd(self):
+    def test_observe_vega_fluxd(self):
         with vega_fluxd.set({'V': 3631 * u.Jy}):
             vega = Vega(None)
-            weff, pivot, fluxd = vega.filt('V', unit='Jy')
+            fluxd = vega.observe('V', unit='Jy')
         assert np.isclose(fluxd.value, 3631)

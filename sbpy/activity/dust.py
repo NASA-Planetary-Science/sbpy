@@ -380,7 +380,7 @@ class Afrho(DustComaQuantity):
         >>> from sbpy.calib import solar_fluxd
         >>>
         >>> solar_fluxd.set({'V': 1869 * u.W / u.m**2 / u.um})
-        >>> 
+        >>>
         >>> fluxd = 6.730018324465526e-14 * u.W / u.m**2 / u.um
         >>> aper = 1 * u.arcsec
         >>> eph = dict(rh=1.5 * u.au, delta=1.0 * u.au)
