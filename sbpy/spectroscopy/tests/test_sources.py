@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import sys
-import mock
 import pytest
 import numpy as np
 import astropy.units as u
@@ -23,17 +22,17 @@ class TestSpectralStandard:
         s = Star.from_array(w, f)
         assert np.allclose(f.value, s(w, f.unit).value)
 
-    def test_from_array_importerror(self):
-        with mock.patch.dict(sys.modules, {'synphot': None}):
-            with pytest.raises(ImportError):
-                s = Star.from_array(None, None)
+    def test_from_array_importerror(self, monkeypatch):
+        monkeypatch.setattr(core, 'synphot', None)
+        with pytest.raises(ImportError):
+            s = Star.from_array(None, None)
 
     # from_file tested by Sun and Vega
 
-    def test_from_file_importerror(self):
-        with mock.patch.dict(sys.modules, {'synphot': None}):
-            with pytest.raises(ImportError):
-                s = Star.from_file(None)
+    def test_from_file_importerror(self, monkeypatch):
+        monkeypatch.setattr(core, 'synphot', None)
+        with pytest.raises(ImportError):
+            s = Star.from_file(None)
 
     def test_description(self):
         s = Star(None, description='asdf')

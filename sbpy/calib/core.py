@@ -116,10 +116,10 @@ class SpectralStandard(SpectralSource, ABC):
         The spectrum will be ``None`` if `synphot` is not available.
 
         """
-        if synphot:
-            standard = cls._spectrum_state.get()
-        else:
+        if synphot is None:
             standard = cls(None)
+        else:
+            standard = cls._spectrum_state.get()
         return standard
 
     @classmethod
@@ -180,7 +180,7 @@ class SpectralStandard(SpectralSource, ABC):
         if isinstance(wfb, (list, tuple)):
             fluxd = []
             for i in range(len(wfb)):
-                fluxd.append(self.observe(wfb, unit=unit, **kwargs))
+                fluxd.append(self.observe(wfb[i], unit=unit, **kwargs))
             fluxd = u.Quantity(fluxd)
         elif isinstance(wfb, str):
             lambda_eff, lambda_pivot, fluxd = self.observe_filter(
