@@ -2,11 +2,7 @@
 
 import pytest
 import astropy.units as u
-from ..core import *
-from ..sun import Sun
-from ..sun import sources as sun_sources
-from ..vega import Vega
-from ..vega import sources as vega_sources
+from .. import *
 
 
 class Test_solar_spectrum:
@@ -24,16 +20,16 @@ class Test_solar_spectrum:
             solar_spectrum.validate(1)
 
     @pytest.mark.parametrize('name,source',
-                             (('E490_2014', sun_sources.E490_2014),
-                              ('E490_2014LR', sun_sources.E490_2014LR)))
+                             (('E490_2014', solar_sources.E490_2014),
+                              ('E490_2014LR', solar_sources.E490_2014LR)))
     def test_set_string(self, name, source):
         with solar_spectrum.set(name):
             assert solar_spectrum.get().description == source['description']
 
     @pytest.mark.remote_data
     @pytest.mark.parametrize('name,source',
-                             (('Kurucz1993', sun_sources.Kurucz1993),
-                              ('Castelli1996', sun_sources.Castelli1996)))
+                             (('Kurucz1993', solar_sources.Kurucz1993),
+                              ('Castelli1996', solar_sources.Castelli1996)))
     def test_set_string_remote(self, name, source):
         with solar_spectrum.set(name):
             assert solar_spectrum.get().description == source['description']

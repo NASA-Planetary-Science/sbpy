@@ -27,9 +27,8 @@ __all__ = [
 
 from warnings import warn
 import astropy.units as u
-from astropy.utils.exceptions import AstropyWarning
-from ..calib.vega import Vega
-from ..calib.sun import Sun
+from ..exceptions import SbpyWarning
+from ..calib import Vega, Sun, vega_fluxd
 from ..spectroscopy.sources import SinglePointSpectrumError
 
 
@@ -119,163 +118,124 @@ def spectral_density_vega(wfb):
 
     """
 
+    vega = Vega.from_default()
+
     # warn rather than raise an exception so that code that uses
     # spectral_density_vega when it doesn't need it will still run.
-    try:
-        import synphot
-    except ImportError:
-        warn(AstropyWarning('synphot required for Vega-based magnitude'
-                            ' conversions.'))
-        return []
+    equiv = []
+    for unit in ['W/(m2 Hz)', 'W/(m2 um)']:
+        try:
+            if isinstance(wfb, u.Quantity):
+                fluxd = vega(wfb, unit=unit)
+            else:
+                fluxd = vega.observe(wfb, unit=unit)
 
-    vega = Vega.from_default()
-    if isinstance(wfb, u.Quantity):
-        wav = wfb
-        fnu0 = vega(wfb, unit='W/(m2 Hz)')
-        flam0 = vega(wfb, unit='W/(m2 um)')
-    elif isinstance(wfb, (synphot.SpectralElement, str)):
-        fnu0 = vega.observe(wfb, unit='W/(m2 Hz)')
-        flam0 = vega.observe(wfb, unit='W/(m2 um)')
+            equiv.append([
+                fluxd.unit, VEGA,
+                lambda x: x / fluxd.value,
+                lambda x: x * fluxd.value
+            ])
+        except SynphotRequired:
+            warn(SbpyWarning('synphot is required for Vega-based '
+                             'magnitude conversions with : {}'
+                             .format(wfb)))
 
-    return [
-        (fnu0.unit, VEGA, lambda x: x / fnu0.value,
-         lambda x: x * fnu0.value),
-        (flam0.unit, VEGA, lambda x: x / flam0.value,
-         lambda x: x * flam0.value)
-    ]
+    return equiv
 
 
 @u.quantity_input(cross_section='km2', reflectance='1/sr',
                   f_sun=['W/(m2 um)', 'W/(m2 Hz)'])
-def reflectance(cross_section=None, reflectance=None, wfb=None, M_sun=None,
-                f_sun=None):
+def reflectance(wfb, cross_section=None, reflectance=None):
     """Reflectance related equivalencies.
 
-    Supports conversion from/to reflectance and scattering cross-section
-    to/from total flux or magnitude at 1 au for both heliocentric and observer
-    distances.
+    Supports conversion from/to reflectance and scattering
+    cross-section to/from total flux or magnitude at 1 au for both
+    heliocentric and observer distances.  Uses `sbpy`'s photometric
+    calibration system: `~sbpy.calib.solar_spectrum` and
+    `~sbpy.calib.solar_fluxd`.
 
-    The default bandpass is Johnson V and the solar spectrum model is
-    E490-00a (2014) reference solar spectrum (Table 3), doi:10.1520/E0490.  If
-    the user does not specify a wavelength, frequency, or bandpass via
-    ``wfb``, then `~sbpy.units.VEGAmag` and spectral flux density
-    equivalencies will be provided for the V-band.
+    Spectral flux density equivalencies for Vega are automatically
+    used, if possible.
 
-    Users wanting conversions with magnitude systems incompatible with these
-    units will need to define ``M_sun`` in that system or add equivalencies to
-    convert from the magnitude system to physical units or Vega-based
-    magnitudes.
-
-    The V-band solar magnitude and flux for the default solar spectrum model
-    are:
-
-        M_sun('johnson_v') = -26.7747 VEGAmag
-        f_sun('johnson_v') = 1839.93 W / (m2 µm)
-        f_sun('johnson_v') = 1.86600e-12 W / (m2 Hz)
-
-    If other wavelength/frequency or bandpass is used, then it has to be passed
-    via parameter ``wfb``.
 
     Parameters
     ----------
-    cross_section : `astropy.units.Qauntity`
-        Total scattering cross-section
-    reflectance : `astropy.units.Quantity`
-        Average reflectance
     wfb : `astropy.units.Quantity`, `synphot.SpectralElement`, string
-        Wavelength, frequency, or a bandpass of the corresponding flux
-        density being converted.  See
+        Wavelength, frequency, or a bandpass corresponding to the flux
+        density being converted.  See `~sbpy.calib.solar_fluxd` or
         :func:`~synphot.SpectralElement.from_filter()` for possible
-        bandpass names.  ``wfb`` overrides ``f_sun`` and ``M_sun`` if
-        present at the same time.
-    f_sun : `astropy.units.Quantity`
-        Solar flux in a unit convertible to the unit of the quantity to be
-        converted.  If ``wfb`` is not provided, then ``f_sun`` will be used in
-        the conversion.  ``f_sun`` overrides ``M_sun`` if both present.
-    M_sun : `astropy.units.Quantity`
-        Solar magnitude in the same magnitude system as the quantity to be
-        converted.  If neither ``wfb`` nor ``f_sun`` is provided, then
-        ``M_sun`` will be used in the conversion.  If ``M_sun`` is not
-        present either, then the default V-band solar magnitude/flux will be
-        used.
+        bandpass names.
+
+    cross_section : `astropy.units.Qauntity`, optional
+        Total scattering cross-section.  One of `cross_section` or
+        `reflectance` is required.
+
+    reflectance : `astropy.units.Quantity`, optional
+        Average reflectance.  One of `cross_section` or `reflectance`
+        is required.
+
 
     Returns
     -------
     eqv : list
         List of equivalencies
 
+
     Examples
     --------
-    >>> # Convertion between scattering cross-section and reflectance
-    >>> # Note that these examples assumes V-band magnitude and uses the
-    >>> # Built-in default V-magnitude of the Sun -26.77 VEGAmag.
+    Convertion between scattering cross-section and reflectance
     >>> import numpy as np
     >>> from astropy import units as u
-    >>> from sbpy.units import reflectance, VEGAmag
+    >>> from sbpy.units import reflectance, VEGAmag, spectral_density_vega
+    >>> from sbpy.calib import solar_fluxd, vega_fluxd
+    >>>
+    >>> solar_fluxd.set({'V': -26.77 * VEGAmag,
+    ...                  'V_lambda_pivot': 5511 * u.AA})
+    >>> vega_fluxd.set({'V': 3.5885e-08 * u.Unit('W / (m2 um)'),
+    ...                 'V_lambda_pivot': 5511 * u.AA})
+    >>>
     >>> mag = 3.4 * VEGAmag
     >>> cross_sec = np.pi * (460 * u.km)**2
-    >>> ref = mag.to('1/sr', reflectance(cross_section=cross_sec))
+    >>> ref = mag.to('1/sr', reflectance('V', cross_section=cross_sec))
     >>> print('{0:.4f}'.format(ref))
     0.0287 1 / sr
-    >>> mag1 = ref.to(VEGAmag, reflectance(cross_section=cross_sec))
+    >>> mag1 = ref.to(VEGAmag, reflectance('V', cross_section=cross_sec))
     >>> print('{0:.2f}'.format(mag1))
     3.40 mag(VEGA)
 
     >>> # Convertion bretween magnitude and scattering cross-section
     >>> ref = 0.0287 / u.sr
-    >>> cross_sec = mag.to('km2', reflectance(reflectance=ref))
+    >>> cross_sec = mag.to('km2', reflectance('V', reflectance=ref))
     >>> radius = np.sqrt(cross_sec/np.pi)
     >>> print('{0:.2f}'.format(radius))
     459.69 km
-    >>> mag2 = cross_sec.to(VEGAmag, reflectance(reflectance=ref))
+    >>> mag2 = cross_sec.to(VEGAmag, reflectance('V', reflectance=ref))
     >>> print('{0:.2f}'.format(mag2))
     3.40 mag(VEGA)
+
     """
-    if wfb is not None:
-        sun = Sun.from_default()
-        try:
-            f_sun_lam = sun.observe(wfb, unit='W/(m2 um)')
-            f_sun_nu = sun.observe(wfb, unit='W/(m2 Hz)')
-        except SinglePointSpectrumError:
-            warn(AstropyWarning('Solar spectrum is interpolated.'))
-            f_sun_lam = sun(wfb, unit='W/(m2 um)')
-            f_sun_nu = sun(wfb, unit='W/(m2 Hz)')
-        f_sun_phys = f_sun_lam.to(VEGA, spectral_density_vega(wfb))
-        M_sun = f_sun_phys.to(VEGAmag)
-        f_sun_phys = f_sun_phys.value
-        f_sun_lam = f_sun_lam.value
-        f_sun_nu = f_sun_nu.value
-    elif f_sun is not None:
-        if f_sun.unit.is_equivalent('W/(m2 um)'):
-            f_sun_lam = f_sun.to('W/(m2 um)').value
-            f_sun_nu = None
-        else:
-            f_sun_nu = f_sun.to('W/(m2 Hz)').value
-            f_sun_lam = None
-        M_sun = None
-    elif M_sun is not None:
-        if not hasattr(M_sun, 'unit'):
-            raise TypeError("Argument 'M_sun' has no 'unit' attribute.  "
-                            "You may want to pass in an astropy Quantity instead.")
-        if not hasattr(M_sun.unit, 'physical_unit'):
-            raise u.UnitsError("Argument 'M_sun' must be in a magnitude "
-                               "system based on a physical unit")
+
+    sun = Sun.from_default()
+    try:
+        f_sun_lam = sun.observe(wfb, unit='W/(m2 um)')
+    except u.UnitConversionError:
         f_sun_lam = None
+
+    try:
+        f_sun_nu = sun.observe(wfb, unit='W/(m2 Hz)')
+    except u.UnitConversionError:
         f_sun_nu = None
-        f_sun_phys = M_sun.to(M_sun.unit.physical_unit).value
-    else:
-        M_sun = -26.77471503 * VEGAmag  # Solar magnitude in 'Johnson-V'
-        f_sun_phys = 5.12726792e+10  # Solar flux in VEGA
-        f_sun_lam = 1839.93273227  # Solar flux in 'Johnson-V' in W/(m2 um)
-        f_sun_nu = 1.86599755e-12  # Solar flux in 'Johnson-V' in W/(m2 Hz)
+
+    vega_equiv = spectral_density_vega(wfb)
+
+    # M_sun = -26.77471503 * VEGAmag  # Solar magnitude in 'Johnson-V'
+    # f_sun_phys = 5.12726792e+10  # Solar flux in VEGA
+    # f_sun_lam = 1839.93273227  # Solar flux in 'Johnson-V' in W/(m2 um)
+    # f_sun_nu = 1.86599755e-12  # Solar flux in 'Johnson-V' in W/(m2 Hz)
+
     equiv = []
     if cross_section is not None:
         xsec = cross_section.to('au2').value
-        if M_sun is not None:
-            equiv.append((M_sun.unit.physical_unit,
-                          u.sr**-1,
-                          lambda flux: flux/(f_sun_phys*xsec),
-                          lambda ref: ref*f_sun_phys*xsec))
         if f_sun_lam is not None:
             equiv.append((u.Unit('W/(m2 um)'),
                           u.sr**-1,
@@ -288,11 +248,6 @@ def reflectance(cross_section=None, reflectance=None, wfb=None, M_sun=None,
                           lambda ref: ref*f_sun_nu*xsec))
     elif reflectance is not None:
         ref = reflectance.to('1/sr').value
-        if M_sun is not None:
-            equiv.append((M_sun.unit.physical_unit,
-                          u.km**2,
-                          lambda flux: flux/(f_sun_phys*ref)*u.au.to('km')**2,
-                          lambda xsec: f_sun_phys*ref*xsec*u.km.to('au')**2))
         if f_sun_lam is not None:
             equiv.append((u.Unit('W/(m2 um)'),
                           u.km**2,

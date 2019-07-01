@@ -4,12 +4,246 @@ __all__ = [
     'solar_spectrum',
     'vega_spectrum',
     'solar_fluxd',
-    'vega_fluxd'
+    'vega_fluxd',
+    'Sun',
+    'Vega'
 ]
 
+import os
+from abc import ABC
 from astropy.utils.state import ScienceState
-from .sun import Sun
-from .vega import Vega
+from astropy.utils.data import get_pkg_data_filename
+from astropy.table import Table
+import astropy.units as u
+from ..spectroscopy.sources import SpectralSource
+from ..exceptions import SbpyException
+from .. import bib
+from . import solar_sources, vega_sources
+
+try:
+    import synphot
+except ImportError:
+    synphot = None
+
+__doctest_requires__ = {'Sun': 'synphot'}
+
+
+class UndefinedSourceError(SbpyException):
+    "SpectralStandard was initialized without a source, but it was accessed."
+
+
+class SpectralStandard(SpectralSource, ABC):
+    """Abstract base class for SBPy spectral standards.
+
+
+    Parameters
+    ----------
+    spectrum_state : `~astropy.utils.state.ScienceState`
+        Context manager for this source's spectrum.
+
+    fluxd_state : `~astropy.utils.state.ScienceState`
+        Context manager for this source's calibration by filter.
+
+    source : `~synphot.SourceSpectrum`, optional
+        The source spectrum.
+
+    description : string, optional
+        A brief description of the source spectrum.
+
+    bibcode : string, optional
+        Bibliography code for citation (see `sbpy.bib.register`).
+
+
+    Attributes
+    ----------
+    wave        - Wavelengths of the source spectrum.
+    fluxd       - Source spectrum.
+    description - Brief description of the source spectrum.
+    meta        - Meta data from `source`, if any.
+
+
+    Notes
+    -----
+
+    """
+
+    def __init__(self, source=None, description=None, bibcode=None):
+        self._source = source
+        self._description = description
+        self._bibcode = bibcode
+        self._bibtask = '.'.join((self.__module__, self.__class__.__name__))
+
+    def __repr__(self):
+        if self.description is None:
+            return '<{}>'.format(self.__class__.__name__)
+        else:
+            return '<{}: {}>'.format(self.__class__.__name__,
+                                     self.description)
+
+    @classmethod
+    def from_builtin(cls, name):
+        """Spectrum from a built-in `sbpy` source.
+
+        Parameters
+        ----------
+        name : string
+            The name of the spectrum.  See `show_builtin()` for
+            available sources.
+
+        """
+
+        from astropy.utils.data import _is_url
+
+        try:
+            parameters = getattr(cls._sources, name).copy()
+
+            if not _is_url(parameters['filename']):
+                # find in the module's location
+                parameters['filename'] = get_pkg_data_filename(
+                    os.path.join('data', parameters['filename']))
+
+            return cls.from_file(**parameters)
+        except AttributeError:
+            msg = 'Unknown spectrum "{}".  Valid spectra:\n'.format(
+                name) + cls.show_builtin()
+
+            raise ValueError(msg)
+
+    @classmethod
+    def from_default(cls):
+        """Initialize new spectral standard from current default.
+
+        The spectrum will be ``None`` if `synphot` is not available.
+
+        """
+        if synphot:
+            standard = cls._spectrum_state.get()
+        else:
+            standard = cls(None)
+        return standard
+
+    @staticmethod
+    def show_builtin():
+        """List built-in spectra."""
+        rows = []
+        for name in cls._sources.available:
+            source = getattr(cls._sources, name)
+            rows.append((name, source['description']))
+        Table(rows=rows, names=('name', 'description')).pprint(
+            max_lines=-1, max_width=-1)
+
+    @property
+    def source(self):
+        if self._source is None:
+            raise UndefinedSourceError('The source is not defined.')
+
+        if self._bibcode is not None:
+            bib.register(self._bibtask, {self._description: self._bibcode})
+
+        return self._source
+
+    def observe(self, wfb, unit=None, **kwargs):
+        """Observe as through filters or spectrometer.
+
+        Calls `observe_bandpass`, `observe_spectrum`, or
+        `observe_filter` as appropriate.
+
+
+        Parameters
+        ----------
+        wfb : `~astropy.units.Quantity`, `~synphot.SpectralElement`, string
+            Wavelengths, frequencies, or bandpasses.  Bandpasses may
+            be a filter name (string).  May also be a list of
+            ``SpectralElement``s or strings.
+
+        unit : string, `~astropy.units.Unit`, optional
+            Units of the output (spectral flux density).
+
+        **kwargs
+            Additional keyword arguments for
+            `~synphot.observation.Observation`, e.g., ``force``.
+
+
+        Returns
+        -------
+        fluxd : `~astropy.units.Quantity`
+
+        """
+
+        if isinstance(wfb, (list, tuple)):
+            fluxd = []
+            for i in range(len(wfb)):
+                fluxd.append(self.observe(wfb, unit=unit, **kwargs))
+            fluxd = u.Quantity(fluxd)
+        elif isinstance(wfb, str):
+            lambda_eff, lambda_pivot, fluxd = self.observe_filter(
+                wfb, unit=unit)
+        else:
+            fluxd = super().observe(wfb, unit=unit, **kwargs)
+
+        return fluxd
+
+    def observe_filter(self, filt, unit=None):
+        """Flux density through this filter.
+
+        Does not use the spectrum, but instead the flux density
+        calibration manager.  If the name of the filter is BP, then
+        the expected keys are:
+
+            BP : flux density
+            BP_lambda_eff : effective wavelength, optional
+            BP_lambda_pivot : pivot wavelength, optional
+
+
+        Parameters
+        ----------
+        filt : string
+            Name of the filter.
+
+        unit : string, `~astropy.units.Unit`, optional
+            Spectral flux density units for the output.
+
+
+        Returns
+        -------
+        lambda_eff: `~astropy.units.Quantity`
+            Effective wavelength.  ``None`` if it is not provided.
+
+        lambda_pivot: `~astropy.units.Quantity`
+            Pivot wavelength.  ``None`` if it is not provided.
+
+         fluxd : `~astropy.units.Quantity`
+            Spectral flux density.
+
+
+        Raises
+        ------
+        ``KeyError`` if the filter is not defined.
+
+        """
+
+        unit = 'W/(m2 um)' if unit is None else unit
+
+        source_fluxd = self._fluxd_state.get()
+        fluxd = source_fluxd[filt]
+
+        lambda_eff = source_fluxd.get(filt + '_lambda_eff')
+        lambda_pivot = source_fluxd.get(filt + '_lambda_pivot')
+
+        # convert to requested units, may need lambda_pivot
+        if lambda_pivot is None:
+            equiv = None
+        else:
+            equiv = u.spectral_density(lambda_pivot)
+
+        try:
+            fluxd = fluxd.to(unit, equiv)
+        except u.UnitConversionError as e:
+            raise type(e)(
+                '{}  Is "{}_lambda_pivot" required and'
+                ' was it provided?'.format(e, filt))
+
+        return lambda_eff, lambda_pivot, fluxd
 
 
 class solar_spectrum(ScienceState):
@@ -161,3 +395,172 @@ class vega_fluxd(ScienceState):
 
     """
     _value = {}  # default is disabled
+
+
+class Sun(SpectralStandard):
+    """Solar spectrum.
+
+    Most functionality requires `synphot`.  The exception is retrieval
+    of flux densities by filter name via the ``solar_fluxd`` context
+    manager.
+
+
+    Parameters
+    ----------
+    wave : `~astropy.units.Quantity`
+        Spectral wavelengths.
+
+    fluxd : `~astropy.units.Quantity`
+        Solar spectral flux density at 1 au.
+
+    description : string, optional
+        Brief description of the source spectrum.
+
+    bibcode : string, optional
+        Bibliography code for `sbpy.bib.register`.
+
+    meta : dict, optional
+        Any additional meta data, passed on to
+        `~synphot.SourceSpectrum`.
+
+
+    Attributes
+    ----------
+    wave        - Wavelengths of the source spectrum.
+    fluxd       - Source spectrum.
+    description - Brief description of the source spectrum.
+    meta        - Meta data.
+
+
+    Examples
+    --------
+    Get the default solar spectrum:
+
+    >>> sun = Sun.from_default()
+
+    Create solar standard from `synphot.SourceSpectrum`:
+
+    >>> import astropy.constants as const
+    >>> import synphot
+    >>> source = (synphot.SourceSpectrum(synphot.BlackBody1D, temperature=5770)
+    ...           (3.14159 * const.R_sun**2 / const.au**2).decompose())
+    >>> sun = Sun(source, description='5770 K blackbody Sun')
+
+    Create solar standard from an array:
+
+    >>> import numpy as np
+    >>> import astropy.units as u
+    >>> import astropy.constants as const
+    >>> from astropy.modeling.blackbody import blackbody_lambda
+    >>> wave = np.logspace(-1, 2) * u.um
+    >>> fluxd = (blackbody_lambda(wave, 5770 * u.K) * np.pi * u.sr
+    ...          (const.R_sun**2 / const.au**2).decompose())
+    >>> sun = Sun.from_array(wave, fluxd, description='5770 K blackbody Sun')
+
+    Create solar standard from a file:
+
+    >>> sun = Sun.from_file('filename')        # doctest: +SKIP
+
+    Interpolate to 0.62 μm:
+    >>> sun(0.62 * u.um)                       # doctest: +FLOAT_CMP
+    <Quantity 1720.5108871 W / (m2 um)>
+
+    Observe as through a spectrometer:
+
+    >>> import numpy as np
+    >>> import astropy.units as u
+    >>> sun = Sun.from_default()
+    >>> wave = np.linspace(1, 2.5) * u.um
+    >>> fluxd = sun.observe(wave)              # doctest: +IGNORE_OUTPUT
+
+    Observe as through a filter:
+
+    >>> sun = Sun.from_default()
+    >>> sun.observe('johnson_v')               # doctest: +FLOAT_CMP
+    <Quantity [1839.93273227] W / (m2 um)>
+
+    Observe through a filter, using `sbpy`'s filter calibration system:
+
+    >>> from sbpy.calib import solar_fluxd
+    >>> import sbpy.units as sbu
+    >>> solar_fluxd.set({
+    ...     'V': -26.76 * sbu.VEGAmag,
+    ...     'V_lambda_eff': 548 * u.nm,
+    ...     'V_lambda_pivot': 551 * u.nm
+    ... })
+    >>> sun = Sun.from_default()
+    >>> print(sun.observe('V'))
+    -26.76 VEGAmag
+
+    """
+
+    _sources = solar_sources
+    _spectrum_state = solar_spectrum
+    _fluxd_state = solar_fluxd
+
+
+class Vega(SpectralStandard):
+    """Vega spectrum.
+
+    Parameters
+    ----------
+    wave : `~astropy.units.Quantity`
+        Spectral wavelengths.
+
+    fluxd : `~astropy.units.Quantity`
+        Spectral flux density.
+
+    description : string, optional
+        Brief description of the source spectrum.
+
+    bibcode : string, optional
+        Bibliography code for `sbpy.bib.register`.
+
+    meta : dict, optional
+        Any additional meta data, passed on to
+        `~synphot.SourceSpectrum`.
+
+
+    Attributes
+    ----------
+    wave        - Wavelengths of the source spectrum.
+    fluxd       - Source spectrum.
+    description - Brief description of the source spectrum.
+    meta        - Meta data.
+
+
+    Examples
+    --------
+    Get the default Vega spectrum:
+    >>> vega = Vega.from_default()               # doctest: +IGNORE_OUTPUT
+
+    Create Vega from a file:
+    >>> vega = Vega.from_file('filename')        # doctest: +SKIP
+
+    Evaluate Vega at 1 μm (interpolation):
+    >>> print(vega(1 * u.um))                    # doctest: +FLOAT_CMP
+    6.326492514857613e-09 W / (m2 um)
+
+    Observe Vega through as if through a spectrometer:
+    >>> import numpy as np
+    >>> wave = np.linspace(0.4, 0.6) * u.um
+    >>> spec = vega.observe(wave)
+
+    Observe Vega through a filter:
+    >>> import sbpy.utils
+    >>> V = sbpy.utils.get_bandpass('Johnson V')
+    >>> fluxd = vega.observe(V)
+
+    User provided calibration:
+    >>> from sbpy.calib import vega_fluxd
+    >>> vega = Vega(None)
+    >>> with vega_fluxd.set({'V': 3674 * u.Jy,
+    ...                      'V_lambda_pivot': 5511 * u.AA}):
+    ...     print(vega.observe('V', unit='Jy'))
+    3674.0 Jy
+
+    """
+
+    _sources = vega_sources
+    _spectrum_state = vega_spectrum
+    _fluxd_state = vega_fluxd

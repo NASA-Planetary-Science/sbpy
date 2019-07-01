@@ -10,7 +10,7 @@ Descriptions of source Vega spectra.
 
 # Parameters passed to Vega.from_file. 'filename' is a URL.  After
 # adding spectra here update __init__.py docstring and
-# docs/sbpy/spectroscopy.rst.
+# docs/calib.rst.
 
 available = [
     'Bohlin2014'

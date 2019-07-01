@@ -2,7 +2,6 @@ import pytest
 import numpy as np
 import astropy.units as u
 from astropy.tests.helper import remote_data
-from ...core import vega_spectrum, vega_fluxd
 from .. import *
 
 try:
@@ -23,7 +22,7 @@ class TestVega:
 
     def test_from_builtin(self):
         vega = Vega.from_builtin('Bohlin2014')
-        assert vega.description == sources.Bohlin2014['description']
+        assert vega.description == vega_sources.Bohlin2014['description']
 
     def test_from_builtin_unknown(self):
         with pytest.raises(ValueError):
@@ -32,7 +31,7 @@ class TestVega:
     def test_from_default(self):
         with vega_spectrum.set('Bohlin2014'):
             vega = Vega.from_default()
-            assert vega.description == sources.Bohlin2014['description']
+            assert vega.description == vega_sources.Bohlin2014['description']
 
     def test_call_single_wavelength(self):
         with vega_spectrum.set('Bohlin2014'):
@@ -47,10 +46,9 @@ class TestVega:
             assert np.isclose(f.value, 2129.13636259)  # Jy
 
     def test_show_builtin(self, capsys):
-        from ..sources import available
         Vega.show_builtin()
         captured = capsys.readouterr()
-        for spec in available:
+        for spec in vega_sources.available:
             assert spec in captured.out
 
     def test_filt_vega_fluxd(self):
