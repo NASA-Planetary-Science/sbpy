@@ -13,7 +13,7 @@ import warnings
 
 from collections import OrderedDict
 
-from numpy import ndarray, array, isnan, nan
+from numpy import ndarray, array, isnan, nan, interp
 import astropy.units as u
 import astropy.constants as con
 from astroquery.jplsbdb import SBDB
@@ -21,12 +21,12 @@ from astroquery.jplspec import JPLSpec
 
 from .core import DataClass
 from .. import bib
-from ..exceptions import SbpyWarning
+from ..exceptions import SbpyException
 
 __all__ = ['Phys']
 
 
-class JPLSpecQueryFailed(SbpyWarning):
+class JPLSpecQueryFailed(SbpyException):
     '''
     Raise warning if molecular data query fails
     '''
@@ -190,7 +190,7 @@ class Phys(DataClass):
         Returns
         -------
         Molecular data : `~sbpy.data.Phys` instance
-            Quantities in the following order:
+            Quantities in the following order from JPL Spectral Molecular Catalog:
                 | Transition frequency
                 | Temperature
                 | Integrated line intensity at 300 K
@@ -202,11 +202,6 @@ class Phys(DataClass):
                 | Degrees of freedom
 
         """
-        try:
-            from scipy import interpolate
-        except ImportError:
-            raise ImportError('Optional package scipy is needed for this \
-                               function. Please install scipy.')
 
         if isinstance(mol_tag, str):
             query = JPLSpec.query_lines_async(min_frequency=(transition_freq - (1 * u.GHz)),
@@ -227,8 +222,11 @@ class Phys(DataClass):
                                          (as shown in JPLSpec documentation)\
                                          to parse their names and choose your \
                                          molecule of interest, or refine your\
-                                         regex to be more specific.\
-                                         ").format(res['Mol']))
+                                         regex to be more specific (hint '^name$'\
+                                         will match 'name' exactly with no\
+                                         ambiguity).").format(res['Mol']))
+            else:
+                mol_tag = res['Mol'][0]
 
         query = JPLSpec.query_lines(min_frequency=(transition_freq - (1 * u.GHz)),
                                     max_frequency=(transition_freq + (1 * u.GHz)),
@@ -239,7 +237,8 @@ class Phys(DataClass):
         if freq_list[0] == 'Zero lines we':
             raise JPLSpecQueryFailed("Zero lines were found by JPLSpec in \
                                        a +/- 1 GHz range from your provided \
-                                       transition frequency.")
+                                       transition frequency for molecule tag \
+                                       {}.".format(mol_tag))
 
         t_freq = min(list(freq_list.quantity),
                      key=lambda x: abs(x-transition_freq))
@@ -267,9 +266,9 @@ class Phys(DataClass):
 
         temp = temp_estimate
 
-        f = interpolate.interp1d(temp_list, part, 'linear')
+        f = interp(temp.value, temp_list.value[::-1], part[::-1])
 
-        partition = 10**(f(temp_estimate.value))
+        partition = 10**(f)
 
         part300 = 10 ** (float(mol['QLOG1'].data))
 

@@ -31,23 +31,18 @@ def test_remote_prodrate_simple_hcn():
     mol_tag = 27001
     transition_freq = (265.886434 * u.GHz).to('MHz')
     q_found = []
-    dispersionaxis = 1
-    unit = u.Hz
     mol_data = Phys.from_jplspec(temp_estimate, transition_freq, mol_tag)
     intl = intensity_conversion(mol_data)
     mol_data.add_column([intl.value] * intl.unit,
                         name='Integrated line intensity at desired temp')
     au = einstein_coeff(mol_data)
     mol_data.add_column([au.value] * au.unit, name='eincoeff')
-    mol_data.add_column([1] * u.AU * u.AU * u.s, name='beta')
 
     for i in range(0, 28):
 
         time = Time(hcn['Time'][i], format='iso')
         integrated_flux = hcn['T_B'][i] * u.K * u.km / u.s
         ephemobj = Ephem.from_horizons(target, epochs=time.jd, id_type='id')
-        beta = beta_factor(mol_data, ephemobj)
-        mol_data['beta'] = beta
 
         lte = LTE()
 
@@ -78,23 +73,18 @@ def test_remote_prodrate_simple_ch3oh():
     mol_tag = 32003
     transition_freq = (157.178987 * u.GHz).to('MHz')
     q_found = []
-    dispersionaxis = 1
-    unit = u.Hz
     mol_data = Phys.from_jplspec(temp_estimate, transition_freq, mol_tag)
     intl = intensity_conversion(mol_data)
     mol_data.add_column([intl.value] * intl.unit,
                         name='Integrated line intensity at desired temp')
     au = einstein_coeff(mol_data)
     mol_data.add_column([au.value] * au.unit, name='eincoeff')
-    mol_data.add_column([1] * u.AU * u.AU * u.s, name='beta')
 
     for i in range(0, 20):
 
         time = Time(ch3oh['Time'][i], format='iso')
         integrated_flux = ch3oh['T_B'][i] * u.K * u.km / u.s
         ephemobj = Ephem.from_horizons(target, epochs=time.jd, id_type='id')
-        beta = beta_factor(mol_data, ephemobj)
-        mol_data['beta'] = beta
 
         lte = LTE()
 
@@ -186,6 +176,9 @@ def test_Haser_prodrate():
 
     q_found = []
 
+    parent = photo_timescale('CO') * vgas
+    coma = Haser(Q_estimate, vgas, parent)
+
     for i in range(0, 5):
 
         time = Time(co['Time'][i], format='iso')
@@ -196,10 +189,6 @@ def test_Haser_prodrate():
         tnum = total_number_nocd(integrated_flux, mol_data, aper, b)
 
         mol_data['total_number_nocd'] = tnum
-
-        parent = photo_timescale('CO') * vgas
-
-        coma = Haser(Q_estimate, vgas, parent)
 
         lte = LTE()
 
