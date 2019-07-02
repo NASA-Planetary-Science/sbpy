@@ -9,16 +9,27 @@ Class for storing and querying physical properties
 created on June 04, 2017
 """
 
+import warnings
+
 from collections import OrderedDict
 
-from numpy import ndarray, array, isnan, nan
+from numpy import ndarray, array, isnan, nan, interp
 import astropy.units as u
+import astropy.constants as con
 from astroquery.jplsbdb import SBDB
+from astroquery.jplspec import JPLSpec
 
 from .core import DataClass
 from .. import bib
+from ..exceptions import SbpyException
 
 __all__ = ['Phys']
+
+
+class JPLSpecQueryFailed(SbpyException):
+    '''
+    Raise warning if molecular data query fails
+    '''
 
 
 class Phys(DataClass):
@@ -152,6 +163,135 @@ class Phys(DataClass):
 
         # assemble data as Phys object
         return cls.from_array(coldata, names=columnnames)
+
+    @classmethod
+    def from_jplspec(cls, temp_estimate, transition_freq, mol_tag):
+        """
+        Returns relevant constants from JPLSpec catalog and energy calculations
+
+        Parameters
+        ----------
+        temp_estimate : `~astropy.units.Quantity`
+            Estimated temperature in Kelvins
+
+        transition_freq : `~astropy.units.Quantity`
+            Transition frequency in MHz
+
+        mol_tag : int or str
+            Molecule identifier. Make sure it is an exclusive identifier,
+            although this function can take a regex as your molecule tag,
+            it will return an error if there is ambiguity on what the molecule
+            of interest is. The function
+            `~astroquery.jplspec.JPLSpec.query_lines_async`
+            with the option `parse_name_locally=True` can be used to parse
+            for the exclusive identifier of a molecule you might be interested
+            in. For more information, visit `astroquery.jplspec` documentation.
+
+        Returns
+        -------
+        Molecular data : `~sbpy.data.Phys` instance
+            Quantities in the following order from JPL Spectral Molecular Catalog:
+                | Transition frequency
+                | Temperature
+                | Integrated line intensity at 300 K
+                | Partition function at 300 K
+                | Partition function at designated temperature
+                | Upper state degeneracy
+                | Upper level energy in Joules
+                | Lower level energy in Joules
+                | Degrees of freedom
+
+        """
+
+        if isinstance(mol_tag, str):
+            query = JPLSpec.query_lines_async(min_frequency=(transition_freq - (1 * u.GHz)),
+                                              max_frequency=(transition_freq + (1 * u.GHz)),
+                                              molecule=mol_tag,
+                                              parse_name_locally=True,
+                                              get_query_payload=True)
+
+            res = dict(query)
+            # python request payloads aren't stable (could be dictionary or list)
+            # depending on the version, so make sure to check back from time to time
+            if len(res['Mol']) > 1:
+                raise JPLSpecQueryFailed(("Ambiguious choice for molecule,\
+                                         more than one molecule was found for \
+                                         the given mol_tag. Please refine \
+                                         your search to one of the following tags\
+                                         {} by using JPLSpec.get_species_table()\
+                                         (as shown in JPLSpec documentation)\
+                                         to parse their names and choose your \
+                                         molecule of interest, or refine your\
+                                         regex to be more specific (hint '^name$'\
+                                         will match 'name' exactly with no\
+                                         ambiguity).").format(res['Mol']))
+            else:
+                mol_tag = res['Mol'][0]
+
+        query = JPLSpec.query_lines(min_frequency=(transition_freq - (1 * u.GHz)),
+                                    max_frequency=(transition_freq + (1 * u.GHz)),
+                                    molecule=mol_tag)
+
+        freq_list = query['FREQ']
+
+        if freq_list[0] == 'Zero lines we':
+            raise JPLSpecQueryFailed("Zero lines were found by JPLSpec in \
+                                       a +/- 1 GHz range from your provided \
+                                       transition frequency for molecule tag \
+                                       {}.".format(mol_tag))
+
+        t_freq = min(list(freq_list.quantity),
+                     key=lambda x: abs(x-transition_freq))
+
+        data = query[query['FREQ'] == t_freq.value]
+
+        df = int(data['DR'].data)
+
+        lgint = float(data['LGINT'].data)
+
+        lgint = 10**lgint * u.nm * u.nm * u.MHz
+
+        elo = float(data['ELO'].data) / u.cm
+
+        gu = float(data['GUP'].data)
+
+        cat = JPLSpec.get_species_table()
+
+        mol = cat[cat['TAG'] == mol_tag]
+
+        temp_list = cat.meta['Temperature (K)'] * u.K
+
+        part = list(mol['QLOG1', 'QLOG2', 'QLOG3', 'QLOG4', 'QLOG5', 'QLOG6',
+                        'QLOG7'][0])
+
+        temp = temp_estimate
+
+        f = interp(temp.value, temp_list.value[::-1], part[::-1])
+
+        partition = 10**(f)
+
+        part300 = 10 ** (float(mol['QLOG1'].data))
+
+        # yields in 1/cm
+        energy = elo + (t_freq.to(1/u.cm, equivalencies=u.spectral()))
+
+        energy_J = energy.to(u.J, equivalencies=u.spectral())
+        elo_J = elo.to(u.J, equivalencies=u.spectral())
+
+        quantities = [t_freq, temp, lgint, part300, partition, gu, energy_J,
+                      elo_J, df, mol_tag]
+        names = ('Transition frequency',
+                 'Temperature',
+                 'Integrated line intensity at 300 K',
+                 'Partition function at 300 K',
+                 'Partition function at designated temperature',
+                 'Upper state degeneracy',
+                 'Upper level energy in Joules',
+                 'Lower level energy in Joules',
+                 'Degrees of freedom', 'Molecule Identifier')
+        result = cls.from_array(quantities, names)
+
+        return result
 
     @classmethod
     def from_lowell(cls, targetid):

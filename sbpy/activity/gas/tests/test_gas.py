@@ -2,7 +2,7 @@
 
 import numpy as np
 import astropy.units as u
-from ..gas import *
+from .. import *
 
 
 def test_photo_lengthscale():
