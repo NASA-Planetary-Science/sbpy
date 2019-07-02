@@ -137,7 +137,7 @@ class Orbit(DataClass):
 
         # identify time scales returned by Horizons query
         timescales = ['TDB'] * len(all_elem)
-        all_elem.add_column(Column(timescales, name='timescale'))
+        all_elem['timescale'] = timescales
 
         if bib.status() is None or bib.status():
             bib.register('sbpy.data.Orbit.from_horizons',
@@ -386,7 +386,7 @@ class Orbit(DataClass):
         # reorder data in Orbit object
         columns = conf.oorb_orbit_fields[orbittype]
 
-        orbits = self.from_array(oo_orbits.transpose(), names=columns)
+        orbits = self.from_columns(oo_orbits.transpose(), names=columns)
 
         for i, col in enumerate(orbits.column_names):
             # convert from radians to degrees where unit == deg
@@ -406,7 +406,7 @@ class Orbit(DataClass):
 
         # identify time scales returned by Horizons query
         timescales = [timescale] * len(orbits.table)
-        orbits.table.add_column(Column(timescales, name='timescale'))
+        orbits.table['timescale'] = timescales
 
         if bib.status() is None or bib.status():
             bib.register('sbpy.data.Ephem.from_oo',
@@ -539,7 +539,7 @@ class Orbit(DataClass):
         # reorder data in Orbit object
         columns = conf.oorb_orbit_fields[orbittype]
 
-        orbits = self.from_array(oo_orbits.transpose(), names=columns)
+        orbits = self.from_columns(oo_orbits.transpose(), names=columns)
 
         for i, col in enumerate(orbits.column_names):
             # convert from radians to degrees where unit == deg
@@ -562,7 +562,7 @@ class Orbit(DataClass):
 
         # identify time scales returned by Horizons query
         timescales = [timescale] * len(orbits.table)
-        orbits.table.add_column(Column(timescales, name='timescale'))
+        orbits.table['timescale'] = timescales
 
         if bib.status() is None or bib.status():
             bib.register('sbpy.data.Ephem.from_oo',

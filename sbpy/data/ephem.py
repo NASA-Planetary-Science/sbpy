@@ -315,25 +315,6 @@ class Ephem(DataClass):
 
         return cls.from_table(eph)
 
-    def report_to_mpc():
-        """
-        Format ephemerides as a report to the
-        `Minor Planet Center <http://minorplanetcenter.net>`_.
-
-        Returns
-        -------
-        list of strings
-
-        Examples
-        --------
-        >>> from sbpy.data import Ephem  # doctest: +SKIP
-        >>> eph = Ephem.from_array...  # doctest: +SKIP
-        >>> report = eph.report_to_mpc()  # doctest: +SKIP
-
-        not yet implemented
-
-        """
-
     @classmethod
     def from_imcce(cls, targetid, epoch, observatory='500'):
         """
@@ -494,10 +475,7 @@ class Ephem(DataClass):
                 'orbit type cannot be determined from elements')
 
         # add/update orbittype column
-        if 'orbittype' in orb.column_names:
-            orb['orbittype'] = [orbittype] * len(orb)
-        else:
-            orb.add_column([orbittype] * len(orb), name='orbittype')
+        orb['orbittype'] = [orbittype] * len(orb)
 
         # derive and apply default units
         default_units = {}
@@ -553,21 +531,21 @@ class Ephem(DataClass):
             RuntimeError('pyoorb failed with error code {:d}'.format(err))
 
         # reorder data in Orbit object
-        ephem = self.from_array(hstack([oo_eph.transpose()[:, :, i]
-                                        for i in range(oo_eph.shape[0])]),
-                                names=conf.oorb_ephem_fields)
+        ephem = self.from_columns(hstack([oo_eph.transpose()[:, :, i]
+                                          for i in range(oo_eph.shape[0])]),
+                                  names=conf.oorb_ephem_fields)
 
         # apply units
         for i, col in enumerate(ephem.column_names):
             ephem[col].unit = conf.oorb_ephem_units[i]
 
         # add targetname column
-        ephem.table.add_column(Column(data=sum([[orb['targetname'][i]] *
-                                                len(epochs) for i in
-                                                range(len(orb.table))],
-                                               []),
-                                      name='targetname'),
-                               index=0)
+        ephem.add_column(Column(data=sum([[orb['targetname'][i]] *
+                                          len(epochs) for i in
+                                          range(len(orb.table))],
+                                         []),
+                                name='targetname'),
+                         index=0)
 
         # convert MJD to Julian Date
         ephem.add_column(ephem['MJD']+2400000.5*u.d, name='epoch', index=1)

@@ -19,7 +19,7 @@ def test_from_horizons():
     # current epoch
     now = Time.now()
     data = Ephem.from_horizons('Ceres')
-    assert_allclose(data.datetime_jd, now.jd*u.d)
+    assert_allclose(data['datetime_jd'], now.jd*u.d)
 
     # date range - astropy.time.Time objects
     epochs = {'start': Time('2018-01-02', format='iso'),
