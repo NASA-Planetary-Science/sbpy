@@ -163,7 +163,7 @@ class Phys(DataClass):
                           'https://ssd.jpl.nasa.gov/sbdb.cgi'})
 
         # assemble data as Phys object
-        return cls.from_array(coldata, names=columnnames)
+        return cls.from_columns(coldata, names=columnnames)
 
     @classmethod
     def from_jplspec(cls, temp_estimate, transition_freq, mol_tag):

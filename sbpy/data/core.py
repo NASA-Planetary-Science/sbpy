@@ -138,9 +138,9 @@ class DataClass():
 
         >>> import astropy.units as u
         >>> from sbpy.data import Orbit
-        >>> orb = Orbit.from_dict({'a': [2.7674]*u.au,
-        ...                        'e': [0.0756],
-        ...                        'i': [10.59321]*u.deg})
+        >>> orb = Orbit.from_dict({'a': 2.7674*u.au,
+        ...                        'e': 0.0756,
+        ...                        'i': 10.59321*u.deg})
         >>> orb
         <QTable length=1>
            a       e       i
@@ -149,11 +149,7 @@ class DataClass():
         ------- ------- --------
          2.7674  0.0756 10.59321
 
-        Note how the values of the dictionaries are defined as lists
-        although only single values are provided; if a unit is
-        provided for either element in the dictionary, the
-        corresponding `~astropy.units.Unit` has to be multiplied to
-        this list, forming a `~astropy.units.Quantity` vector. A double-row
+        A double-row
         `~sbpy.data.Orbit` example would look like this:
 
         >>> orb = Orbit.from_dict({'a': [2.7674, 3.123]*u.au,
@@ -168,6 +164,12 @@ class DataClass():
          2.7674  0.0756 10.59321
           3.123   0.021     3.21
 
+        Note how in this case a list is passed
+        to each key of the dictionary; if a unit is
+        provided for either element in the dictionary, the
+        corresponding `~astropy.units.Unit` has to be multiplied to
+        this list, forming a `~astropy.units.Quantity` vector.
+
         Since dictionaries have no specific order, the ordering of the
         column in the example above is not defined. If your data table
         requires a specific order, use ``OrderedDict``. This example
@@ -176,7 +178,8 @@ class DataClass():
         >>> from collections import OrderedDict
         >>> orb = Orbit.from_dict(OrderedDict([('a', [2.7674, 3.123]*u.au),
         ...                                    ('e', [0.0756, 0.021]),
-        ...                                    ('i', [10.59, 3.21]*u.deg)]))
+        ...                                    ('i', [10.59, 3.21]*u.deg)]),
+        ...                                   meta={'targetname': 'asteroid'})
         >>> orb
         <QTable length=2>
            a       e       i
@@ -186,9 +189,9 @@ class DataClass():
          2.7674  0.0756   10.59
           3.123   0.021    3.21
         >>> orb.meta
-        {'targetname': 'some asteroid'}
+        {'targetname': 'asteroid'}
         >>> orb.meta['targetname']
-        'some asteroid'
+        'asteroid'
         """
 
         for key, val in data.items():
@@ -301,13 +304,15 @@ class DataClass():
                598391482.8 0.17453292519943295
         """
 
-        if isinstance(columns, (list, ndarray, tuple, u.Quantity)):
-            # reorganize names, if necessary
-            if isinstance(names, str):
-                names = [names]
-        else:
-            raise DataClassError('columns must be a list, tuple, '
-                                 'numpy array, or a Quantity')
+        # turn single column name to a list
+        if isinstance(names, str):
+            names = [names]
+
+        # turn single column to a list
+        try:
+            iter(columns[0])
+        except TypeError:
+            columns = [columns]
 
         if units is not None:
             if all([isinstance(col, u.Quantity) for col in columns]):
@@ -462,17 +467,19 @@ class DataClass():
         ...               [4,5,6]*u.m/u.s,],
         ...              names=['mass', 'velocity'])
         >>> dat = DataClass.from_table(tab)
-        >>> dat.table
+        >>> dat
         <QTable length=3>
-        mass velocity
-         kg   m / s
-        ---- --------
-         1.0      4.0
-         2.0      5.0
-         3.0      6.0
+          mass  velocity
+           kg    m / s
+        float64 float64
+        ------- --------
+            1.0      4.0
+            2.0      5.0
+            3.0      6.0
         """
         self = cls()
         self._table = QTable(table, meta={**table.meta, **meta}, **kwargs)
+        return self
 
     @classmethod
     def from_file(cls, filename, meta={}, **kwargs):
@@ -555,10 +562,10 @@ class DataClass():
         --------
         >>> from sbpy.data import DataClass
         >>> import astropy.units as u
-        >>> dat = DataClass.from_array([[1, 2, 3]*u.deg,
-        ...                             [4, 5, 6]*u.km,
-        ...                             ['a', 'b', 'c']],
-        ...                            names=('a', 'b', 'c'))
+        >>> dat = DataClass.from_columns([[1, 2, 3]*u.deg,
+        ...                               [4, 5, 6]*u.km,
+        ...                               ['a', 'b', 'c']],
+        ...                              names=('a', 'b', 'c'))
         >>> dat.to_file('test.txt')  # doctest: +SKIP
         """
 
@@ -728,7 +735,7 @@ class DataClass():
         --------
         >>> from sbpy.data import DataClass
         >>> import astropy.units as u
-        >>> dat = DataClass.from_columns([[1, 2, 3]*u.m),
+        >>> dat = DataClass.from_columns([[1, 2, 3]*u.m,
         ...                               [4, 5, 6]*u.m/u.s,
         ...                               ['a', 'b', 'c']],
         ...                              names=('a', 'b', 'c'))
@@ -778,6 +785,8 @@ class DataClass():
             newdata = DataClass.from_dict(rows)
         if isinstance(rows, (list, ndarray, tuple)):
             newdata = DataClass.from_rows(rows)
+
+        print(newdata)
 
         self._table = vstack([self._table, newdata], join_type=join_type)
 
@@ -884,10 +893,10 @@ class DataClass():
         --------
         >>> from sbpy.data import DataClass
         >>> import astropy.units as u
-        >>> dat = DataClass.from_array([[1, 2, 3]*u.Unit('m'),
-        ...                             [4, 5, 6]*u.m/u.s,
-        ...                             ['a', 'b', 'c']],
-        ...                            names=('a', 'b', 'c'))
+        >>> dat = DataClass.from_columns([[1, 2, 3]*u.Unit('m'),
+        ...                               [4, 5, 6]*u.m/u.s,
+        ...                               ['a', 'b', 'c']],
+        ...                              names=('a', 'b', 'c'))
         >>> dat.apply([[1], [2, 3], [4, 5, 6]], name='d', unit='kg')
         >>> dat
         <QTable length=6>
