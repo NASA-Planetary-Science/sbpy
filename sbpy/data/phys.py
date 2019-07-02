@@ -58,8 +58,7 @@ class Phys(DataClass):
         Examples
         --------
         >>> from sbpy.data import Phys
-        >>> phys = Phys.from_sbdb(['Ceres', '12893', '3552'])
-        ...     # doctest: +REMOTE_DATA
+        >>> phys = Phys.from_sbdb(['Ceres', '12893', '3552']) # doctest: +REMOTE_DATA
         >>> print(phys['targetname', 'H', 'diameter'])  # doctest: +SKIP
                 targetname                 H          diameter
                                           mag            km
@@ -206,7 +205,8 @@ class Phys(DataClass):
 
         if isinstance(mol_tag, str):
             query = JPLSpec.query_lines_async(min_frequency=(transition_freq - (1 * u.GHz)),
-                                              max_frequency=(transition_freq + (1 * u.GHz)),
+                                              max_frequency=(
+                                                  transition_freq + (1 * u.GHz)),
                                               molecule=mol_tag,
                                               parse_name_locally=True,
                                               get_query_payload=True)
@@ -230,7 +230,8 @@ class Phys(DataClass):
                 mol_tag = res['Mol'][0]
 
         query = JPLSpec.query_lines(min_frequency=(transition_freq - (1 * u.GHz)),
-                                    max_frequency=(transition_freq + (1 * u.GHz)),
+                                    max_frequency=(
+                                        transition_freq + (1 * u.GHz)),
                                     molecule=mol_tag)
 
         freq_list = query['FREQ']
@@ -267,7 +268,8 @@ class Phys(DataClass):
 
         temp = temp_estimate
 
-        f = interp(log(temp.value), log(temp_list.value[::-1]), log(part[::-1]))
+        f = interp(log(temp.value), log(
+            temp_list.value[::-1]), log(part[::-1]))
 
         f = exp(f)
 

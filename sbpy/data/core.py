@@ -74,10 +74,11 @@ class DataClass():
         `~astropy.units.Quantity` or other
 
         """
-        if unit is None:
-            return val
-        elif isinstance(val, u.Quantity):
-            return val.to(unit)
+        if isinstance(val, u.Quantity):
+            if unit is None:
+                return val.value
+            else:
+                return val.to(unit)
         else:
             if unit is not None:
                 return val * u.Unit(unit)
@@ -311,6 +312,9 @@ class DataClass():
         # turn single column to a list
         try:
             iter(columns[0])
+            # workaround for strings and bytes
+            if isinstance(columns[0], (str, bytes)):
+                columns = [columns]
         except TypeError:
             columns = [columns]
 
@@ -406,15 +410,17 @@ class DataClass():
             raise DataClassError('Must provide the same number of names '
                                  'and units.')
 
-        if units is None:
-            # get units used in `rows`
-            # first check whether `rows` is a single row or multiple rows
-            try:
-                iter(rows[0])
-            except TypeError:
-                # convert rows to list of list
+        # reorganize rows, if necessary
+        try:
+            iter(rows[0])
+            # workaround for strings and bytes
+            if isinstance(rows[0], (str, bytes)):
                 rows = [rows]
+        except TypeError:
+            # convert rows to list of list
+            rows = [rows]
 
+        if units is None:
             # extract units
             units = []
             for col in rows[0]:
@@ -669,8 +675,7 @@ class DataClass():
                         convfunc = list(conf.field_eq[alt].values())[0]
                         if convname in self.column_names:
                             # create new column for the converted field
-                            self.add_column(convfunc(self.table[convname]),
-                                            colname)
+                            self[colname] = convfunc(self.table[convname])
                             break
             except KeyError:
                 continue
@@ -715,15 +720,18 @@ class DataClass():
         ----------
         data : list or iterable `~astropy.units.Quantity` object
             Data to be added in a new column in form of a one-dimensional
-            sequence or a two-dimensional nested sequence. Each element in
+            list or a two-dimensional nested sequence. Each element in
             ``data``
-            corresponds to a row in the existing data table. If an element
+            corresponds to one of the rows in the existing data table. If
+            an element
             of ``data`` is a list, the corresponding data table row is
-            duplicated by the number of elements in this list. If ``data`` is
+            repeated the same the number of times as there are elements in
+            this sublist. If ``data`` is
             provided as a flat list and has the same length as the current
             data table, ``data`` will be simply added as a column to the data
             table and the length of the data table will not change. If
-            ``data`` is provided as a `~astropy.units.Quantity` object, its
+            ``data`` is provided as a `~astropy.units.Quantity` object (only
+            possible for flat lists), its
             unit is adopted, unless ``unit`` is specified (not None).
         name : str
             Name of the new data column.
@@ -742,48 +750,50 @@ class DataClass():
 
         Examples
         --------
-        >>> from sbpy.data import DataClass
+        Imagine the following scenario: you obtain photometric measurements
+        of the same asteroid over a number of nights. The following
+        `~sbpy.data.Ephem` object summarizes the observations:
+
+        >>> from sbpy.data import Ephem
         >>> import astropy.units as u
-        >>> dat = DataClass.from_columns([[1, 2, 3]*u.Unit('m'),
-        ...                               [4, 5, 6]*u.m/u.s,
-        ...                               ['a', 'b', 'c']],
-        ...                              names=('a', 'b', 'c'))
-        >>> dat.apply([[1], [2, 3], [4, 5, 6]], name='d', unit='kg')
-        >>> dat
+        >>> obs = Ephem.from_columns([[2451223, 2451224, 2451226]*u.d,
+        ...                           [120.1, 121.3, 124.9]*u.deg,
+        ...                           [12.4, 12.2, 10.8]*u.deg],
+        ...                          names=('JD', 'RA', 'DEC'))
+        >>> obs
+        <QTable length=3>
+            JD       RA     DEC
+            d       deg     deg
+         float64  float64 float64
+        --------- ------- -------
+        2451223.0   120.1    12.4
+        2451224.0   121.3    12.2
+        2451226.0   124.9    10.8
+
+        After analyzing the observations, you would like to add the
+        measured apparent V-band magnitudes to this object. You have
+        one observation from the first night, two from the second night,
+        and three from the third night. Instead of re-creating ``obs``,
+        `~sbpy.data.DataClass.apply` offers a convenient way to
+        supplement ``obs``:
+
+        >>> obs.apply([[12.1], [12.5, 12.6], [13.5, 13.4, 13.5]],
+        ...           name='V', unit='mag')
+        >>> obs
         <QTable length=6>
-           a       b     c      d
-           m     m / s          kg
-        float64 float64 str1 float64
-        ------- ------- ---- -------
-            1.0     4.0    a     1.0
-            2.0     5.0    b     2.0
-            2.0     5.0    b     3.0
-            3.0     6.0    c     4.0
-            3.0     6.0    c     5.0
-            3.0     6.0    c     6.0
+            JD       RA     DEC      V
+            d       deg     deg     mag
+         float64  float64 float64 float64
+        --------- ------- ------- -------
+        2451223.0   120.1    12.4    12.1
+        2451224.0   121.3    12.2    12.5
+        2451224.0   121.3    12.2    12.6
+        2451226.0   124.9    10.8    13.5
+        2451226.0   124.9    10.8    13.4
+        2451226.0   124.9    10.8    13.5
 
-        ``dat`` was applied and those rows with multiple values
-        in the new column `d` were duplicated to match the order in `d`.
-
-        >>> dat.apply([10, 20, 30, 40, 50, 60], name='e')
-        >>> dat
-        <QTable length=6>
-           a       b     c      d       e
-           m     m / s          kg
-        float64 float64 str1 float64 float64
-        ------- ------- ---- ------- -------
-            1.0     4.0    a     1.0    10.0
-            2.0     5.0    b     2.0    20.0
-            2.0     5.0    b     3.0    30.0
-            3.0     6.0    c     4.0    40.0
-            3.0     6.0    c     5.0    50.0
-            3.0     6.0    c     6.0    60.0
-
-        In this case, the new column data provided to this method is
-        flat and has the same length as the underlying data
-        table. Hence, the new column data is simply added as a new
-        column.
-
+        Note how the data table has been re-arranged and rows have been
+        duplicated in order to provide the expected shape.
         """
         _newtable = None
 
