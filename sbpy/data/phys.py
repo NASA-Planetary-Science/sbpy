@@ -13,7 +13,7 @@ import warnings
 
 from collections import OrderedDict
 
-from numpy import ndarray, array, isnan, nan, interp
+from numpy import ndarray, array, isnan, nan, interp, log, exp
 import astropy.units as u
 import astropy.constants as con
 from astroquery.jplsbdb import SBDB
@@ -266,7 +266,9 @@ class Phys(DataClass):
 
         temp = temp_estimate
 
-        f = interp(temp.value, temp_list.value[::-1], part[::-1])
+        f = interp(log(temp.value), log(temp_list.value[::-1]), log(part[::-1]))
+
+        f = exp(f)
 
         partition = 10**(f)
 
