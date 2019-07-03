@@ -275,6 +275,7 @@ def total_number_nocd(integrated_flux, mol_data, aper, b):
                 | Transition frequency in MHz
                 | Einstein Coefficient (1/s)
                 | Beta: (Timescale (in s) * r^2 (in au))
+                | Optional: user-defined Column Density in 1/m^2
 
         The values above can either be given by the user or obtained from the
         functions `~sbpy.activity.gas.productionrate.einstein_coeff` and
@@ -300,9 +301,12 @@ def total_number_nocd(integrated_flux, mol_data, aper, b):
 
     register('Spectroscopy', {'Total Number (eq. 10)': '2004come.book..391B'})
 
-    cdensity = integrated_flux
-    cdensity *= (8*np.pi*con.k_B*mol_data['t_freq'][0]**2 /
-                 (con.h*con.c**3 * mol_data['eincoeff'][0])).decompose()
+    if mol_data['Column Density'][0].value:
+        cdensity = mol_data['Column Density'][0]
+    else:
+        cdensity = integrated_flux
+        cdensity *= (8*np.pi*con.k_B*mol_data['t_freq'][0]**2 /
+                     (con.h*con.c**3 * mol_data['eincoeff'][0])).decompose()
 
     beta = mol_data['beta'][0]
 
