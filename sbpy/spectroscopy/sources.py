@@ -255,7 +255,7 @@ class SpectralSource(ABC):
             lambda_eff, fluxd = self.observe_bandpass(
                 wfb, unit=unit, **kwargs)
         elif isinstance(wfb, u.Quantity):
-            fluxd = self.observe_spectrum(wfb, **kwargs)
+            fluxd = self.observe_spectrum(wfb, unit=unit, **kwargs)
         else:
             raise TypeError('Unsupported type for `wfb` type: {}'
                             .format(type(wfd)))
