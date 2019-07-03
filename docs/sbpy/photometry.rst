@@ -67,10 +67,10 @@ The model class can also be initialized by a subclass of ``sbpy``'s
 model parameters:
 
   >>> from sbpy.data import Phys
-  >>> phys = Phys.from_sbdb('Ceres')
-  >>> m = HG(data=phys)
+  >>> phys = Phys.from_sbdb('Ceres')    # doctest: +REMOTE_DATA
+  >>> m = HG(data=phys)                 # doctest: +REMOTE_DATA
   INFO: Model initialized for 1 Ceres. [sbpy.photometry.core]
-  >>> print(m)
+  >>> print(m)                          # doctest: +REMOTE_DATA
   Model: HG
   Inputs: ('x',)
   Outputs: ('y',)

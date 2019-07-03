@@ -457,8 +457,8 @@ Mauna Kea Observatory (IAU observatory code ``568``) from the `JPL Horizons serv
     >>> epoch = Time('2018-08-03 14:20', scale='utc') # time in UT
     >>> eph = Ephem.from_horizons('Ceres',
     ...                           location='568',
-    ...                           epochs=epoch)
-    >>> print(eph)
+    ...                           epochs=epoch)    # doctest: +REMOTE_DATA
+    >>> print(eph)                                  # doctest: +REMOTE_DATA
     <QTable masked=True length=1>
     targetname       datetime_str          datetime_jd    ...  PABLat timescale
 						d         ...   deg
@@ -466,7 +466,7 @@ Mauna Kea Observatory (IAU observatory code ``568``) from the `JPL Horizons serv
     ---------- ------------------------ ----------------- ... ------- ---------
        1 Ceres 2018-Aug-03 14:20:00.000 2458334.097222222 ...  9.3473       UTC
 
-    >>> print(eph.column_names)
+    >>> print(eph.column_names)                    # doctest: +REMOTE_DATA
     <TableColumns names=('targetname','datetime_str','datetime_jd','H','G','solar_presence','flags','RA','DEC','RA_app','DEC_app','RA*cos(Dec)_rate','DEC_rate','AZ','EL','AZ_rate','EL_rate','sat_X','sat_Y','sat_PANG','siderealtime','airmass','magextinct','V','surfbright','illumination','illum_defect','sat_sep','sat_vis','ang_width','PDObsLon','PDObsLat','PDSunLon','PDSunLat','SubSol_ang','SubSol_dist','NPole_ang','NPole_dist','EclLon','EclLat','r','r_rate','delta','delta_rate','lighttime','vel_sun','vel_obs','elong','elongFlag','alpha','lunar_elong','lunar_illum','sat_alpha','sunTargetPA','velocityPA','OrbPlaneAng','constellation','TDB-UT','ObsEclLon','ObsEclLat','NPole_RA','NPole_DEC','GlxLon','GlxLat','solartime','earth_lighttime','RA_3sigma','DEC_3sigma','SMAA_3sigma','SMIA_3sigma','Theta_3sigma','Area_3sigma','RSS_3sigma','r_3sigma','r_rate_3sigma','SBand_3sigma','XBand_3sigma','DoppDelay_3sigma','true_anom','hour_angle','alpha_true','PABLon','PABLat','timescale')>
 
 `~sbpy.data.Ephem.from_horizons` uses one or more target names, an
@@ -495,8 +495,8 @@ full flexibility of the latter function:
     ...                           epochs={'start': epoch1,
     ...                                   'stop': epoch2,
     ...                                   'step': '10m'},
-    ...                           skip_daylight=True)
-    >>> print(eph)
+    ...                           skip_daylight=True) # doctest: +REMOTE_DATA
+    >>> print(eph)                                    # doctest: +REMOTE_DATA
     <QTable masked=True length=26>
     targetname    datetime_str      datetime_jd    ...  PABLon   PABLat timescale
 					 d         ...   deg      deg
@@ -524,8 +524,8 @@ concatenate queries for a number of objects:
 
     >>> eph = Ephem.from_horizons(['Ceres', 'Pallas', 12893, '1983 SA'],
     ...                           location='568',
-    ...                           epochs=epoch1)
-    >>> print(eph)
+    ...                           epochs=epoch1)    # doctest: +REMOTE_DATA
+    >>> print(eph)                                  # doctest: +REMOTE_DATA
     <QTable masked=True length=4>
 	    targetname               datetime_str       ...  PABLat  timescale
 							...   deg
@@ -549,8 +549,8 @@ ephemerides from the Minor Planet Center:
     >>> eph = Ephem.from_mpc('2P', location='568',
     ...                      epochs={'start': '2018-10-22',
     ...                              'stop': '2018-10-26',
-    ...                              'step': '1d'})
-    >>> print(eph)
+    ...                              'step': '1d'})   # doctest: +REMOTE_DATA
+    >>> print(eph)                                    # doctest: +REMOTE_DATA
     <QTable length=5>
 	      Date          timescale ... Moon distance Moon altitude
 				      ...      deg           deg
@@ -573,9 +573,9 @@ from the Discovery Channel Telescope:
      >>> from sbpy.data import Orbit, Ephem
      >>> from astropy.time import Time
      >>> epochs = Time.now().jd + np.arange(0, 10, 1/24)
-     >>> ceres = Orbit.from_horizons('1')
-     >>> eph = Ephem.from_oo(ceres, epochs, 'G37') # doctest: +SKIP
-     >>> print(eph) # doctest: +SKIP
+     >>> ceres = Orbit.from_horizons('1')    # doctest: +REMOTE_DATA
+     >>> eph = Ephem.from_oo(ceres, epochs, 'G37') # doctest: +SKIP 
+     >>> print(eph) # doctest: +SKIP 
      <QTable length=240>
      targetname       epoch        ...           obsz               trueanom
 			d          ...            AU                  deg
@@ -610,6 +610,7 @@ body osculating elements from the `JPL Horizons service
     >>> from astropy.time import Time
     >>> epoch = Time('2018-05-14', scale='utc')
     >>> elem = Orbit.from_horizons('Ceres', epochs=epoch)
+    ...     # doctest: +REMOTE_DATA
     >>> print(elem)  # doctest: +SKIP
     <QTable masked=True length=1>
     targetname datetime_jd ...         P         timescale
@@ -617,7 +618,7 @@ body osculating elements from the `JPL Horizons service
        str7      float64   ...      float64         str2
     ---------- ----------- ... ----------------- ---------
        1 Ceres   2458252.5 ... 1681.218128428134        TT
-    >>> print(elem.column_names)
+    >>> print(elem.column_names)      # doctest: +REMOTE_DATA
     <TableColumns names=('targetname','datetime_jd','datetime_str','H','G','e','q','incl','Omega','w','Tp_jd','n','M','nu','a','Q','P','timescale')>
 
 If ``epochs`` is not set, the osculating elements for the current
@@ -630,7 +631,7 @@ orbital elements for a number of targets:
     >>> epoch = Time('2018-08-03 14:20', scale='utc')
     >>> elem = Orbit.from_horizons(['3749', '2009 BR60'],
     ...                            epochs=epoch,
-    ...                            refplane='earth')
+    ...                            refplane='earth')  # doctest: +REMOTE_DATA
     >>> print(elem) # doctest: +SKIP
     <QTable length=2>
 	  targetname         datetime_jd    ...         P         timescale
@@ -653,7 +654,8 @@ In order to transform some current orbits to a state vector in
 cartesian coordinates, one could use the following code:
 
     >>> elem = Orbit.from_horizons(['Ceres', 'Pallas', 'Vesta'])
-    >>> statevec = elem.oo_transform('CART') # doctest: +SKIP
+    ...     # doctest: +REMOTE_DATA
+    >>> statevec = elem.oo_transform('CART') # doctest: +SKIP 
     >>> print(statevec) # doctest: +SKIP
     <QTable length=3>
        id             x                   y           ...    H       G    timescale
@@ -673,7 +675,7 @@ propagated to either as `~astropy.time.Time` object, or as float in
 terms of Julian date. The following example propagates the current
 orbit of Ceres back to year 2000:
 
-    >>> elem = Orbit.from_horizons('Ceres')
+    >>> elem = Orbit.from_horizons('Ceres')    # doctest: +REMOTE_DATA
     >>> epoch = Time('2000-01-01', format='iso')
     >>> newelem = elem.oo_propagate(epoch) # doctest: +SKIP
     >>> print(newelem) # doctest: +SKIP
@@ -703,6 +705,7 @@ small number of asteroids:
 
     >>> from sbpy.data import Phys
     >>> phys = Phys.from_sbdb(['Ceres', '12893', '3552'])
+    ...     # doctest: +REMOTE_DATA
     >>> print(phys['targetname', 'H', 'diameter']) # doctest: +SKIP
     <QTable length=3>
 	    targetname            H    diameter

@@ -82,6 +82,7 @@ class Orbit(DataClass):
         >>> from astropy.time import Time
         >>> epoch = Time('2018-05-14', scale='utc')
         >>> eph = Orbit.from_horizons('Ceres', epochs=epoch)
+        ... # doctest: +REMOTE_DATA
         """
 
         # modify epoch input to make it work with astroquery.jplhorizons
@@ -337,7 +338,7 @@ class Orbit(DataClass):
         asteroid Ceres.
 
         >>> from sbpy.data import Orbit
-        >>> ceres = Orbit.from_horizons('Ceres')
+        >>> ceres = Orbit.from_horizons('Ceres')  # doctest: +REMOTE_DATA
         >>> statevec = ceres.oo_transform('CART') # doctest: +SKIP
         >>> print(statevec)  # doctest: +SKIP
         <QTable length=1>
@@ -473,7 +474,7 @@ class Orbit(DataClass):
         >>> from sbpy.data import Orbit
         >>> from astropy.time import Time
         >>> epoch = Time.now().jd + 100
-        >>> ceres = Orbit.from_horizons('Ceres')
+        >>> ceres = Orbit.from_horizons('Ceres')      # doctest: +REMOTE_DATA
         >>> future_ceres = ceres.oo_propagate(epoch)  # doctest: +SKIP
         >>> print(future_ceres)  # doctest: +SKIP
         <QTable length=1>

@@ -433,7 +433,7 @@ def _report_at_exit():
     if status():
         log.info('Thank you for using sbpy.  ' +
                  'Your session results were based on:\n' +
-                 to_text())
+                 show())
 
 
 stop()  # default is no bibliography tracking

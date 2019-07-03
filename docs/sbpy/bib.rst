@@ -40,8 +40,8 @@ to:
 
     >>> from sbpy import bib, data
     >>> bib.track()
-    >>> eph = data.Ephem.from_horizons('433')
-    >>> print(bib.to_text())  # doctest: +SKIP
+    >>> eph = data.Ephem.from_horizons('433')    # doctest: +REMOTE_DATA
+    >>> print(bib.to_text())                     # doctest: +REMOTE_DATA
     sbpy.data.Ephem.from_horizons:
       data service:
           Giorgini, Yeomans, Chamberlin et al. 1996, AAS/Division for Planetary Sciences Meeting Abstracts #28, 25.04
@@ -57,8 +57,7 @@ Bibliography tracking can also be used in a context manager:
 
     >>> from sbpy import bib, data
     >>> with bib.Tracking(to_text):
-    ...     eph = data.Ephem.from_horizons('Ceres')
-    ...     # doctest: +SKIP
+    ...     eph = data.Ephem.from_horizons('Ceres') # doctest: +REMOTE_DATA
     sbpy.data.Ephem.from_horizons:
       data service:
           Giorgini, Yeomans, Chamberlin et al. 1996, AAS/Division for Planetary Sciences Meeting Abstracts #28, 25.04
@@ -81,7 +80,7 @@ Bibliographies can be generated in different output formats:
 
 Unformatted (`~sbpy.bib.show`)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    >>> bib.show() # doctest: +SKIP
+    >>> bib.show() # doctest: +REMOTE_DATA
     sbpy.data.Ephem.from_horizons:
       data service:
         1996DPS....28.2504G
@@ -89,7 +88,7 @@ Unformatted (`~sbpy.bib.show`)
 
 Simple text (`~sbpy.bib.to_text`)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    >>> bib.to_text() # doctest: +SKIP
+    >>> bib.to_text() # doctest: +REMOTE_DATA
     sbpy.data.Ephem.from_horizons:
       data service:
           Giorgini, Yeomans, Chamberlin et al. 1996, AAS/Division for Planetary Sciences Meeting Abstracts #28, 25.04
@@ -97,7 +96,7 @@ Simple text (`~sbpy.bib.to_text`)
 
 BibTeX (`~sbpy.bib.to_bibtex`)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    >>> bib.to_bibtex() # doctest: +SKIP
+    >>> bib.to_bibtex() # doctest: +REMOTE_DATA
     % sbpy.data.Ephem.from_horizons/data service:
     @INPROCEEDINGS{1996DPS....28.2504G,
            author = {{Giorgini}, J.~D. and {Yeomans}, D.~K. and {Chamberlin}, A.~B. and
@@ -116,7 +115,7 @@ BibTeX (`~sbpy.bib.to_bibtex`)
 
 AASTeX (`~sbpy.bib.to_aastex`)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    >>> bib.to_aastex() # doctest: +SKIP
+    >>> bib.to_aastex() # doctest: +REMOTE_DATA
     % sbpy.data.Ephem.from_horizons/data service:
     \bibitem[Giorgini et al.(1996)]{1996DPS....28.2504G} Giorgini, J.~D.,
     Yeomans, D.~K., Chamberlin, A.~B., et al.\ 1996, AAS/Division for
@@ -124,7 +123,7 @@ AASTeX (`~sbpy.bib.to_aastex`)
 
 Icarus (`~sbpy.bib.to_icarus`)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    >>> bib.to_icarus() # doctest: +SKIP
+    >>> bib.to_icarus() # doctest: +REMOTE_DATA
     % sbpy.data.Ephem.from_horizons/data service:
     \bibitem[Giorgini et al.(1996)]{1996DPS....28.2504G} Giorgini, J.~D.,
     and 9 colleagues 1996.\ JPL's On-Line Solar System Data Service.\
@@ -132,7 +131,7 @@ Icarus (`~sbpy.bib.to_icarus`)
 
 MNRAS (`~sbpy.bib.to_mnras`)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    >>> bib.to_mnras() # doctest: +SKIP
+    >>> bib.to_mnras() # doctest: +REMOTE_DATA
     % sbpy.data.Ephem.from_horizons/data service:
     \bibitem[\protect\citeauthoryear{Giorgini, et al.}{1996}]{1996DPS....28.2504G}
     Giorgini J.~D., et al., 1996, AAS/Division for Planetary Sciences

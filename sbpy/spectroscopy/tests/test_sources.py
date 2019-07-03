@@ -158,7 +158,7 @@ class TestSpectralStandard:
         with bib.Tracking():
             s.source
 
-        assert 'asdf' in bib.to_text()
+        assert 'asdf' in set(bib.show().split())
 
     @remote_data
     def test_filt_str(self):

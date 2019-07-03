@@ -9,7 +9,7 @@ magnitude conversions.  ``sbpy`` units may be added to the top-level
 ``astropy.units`` namespace via:
 
   >>> import sbpy.units
-  >>> sbpy.units.enable()    # doctest: +SKIP
+  >>> sbpy.units.enable()    # doctest: +IGNORE_OUTPUT
 
 This will make them searchable via strings, such as
 ``u.Unit('mag(VEGA)')``.
@@ -100,8 +100,10 @@ Users can supply solar flux via keyword ``f_sun``, or solar magnitude in any
 magnitude system via keyword ``M_sun`` as long as the quantity to be converted
 is in the same unit as the supplied solar flux or magnitude, respectively:
 
+  >>> from sbpy.utils import get_bandpass
+  >>> V = get_bandpass('Johnson V')
   >>> ref = 0.0287 / u.sr
-  >>> flux_ceres = mag.to('W/(m2 um)', spectral_density_vega('johnson_v')) # doctest: +IGNORE_OUTPUT
+  >>> flux_ceres = mag.to('W/(m2 um)', spectral_density_vega(V))
   >>> flux_sun = 1839.93273227 * u.Unit('W/(m2 um)')
   >>> cross_sec = flux_ceres.to('km2', reflectance(reflectance=ref,
   ...     f_sun=flux_sun))
