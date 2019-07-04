@@ -136,7 +136,8 @@ from .core import DataClass, DataClassError
 from .ephem import Ephem
 from .orbit import Orbit
 from .phys import Phys
+from .obs import Obs
 from .names import Names, natural_sort_key
 
 __all__ = ['DataClass', 'Ephem', 'Orbit', 'Phys', 'Names', 'conf', 'Conf',
-           'DataClassError']
+           'DataClassError', 'Obs']
