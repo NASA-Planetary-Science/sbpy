@@ -452,7 +452,7 @@ class Ephem(DataClass):
                     field)[0]] = conf.oorb_orbit_units[orbittype][idx]
             except KeyError:
                 pass
-        for colname in orb.column_names:
+        for colname in orb.field_names:
             if (colname in default_units.keys() and
                 not isinstance(orb[colname],
                                (u.Quantity, u.CompositeUnit))):

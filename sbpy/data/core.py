@@ -226,7 +226,7 @@ class DataClass():
             A two-dimensional sequence is interpreted as a sequence of
             columns, each of which must have the same length.
         names : str or list-like
-            Column names, must have the same number of names as data columns.
+            Field names, must have the same number of names as data columns.
         units : str or list-like, optional
             Unit labels (as provided by `~astropy.units.Unit`) in which
             the data provided in ``columns`` will be stored in the underlying
@@ -633,13 +633,13 @@ class DataClass():
         translated_colnames = deepcopy(target_colnames)
         for idx, colname in enumerate(target_colnames):
             # colname is already a column name in self.table
-            if colname in self.column_names:
+            if colname in self.field_names:
                 continue
             # colname is an alternative column name
             elif colname in sum(conf.fieldnames, []):
                 for alt in conf.fieldnames[conf.fieldname_idx[colname]]:
                     # translation available for colname
-                    if alt in self.column_names:
+                    if alt in self.field_names:
                         translated_colnames[idx] = alt
                         break
             # colname is unknown, raise a KeyError
@@ -663,7 +663,7 @@ class DataClass():
             # ignore, if colname is unknown (KeyError)
             try:
                 # ignore if colname has already been converted
-                if any([alt in self.column_names for alt
+                if any([alt in self.field_names for alt
                         in conf.fieldnames[conf.fieldname_idx[colname]]]):
                     continue
                 # consider alternative names for colname -> alt
@@ -673,7 +673,7 @@ class DataClass():
                         convname = self._translate_columns(
                             list(conf.field_eq[alt].keys())[0])[0]
                         convfunc = list(conf.field_eq[alt].values())[0]
-                        if convname in self.column_names:
+                        if convname in self.field_names:
                             # create new column for the converted field
                             self[colname] = convfunc(self.table[convname])
                             break
@@ -688,8 +688,8 @@ class DataClass():
         return self._table
 
     @property
-    def column_names(self):
-        """Return a list of all column names in the data table."""
+    def field_names(self):
+        """Return a list of all field names in the data table."""
         return self._table.columns
 
     @property

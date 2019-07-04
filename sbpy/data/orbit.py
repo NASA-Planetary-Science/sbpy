@@ -167,7 +167,7 @@ class Orbit(DataClass):
         """
 
         # identify orbit type based on available table columns
-        if 'orbtype' in self.column_names:
+        if 'orbtype' in self.field_names:
             orbittype = self.table['orbtype'][0]
         else:
             orbittype = None
@@ -186,7 +186,7 @@ class Orbit(DataClass):
                 'orbit type cannot be determined from elements')
 
         # rename TDB to TT, if ``timescale`` fields available
-        if ('timescale' in self.column_names and
+        if ('timescale' in self.field_names and
                 any(self.table['timescale'] == 'TDB')):
             self.table['timescale'][self.table['timescale'] == 'TDB'] = 'TT'
         if timescale == 'TDB':
@@ -195,7 +195,7 @@ class Orbit(DataClass):
         if timescale is not None:
             # override timescale, if provided
             timescale_ = [conf.oorb_timeScales[timescale]] * len(self.table)
-        elif 'timescale' not in self.column_names:
+        elif 'timescale' not in self.field_names:
             # assume UTC if no timescale information provided
             timescale_ = [conf.oorb_timeScales['UTC']] * len(self.table)
         else:
@@ -204,7 +204,7 @@ class Orbit(DataClass):
                           for t in self.table['timescale']]
 
         # implant ``targetname`` field information, if not available
-        if 'targetname' not in self.column_names:
+        if 'targetname' not in self.field_names:
             self.table['targetname'] = ['orbit_'+str(i) for i in
                                         range(len(self.table))]
 
@@ -352,7 +352,7 @@ class Orbit(DataClass):
                     field)[0]] = conf.oorb_orbit_units[orbittype][idx]
             except KeyError:
                 pass
-        for colname in self.column_names:
+        for colname in self.field_names:
             if (colname in default_units.keys() and
                 not isinstance(self[colname],
                                (u.Quantity, u.CompositeUnit))):
@@ -367,15 +367,15 @@ class Orbit(DataClass):
             RuntimeError('pyoorb failed with error code {:d}'.format(err))
 
         # reorder data in Orbit object
-        column_names = conf.oorb_orbit_fields[orbittype]
+        field_names = conf.oorb_orbit_fields[orbittype]
 
         columns = []
         for i, col in enumerate(oo_orbits.transpose()):
             columns.append(Orbit._unit_apply(
                 col, conf.oorb_orbit_units[orbittype][i]))
-        orbits = self.from_columns(columns, names=column_names)
+        orbits = self.from_columns(columns, names=field_names)
 
-        for i, col in enumerate(orbits.column_names):
+        for i, col in enumerate(orbits.field_names):
             # convert from radians to degrees where unit == deg
             if conf.oorb_orbit_units[orbittype][i] == 'deg':
                 orbits._table[col] = rad2deg(orbits[col])
@@ -502,7 +502,7 @@ class Orbit(DataClass):
                     field)[0]] = conf.oorb_orbit_units[orbittype][idx]
             except KeyError:
                 pass
-        for colname in self.column_names:
+        for colname in self.field_names:
             if (colname in default_units.keys() and
                 not isinstance(self[colname],
                                (u.Quantity, u.CompositeUnit))):
@@ -522,15 +522,15 @@ class Orbit(DataClass):
             RuntimeError('pyoorb failed with error code {:d}'.format(err))
 
         # reorder data in Orbit object
-        column_names = conf.oorb_orbit_fields[orbittype]
+        field_names = conf.oorb_orbit_fields[orbittype]
 
         columns = []
         for i, col in enumerate(oo_orbits.transpose()):
             columns.append(Orbit._unit_apply(
                 col, conf.oorb_orbit_units[orbittype][i]))
-        orbits = self.from_columns(columns, names=column_names)
+        orbits = self.from_columns(columns, names=field_names)
 
-        for i, col in enumerate(orbits.column_names):
+        for i, col in enumerate(orbits.field_names):
             # convert from radians to degrees where unit == deg
             if conf.oorb_orbit_units[orbittype][i] == 'deg':
                 orbits._table[col] = rad2deg(orbits[col])
