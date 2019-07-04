@@ -297,29 +297,3 @@ class Phys(DataClass):
         result = cls.from_array(quantities, names)
 
         return result
-
-    @classmethod
-    def from_lowell(cls, targetid):
-        """Load physical properties from Lowell Observatory
-        (http://asteroid.lowell.edu/).
-
-        The Lowell database will provide a database of physical
-        properties which is a compilation of a number of different sources.
-
-        Parameters
-        ----------
-        targetid : str, mandatory
-            target identifier
-
-        Returns
-        -------
-        Astropy Table
-
-        Examples
-        --------
-        >>> from sbpy.data import Phys # doctest: +SKIP
-        >>> phys = Phys.from_astorb('Ceres') # doctest: +SKIP
-
-        not yet implemented
-
-        """

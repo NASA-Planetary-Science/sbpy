@@ -145,29 +145,6 @@ class Orbit(DataClass):
 
         return cls.from_table(all_elem)
 
-    @classmethod
-    def from_mpc(cls, targetid):
-        """Load orbital elements from the Minor Planet Center
-        (http://minorplanetcenter.net/).
-
-        Parameters
-        ----------
-        targetid: str, mandatory
-            target identifier
-
-        Returns
-        -------
-        `~Orbit` object
-
-        Examples
-        --------
-        >>> from sbpy.data import Orbit  # doctest: +SKIP
-        >>> orb = Orbit.from_mpc('ceres')  # doctest: +SKIP
-
-        not yet implemented
-
-        """
-
     # functions using pyoorb
 
     def _to_oo(self, timescale=None):

@@ -66,28 +66,6 @@ class Names():
     asteroid identifiers."""
 
     @staticmethod
-    def altident(identifier):
-        """Query Lowell database to obtain alternative target names for
-        this object.
-
-        Parameters
-        ----------
-        identifier : str
-           Target identifier.
-
-        Examples
-        --------
-        >>> from sbpy.data import Names
-        >>> Names.altident('3552')  # doctest: +SKIP
-        ['3552', 'Don Quixote', '1983 SA']
-
-        not yet implemented
-
-        """
-
-        pass
-
-    @staticmethod
     def to_packed(s):
         """Convert asteroid designation/number to packed identifier.
 

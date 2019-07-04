@@ -313,36 +313,6 @@ class Ephem(DataClass):
         return cls.from_table(eph)
 
     @classmethod
-    def from_imcce(cls, targetid, epoch, observatory='500'):
-        """
-        Load orbital elements from
-        `IMCCE <http://vo.imcce.fr/webservices/miriade/>`_.
-
-        Parameters
-        ----------
-        targetid : str, mandatory
-            target identifier
-        epochs : astropy Time instance or iterable, optional, default ``None``
-            epoch of elements; if ``None`` is provided, current date is used
-        observatory : str, optional, default '500' (geocentric)
-            location of observer
-
-        Returns
-        -------
-        `~Ephem` object
-
-        Examples
-        --------
-        >>> from sbpy.data import Ephem  # doctest: +SKIP
-        >>> from astropy.time import Time  # doctest: +SKIP
-        >>> epoch = Time('2018-05-14', scale='utc')  # doctest: +SKIP
-        >>> eph = Ephem.from_imcce('ceres', '568', epoch)  # doctest: +SKIP
-
-        not yet implemented
-
-        """
-
-    @classmethod
     def from_oo(self, orbit, epochs=None, location='500', scope='full',
                 timescale='UTC', dynmodel='N', ephfile='de430'):
         """Uses pyoorb to derive ephemerides from an `~Orbit` object. For a
