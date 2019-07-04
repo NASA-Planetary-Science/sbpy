@@ -4,56 +4,92 @@ Data Module (`sbpy.data`)
 Introduction
 ------------
 
-`sbpy.data` provides classes for dealing with orbital elements
-(`~sbpy.data.Orbit`), ephemerides (`~sbpy.data.Ephem`), and physical
-properties (`~sbpy.data.Phys`). `~sbpy.data.Ephem`,
-`~sbpy.data.Orbit`, and `~sbpy.data.Phys` objects act as containers
-for such parameters and can (and should) be used to provide these to
-functions in `sbpy`. Each of these classes is based on the
-`~sbpy.data.DataClass` base class, which internally uses an
-`~astropy.table.QTable` object and provides the same functionality and
-features as the latter.
+`sbpy.data` provides classes for dealing with all kinds of data that
+planetary astronomers encounter: orbital elements
+(`~sbpy.data.Orbit`), ephemerides (`~sbpy.data.Ephem`), observational
+data (`~sbpy.data.Obs`), and physical properties
+(`~sbpy.data.Phys`). These objects act as containers that bundle
+similar data and have to be used in `sbpy` to maintain a transparent
+and clean data flow between functions. Each of these classes is based
+on the `~sbpy.data.DataClass` base class, which internally uses an
+`~astropy.table.QTable` object in combination with some other
+features. Hence, each of these objects can actually be thought of as a
+table with different *fields* (or columns) and *rows*.
 
-Furthermore, `~sbpy.data` also provides additional interfaces to a number of
-different services and `~sbpy.data.Names` provides functions
-related to naming conventions for asteroids and comets.
+However, in contrast to simple tables, `~sbpy.data` objects provide
+additional functionality that is detailed below.
 
 
-What are Ephem, Orbit, and Phys and How to Use Them?
-----------------------------------------------------
+What are Ephem, Orbit, Obs, and Phys and what are they used for?
+----------------------------------------------------------------
 
 Although the data container classes `~sbpy.data.Ephem`,
-`~sbpy.data.Orbit`, and `~sbpy.data.Phys` look very similar and are
-based on the same base class (`~sbpy.data.DataClass`), there are
-subtle differences. The container classes have been introduced to
-minimize confusion between properties of different natures, i.e.,
-mixing apples with oranges. For instance, it would not make sense to
-add a *diameter* field to an ``Ephem`` object holding observational
-data including epochs and magnitudes, since the diameter of a body is
-unlikely to change over the course of observations. Furthermore,
-providing separate data containers for different properties enables
-the implementation of specifically designed methods to query and
-modify the data held by these classes.
+`~sbpy.data.Orbit`, `~sbpy.data.Obs` and `~sbpy.data.Phys` look very
+similar and are based on the same base class (`~sbpy.data.DataClass`),
+there are subtle differences. The container classes have been
+introduced to minimize confusion between properties of different
+natures, i.e., to avoid mixing apples with oranges. For instance,
+`~sbpy.data.Ephem` objects deal with ephemerides (e.g., RA and DEC and
+other properties that change as a function of time); the diameter of
+an object, however, does usually not vary with time. Adding a
+"diameter" field to an `~sbpy.data.Ephem` object would hence be
+inefficient: this object can contain hundreds of rows describing a
+target's ephemerides, while the diameter would be the same in each of
+these rows. Furthermore, providing separate data containers for
+different properties enables the implementation of specifically
+designed methods to query and modify the data held by these classes.
+
+What are Data Containers?
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`~sbpy.data.DataClass` - and hence all the data containers presented
+here - uses a `~astropy.table.QTable` object under the hood. You can
+think of those as **tables** - consisting of **fields** (or columns)
+and **rows** - that have `~astropy.units` attached to them, allowing
+you to propagate these units through your programs. **We strongly urge
+the user to make use of `~astropy.units`** in the definition of data
+containers in order to minimize confusion and tap the full potential
+of `sbpy`.
+
+The user is free to add any fields they want to a
+`~sbpy.data.DataClass` object. However, in order to enable the
+seemless use of `sbpy` functions and methods, we require the user to
+pick among a few common field names for different properties as listed
+:ref:`here <alternative_fieldnames>`. `~sbpy.data.DataClass` objects
+are able to identify alternative field names as listed in this
+document, as well as to perform transformations between a few field
+names - see below for more details.
+
+A `~sbpy.data.DataClass` object can hold as many data rows as you
+want. All rows can refer to a single object, or each row can refer to
+a separate object - this is usually up to the user, restrictions exist
+only in a few cases as detailed in this documentation.
 
 So what are the data containers supposed to be used for?
 
 Ephem
 ^^^^^
 
-`~sbpy.data.Ephem` was originally designed to hold
-**ephemerides**. However, instances of this class should be used in
-general to hold *properties that vary with time or as a function of
-another property* (e.g., wavelength). Hence, `~sbpy.data.Ephem` can be
-used to hold all kinds of **observations** (e.g., magnitudes and/or
-coordinates as a function of time) but also **spectra** (e.g., flux as
-a function of wavelength).
+`~sbpy.data.Ephem` has been designed to hold
+**ephemerides**, i.e., properties that vary with time. 
 
 `~sbpy.data.Ephem` currently provides convenience functions to query
 ephemerides from the JPL Horizons system
 (`~sbpy.data.Ephem.from_horizons`) and the Minor Planet Center
-(`~sbpy.data.Ephem.from_mpc`), as well as a convience function to
+(`~sbpy.data.Ephem.from_mpc`), as well as a convenience function to
 derive ephemerides from an `~sbpy.data.Orbit` object using `pyoorb
 <https://github.com/oorb/oorb/tree/master/python>`_.
+
+Obs
+^^^
+
+`~sbpy.data.Obs` is tailored to holding **observational data**, e.g.,
+magnitudes as a function of time. The `~sbpy.data.Obs` class is the
+only data container that is not directly derived from
+`~sbpy.data.DataClass`, but from `~sbpy.data.Ephem`, providing the
+same functionality as the latter.
+
+
 
 Orbit
 ^^^^^
@@ -96,28 +132,24 @@ objects can used in the exact same way.
 
 In plain words, this means that in the following examples you can
 replace `~sbpy.data.DataClass`, `~sbpy.data.Ephem`,
-`~sbpy.data.Orbit`, and `~sbpy.data.Phys` object with each other. In
-order to show some useful use cases, we will iterate between these
-types, but keep in mind: they all work the exact same way.
-
-`~sbpy.data.DataClass` uses `~astropy.table.QTable` objects under the
-hood. You can think of those as tables - consisting of columns and
-rows - that have `~astropy.units` attached to them, allowing you to
-propagate these units through your code. Each `~sbpy.data.DataClass`
-object can hold as many data as you want, where each datum can be a
-different object or the same object at a different epoch.
+`~sbpy.data.Orbit`, `~sbpy.data.Obs`, and `~sbpy.data.Phys` object
+with each other. In order to show some useful use cases, we will
+iterate between these types, but keep in mind: they all work the exact
+same way.
 
 
 Building an object
 ^^^^^^^^^^^^^^^^^^
 
-While `~sbpy.data.Ephem`, `~sbpy.data.Orbit`, and `~sbpy.data.Phys`
-provide a range of convience functions to build objects containing
-data, for instance from online data archives, it is easily possible to
-build these objects from scratch. This can be done for input data
-stored in dictionaries (`~sbpy.data.DataClass.from_dict`), lists or
-arrays (`~sbpy.data.DataClass.from_array`), `~astropy.table.Table`
-objects (`~sbpy.data.DataClass.from_table`), or from data files
+While `~sbpy.data.Ephem`, `~sbpy.data.Orbit`, `~sbpy.data.Obs`, and
+`~sbpy.data.Phys` provide a range of convience functions to build
+objects containing data, for instance from online data archives, it is
+easily possible to build these objects from scratch. This can be done
+for input data stored in dictionaries
+(`~sbpy.data.DataClass.from_dict`), lists or arrays
+(`~sbpy.data.DataClass.from_columns` and
+`~sbpy.data.DataClass.from_rows`), `~astropy.table.Table` objects
+(`~sbpy.data.DataClass.from_table`), or from data files
 (`~sbpy.data.DataClass.from_file`).
 
 Depending on how your input data are organized, you cean use different
@@ -134,7 +166,7 @@ options in different cases:
     ...             'argper': 123.4*u.deg, 'node': 45.2*u.deg,
     ...             'epoch': 2451200.5*u.d, 'true_anom':23.1*u.deg}
     >>> orb = Orbit.from_dict(elements)
-    >>> print(orb)  # doctest: +SKIP
+    >>> orb  # doctest: +SKIP
     <QTable length=1>
        a       e       i     argper   node    epoch   true_anom
        AU             deg     deg     deg       d        deg
@@ -154,13 +186,15 @@ options in different cases:
    order of elements in an `~collections.OrderedDict` will be the same
    as the order of the data table columns.
 
+   For details on how to use this feature, see
+   `~sbpy.data.DataClass.from_dict`.
+
+   
 2. Now assume that you want to build an `~sbpy.data.Ephem` object
    holding RA, Dec, and observation midtime for some target that you
-   observed. In this case, you could provide a list of three
-   dictionaries to `~sbpy.data.DataClass.from_dict`, which means a lot
-   of typing. Instead, you can use `~sbpy.data.DataClass.from_array`,
-   which allows to provide your input data in the form of a list,
-   tuple, or `~numpy.ndarray`:
+   observed. In this case, you could provide a dictionary with lists
+   as values to `~sbpy.data.DataClass.from_dict`, or you can use
+   `~sbpy.data.DataClass.from_columns` as shown here:
 
     >>> from sbpy.data import Ephem
     >>> import astropy.units as u
@@ -168,8 +202,8 @@ options in different cases:
     >>> ra = [10.223423, 10.233453, 10.243452]*u.deg
     >>> dec = [-12.42123, -12.41562, -12.40435]*u.deg
     >>> epoch = (2451523.5 + array([0.1234, 0.2345, 0.3525]))*u.d
-    >>> obs = Ephem.from_array([ra, dec, epoch], names=['ra', 'dec', 't'])
-    >>> print(obs)
+    >>> obs = Ephem.from_columns([ra, dec, epoch], names=['ra', 'dec', 't'])
+    >>> obs
     <QTable length=3>
         ra       dec         t
        deg       deg         d
@@ -179,6 +213,12 @@ options in different cases:
     10.233453 -12.41562 2451523.7345
     10.243452 -12.40435 2451523.8525
 
+   For details on how to use this feature, see
+   `~sbpy.data.DataClass.from_columns` and also
+   `~sbpy.data.DataClass.from_rows`, if you want to build your object
+   from data rows.
+
+    
 3. If your data are already available as a `~astropy.table.Table` or
    `~astropy.table.QTable`, you can simply convert it into a
    `~sbpy.data.DataClass` object using
@@ -195,18 +235,16 @@ options in different cases:
    >>> from sbpy.data import Ephem
    >>> data = Ephem.from_file('data.txt', format='ascii') # doctest: +SKIP
 
-   Please note that `~sbpy.data.DataClass.from_file` is not able to
-   identify units automatically. If you want to take advantage for
-   `~astropy.units` you will have to assign these units manually later
-   on.
-
+   Please note that some formats used by
+   `~sbpy.data.DataClass.from_file` are not able to identify units
+   automatically (see `here <https://docs.astropy.org/en/stable/io/unified.html#built-in-readers-writers>`_ for a list of available formats). 
 
 Accessing data
 ^^^^^^^^^^^^^^
 
-In order to obtain a list of column names in a `~sbpy.data.DataClass` object, you can use `~sbpy.data.DataClass.column_names`:
+In order to obtain a list of field names in a `~sbpy.data.DataClass` object, you can use `~sbpy.data.DataClass.field_names`:
 
-    >>> obs.column_names
+    >>> obs.field_names
     <TableColumns names=('ra','dec','t')>
 
 Each of these columns can be accessed easily, for instance:
@@ -214,10 +252,8 @@ Each of these columns can be accessed easily, for instance:
     >>> print(obs['ra']) # doctest: +SKIP
     [10.223423 10.233453 10.243452] deg
 
-which will return an `astropy.units.quantity.Quantity` object if that
-column has an `astropy.unit` attached to it, or an
-`astropy.table.column.Column` object if not. Both objects can be used
-just like `numpy.ndarray` objects.
+which will return an `~astropy.units.quantity.Quantity` object if that
+column has an `~astropy.units.Unit` attached to it.
 
 Similarly, if you are interested in the first set of observations in
 ``obs``, you can use:
@@ -235,15 +271,10 @@ combine both examples and do:
     >>> print(obs[1]['ra']) # doctest: +SKIP
     10.233453 deg
 
-Another - maybe more elegant - way to access data table columns is as
-an attribute:
 
-    >>> print(obs.ra) # doctest: +SKIP
-    [10.223423 10.233453 10.243452] deg
-    >>> print(obs.ra[1])
-    10.233453 deg
-
-Just like in any `~astropy.table.Table` or `~astropy.table.QTable` object, you can use slicing to obtain subset tables from your data, for instance:
+Just like in any `~astropy.table.Table` or `~astropy.table.QTable`
+object, you can use slicing to obtain subset tables from your data,
+for instance:
 
     >>> print(obs['ra', 'dec']) # doctest: +SKIP
     <QTable length=3>
@@ -261,7 +292,7 @@ Just like in any `~astropy.table.Table` or `~astropy.table.QTable` object, you c
     10.223423 -12.42123 2451523.6234
     10.233453 -12.41562 2451523.7345
 
-The results of these examples will be of the same data type as `obs`
+The results of these examples will be of the same data type as ``obs``
 (any type derived from `~sbpy.data.DataClass`, e.g.,
 `~sbpy.data.Ephem`, `~sbpy.data.Orbit`, ...)  The latter example shown
 here uses a condition to filter data (only those observations with RA
@@ -276,34 +307,31 @@ as ``obs.table``, although this should usually not be necessary.
 Modifying an object
 ^^^^^^^^^^^^^^^^^^^
 
-`~sbpy.data.DataClass` offers some convenience functions for object
-modifications. It is trivial to add additional rows and columns to
-these objects in the form of lists, arrays, or dictionaries.
+`~sbpy.data.DataClass` provides a direct interface to the table
+modification functions provided by `astropy.table.Table`. For
+instance, it is trivial to add additional rows and columns to these
+objects.
 
 Let's assume you want to add some more observations to your ``obs``
 object:
 
-    >>> obs.add_rows([[10.255460*u.deg, -12.39460*u.deg, 2451523.94653*u.d],
-    ...               [10.265425*u.deg, -12.38246*u.deg, 2451524.0673*u.d]])
-    5
-    >>> print(obs)
-    <QTable length=5>
-	ra       dec          t
-       deg       deg          d
-     float64   float64     float64
+    >>> obs.table.add_row([10.255460*u.deg, -12.39460*u.deg, 2451523.94653*u.d])
+    >>> obs
+    <QTable length=4>
+	ra       dec          t      
+       deg       deg          d      
+     float64   float64     float64   
     --------- --------- -------------
     10.223423 -12.42123  2451523.6234
     10.233453 -12.41562  2451523.7345
     10.243452 -12.40435  2451523.8525
      10.25546  -12.3946 2451523.94653
-    10.265425 -12.38246  2451524.0673
 
 or if you want to add a column to your object:
 
-    >>> obs.add_column(['V', 'V', 'R', 'i', 'g'], name='filter')
-    4
-    >>> print(obs)
-    <QTable length=5>
+    >>> obs.table.add_column(['V', 'V', 'R', 'i'], name='filter')
+    >>> obs
+    <QTable length=4>
 	ra       dec          t       filter
        deg       deg          d
      float64   float64     float64     str1
@@ -312,13 +340,12 @@ or if you want to add a column to your object:
     10.233453 -12.41562  2451523.7345      V
     10.243452 -12.40435  2451523.8525      R
      10.25546  -12.3946 2451523.94653      i
-    10.265425 -12.38246  2451524.0673      g
 
 The same result can be achieved using the following syntax:
 
-    >>> obs['filter2'] = ['V', 'V', 'R', 'i', 'g']  # doctest: +SKIP
-    >>> print(obs)  # doctest: +SKIP
-    <QTable length=5>
+    >>> obs['filter2'] = ['V', 'V', 'R', 'i']  # doctest: +SKIP
+    >>> obs  # doctest: +SKIP
+    <QTable length=4>
 	ra       dec          t       filter filter2
        deg       deg          d
      float64   float64     float64     str1    str1
@@ -327,16 +354,18 @@ The same result can be achieved using the following syntax:
     10.233453 -12.41562  2451523.7345      V       V
     10.243452 -12.40435  2451523.8525      R       R
      10.25546  -12.3946 2451523.94653      i       i
-    10.265425 -12.38246  2451524.0673      g       g
 
 Similarly, exisiting columns can be modified using:
 
-    >>> obs['filter'] = ['g', 'i', 'R', 'V', 'V']  # doctest: +SKIP
-
+    >>> obs['filter'] = ['g', 'i', 'R', 'V']  # doctest: +SKIP
+    
 A few things to be mentioned here:
 
-* Note how both functions return the number of rows or columns in the
-  updated object.
+* Note how the `~astropy.table.Table.add_column` and
+  `~astropy.table.Table.add_row` functions are called from
+  ``obs.table``. `~sbpy.data.DataClass.table` is a property that
+  exposes the underlying `~astropy.table.QTable` object so that the
+  user can directly interact with it.
 * If you are adding rows, the elements in the rows will be assigned to
   the column in the corresponding order of the table columns. The
   `~astropy.units` of the row elements have to be of the same
@@ -345,27 +374,6 @@ A few things to be mentioned here:
   angular distance: ``u.deg`` or ``u.rad``).
 * Naturally, the number of columns and rows of the rows and columns
   to be added has to be identical to the numbers in the data table.
-
-If you are trying to add a single row to your object data table, using
-a dictionary might be the most convenient solution:
-
-    >>> obs.add_rows({'ra':10.255460*u.deg, 'dec': -12.39460*u.deg,
-    ...               't': 2451524.14653*u.d, 'filter': 'z'})
-    6
-
-
-When adding a large number of rows to your object, it might be most
-convenient to first convert all the new rows into new
-`~sbpy.data.DataClass` object and then append that using
-`~sbpy.data.DataClass.add_rows`:
-
-    >>> obs2 = Ephem.from_array([[10.4545, 10.5656]*u.deg,
-    ...                          [-12.1212, -12.0434]*u.deg,
-    ...                          [2451524.14653, 2451524.23541]*u.d,
-    ...                          ['r', 'z']],
-    ...                         names=['ra', 'dec', 't', 'filter'])
-    >>> obs.add_rows(obs2)
-    8
 
 Individual elements, entire rows, and columns can be modified by
 directly addressing them:
