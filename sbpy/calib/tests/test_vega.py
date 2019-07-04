@@ -4,6 +4,7 @@ import numpy as np
 import astropy.units as u
 from astropy.tests.helper import remote_data
 from ... import units as sbu
+from ... import utils
 from .. import core
 from .. import *
 
@@ -12,6 +13,10 @@ try:
     HAS_SCIPY = True
 except ImportError:
     HAS_SCIPY = False
+
+
+class Star(core.SpectralStandard):
+    pass
 
 
 class TestVega:
@@ -83,12 +88,57 @@ class TestVega:
     def test_observe_vega_missing_lambda_pivot(self):
         with pytest.raises(u.UnitConversionError):
             with vega_fluxd.set({'filter1': 1 * u.Jy}):
-                vega = Vega()
+                vega = Vega(None)
                 fluxd = vega.observe(['filter1'], unit='W/(m2 um)')
 
     def test_observe_vega_list(self):
         with vega_fluxd.set({'filter1': 1 * u.Jy, 'filter2': 2 * u.Jy}):
-            vega = Vega()
+            vega = Vega(None)
             fluxd = vega.observe(['filter1', 'filter2'], unit='Jy')
 
         assert np.allclose(fluxd.value, [1, 2])
+
+    def test_color_index_wavelength(self):
+        """Compare to Willmer 2018.
+
+        ABmag:
+        V - I = -0.013 - 0.414 = -0.427
+
+        """
+        w = [5476, 7993] * u.AA
+        vega = Vega.from_default()
+        lambda_eff, ci = vega.color_index(w, u.ABmag)
+        assert np.allclose(lambda_eff.value, w.value)
+        assert np.isclose(ci.value, -0.427, atol=0.02)
+
+    def test_color_index_frequency(self):
+        """Check that frequency is correctly coverted to wavelength."""
+        w = [0.5476, 0.7993] * u.um
+        f = w.to(u.Hz, u.spectral())
+        vega = Vega.from_default()
+        lambda_eff, ci = vega.color_index(f, u.ABmag)
+        assert np.allclose(lambda_eff.value, w.value)
+
+    def test_color_index_bandpass(self):
+        """Compare to Willmer 2018."""
+        bp = (utils.get_bandpass('johnson v'),
+              utils.get_bandpass('cousins i'))
+        vega = Vega.from_default()
+        lambda_eff, ci = vega.color_index(bp, u.ABmag)
+        # I bandpass seems to be very different:
+        assert np.allclose(lambda_eff.to('AA').value,
+                           [5476, 7993], atol=150)
+        assert np.isclose(ci.value, -0.427, atol=0.02)
+
+    def test_color_index_filter(self):
+        vega = Vega.from_default()
+        with vega_fluxd.set({
+                'V': -0.013 * u.ABmag,
+                'V(lambda eff)': 5476 * u.AA,
+                'I': 0.414 * u.ABmag,
+                'I(lambda eff)': 7993 * u.AA
+        }):
+            lambda_eff, ci = vega.color_index(('V', 'I'), u.ABmag)
+
+        assert np.allclose(lambda_eff.value, [5476, 7993])
+        assert np.isclose(ci.value, -0.427)

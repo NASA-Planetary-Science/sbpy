@@ -137,44 +137,49 @@ class TestSpectralStandard:
         with bib.Tracking():
             s.source
 
-        assert 'asdf' in bib.to_text()
+        assert 'asdf' in bib.show()
+        bib.reset()
 
-    @pytest.mark.remote_data
-    def test_filt_str(self):
-        w = u.Quantity(np.linspace(0.3, 1.0), 'um')
-        f = u.Quantity(np.ones(len(w)), 'W/(m2 um)')
-        s = Star.from_array(w, f)
-        fluxd = s.filt('johnson_v', unit='W/(m2 um)')[1]
-        assert np.isclose(fluxd.value, 0.1)
-
-    def test_filt_vegamag(self):
+    def test_observe_vegamag(self):
         w = u.Quantity(np.linspace(0.3, 1.0), 'um')
         f = u.Quantity(np.ones(len(w)), 'W/(m2 um)')
         s = Star.from_array(w, f)
         V = utils.get_bandpass('johnson v')
-        mag = s.filt(V, unit=sbu.VEGAmag)[1]
+        mag = s.observe(V, unit=sbu.VEGAmag)
         # -18.60 is -2.5 * log10(3636e-11)
         assert np.isclose(mag.value, -18.60, atol=0.02)
 
     @pytest.mark.parametrize('wfb, test, atol', (
         ((utils.get_bandpass('johnson v'), utils.get_bandpass('cousins i')),
-         0.0273 * sbu.VEGAmag, 0.001),
-        ((600 * u.nm, 750 * u.nm), -0.242 * u.ABmag, 0.001)
+         0.0140 * sbu.VEGAmag, 0.004),
+        ((600 * u.nm, 750 * u.nm), -0.2422 * u.ABmag, 0.001)
     ))
     def test_color_index(self, wfb, test, atol):
-        """-2.5 * log10((750 / 600)) = -0.242"""
+        """Test color index.
+
+        (1) Effective wavelengths and Vega zeropoints from Willmer
+            (2018):
+
+            -2.5 * log10(7993**3 / 5476**3) = -1.2318
+            Vega = 21.1011 - 22.3469 = -1.2458
+            -1.2318 - -1.2458 = 0.0140
+
+        (2) -2.5 * log10((750**3 / 600**3)) = -0.7268
+            -2.5 * log10((750**2 / 600**2)) = -0.4846
+            -0.7268 - -0.4846 = -0.2422
+
+        """
         w = u.Quantity(np.linspace(0.3, 1.0), 'um')
         f = u.Quantity(np.ones(len(w)) * w.value**-3, 'W/(m2 um)')
         s = Star.from_array(w, f)
-        eff_wave, ci = s.color_index(
-            wfb, test.unit, equiv_func=sbu.spectral_density_vega)
+        eff_wave, ci = s.color_index(wfb, test.unit)
         assert np.isclose(ci.value, test.value, atol=atol)
 
     def test_color_index_typeerror(self):
         w = u.Quantity(np.linspace(0.3, 1.0), 'um')
         f = u.Quantity(np.ones(len(w)) * w.value**-3, 'W/(m2 um)')
         s = Star.from_array(w, f)
-        with pytest.raises(synphot.exceptions.SynphotError):
+        with pytest.raises(TypeError):
             s.color_index((None, None), u.ABmag)
 
 

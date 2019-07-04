@@ -258,7 +258,7 @@ class SpectralSource(ABC):
             fluxd = self.observe_spectrum(wfb, unit=unit, **kwargs)
         else:
             raise TypeError('Unsupported type for `wfb` type: {}'
-                            .format(type(wfd)))
+                            .format(type(wfb)))
 
         return fluxd
 
@@ -404,8 +404,7 @@ class SpectralSource(ABC):
         Parameters
         ----------
         wfb : `~astropy.units.Quantity` or tuple of `~synphot.SectralElement`
-            Wavelengths, frequencies, or bandpasses of the
-            measurement.
+            Two wavelengths, frequencies, or bandpasses.
 
         unit : string or `~astropy.units.MagUnit`
             Units for the output, e.g., ``astropy.units.ABmag`` or
@@ -423,18 +422,25 @@ class SpectralSource(ABC):
 
         """
 
-        eff_wave = np.zeros(2) * u.um
+        eff_wave = []
         m = np.zeros(2) * u.Unit(unit)
         for i in range(2):
             if isinstance(wfb[i], u.Quantity):
-                eff_wave[i] = wfb[i].to(u.um, u.spectral())
+                if wfb[i].unit.is_equivalent(u.Hz):
+                    eff_wave.append(wfb[i].to(u.um, u.spectral()))
+                else:
+                    eff_wave.append(wfb[i])
                 m[i] = self(eff_wave[i], unit=unit)
+            elif isinstance(wfb[i], (list, tuple, SpectralElement)):
+                w, m[i] = self.observe_bandpass(wfb[i], unit=unit)
+                eff_wave.append(w)
             else:
-                eff_wave[i], m[i] = self.observe_bandpass(wfb[i], unit=unit)
+                raise TypeError('Unsupported type for `wfb` type: {}'
+                                .format(type(wfb[i])))
 
         ci = m[0] - m[1]
 
-        return eff_wave, ci
+        return u.Quantity(eff_wave), ci
 
 
 class BlackbodySource(SpectralSource):
