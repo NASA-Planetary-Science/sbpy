@@ -140,17 +140,17 @@ def test_from_oo():
 
     # test manual orbit definition lacking units
     manorbit = Orbit.from_dict({
-        'targetname': orbit.table['targetname'],
+        'targetname': orbit['targetname'][0],
         'a': orbit['a'].value[0],
-        'e': orbit['e'],
+        'e': orbit['e'][0],
         'i': orbit['i'].value[0],
         'w': orbit['w'].value[0],
         'Omega': orbit['Omega'].value[0],
-        'datetime_jd': orbit['datetime_jd'],
+        'datetime_jd': orbit['datetime_jd'][0].value,
         'M': orbit['M'].value[0],
         'H': orbit['H'].value[0],
-        'G': orbit['G'],
-        'timescale': orbit['timescale']})
+        'G': orbit['G'][0],
+        'timescale': orbit['timescale'][0]})
 
     oo_ephem = Ephem.from_oo(manorbit)
 

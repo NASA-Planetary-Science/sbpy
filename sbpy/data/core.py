@@ -201,7 +201,7 @@ class DataClass():
             else:
                 try:
                     val[0]
-                except TypeError:
+                except (IndexError, TypeError):
                     if isinstance(val, u.Quantity):
                         data[key] = [val.value]*val.unit
                     else:

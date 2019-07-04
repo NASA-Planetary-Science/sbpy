@@ -190,15 +190,19 @@ class Orbit(DataClass):
         """
 
         # identify orbit type based on available table columns
-        orbittype = None
-        for testtype in ['KEP', 'COM', 'CART']:
-            try:
-                self._translate_columns(
-                    conf.oorb_orbit_fields[testtype][1:6])
-                orbittype = testtype
-                break
-            except KeyError:
-                pass
+        if 'orbtype' in self.column_names:
+            orbittype = self.table['orbtype'][0]
+        else:
+            orbittype = None
+
+            for testtype in ['KEP', 'COM', 'CART']:
+                try:
+                    for field in conf.oorb_orbit_fields[testtype][1:6]:
+                        self.__getitem__(field)
+                    orbittype = testtype
+                    break
+                except KeyError:
+                    pass
 
         if orbittype is None:
             raise ValueError(
@@ -208,6 +212,8 @@ class Orbit(DataClass):
         if ('timescale' in self.column_names and
                 any(self.table['timescale'] == 'TDB')):
             self.table['timescale'][self.table['timescale'] == 'TDB'] = 'TT'
+        if timescale == 'TDB':
+            timescale = 'TT'
 
         if timescale is not None:
             # override timescale, if provided
@@ -384,16 +390,18 @@ class Orbit(DataClass):
             RuntimeError('pyoorb failed with error code {:d}'.format(err))
 
         # reorder data in Orbit object
-        columns = conf.oorb_orbit_fields[orbittype]
+        column_names = conf.oorb_orbit_fields[orbittype]
 
-        orbits = self.from_columns(oo_orbits.transpose(), names=columns)
+        columns = []
+        for i, col in enumerate(oo_orbits.transpose()):
+            columns.append(Orbit._unit_apply(
+                col, conf.oorb_orbit_units[orbittype][i]))
+        orbits = self.from_columns(columns, names=column_names)
 
         for i, col in enumerate(orbits.column_names):
             # convert from radians to degrees where unit == deg
             if conf.oorb_orbit_units[orbittype][i] == 'deg':
                 orbits._table[col] = rad2deg(orbits[col])
-            # apply units
-            orbits[col].unit = conf.oorb_orbit_units[orbittype][i]
 
         # replace id column with actual target names from original orbits
         orbits.table.replace_column('id', self['targetname'])
@@ -537,16 +545,18 @@ class Orbit(DataClass):
             RuntimeError('pyoorb failed with error code {:d}'.format(err))
 
         # reorder data in Orbit object
-        columns = conf.oorb_orbit_fields[orbittype]
+        column_names = conf.oorb_orbit_fields[orbittype]
 
-        orbits = self.from_columns(oo_orbits.transpose(), names=columns)
+        columns = []
+        for i, col in enumerate(oo_orbits.transpose()):
+            columns.append(Orbit._unit_apply(
+                col, conf.oorb_orbit_units[orbittype][i]))
+        orbits = self.from_columns(columns, names=column_names)
 
         for i, col in enumerate(orbits.column_names):
             # convert from radians to degrees where unit == deg
             if conf.oorb_orbit_units[orbittype][i] == 'deg':
                 orbits._table[col] = rad2deg(orbits[col])
-            # apply units
-            orbits[col].unit = conf.oorb_orbit_units[orbittype][i]
 
         # replace id column with actual target names from original orbits
         orbits.table.replace_column('id', self.table['targetname'])

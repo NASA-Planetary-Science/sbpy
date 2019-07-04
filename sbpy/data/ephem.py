@@ -218,12 +218,9 @@ class Ephem(DataClass):
         >>> from sbpy.data import Ephem
         >>> from astropy.time import Time
         >>> epoch = Time('2018-05-14', scale='utc')
-        >>> eph = Ephem.from_mpc('ceres', epoch, location='568'
-        ...     ) # doctest: +REMOTE_DATA +IGNORE_OUTPUT
+        >>> eph = Ephem.from_mpc('ceres', epoch, location='568') # doctest: +REMOTE_DATA +IGNORE_OUTPUT
         >>> epochs = {'start': '2019-01-01', 'step': '1d', 'number': 365}
-        >>> eph = Ephem.from_mpc('2P', epochs=epochs, location='568'
-        ...     ) # doctest: +REMOTE_DATA +IGNORE_OUTPUT
-
+        >>> eph = Ephem.from_mpc('2P', epochs=epochs, location='568')  # doctest: +REMOTE_DATA +IGNORE_OUTPUT
 
         Notes
         -----
@@ -425,7 +422,7 @@ class Ephem(DataClass):
         >>> epochs = Time.now().jd + np.arange(0, 10, 1/24)
         >>> ceres = Orbit.from_horizons('1')    # doctest: +REMOTE_DATA
         >>> eph = Ephem.from_oo(ceres, epochs=epochs, location='G37') # doctest: +SKIP
-        >>> print(eph)  # doctest: +SKIP
+        >>> eph  # doctest: +SKIP
         <QTable length=240>
         targetname       epoch        ...           obsz               trueanom
                            d          ...            AU                  deg
@@ -530,26 +527,28 @@ class Ephem(DataClass):
         if err != 0:
             RuntimeError('pyoorb failed with error code {:d}'.format(err))
 
-        # reorder data in Orbit object
-        ephem = self.from_columns(hstack([oo_eph.transpose()[:, :, i]
-                                          for i in range(oo_eph.shape[0])]),
+        # reorder data on per-column basis and apply units
+        oo_eph_col = hstack([oo_eph.transpose()[:, :, i]
+                             for i in range(oo_eph.shape[0])]).tolist()
+        oo_eph_col_u = []
+        for i, col in enumerate(oo_eph_col):
+            oo_eph_col_u.append(Ephem._unit_apply(col,
+                                                  conf.oorb_ephem_units[i]))
+        ephem = self.from_columns(oo_eph_col_u,
                                   names=conf.oorb_ephem_fields)
 
-        # apply units
-        for i, col in enumerate(ephem.column_names):
-            ephem[col].unit = conf.oorb_ephem_units[i]
-
         # add targetname column
-        ephem.add_column(Column(data=sum([[orb['targetname'][i]] *
-                                          len(epochs) for i in
-                                          range(len(orb.table))],
-                                         []),
-                                name='targetname'),
-                         index=0)
+        ephem.table.add_column(Column(data=sum([[orb['targetname'][i]] *
+                                                len(epochs) for i in
+                                                range(len(orb.table))],
+                                               []),
+                                      name='targetname'),
+                               index=0)
 
         # convert MJD to Julian Date
-        ephem.add_column(ephem['MJD']+2400000.5*u.d, name='epoch', index=1)
-        ephem._table.remove_column('MJD')
+        ephem.table.add_column(
+            ephem['MJD']+2400000.5*u.d, name='epoch', index=1)
+        ephem.table.remove_column('MJD')
 
         if bib.status() is None or bib.status():
             bib.register('sbpy.data.Ephem.from_oo',
