@@ -114,7 +114,6 @@ class TestLinear():
 
 
 class TestHG:
-    @pytest.mark.remote_data
     def test_init(self):
         # initialize with numbers
         ceres = HG(3.34, 0.12, radius=480*u.km, M_sun=-26.74)
@@ -132,6 +131,7 @@ class TestHG:
         assert np.isclose(ceres.G.value, 0.12)
         assert ceres.G.unit == u.dimensionless_unscaled
 
+    @pytest.mark.remote_data
     def test_from_phys(self):
         # test initialization from `sbpy.data.DataClass`
         phys = Phys.from_sbdb('Ceres')
@@ -147,19 +147,15 @@ class TestHG:
             m = HG.from_phys(phys)
 
     def test_to_phys(self):
-        phys = Phys.from_sbdb('Ceres')
-        m = HG.from_phys(phys)
+        m = HG(3.34, 0.12, radius=480*u.km, M_sun=-26.74,
+                meta={'targetname': '1 Ceres'})
         p = m.to_phys()
         assert isinstance(p, Phys)
-        for k in p.column_names:
-            if p[k].dtype.kind == 'f':
-                if isinstance(p[k], u.Quantity):
-                    assert p[k].unit == phys[k].unit
-                    assert np.isclose(p[k].value, phys[k].value)
-                else:
-                    assert np.isclose(p[k], phys[k])
-            else:
-                assert p[k] == phys[k]
+        assert p['targetname'] == '1 Ceres'
+        assert np.isclose(p['H'], 3.34)
+        assert np.isclose(p['G'], 0.12)
+        assert np.isclose(p['diameter'].value, 960)
+        assert p['diameter'].unit == u.km
 
     def test_evaluate(self):
         pha_test = np.linspace(0, np.pi, 10)
@@ -360,7 +356,6 @@ class TestHG:
 
 
 class TestHG1G2:
-    @pytest.mark.remote_data
     def test_init(self):
         # initialization with numbers
         themis = HG1G2(7.063, 0.62, 0.14, radius=100.*u.km, M_sun=-26.74)
@@ -384,6 +379,7 @@ class TestHG1G2:
         assert np.isclose(themis.G2.value, 0.14)
         assert themis.G2.unit == u.dimensionless_unscaled
 
+    @pytest.mark.remote_data
     def test_from_phys(self):
         # initialization with Phys, will cause exception because G1, G2 are
         # not generally unavailable.
