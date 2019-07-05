@@ -47,7 +47,7 @@ here - uses a `~astropy.table.QTable` object under the hood. You can
 think of those as **tables** - consisting of **fields** (or columns)
 and **rows** - that have `~astropy.units` attached to them, allowing
 you to propagate these units through your programs. **We strongly urge
-the user to make use of `~astropy.units`** in the definition of data
+the user to make use of** `~astropy.units` in the definition of data
 containers in order to minimize confusion and tap the full potential
 of `sbpy`.
 
@@ -55,7 +55,7 @@ The user is free to add any fields they want to a
 `~sbpy.data.DataClass` object. However, in order to enable the
 seemless use of `sbpy` functions and methods, we require the user to
 pick among a few common field names for different properties as listed
-:ref:`here <alternative_fieldnames>`. `~sbpy.data.DataClass` objects
+:ref:`here <field name list>`. `~sbpy.data.DataClass` objects
 are able to identify alternative field names as listed in this
 document, as well as to perform transformations between a few field
 names - see below for more details.
@@ -304,7 +304,62 @@ against) but selects all the columns in the original table.
 
 If you ever need to access the actual `~astropy.table.QTable` object
 that is inside each `~sbpy.data.DataClass` object, you can access it
-as ``obs.table``, although this should usually not be necessary.
+as ``obs.table``.
+
+Alternative field names
+^^^^^^^^^^^^^^^^^^^^^^^
+
+If you ask 3 different planetary astronomers which field name or
+variable name they use for the orbital inclination, you will receive 3
+different answers. Good candidates might be ``'i'``, ``'inc'``, or
+``'incl'`` - it's a matter of personal taste. The `sbpy` developers
+are aware of this ambiguity and hence `~sbpy.data.DataClass` provides
+some flexibility in the use of field name. This functionality is
+established through a list of acceptable field names that are
+recognized by `sbpy`, which is provided in the
+:ref:`field name list`.
+
+As an example, if your `~sbpy.data.Orbit` object has a column named
+``'incl'`` but you try to get column ``'i'``, the object will
+internally check if ``'i'`` is a legitimate field name and what its
+alternatives are, and it will find that a field name ``'incl'`` exists
+in the object. The corresponding ``'incl'`` column is then
+returned. If you try to get a field name that is not connected to any
+existing field name, a ``KeyError`` will be raised.
+
+The definition of alternative field names is done in the file
+``sbpy/data/__init__.py``, using the list ``fieldnames``. This list is
+automatically tested for potential naming conflicts, i.e., different
+properties that share the same alternative field names, and a
+human-readable list is compiled upon building `sbpy`.
+
+The full list of field names is available here:
+:ref:`field name list`.
+
+Field conversions
+^^^^^^^^^^^^^^^^^
+
+There are parameters and properties that can be used synonymously, a
+good example for which are an object's radius and diameter. `sbpy`
+acknowledges identities like this by providing internal conversions
+for such properties. Consider the following example:
+
+    >>> from sbpy.data import Phys
+    >>> import astropy.units as u
+    >>> data = Phys.from_dict({'d': 10*u.km})
+    >>> print('{:.1f}'.format(data['d'][0]))
+    10.0 km
+    >>> print('{:.1f}'.format(data['radius'][0]))
+    5.0 km
+
+Note that the radius is not explicitly defined in ``data``, but
+derived internally upon querying it and added to the internal data table:
+
+    >>> print(data.field_names)
+    <TableColumns names=('d','radius')>
+
+
+
 
 Modifying an object
 ^^^^^^^^^^^^^^^^^^^
@@ -408,51 +463,6 @@ Writing object data to a file
 By default, the data are written in ASCII format, but other formats
 are available, too (cf. `~astropy.table.Table.write`).
 
-``DataClass`` Property Names
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-``sbpy`` uses a wide range of properties from the ``DataClass`` objects, such as heliocentric distance, radius, or transition frequency.  A complete list is provided in :ref:`propertynames`.
-
-It is common practice to use a set of different names for the same
-property. For instance, the orbital inclination can be referred to as
-``'i'``, ``'inc'``, or ``'incl'`` - it's a matter of personal
-taste. `~sbpy.data.DataClass` accounts for this fact and is able to
-provide a number of alternative names.
-
-As an example, if your `~sbpy.data.Orbit` object has a column named
-``'incl'`` but you try to get column ``'i'``, the object will
-internally check if ``'i'`` is a legitimate alternative field name for
-``'incl'``. The corresponding column is then returned. If you try to
-get a field name that is not connected to any existing field name, a
-``KeyError`` will be raised.
-
-The definition of alternative field names is done in the file
-``sbpy/data/__init__.py``, using the list ``fieldnames``. This list is
-automatically tested for potential naming conflicts, i.e., different
-properties that share the same alternative field names, and a human-readable list is compiled upon building `sbpy`.
-
-The list of alternative field names is documented at :ref:`propertynames`.
-
-Field conversions
-^^^^^^^^^^^^^^^^^
-
-There are parameters and properties that can be used synonymously, a
-good example for which are an object's radius and diameter. `sbpy`
-acknowledges identities like this by providing internal conversions
-for such properties. Consider the following example:
-
-    >>> from sbpy.data import Phys
-    >>> import astropy.units as u
-    >>> data = Phys.from_dict({'d': 10*u.km})
-    >>> print('{:.1f}'.format(data['d'][0]))
-    10.0 km
-    >>> print('{:.1f}'.format(data['radius'][0]))
-    5.0 km
-
-Note that the radius is not explicitly defined in ``data``, but
-derived internally upon querying it and added to the internal data table:
-
-    >>> print(data.field_names)
-    <TableColumns names=('d','radius')>
 
 How to use Ephem
 ----------------
