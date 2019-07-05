@@ -12,6 +12,8 @@ import synphot
 from ..core import *
 from ...utils import get_bandpass
 from ...calib import vega_fluxd
+from ...utils import get_bandpass
+
 
 JohnsonV = get_bandpass('Johnson V')
 

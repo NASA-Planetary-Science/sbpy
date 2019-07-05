@@ -18,7 +18,7 @@ from astropy.utils.data import get_pkg_data_filename
 from astropy.table import Table
 import astropy.units as u
 from ..spectroscopy.sources import SpectralSource
-from ..exceptions import SbpyException
+from ..exceptions import SbpyException, OptionalPackageUnavailable
 from .. import bib
 from . import solar_sources, vega_sources
 
@@ -122,6 +122,9 @@ class SpectralStandard(SpectralSource, ABC):
 
         """
         if synphot is None:
+            warnings.warn(OptionalPackageUnavailable(
+                'synphot is not installed, returning an empty spectral'
+                ' standard.'))
             standard = cls(None)
         else:
             standard = cls._spectrum_state.get()
@@ -536,8 +539,10 @@ class Sun(SpectralStandard):
 
     Observe as through a filter:
 
+    >>> from sbpy.utils import get_bandpass
     >>> sun = Sun.from_default()
-    >>> sun.observe('johnson_v')               # doctest: +FLOAT_CMP
+    >>> v = get_bandpass('Johnson V')
+    >>> sun.observe(v)               # doctest: +FLOAT_CMP
     <Quantity [1839.93273227] W / (m2 um)>
 
     Observe through a filter, using `sbpy`'s filter calibration system:

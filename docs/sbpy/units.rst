@@ -68,10 +68,11 @@ To use a bandpass, pass the name as a string (see
 of `~synphot.spectrum.SpectralElement`:
 
   >>> from sbpy.units import VEGAmag, spectral_density_vega
+  >>> from sbpu.utils import get_bandpass
+  >>> V = get_bandpass('Johnson V')
   >>> m = 0.0 * VEGAmag
-  >>> fluxd = m.to('erg/(cm2 s AA)',
-  ...     spectral_density_vega('johnson_v'))  # doctest: +REMOTE_DATA
-  >>> fluxd.value                   # doctest: +FLOAT_CMP +REMOTE_DATA
+  >>> fluxd = m.to('erg/(cm2 s AA)', spectral_density_vega(V))
+  >>> fluxd.value                   # doctest: +FLOAT_CMP
   3.588524658721229e-09
 
 
