@@ -309,5 +309,5 @@ from .phys import Phys
 from .obs import Obs
 from .names import Names, natural_sort_key
 
-__all__ = ['DataClass', 'Ephem', 'Orbit', 'Phys', 'Names', 'conf', 'Conf',
-           'DataClassError', 'Obs']
+__all__ = ['DataClass', 'Ephem', 'Obs', 'Orbit', 'Phys', 'Names',
+           'conf', 'Conf', 'DataClassError']

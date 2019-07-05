@@ -122,8 +122,8 @@ extract individual identifier components
 
 
 
-How to use Ephem, Orbit, and Phys objects
------------------------------------------
+How to use Ephem, Orbit, Obs, and Phys objects
+----------------------------------------------
 
 All of the data objects dealt with in `sbpy.data` share the same
 common base class: `sbpy.data.DataClass`. `~sbpy.data.DataClass`
@@ -357,17 +357,33 @@ derived internally upon querying it and added to the internal data table:
 
     >>> print(data.field_names)
     <TableColumns names=('d','radius')>
-
-
-
+    
 
 Modifying an object
 ^^^^^^^^^^^^^^^^^^^
 
+Individual elements, entire rows, and columns can be modified by
+directly addressing them:
+
+    >>> obs['ra'] # doctest: +SKIP
+    [10.223423 10.233453 10.243452 10.25546  10.265425 10.25546  10.4545
+     10.5656  ] deg
+    >>> obs['ra'][:] = obs['ra'] + 0.1*u.deg
+    >>> obs['ra'] # doctest: +SKIP
+    [10.323423 10.333453 10.343452 10.35546  10.365425 10.35546  10.5545
+     10.6656  ] deg
+
+Note the specific syntax in this case (``obs['ra'][:] = ...``) that
+is required by `~astropy.table.Table` if you want to replace
+an entire column.
+
+More complex data table modifications are possible by directly
+accessing the underlying `~astropy.table.QTable` object as shown below.
+
 `~sbpy.data.DataClass` provides a direct interface to the table
 modification functions provided by `astropy.table.Table`:
-`~astropy.table.add_row`, `~astropy.table.add_column`,
-`~astropy.table.add_columns`, etc. For instance, it is trivial to add
+`~astropy.table.Table.add_row`, `~astropy.table.Table.add_column`,
+`~astropy.table.Table.add_columns`, etc. For instance, it is trivial to add
 additional rows and columns to these objects.
 
 Let's assume you want to add some more observations to your ``obs``
@@ -418,39 +434,15 @@ Similarly, exisiting columns can be modified using:
 
     >>> obs['filter'] = ['g', 'i', 'R', 'V']  # doctest: +SKIP
     
-A few things to be mentioned here:
+Note how the `~astropy.table.Table.add_column` and
+`~astropy.table.Table.add_row` functions are called from
+``obs.table``. `~sbpy.data.DataClass.table` is a property that exposes
+the underlying `~astropy.table.QTable` object so that the user can
+directly interact with it. Please refer to the `~astropy.table.Table`
+reference and
+[documentation](https://docs.astropy.org/en/stable/table/index.html)
+for more information on how to modify `~astropy.table.QTable` objects.
 
-* Note how the `~astropy.table.Table.add_column` and
-  `~astropy.table.Table.add_row` functions are called from
-  ``obs.table``. `~sbpy.data.DataClass.table` is a property that
-  exposes the underlying `~astropy.table.QTable` object so that the
-  user can directly interact with it.
-* If you are adding rows, the elements in the rows will be assigned to
-  the column in the corresponding order of the table columns. The
-  `~astropy.units` of the row elements have to be of the same
-  dimension as the table columns (e.g., one of the table column units
-  is degrees, then the corresponding row element has to define an
-  angular distance: ``u.deg`` or ``u.rad``).
-* Naturally, the number of columns and rows of the rows and columns
-  to be added has to be identical to the numbers in the data table.
-
-Individual elements, entire rows, and columns can be modified by
-directly addressing them:
-
-    >>> obs['ra'] # doctest: +SKIP
-    [10.223423 10.233453 10.243452 10.25546  10.265425 10.25546  10.4545
-     10.5656  ] deg
-    >>> obs['ra'][:] = obs['ra'] + 0.1*u.deg
-    >>> obs['ra'] # doctest: +SKIP
-    [10.323423 10.333453 10.343452 10.35546  10.365425 10.35546  10.5545
-     10.6656  ] deg
-
-Note the specific syntax in this case (``obs['ra'][:] = ...``) that
-is required by `~astropy.table.Table` if you want to replace
-an entire column.
-
-More complex data table modifications are possible by directly
-accessing the underlying `~astropy.table.QTable` object.
 
 Writing object data to a file
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -461,13 +453,14 @@ Writing object data to a file
     >>> obs.to_file('observations.dat')
 
 By default, the data are written in ASCII format, but other formats
-are available, too (cf. `~astropy.table.Table.write`).
+are available, too (cf. `~astropy.table.Table.write`). In order to
+preserve units and meta data, we suggest to use the ``'FITS'`` format.
 
 
-How to use Ephem
-----------------
+How to use Ephem and Obs
+------------------------
 
-As shown above (`How to use Ephem, Orbit, and Phys objects`_),
+As shown above (`How to use Ephem, Orbit, Obs, and Phys objects`_),
 `~sbpy.data.Ephem` objects can be created on the fly. However,
 `~sbpy.data.Ephem` can also be used to access ephemerides information
 from remote services. For instance, the following few lines will query
@@ -620,6 +613,11 @@ from the Discovery Channel Telescope:
 The properties computed by pyoorb and listed in the resulting table
 are defined in the `pyoorb documentation
 <https://github.com/oorb/oorb/tree/master/python>`_. Note that this function requires pyoorb to be installed, which is not a requirement for `sbpy`.
+
+`~sbpy.data.Obs` works exactly like `~sbpy.data.Ephem`, but this class
+will feature in the future some convenience functions to be able to
+better deal with observational data.
+
 
 How to use Orbit
 ----------------
