@@ -20,6 +20,7 @@ from astropy.table import Column
 import astropy.units as u
 from astropy import log
 from ..data import Ephem, Phys
+from ..bib import cite
 
 
 def _process_ephem_input(eph, key=None):
@@ -861,6 +862,10 @@ class HG(DiskIntegratedPhaseFunc):
     H = Parameter(description='H parameter', default=8)
     G = Parameter(description='G parameter', default=0.4)
 
+    @cite({'definition': '1989aste.conf..524B'})
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
     @G.validator
     def G(self, value):
         """Validate parameter G to avoid non-monotonic phase function
@@ -935,6 +940,10 @@ class HG12BaseClass(DiskIntegratedPhaseFunc):
     """Base class for IAU HG1G2 model and HG12 model"""
 
     _unit = 'mag'
+
+    @cite({'definition': '2010Icar..209..542M'})
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     @property
     def _G1(self):
@@ -1196,6 +1205,10 @@ class HG12_Pen16(HG12):
     0.3804
 
     """
+
+    @cite({'definition': '2016P&SS..123..117P'})
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     @staticmethod
     def _G12_to_G1(g12):
