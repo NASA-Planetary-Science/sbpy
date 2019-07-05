@@ -186,14 +186,13 @@ options in different cases:
    order of elements in an `~collections.OrderedDict` will be the same
    as the order of the data table columns.
 
-   For details on how to use this feature, see
+   For details on how to build objects from dictionaries, see
    `~sbpy.data.DataClass.from_dict`.
 
    
 2. Now assume that you want to build an `~sbpy.data.Ephem` object
    holding RA, Dec, and observation midtime for some target that you
-   observed. In this case, you could provide a dictionary with lists
-   as values to `~sbpy.data.DataClass.from_dict`, or you can use
+   observed. In this case, you can use
    `~sbpy.data.DataClass.from_columns` as shown here:
 
     >>> from sbpy.data import Ephem
@@ -213,10 +212,12 @@ options in different cases:
     10.233453 -12.41562 2451523.7345
     10.243452 -12.40435 2451523.8525
 
-   For details on how to use this feature, see
+   For details on how to build objects from lists or arrays, see
    `~sbpy.data.DataClass.from_columns` and also
-   `~sbpy.data.DataClass.from_rows`, if you want to build your object
-   from data rows.
+   `~sbpy.data.DataClass.from_rows`, depending on whether your data is
+   represented as rows or columns. Note that you could also use
+   `~sbpy.data.DataClass.from_dict` by providing column data to the
+   different fields.
 
     
 3. If your data are already available as a `~astropy.table.Table` or
@@ -242,23 +243,24 @@ options in different cases:
 Accessing data
 ^^^^^^^^^^^^^^
 
-In order to obtain a list of field names in a `~sbpy.data.DataClass` object, you can use `~sbpy.data.DataClass.field_names`:
+In order to obtain a list of field names in a `~sbpy.data.DataClass`
+object, you can use `~sbpy.data.DataClass.field_names`:
 
     >>> obs.field_names
     <TableColumns names=('ra','dec','t')>
 
 Each of these columns can be accessed easily, for instance:
 
-    >>> print(obs['ra']) # doctest: +SKIP
+    >>> obs['ra']  # doctest: +SKIP
     [10.223423 10.233453 10.243452] deg
 
 which will return an `~astropy.units.quantity.Quantity` object if that
-column has an `~astropy.units.Unit` attached to it.
+column has a `~astropy.units.Unit` attached to it.
 
 Similarly, if you are interested in the first set of observations in
 ``obs``, you can use:
 
-    >>> print(obs[0])
+    >>> obs[0]  # doctest: +SKIP
         ra       dec         t
        deg       deg         d
     --------- --------- ------------
@@ -268,7 +270,7 @@ which returns you a table with only the requested subset of the
 data. In order to retrieve RA from the second observation, you can
 combine both examples and do:
 
-    >>> print(obs[1]['ra']) # doctest: +SKIP
+    >>> obs[1]['ra'] # doctest: +SKIP
     10.233453 deg
 
 
@@ -276,7 +278,7 @@ Just like in any `~astropy.table.Table` or `~astropy.table.QTable`
 object, you can use slicing to obtain subset tables from your data,
 for instance:
 
-    >>> print(obs['ra', 'dec']) # doctest: +SKIP
+    >>> obs['ra', 'dec']  # doctest: +SKIP
     <QTable length=3>
 	ra       dec
        deg       deg
@@ -285,7 +287,7 @@ for instance:
     10.233453 -12.41562
     10.243452 -12.40435
 
-    >>> print(obs[obs['ra'] <= 10.233453*u.deg]) # doctest: +SKIP
+    >>> obs[obs['ra'] <= 10.233453*u.deg] # doctest: +SKIP
         ra       dec         t
        deg       deg         d
     --------- --------- ------------
@@ -308,9 +310,10 @@ Modifying an object
 ^^^^^^^^^^^^^^^^^^^
 
 `~sbpy.data.DataClass` provides a direct interface to the table
-modification functions provided by `astropy.table.Table`. For
-instance, it is trivial to add additional rows and columns to these
-objects.
+modification functions provided by `astropy.table.Table`:
+`~astropy.table.add_row`, `~astropy.table.add_column`,
+`~astropy.table.add_columns`, etc. For instance, it is trivial to add
+additional rows and columns to these objects.
 
 Let's assume you want to add some more observations to your ``obs``
 object:
@@ -329,7 +332,8 @@ object:
 
 or if you want to add a column to your object:
 
-    >>> obs.table.add_column(['V', 'V', 'R', 'i'], name='filter')
+    >>> from astropy.table import Column
+    >>> obs.table.add_column(Column(['V', 'V', 'R', 'i'], name='filter'))
     >>> obs
     <QTable length=4>
 	ra       dec          t       filter
@@ -378,11 +382,11 @@ A few things to be mentioned here:
 Individual elements, entire rows, and columns can be modified by
 directly addressing them:
 
-    >>> print(obs['ra']) # doctest: +SKIP
+    >>> obs['ra'] # doctest: +SKIP
     [10.223423 10.233453 10.243452 10.25546  10.265425 10.25546  10.4545
      10.5656  ] deg
     >>> obs['ra'][:] = obs['ra'] + 0.1*u.deg
-    >>> print(obs['ra']) # doctest: +SKIP
+    >>> obs['ra'] # doctest: +SKIP
     [10.323423 10.333453 10.343452 10.35546  10.365425 10.35546  10.5545
      10.6656  ] deg
 
@@ -447,7 +451,7 @@ for such properties. Consider the following example:
 Note that the radius is not explicitly defined in ``data``, but
 derived internally upon querying it and added to the internal data table:
 
-    >>> print(data.column_names)
+    >>> print(data.field_names)
     <TableColumns names=('d','radius')>
 
 How to use Ephem
@@ -465,8 +469,8 @@ Mauna Kea Observatory (IAU observatory code ``568``) from the `JPL Horizons serv
     >>> epoch = Time('2018-08-03 14:20', scale='utc') # time in UT
     >>> eph = Ephem.from_horizons('Ceres',
     ...                           location='568',
-    ...                           epochs=epoch)    # doctest: +REMOTE_DATA
-    >>> print(eph)                                  # doctest: +REMOTE_DATA
+    ...                           epochs=epoch)  # doctest: +REMOTE_DATA
+    >>> eph  # doctest: +REMOTE_DATA
     <QTable masked=True length=1>
     targetname       datetime_str          datetime_jd    ...  PABLat timescale
 						d         ...   deg
@@ -474,7 +478,7 @@ Mauna Kea Observatory (IAU observatory code ``568``) from the `JPL Horizons serv
     ---------- ------------------------ ----------------- ... ------- ---------
        1 Ceres 2018-Aug-03 14:20:00.000 2458334.097222222 ...  9.3473       UTC
 
-    >>> print(eph.column_names)                    # doctest: +REMOTE_DATA
+    >>> eph.field_names  # doctest: +REMOTE_DATA
     <TableColumns names=('targetname','datetime_str','datetime_jd','H','G','solar_presence','flags','RA','DEC','RA_app','DEC_app','RA*cos(Dec)_rate','DEC_rate','AZ','EL','AZ_rate','EL_rate','sat_X','sat_Y','sat_PANG','siderealtime','airmass','magextinct','V','surfbright','illumination','illum_defect','sat_sep','sat_vis','ang_width','PDObsLon','PDObsLat','PDSunLon','PDSunLat','SubSol_ang','SubSol_dist','NPole_ang','NPole_dist','EclLon','EclLat','r','r_rate','delta','delta_rate','lighttime','vel_sun','vel_obs','elong','elongFlag','alpha','lunar_elong','lunar_illum','sat_alpha','sunTargetPA','velocityPA','OrbPlaneAng','constellation','TDB-UT','ObsEclLon','ObsEclLat','NPole_RA','NPole_DEC','GlxLon','GlxLat','solartime','earth_lighttime','RA_3sigma','DEC_3sigma','SMAA_3sigma','SMIA_3sigma','Theta_3sigma','Area_3sigma','RSS_3sigma','r_3sigma','r_rate_3sigma','SBand_3sigma','XBand_3sigma','DoppDelay_3sigma','true_anom','hour_angle','alpha_true','PABLon','PABLat','timescale')>
 
 `~sbpy.data.Ephem.from_horizons` uses one or more target names, an
@@ -484,7 +488,7 @@ of discrete epochs or a range of epochs defined in a dictionary (see
 service. Due to different requirements of the JPL Horizons service for
 the epoch format, we recommend to use `~astropy.time.Time`
 objects. The column names in the data table can be inquired using
-`~sbpy.data.DataClass.column_names`.
+`~sbpy.data.DataClass.field_names`.
 
 `~sbpy.data.Ephem.from_horizons` is actually a wrapper around
 `~astroquery.jplhorizons.HorizonsClass.ephemerides`. This function
@@ -503,8 +507,8 @@ full flexibility of the latter function:
     ...                           epochs={'start': epoch1,
     ...                                   'stop': epoch2,
     ...                                   'step': '10m'},
-    ...                           skip_daylight=True) # doctest: +REMOTE_DATA
-    >>> print(eph)                                    # doctest: +REMOTE_DATA
+    ...                           skip_daylight=True)  # doctest: +REMOTE_DATA
+    >>> eph  # doctest: +REMOTE_DATA
     <QTable masked=True length=26>
     targetname    datetime_str      datetime_jd    ...  PABLon   PABLat timescale
 					 d         ...   deg      deg
@@ -532,8 +536,8 @@ concatenate queries for a number of objects:
 
     >>> eph = Ephem.from_horizons(['Ceres', 'Pallas', 12893, '1983 SA'],
     ...                           location='568',
-    ...                           epochs=epoch1)    # doctest: +REMOTE_DATA
-    >>> print(eph)                                  # doctest: +REMOTE_DATA
+    ...                           epochs=epoch1)  # doctest: +REMOTE_DATA
+    >>> eph  # doctest: +REMOTE_DATA
     <QTable masked=True length=4>
 	    targetname               datetime_str       ...  PABLat  timescale
 							...   deg
@@ -557,8 +561,8 @@ ephemerides from the Minor Planet Center:
     >>> eph = Ephem.from_mpc('2P', location='568',
     ...                      epochs={'start': '2018-10-22',
     ...                              'stop': '2018-10-26',
-    ...                              'step': '1d'})   # doctest: +REMOTE_DATA
-    >>> print(eph)                                    # doctest: +REMOTE_DATA
+    ...                              'step': '1d'})  # doctest: +REMOTE_DATA
+    >>> eph  # doctest: +REMOTE_DATA
     <QTable length=5>
 	      Date          timescale ... Moon distance Moon altitude
 				      ...      deg           deg
@@ -581,7 +585,7 @@ from the Discovery Channel Telescope:
      >>> from sbpy.data import Orbit, Ephem
      >>> from astropy.time import Time
      >>> epochs = Time.now().jd + np.arange(0, 10, 1/24)
-     >>> ceres = Orbit.from_horizons('1')    # doctest: +REMOTE_DATA
+     >>> ceres = Orbit.from_horizons('1')  # doctest: +REMOTE_DATA
      >>> eph = Ephem.from_oo(ceres, epochs, 'G37') # doctest: +SKIP 
      >>> print(eph) # doctest: +SKIP 
      <QTable length=240>
@@ -617,16 +621,15 @@ body osculating elements from the `JPL Horizons service
     >>> from sbpy.data import Orbit
     >>> from astropy.time import Time
     >>> epoch = Time('2018-05-14', scale='utc')
-    >>> elem = Orbit.from_horizons('Ceres', epochs=epoch)
-    ...     # doctest: +REMOTE_DATA
-    >>> print(elem)  # doctest: +SKIP
+    >>> elem = Orbit.from_horizons('Ceres', epochs=epoch)  # doctest: +REMOTE_DATA
+    >>> elem  # doctest: +SKIP
     <QTable masked=True length=1>
     targetname datetime_jd ...         P         timescale
 		    d      ...         d
        str7      float64   ...      float64         str2
     ---------- ----------- ... ----------------- ---------
        1 Ceres   2458252.5 ... 1681.218128428134        TT
-    >>> print(elem.column_names)      # doctest: +REMOTE_DATA
+    >>> elem.field_names  # doctest: +REMOTE_DATA
     <TableColumns names=('targetname','datetime_jd','datetime_str','H','G','e','q','incl','Omega','w','Tp_jd','n','M','nu','a','Q','P','timescale')>
 
 If ``epochs`` is not set, the osculating elements for the current
@@ -640,7 +643,7 @@ orbital elements for a number of targets:
     >>> elem = Orbit.from_horizons(['3749', '2009 BR60'],
     ...                            epochs=epoch,
     ...                            refplane='earth')  # doctest: +REMOTE_DATA
-    >>> print(elem) # doctest: +SKIP
+    >>> elem # doctest: +SKIP
     <QTable length=2>
 	  targetname         datetime_jd    ...         P         timescale
 				  d         ...         d
@@ -661,10 +664,9 @@ using `OpenOrb <https://github.com/oorb/oorb>`_.
 In order to transform some current orbits to a state vector in
 cartesian coordinates, one could use the following code:
 
-    >>> elem = Orbit.from_horizons(['Ceres', 'Pallas', 'Vesta'])
-    ...     # doctest: +REMOTE_DATA
+    >>> elem = Orbit.from_horizons(['Ceres', 'Pallas', 'Vesta'])  # doctest: +REMOTE_DATA
     >>> statevec = elem.oo_transform('CART') # doctest: +SKIP 
-    >>> print(statevec) # doctest: +SKIP
+    >>> statevec # doctest: +SKIP
     <QTable length=3>
        id             x                   y           ...    H       G    timescale
 		      AU                  AU          ...   mag
@@ -683,10 +685,10 @@ propagated to either as `~astropy.time.Time` object, or as float in
 terms of Julian date. The following example propagates the current
 orbit of Ceres back to year 2000:
 
-    >>> elem = Orbit.from_horizons('Ceres')    # doctest: +REMOTE_DATA
+    >>> elem = Orbit.from_horizons('Ceres')  # doctest: +REMOTE_DATA
     >>> epoch = Time('2000-01-01', format='iso')
-    >>> newelem = elem.oo_propagate(epoch) # doctest: +SKIP
-    >>> print(newelem) # doctest: +SKIP
+    >>> newelem = elem.oo_propagate(epoch) # doctest: +SKIP 
+    >>> newelem # doctest: +SKIP
     <QTable length=1>
        id           a                   e          ...    H       G    timescale
 		    AU                             ...   mag
@@ -712,9 +714,8 @@ As an example, the following code will query the properties for a
 small number of asteroids:
 
     >>> from sbpy.data import Phys
-    >>> phys = Phys.from_sbdb(['Ceres', '12893', '3552'])
-    ...     # doctest: +REMOTE_DATA
-    >>> print(phys['targetname', 'H', 'diameter']) # doctest: +SKIP
+    >>> phys = Phys.from_sbdb(['Ceres', '12893', '3552'])  # doctest: +REMOTE_DATA
+    >>> phys['targetname', 'H', 'diameter'] # doctest: +SKIP
     <QTable length=3>
 	    targetname            H    diameter
 					  km
@@ -776,23 +777,23 @@ In order to distinguish if a string designates a comet or an asteroid,
 you can use the following code:
 
     >>> from sbpy.data import Names
-    >>> print(Names.asteroid_or_comet('(1) Ceres'))
-    asteroid
-    >>> print(Names.asteroid_or_comet('2P/Encke'))
-    comet
+    >>> Names.asteroid_or_comet('(1) Ceres')
+    'asteroid'
+    >>> Names.asteroid_or_comet('2P/Encke')
+    'comet'
 
 The module basically uses regular expressions to match the input
 strings and find patterns that agree with asteroid and comet names,
 numbers, and designations. There are separate tasks to identify
 asteroid and comet identifiers:
 
-    >>> print(Names.parse_asteroid('(228195) 6675 P-L')) # doctest: +SKIP
+    >>> Names.parse_asteroid('(228195) 6675 P-L') # doctest: +SKIP
     {'number': 228195, 'desig': '6675 P-L'}
-    >>> print(Names.parse_asteroid('C/2001 A2-A (LINEAR)')) # doctest: +SKIP
+    >>> Names.parse_asteroid('C/2001 A2-A (LINEAR)') # doctest: +SKIP
     ... sbpy.data.names.TargetNameParseError: C/2001 A2-A (LINEAR) does not appear to be an asteroid identifier
-    >>> print(Names.parse_comet('12893')) # doctest: +SKIP
+    >>> Names.parse_comet('12893') # doctest: +SKIP
     ... sbpy.data.names.TargetNameParseError: 12893 does not appear to be a comet name
-    >>> print(Names.parse_comet('73P-C/Schwassmann Wachmann 3 C	')) # doctest: +SKIP
+    >>> Names.parse_comet('73P-C/Schwassmann Wachmann 3 C') # doctest: +SKIP
     {'type': 'P', 'number': 73, 'fragment': 'C', 'name': 'Schwassmann Wachmann 3 C'}
 
 In order to be able to distinguish between asteroid and comet
