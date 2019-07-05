@@ -468,7 +468,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
                 cols[p] = val.quantity
         return Phys.from_dict(cols)
 
-    def fit(self, eph, mag, fitter=None, return_fitter=False, **kwargs):
+    def _fit(self, eph, mag, fitter=None, return_fitter=False, **kwargs):
         """Fit disk-integrated phase function model to magnitude data and the
         corresponding ephemerides data.
 
@@ -509,7 +509,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         >>> from sbpy.data import Misc # doctest: +SKIP
         >>> eph = Misc.mpc_observations('Bennu') # doctest: +SKIP
         >>> hg = HG() # doctest: +SKIP
-        >>> best_hg = hg.fit(eph, eph['mag']) # doctest: +SKIP
+        >>> best_hg = hg._fit(eph, eph['mag']) # doctest: +SKIP
         """
         eph, pha = _process_ephem_input(eph, 'alpha')
 
@@ -611,7 +611,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
             m0 = cls()
         else:
             m0 = cls(*init)
-        return m0.fit(eph, mag, fitter=fitter, **kwargs)
+        return m0._fit(eph, mag, fitter=fitter, **kwargs)
 
     def to_mag(self, eph, append_results=False, **kwargs):
         """Calculate phase function in magnitude
