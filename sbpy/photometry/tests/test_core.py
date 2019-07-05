@@ -192,7 +192,7 @@ class TestHG:
                              u.dimensionless_unscaled)
         assert np.isclose(ceres.phaseint, 0.36435057552929323)
 
-    def test_fit(self):
+    def test__fit(self):
         pha = np.array(
             [0., 6.31578947, 12.63157895, 18.94736842, 25.26315789,
              31.57894737, 37.89473684, 44.21052632, 50.52631579, 56.84210526,
@@ -205,7 +205,7 @@ class TestHG:
              5.52976173, 5.64255607, 5.84536878, 6.13724017, 6.33675472,
              6.63099954, 7.2461781, 7.32734464, 8.00147425, 8.40595306]) * u.mag
         m0 = HG()
-        m = m0.fit(pha, data)
+        m = m0._fit(pha, data)
         assert isinstance(m, HG)
         assert isinstance(m.H, Parameter) & np.isclose(
             m.H.value, 3.436677) & (m.H.unit == u.mag)
@@ -431,7 +431,7 @@ class TestHG1G2:
                              u.dimensionless_unscaled)
         assert np.isclose(themis.phaseint, 0.374152)
 
-    def test_fit(self):
+    def test__fit(self):
         pha = np.array(
             [0., 6.31578947, 12.63157895, 18.94736842, 25.26315789, 31.57894737,
              37.89473684, 44.21052632, 50.52631579, 56.84210526, 63.15789474,
@@ -444,7 +444,7 @@ class TestHG1G2:
              10.51021594, 10.63215313, 11.15570421, 11.44890748,
              11.43888611]) * u.mag
         m0 = HG1G2()
-        m = m0.fit(pha, data)
+        m = m0._fit(pha, data)
         assert isinstance(m, HG1G2)
         assert isinstance(m.H, Parameter) & np.isclose(
             m.H.value, 7.1167) & (m.H.unit == u.mag)
@@ -574,7 +574,7 @@ class TestHG12:
                              u.dimensionless_unscaled)
         assert np.isclose(themis.phaseint, 0.3948577512)
 
-    def test_fit(self):
+    def test__fit(self):
         pha = np.array(
             [0., 6.31578947, 12.63157895, 18.94736842, 25.26315789, 31.57894737,
              37.89473684, 44.21052632, 50.52631579, 56.84210526, 63.15789474,
@@ -586,7 +586,7 @@ class TestHG12:
              9.20869753, 9.52578025, 9.8427691, 9.91588852, 10.3636637,
              10.26459992, 10.79316978, 10.79202241, 11.36950747, 11.61018708]) * u.mag
         m0 = HG12()
-        m = m0.fit(pha, data)
+        m = m0._fit(pha, data)
         assert isinstance(m, HG12)
         assert isinstance(m.H, Parameter) & np.isclose(
             m.H.value, 7.13939) & (m.H.unit == u.mag)
@@ -700,7 +700,7 @@ class TestHG12_Pen16:
                              u.dimensionless_unscaled)
         assert np.isclose(themis.phaseint, 0.38042683486452)
 
-    def test_fit(self):
+    def test__fit(self):
         pha = np.array(
             [0., 6.31578947, 12.63157895, 18.94736842, 25.26315789, 31.57894737,
              37.89473684, 44.21052632, 50.52631579, 56.84210526, 63.15789474,
@@ -712,7 +712,7 @@ class TestHG12_Pen16:
              9.16195702, 9.54770054, 9.60599559, 10.06129054, 10.22544773,
              10.49122575, 10.78544483, 11.12145723, 11.18055954, 11.40468613]) * u.mag
         m0 = HG12_Pen16()
-        m = m0.fit(pha, data)
+        m = m0._fit(pha, data)
         assert isinstance(m, HG12_Pen16)
         assert isinstance(m.H, Parameter) & np.isclose(
             m.H.value, 7.091456) & (m.H.unit == u.mag)
