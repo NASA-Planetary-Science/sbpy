@@ -37,7 +37,7 @@ object (presuming that the data were derived from observations):
     >>> from sbpy.data import Obs
     >>> import astropy.units as u
     >>> obs = Obs.from_dict({'ra': [12.345, 12.346, 12.347]*u.deg})
-    >>> obs['ra']
+    >>> obs['ra']  # doctest: +SKIP
     <Quantity [12.345, 12.346, 12.347] deg>
 
 Since RA requires an angle as dimension, we use degrees, but we might
@@ -45,7 +45,7 @@ as well use radians - `sbpy` will convert the units where necessary.
 RA has an alternative field name (``'RA'``), we can now use that name,
 too, in order to retrieve the data:
 
-    >>> obs['RA']
+    >>> obs['RA']  # doctest: +SKIP
     <Quantity [12.345, 12.346, 12.347] deg>
 
 

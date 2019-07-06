@@ -142,7 +142,7 @@ class DataClass():
         >>> orb = Orbit.from_dict({'a': 2.7674*u.au,
         ...                        'e': 0.0756,
         ...                        'i': 10.59321*u.deg})
-        >>> orb
+        >>> orb  # doctest: +SKIP
         <QTable length=1>
            a       e       i
            AU             deg
@@ -156,7 +156,7 @@ class DataClass():
         >>> orb = Orbit.from_dict({'a': [2.7674, 3.123]*u.au,
         ...                        'e': [0.0756, 0.021],
         ...                        'i': [10.59321, 3.21]*u.deg})
-        >>> orb
+        >>> orb  # doctest: +SKIP
         <QTable length=2>
            a       e       i
            AU             deg
@@ -181,7 +181,7 @@ class DataClass():
         ...                                    ('e', [0.0756, 0.021]),
         ...                                    ('i', [10.59, 3.21]*u.deg)]),
         ...                                   meta={'targetname': 'asteroid'})
-        >>> orb
+        >>> orb  # doctest: +SKIP
         <QTable length=2>
            a       e       i
            AU             deg
