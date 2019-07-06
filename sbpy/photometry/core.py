@@ -19,6 +19,7 @@ from numbers import Number
 from scipy.integrate import quad
 from astropy.modeling import (FittableModel, Fittable1DModel,
                               Fittable2DModel, Parameter)
+from astropy.table import Column
 import astropy.units as u
 from astropy import log
 from ..data import DataClass, Ephem
@@ -322,7 +323,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
     >>>
     >>> # Failed initialization due to the lack of field 'G'
     >>> phys = Phys.from_sbdb('12893')       # doctest: +REMOTE_DATA
-    >>> print('G' in phys.column_names)      # doctest: +REMOTE_DATA
+    >>> print('G' in phys.field_names)      # doctest: +REMOTE_DATA
     False
     >>> m = HG(data=phys)                    # doctest: +REMOTE_DATA
     Traceback (most recent call last):
@@ -371,7 +372,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
                 for p in self.param_names:
                     par[p] = par[p][valid]
                 meta = kwargs.pop('meta', OrderedDict())
-                if 'targetname' in data.column_names:
+                if 'targetname' in data.field_names:
                     meta.update({'targetname': data['targetname'][valid]})
                 kwargs['meta'] = meta
                 for p in self.param_names:
@@ -626,10 +627,10 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
             else:
                 name = 'mag'
                 i = 1
-                while name in eph.column_names:
+                while name in eph.field_names:
                     name = 'mag'+str(i)
                     i += 1
-                eph.add_column(out, name=name)
+                eph.table.add_column(Column(out, name=name))
             return eph
         else:
             return out
@@ -705,10 +706,10 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
             else:
                 name = 'ref'
                 i = 1
-                while name in eph.column_names:
+                while name in eph.field_names:
                     name = 'ref'+str(i)
                     i += 1
-                eph.add_column(out, name=name)
+                eph.table.add_column(Column(out, name=name))
             return eph
         else:
             return out

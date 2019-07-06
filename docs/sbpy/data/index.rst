@@ -190,18 +190,18 @@ options in different cases:
    `~sbpy.data.DataClass.from_dict`.
 
    
-2. Now assume that you want to build an `~sbpy.data.Ephem` object
+2. Now assume that you want to build an `~sbpy.data.Obs` object
    holding RA, Dec, and observation midtime for some target that you
    observed. In this case, you can use
    `~sbpy.data.DataClass.from_columns` as shown here:
 
-    >>> from sbpy.data import Ephem
+    >>> from sbpy.data import Obs
     >>> import astropy.units as u
     >>> from numpy import array
     >>> ra = [10.223423, 10.233453, 10.243452]*u.deg
     >>> dec = [-12.42123, -12.41562, -12.40435]*u.deg
     >>> epoch = (2451523.5 + array([0.1234, 0.2345, 0.3525]))*u.d
-    >>> obs = Ephem.from_columns([ra, dec, epoch], names=['ra', 'dec', 't'])
+    >>> obs = Obs.from_columns([ra, dec, epoch], names=['ra', 'dec', 't'])
     >>> obs
     <QTable length=3>
         ra       dec         t
@@ -394,22 +394,23 @@ object:
     <QTable length=4>
 	ra       dec          t      
        deg       deg          d      
-     float64   float64     float64   
+     float64   float64     float64
     --------- --------- -------------
-    10.223423 -12.42123  2451523.6234
-    10.233453 -12.41562  2451523.7345
-    10.243452 -12.40435  2451523.8525
+    10.323423 -12.42123  2451523.6234
+    10.333453 -12.41562  2451523.7345
+    10.343452 -12.40435  2451523.8525
      10.25546  -12.3946 2451523.94653
+  
 
 or if you want to add a column to your object:
 
     >>> from astropy.table import Column
     >>> obs.table.add_column(Column(['V', 'V', 'R', 'i'], name='filter'))
-    >>> obs
+    >>> obs  # doctest: +SKIP
     <QTable length=4>
 	ra       dec          t       filter
-       deg       deg          d
-     float64   float64     float64     str1
+       deg       deg          d             
+     float64   float64     float64     str1 
     --------- --------- ------------- ------
     10.223423 -12.42123  2451523.6234      V
     10.233453 -12.41562  2451523.7345      V
@@ -422,8 +423,8 @@ The same result can be achieved using the following syntax:
     >>> obs  # doctest: +SKIP
     <QTable length=4>
 	ra       dec          t       filter filter2
-       deg       deg          d
-     float64   float64     float64     str1    str1
+       deg       deg          d                     
+     float64   float64     float64     str1    str1 
     --------- --------- ------------- ------ -------
     10.223423 -12.42123  2451523.6234      V       V
     10.233453 -12.41562  2451523.7345      V       V

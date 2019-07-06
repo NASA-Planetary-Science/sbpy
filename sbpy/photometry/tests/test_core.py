@@ -42,7 +42,7 @@ class TestLinear():
         eph = linphase.mag(pha_test, append_results=True)
         assert np.isclose(eph['mag'], mag_test).all()
         assert np.isclose(eph['alpha'], pha_test).all()
-        assert set(eph.column_names) == {'alpha', 'mag'}
+        assert set(eph.field_names) == {'alpha', 'mag'}
 
         linphase = LinearPhaseFunc(5 * u.mag, 0.04 * u.mag/u.deg, radius=300)
         pha_test = np.linspace(0, 180, 10) * u.deg
@@ -52,7 +52,7 @@ class TestLinear():
         if LooseVersion(astropy.__version__) >= req_ver:
             assert u.isclose(eph['mag'], mag_test).all()
             assert u.isclose(eph['alpha'], pha_test).all()
-        assert set(eph.column_names) == {'alpha', 'mag'}
+        assert set(eph.field_names) == {'alpha', 'mag'}
 
     def test_ref(self):
         linphase = LinearPhaseFunc(5, 2.29, radius=300)
@@ -68,11 +68,11 @@ class TestLinear():
         eph = linphase.ref(pha_test, append_results=True)
         assert np.isclose(eph['ref'], ref_test).all()
         assert np.isclose(eph['alpha'], pha_test).all()
-        assert set(eph.column_names) == {'alpha', 'ref'}
+        assert set(eph.field_names) == {'alpha', 'ref'}
         eph_norm = linphase.ref(pha_test, normalized=0, append_results=True)
         assert np.isclose(eph_norm['ref'], ref_norm_test).all()
         assert np.isclose(eph_norm['alpha'], pha_test).all()
-        assert set(eph_norm.column_names) == {'alpha', 'ref'}
+        assert set(eph_norm.field_names) == {'alpha', 'ref'}
 
         linphase = LinearPhaseFunc(5 * u.mag, 0.04 * u.mag/u.deg, radius=300)
         pha_test = np.linspace(0, 180, 10) * u.deg
@@ -88,13 +88,13 @@ class TestLinear():
         if LooseVersion(astropy.__version__) >= req_ver:
             assert u.isclose(eph['ref'], ref_test).all()
             assert u.isclose(eph['alpha'], pha_test).all()
-        assert set(eph.column_names) == {'alpha', 'ref'}
+        assert set(eph.field_names) == {'alpha', 'ref'}
         eph_norm = linphase.ref(
             pha_test, normalized=0*u.deg, append_results=True)
         if LooseVersion(astropy.__version__) >= req_ver:
             assert u.isclose(eph_norm['ref'], ref_norm_test).all()
             assert u.isclose(eph_norm['alpha'], pha_test).all()
-        assert set(eph_norm.column_names) == {'alpha', 'ref'}
+        assert set(eph_norm.field_names) == {'alpha', 'ref'}
 
     def test_props(self):
         linphase = LinearPhaseFunc(5, 2.29, radius=300)
@@ -224,14 +224,14 @@ class TestHG:
         eph_dict = {'alpha': np.linspace(0, np.pi*0.9, 10),
                     'r': np.repeat(2.7*u.au, 10),
                     'delta': np.repeat(1.8*u.au, 10)}
-        eph_test = Ephem(eph_dict)
+        eph_test = Ephem.from_dict(eph_dict)
         mag1_test = np.array(
             [6.773181346311468, 7.746327508868813, 8.297741273359549,
              8.813984838536113, 9.366879943505342, 10.024055427421063,
              10.886692329621765, 12.143261499943726, 14.18326309145893,
              18.48388800989832])
         eph1 = ceres.mag(eph_test, append_results=True)
-        assert set(eph1.column_names) == {'alpha', 'delta', 'mag', 'r'}
+        assert set(eph1.field_names) == {'alpha', 'delta', 'mag', 'r'}
         assert np.isclose(eph1['mag'], mag1_test).all()
         pha_test = np.linspace(0, np.pi*0.9, 10)
         mag2_test = np.array(
@@ -240,23 +240,23 @@ class TestHG:
              8.710080153632259, 10.750081745147462, 15.050706663586855])
         eph3 = ceres.mag(pha_test, append_results=True)
         assert np.isclose(eph3['mag'], mag2_test).all()
-        assert set(eph3.column_names) == {'alpha', 'mag'}
+        assert set(eph3.field_names) == {'alpha', 'mag'}
         eph4 = ceres.mag(eph3, append_results=True)
-        assert set(eph4.column_names) == {'alpha', 'mag', 'mag1'}
+        assert set(eph4.field_names) == {'alpha', 'mag', 'mag1'}
         assert np.isclose(eph4['mag'], eph4['mag1']).all()
 
         ceres = HG(3.34 * u.mag, 0.12 * u.dimensionless_unscaled, radius=480)
         eph_dict = {'alpha': np.linspace(0, np.pi*0.9, 10)*u.rad,
                     'r': np.repeat(2.7*u.au, 10),
                     'delta': np.repeat(1.8*u.au, 10)}
-        eph_test = Ephem(eph_dict)
+        eph_test = Ephem.from_dict(eph_dict)
         mag1_test = np.array(
             [6.773181346311468, 7.746327508868813, 8.297741273359549,
              8.813984838536113, 9.366879943505342, 10.024055427421063,
              10.886692329621765, 12.143261499943726, 14.18326309145893,
              18.48388800989832]) * u.mag
         eph1 = ceres.mag(eph_test, append_results=True)
-        assert set(eph1.column_names) == {'alpha', 'delta', 'mag', 'r'}
+        assert set(eph1.field_names) == {'alpha', 'delta', 'mag', 'r'}
         if LooseVersion(astropy.__version__) >= req_ver:
             assert u.isclose(eph1['mag'], mag1_test).all()
         pha_test = np.linspace(0, np.pi*0.9, 10)
@@ -268,14 +268,14 @@ class TestHG:
         eph3 = ceres.mag(pha_test, append_results=True)
         if LooseVersion(astropy.__version__) >= req_ver:
             assert u.isclose(eph3['mag'], mag2_test).all()
-        assert set(eph3.column_names) == {'alpha', 'mag'}
+        assert set(eph3.field_names) == {'alpha', 'mag'}
 
     def test_ref(self):
         ceres = HG(3.34, 0.12, radius=480)
         eph_dict = {'alpha': np.linspace(0, np.pi*0.9, 10),
                     'r': np.repeat(2.7*u.au, 10),
                     'delta': np.repeat(1.8*u.au, 10)}
-        eph_test = Ephem(eph_dict)
+        eph_test = Ephem.from_dict(eph_dict)
         ref1_test = np.array(
             [0.02872225123287084, 0.0117208743870569, 0.007053334911678305,
              0.004384267859347806, 0.0026347477224558857,
@@ -283,7 +283,7 @@ class TestHG:
              0.0002042614521939071, 3.1202240400267656e-05,
              5.942043286373853e-07])
         eph1 = ceres.ref(eph_test, append_results=True)
-        assert set(eph1.column_names) == {'alpha', 'delta', 'ref', 'r'}
+        assert set(eph1.field_names) == {'alpha', 'delta', 'ref', 'r'}
         assert np.isclose(eph1['ref'], ref1_test).all()
         pha_test = np.linspace(0, np.pi*0.9, 10)
         ref2_test = np.array(
@@ -296,19 +296,19 @@ class TestHG:
              1.08634383e-03, 2.06879441e-05])
         eph3 = ceres.ref(pha_test, append_results=True)
         eph4 = ceres.ref(pha_test, normalized=0*u.deg, append_results=True)
-        assert set(eph3.column_names) == {'alpha', 'ref'}
+        assert set(eph3.field_names) == {'alpha', 'ref'}
         assert np.isclose(eph3['ref'], ref2_test).all()
-        assert set(eph4.column_names) == {'alpha', 'ref'}
+        assert set(eph4.field_names) == {'alpha', 'ref'}
         assert np.isclose(eph4['ref'], ref2_norm_test).all()
         eph5 = ceres.ref(eph3, append_results=True)
-        assert set(eph5.column_names) == {'alpha', 'ref', 'ref1'}
+        assert set(eph5.field_names) == {'alpha', 'ref', 'ref1'}
         assert np.isclose(eph5['ref'], eph5['ref1']).all()
 
         ceres = HG(3.34, 0.12, radius=480)
         eph_dict = {'alpha': np.linspace(0, np.pi*0.9, 10)*u.rad,
                     'r': np.repeat(2.7*u.au, 10),
                     'delta': np.repeat(1.8*u.au, 10)}
-        eph_test = Ephem(eph_dict)
+        eph_test = Ephem.from_dict(eph_dict)
         ref1_test = np.array(
             [0.02872225123287084, 0.0117208743870569, 0.007053334911678305,
              0.004384267859347806, 0.0026347477224558857,
@@ -316,7 +316,7 @@ class TestHG:
              0.0002042614521939071, 3.1202240400267656e-05,
              5.942043286373853e-07])
         eph1 = ceres.ref(eph_test, append_results=True)
-        assert set(eph1.column_names) == {'alpha', 'delta', 'ref', 'r'}
+        assert set(eph1.field_names) == {'alpha', 'delta', 'ref', 'r'}
         if LooseVersion(astropy.__version__) >= req_ver:
             assert u.isclose(eph1['ref'], ref1_test *
                              u.dimensionless_unscaled).all()
@@ -331,8 +331,8 @@ class TestHG:
              1.08634383e-03, 2.06879441e-05])
         eph3 = ceres.ref(pha_test, append_results=True)
         eph4 = ceres.ref(pha_test, normalized=0*u.deg, append_results=True)
-        assert set(eph3.column_names) == {'alpha', 'ref'}
-        assert set(eph4.column_names) == {'alpha', 'ref'}
+        assert set(eph3.field_names) == {'alpha', 'ref'}
+        assert set(eph4.field_names) == {'alpha', 'ref'}
         if LooseVersion(astropy.__version__) >= req_ver:
             assert u.isclose(eph3['ref'], ref2_test *
                              u.dimensionless_unscaled).all()

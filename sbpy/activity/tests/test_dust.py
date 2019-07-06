@@ -101,7 +101,7 @@ class TestAfrho:
             synphot.units.convert_flux(6182, 11.97 * u.ABmag, u.STmag)
 
         """
-        eph = Ephem(dict(rh=rh * u.au, delta=delta * u.au))
+        eph = Ephem.from_dict(dict(rh=rh * u.au, delta=delta * u.au))
         if isinstance(wfb, str):
             wfb = utils.get_bandpass(wfb)
 
@@ -116,7 +116,7 @@ class TestAfrho:
         assert np.isclose(fluxd.value, fluxd0.value, **{k: tol})
 
     def test_source_fluxd_S_error(self):
-        eph = Ephem(dict(rh=1 * u.au, delta=1 * u.au))
+        eph = Ephem.from_dict(dict(rh=1 * u.au, delta=1 * u.au))
         with pytest.raises(ValueError):
             assert Afrho.from_fluxd(1 * u.um, 1 * u.Jy, 1 * u.arcsec, eph,
                                     S=5 * u.m)
@@ -250,7 +250,7 @@ class TestEfrho:
         assert np.isclose(fluxd0.value, fluxd.value, **{k: tol})
 
     def test_source_fluxd_B_error(self):
-        eph = Ephem(dict(rh=1 * u.au, delta=1 * u.au))
+        eph = Ephem.from_dict(dict(rh=1 * u.au, delta=1 * u.au))
         with pytest.raises(ValueError):
             assert Efrho.from_fluxd(1 * u.um, 1 * u.Jy, 1 * u.arcsec, eph,
                                     B=5 * u.m)
