@@ -9,52 +9,74 @@ from astropy.table import Table
 from astropy.io import ascii
 
 out = """
-.. _propertynames:
+.. _field name list:
 
-List of Property Names
-======================
+sbpy Field Names
+================
 
-The following table lists names for a wide range of properties that
-are accepted and recognized by `sbpy`. Only these names should be used
-in `~sbpy.data.DataClass` objects, i.e., `~sbpy.data.Ephem`,
-`~sbpy.data.Orbit`, `~sbpy.data.Obs`, and `~sbpy.data.Phys` objects.
+The following table lists field names that are recognized by `sbpy`
+when accessing `~sbpy.data.DataClass` objects, i.e.,
+`~sbpy.data.Ephem`, `~sbpy.data.Orbit`, or `~sbpy.data.Phys`
+objects. Each row of the following table represents one property; for
+each property it lists its description, acceptable field names,
+provenance (which `~sbpy.data.DataClass` class should be used to store
+this object so that `sbpy` uses it properly), and its physical
+dimension (if any).
 
-Names listed in the "Alternatives" column of the table can be used
-synonymously. As an example, heliocentric distance can be addressed as
-``'r'`` or ``'heldist'``:
+How do I use this Table?
+------------------------
 
-    >>> from sbpy.data import Ephem
-    >>> ceres = Ephem.from_horizons('Ceres')
-    >>> print(ceres['r']) # doctest: +IGNORE_OUTPUT
-    [2.69866993] AU
-    >>> print(ceres['heldist']) # doctest: +IGNORE_OUTPUT
-    [2.69866993] AU
+As an example, imagine you are interested in storing an object's right
+ascension into a `~sbpy.data.DataClass` object. The field names table
+tells you that you should name the field either ``ra`` or ``RA``, that
+you should use either a `~sbpy.data.Ephem` or `~sbpy.data.Obs` object
+to store the data in, and that the field data should be expressed as
+angles. Based on this information, we can create a `~sbpy.data.Obs`
+object (presuming that the data were derived from observations):
 
-The list of alternative field names is always up to date, but not
-complete.
+    >>> from sbpy.data import Obs
+    >>> import astropy.units as u
+    >>> obs = Obs.from_dict({'ra': [12.345, 12.346, 12.347]*u.deg})
+    >>> obs['ra']  # doctest: +SKIP
+    <Quantity [12.345, 12.346, 12.347] deg>
 
-Developer Information
----------------------
+Since RA requires an angle as dimension, we use degrees, but we might
+as well use radians - `sbpy` will convert the units where necessary.
+RA has an alternative field name (``'RA'``), we can now use that name,
+too, in order to retrieve the data:
 
-The source list for this table is located in
-``sbpy/sbpy/data/__init__.py`` as ``sbpy.data.conf.fieldnames``. If
-you think an important alternative is missing, please suggest it by
-opening an issue. However, keep in mind that each alternative field
-name has to be *unique* and *unambiguous*.
+    >>> obs['RA']  # doctest: +SKIP
+    <Quantity [12.345, 12.346, 12.347] deg>
 
 
-List of Alternative Field Names
--------------------------------
+The field name list is always up to date, but it might not be
+complete. If you think an important alternative name is missing,
+please suggest it by opening an issue. However, keep in mind that each
+alternative field name has to be **unique** and **unambiguous**. The
+source list is located as ``sbpy.data.conf.fieldnames`` in
+``sbpy/data/__init__.py``.
+
+
+Field Name List
+---------------
 
 """
 
 # build table
 data = []
-for parameter in conf.fieldnames:
-    data.append(['**'+parameter[-1]+'**',
-                 ', '.join(['``'+str(p)+'``' for p in parameter[:-1]])])
+for p in conf.fieldnames_info:
+    data.append(['**'+p['description']+'**',
+                 ', '.join(['``'+str(f)+'``' for f in p['fieldnames']]),
+                 ', '.join([{'orbit': '`~sbpy.data.Orbit`',
+                             'ephem': '`~sbpy.data.Ephem`',
+                             'obs': '`~sbpy.data.Obs`',
+                             'phys': '`~sbpy.data.Phys`'}[
+                                 m.replace(',', '')] for m in p['provenance']]),
+                 p['dimension']])
 data = Table(array(data), names=('Description',
-                                 'Alternative Names'))
+                                 'Field Names',
+                                 'Provenance',
+                                 'Dimension'))
 
 # redirect stdout
 sys.stdout = TextIOWrapper(BytesIO(), sys.stdout.encoding)
@@ -70,7 +92,7 @@ rsttab = sys.stdout.read()
 out += rsttab
 
 # write fieldnames.rst
-with open('fieldnames.rst', 'w') as outf:
+with open('sbpy/data/fieldnames.rst', 'w') as outf:
     outf.write(out)
 
 sys.stdout.close()

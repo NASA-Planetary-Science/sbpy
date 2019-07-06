@@ -15,11 +15,5 @@ def test_from_sbdb():
     assert len(data.table) == 1
 
     # query several objects
-    with bib.Tracking():
-        data = Phys.from_sbdb([n+1 for n in range(5)])
+    data = Phys.from_sbdb([n+1 for n in range(5)])
     assert len(data.table) == 5
-
-    assert data['H'].unit == 'mag'
-    assert data['G'].unit is None
-
-    # assert 'sbpy.data.Phys.from_sbdb' in bib.to_text()

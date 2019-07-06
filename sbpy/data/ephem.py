@@ -218,12 +218,9 @@ class Ephem(DataClass):
         >>> from sbpy.data import Ephem
         >>> from astropy.time import Time
         >>> epoch = Time('2018-05-14', scale='utc')
-        >>> eph = Ephem.from_mpc('ceres', epoch, location='568'
-        ...     ) # doctest: +REMOTE_DATA +IGNORE_OUTPUT
+        >>> eph = Ephem.from_mpc('ceres', epoch, location='568') # doctest: +REMOTE_DATA +IGNORE_OUTPUT
         >>> epochs = {'start': '2019-01-01', 'step': '1d', 'number': 365}
-        >>> eph = Ephem.from_mpc('2P', epochs=epochs, location='568'
-        ...     ) # doctest: +REMOTE_DATA +IGNORE_OUTPUT
-
+        >>> eph = Ephem.from_mpc('2P', epochs=epochs, location='568')  # doctest: +REMOTE_DATA +IGNORE_OUTPUT
 
         Notes
         -----
@@ -315,55 +312,6 @@ class Ephem(DataClass):
 
         return cls.from_table(eph)
 
-    def report_to_mpc():
-        """
-        Format ephemerides as a report to the
-        `Minor Planet Center <http://minorplanetcenter.net>`_.
-
-        Returns
-        -------
-        list of strings
-
-        Examples
-        --------
-        >>> from sbpy.data import Ephem  # doctest: +SKIP
-        >>> eph = Ephem.from_array...  # doctest: +SKIP
-        >>> report = eph.report_to_mpc()  # doctest: +SKIP
-
-        not yet implemented
-
-        """
-
-    @classmethod
-    def from_imcce(cls, targetid, epoch, observatory='500'):
-        """
-        Load orbital elements from
-        `IMCCE <http://vo.imcce.fr/webservices/miriade/>`_.
-
-        Parameters
-        ----------
-        targetid : str, mandatory
-            target identifier
-        epochs : astropy Time instance or iterable, optional, default ``None``
-            epoch of elements; if ``None`` is provided, current date is used
-        observatory : str, optional, default '500' (geocentric)
-            location of observer
-
-        Returns
-        -------
-        `~Ephem` object
-
-        Examples
-        --------
-        >>> from sbpy.data import Ephem  # doctest: +SKIP
-        >>> from astropy.time import Time  # doctest: +SKIP
-        >>> epoch = Time('2018-05-14', scale='utc')  # doctest: +SKIP
-        >>> eph = Ephem.from_imcce('ceres', '568', epoch)  # doctest: +SKIP
-
-        not yet implemented
-
-        """
-
     @classmethod
     def from_oo(self, orbit, epochs=None, location='500', scope='full',
                 timescale='UTC', dynmodel='N', ephfile='de430'):
@@ -444,7 +392,7 @@ class Ephem(DataClass):
         >>> epochs = Time.now().jd + np.arange(0, 10, 1/24)
         >>> ceres = Orbit.from_horizons('1')    # doctest: +REMOTE_DATA
         >>> eph = Ephem.from_oo(ceres, epochs=epochs, location='G37') # doctest: +SKIP
-        >>> print(eph)  # doctest: +SKIP
+        >>> eph  # doctest: +SKIP
         <QTable length=240>
         targetname       epoch        ...           obsz               trueanom
                            d          ...            AU                  deg
@@ -494,10 +442,7 @@ class Ephem(DataClass):
                 'orbit type cannot be determined from elements')
 
         # add/update orbittype column
-        if 'orbittype' in orb.column_names:
-            orb['orbittype'] = [orbittype] * len(orb)
-        else:
-            orb.add_column([orbittype] * len(orb), name='orbittype')
+        orb['orbittype'] = [orbittype] * len(orb)
 
         # derive and apply default units
         default_units = {}
@@ -507,7 +452,7 @@ class Ephem(DataClass):
                     field)[0]] = conf.oorb_orbit_units[orbittype][idx]
             except KeyError:
                 pass
-        for colname in orb.column_names:
+        for colname in orb.field_names:
             if (colname in default_units.keys() and
                 not isinstance(orb[colname],
                                (u.Quantity, u.CompositeUnit))):
@@ -552,14 +497,15 @@ class Ephem(DataClass):
         if err != 0:
             RuntimeError('pyoorb failed with error code {:d}'.format(err))
 
-        # reorder data in Orbit object
-        ephem = self.from_array(hstack([oo_eph.transpose()[:, :, i]
-                                        for i in range(oo_eph.shape[0])]),
-                                names=conf.oorb_ephem_fields)
-
-        # apply units
-        for i, col in enumerate(ephem.column_names):
-            ephem[col].unit = conf.oorb_ephem_units[i]
+        # reorder data on per-column basis and apply units
+        oo_eph_col = hstack([oo_eph.transpose()[:, :, i]
+                             for i in range(oo_eph.shape[0])]).tolist()
+        oo_eph_col_u = []
+        for i, col in enumerate(oo_eph_col):
+            oo_eph_col_u.append(Ephem._unit_apply(col,
+                                                  conf.oorb_ephem_units[i]))
+        ephem = self.from_columns(oo_eph_col_u,
+                                  names=conf.oorb_ephem_fields)
 
         # add targetname column
         ephem.table.add_column(Column(data=sum([[orb['targetname'][i]] *
@@ -570,8 +516,9 @@ class Ephem(DataClass):
                                index=0)
 
         # convert MJD to Julian Date
-        ephem.add_column(ephem['MJD']+2400000.5*u.d, name='epoch', index=1)
-        ephem._table.remove_column('MJD')
+        ephem.table.add_column(
+            ephem['MJD']+2400000.5*u.d, name='epoch', index=1)
+        ephem.table.remove_column('MJD')
 
         if bib.status() is None or bib.status():
             bib.register('sbpy.data.Ephem.from_oo',

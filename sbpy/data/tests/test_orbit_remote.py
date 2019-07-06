@@ -17,7 +17,7 @@ def test_from_horizons():
     # current epoch
     now = Time.now()
     data = Orbit.from_horizons('Ceres')
-    assert_allclose(data.datetime_jd, now.jd*u.d)
+    assert_allclose(data['datetime_jd'], now.jd*u.d)
 
     # date range - astropy.time.Time objects
     epochs = {'start': Time('2018-01-02', format='iso'),
@@ -67,6 +67,7 @@ def test_oo_transform():
     orbit = Orbit.from_horizons('Ceres')
 
     cart_orbit = orbit.oo_transform('CART')
+
     kep_orbit = cart_orbit.oo_transform('KEP')
     u.isclose(orbit['a'][0], kep_orbit['a'][0])
     u.isclose(orbit['e'][0], kep_orbit['e'][0])

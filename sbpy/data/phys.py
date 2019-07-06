@@ -58,8 +58,7 @@ class Phys(DataClass):
         Examples
         --------
         >>> from sbpy.data import Phys
-        >>> phys = Phys.from_sbdb(['Ceres', '12893', '3552'])
-        ...     # doctest: +REMOTE_DATA
+        >>> phys = Phys.from_sbdb(['Ceres', '12893', '3552']) # doctest: +REMOTE_DATA
         >>> print(phys['targetname', 'H', 'diameter'])  # doctest: +SKIP
                 targetname                 H          diameter
                                           mag            km
@@ -163,7 +162,7 @@ class Phys(DataClass):
                           'https://ssd.jpl.nasa.gov/sbdb.cgi'})
 
         # assemble data as Phys object
-        return cls.from_array(coldata, names=columnnames)
+        return cls.from_columns(coldata, names=columnnames)
 
     @classmethod
     def from_jplspec(cls, temp_estimate, transition_freq, mol_tag):
@@ -206,7 +205,8 @@ class Phys(DataClass):
 
         if isinstance(mol_tag, str):
             query = JPLSpec.query_lines_async(min_frequency=(transition_freq - (1 * u.GHz)),
-                                              max_frequency=(transition_freq + (1 * u.GHz)),
+                                              max_frequency=(
+                                                  transition_freq + (1 * u.GHz)),
                                               molecule=mol_tag,
                                               parse_name_locally=True,
                                               get_query_payload=True)
@@ -230,7 +230,8 @@ class Phys(DataClass):
                 mol_tag = res['Mol'][0]
 
         query = JPLSpec.query_lines(min_frequency=(transition_freq - (1 * u.GHz)),
-                                    max_frequency=(transition_freq + (1 * u.GHz)),
+                                    max_frequency=(
+                                        transition_freq + (1 * u.GHz)),
                                     molecule=mol_tag)
 
         freq_list = query['FREQ']
@@ -267,7 +268,8 @@ class Phys(DataClass):
 
         temp = temp_estimate
 
-        f = interp(log(temp.value), log(temp_list.value[::-1]), log(part[::-1]))
+        f = interp(log(temp.value), log(
+            temp_list.value[::-1]), log(part[::-1]))
 
         f = exp(f)
 
@@ -283,41 +285,20 @@ class Phys(DataClass):
 
         quantities = [t_freq, temp, lgint, part300, partition, gu, energy_J,
                       elo_J, df, mol_tag]
-        names = ('Transition frequency',
-                 'Temperature',
-                 'Integrated line intensity at 300 K',
-                 'Partition function at 300 K',
-                 'Partition function at designated temperature',
-                 'Upper state degeneracy',
-                 'Upper level energy in Joules',
-                 'Lower level energy in Joules',
-                 'Degrees of freedom', 'Molecule Identifier')
-        result = cls.from_array(quantities, names)
+
+        names = ['t_freq', 'temp', 'lgint300', 'partfn300', 'partfn',
+                 'dgup', 'eup_J', 'elo_J', 'degfreedom', 'mol_tag']
+
+        # names = ('Transition frequency',
+        #          'Temperature',
+        #          'Integrated line intensity at 300 K',
+        #          'Partition function at 300 K',
+        #          'Partition function at designated temperature',
+        #          'Upper state degeneracy',
+        #          'Upper level energy in Joules',
+        #          'Lower level energy in Joules',
+        #          'Degrees of freedom', 'Molecule Identifier')
+
+        result = cls.from_dict(dict(zip(names, quantities)))
 
         return result
-
-    @classmethod
-    def from_lowell(cls, targetid):
-        """Load physical properties from Lowell Observatory
-        (http://asteroid.lowell.edu/).
-
-        The Lowell database will provide a database of physical
-        properties which is a compilation of a number of different sources.
-
-        Parameters
-        ----------
-        targetid : str, mandatory
-            target identifier
-
-        Returns
-        -------
-        Astropy Table
-
-        Examples
-        --------
-        >>> from sbpy.data import Phys # doctest: +SKIP
-        >>> phys = Phys.from_astorb('Ceres') # doctest: +SKIP
-
-        not yet implemented
-
-        """

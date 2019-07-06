@@ -137,36 +137,13 @@ class Orbit(DataClass):
 
         # identify time scales returned by Horizons query
         timescales = ['TDB'] * len(all_elem)
-        all_elem.add_column(Column(timescales, name='timescale'))
+        all_elem['timescale'] = timescales
 
         if bib.status() is None or bib.status():
             bib.register('sbpy.data.Orbit.from_horizons',
                          {'data service': '1996DPS....28.2504G'})
 
         return cls.from_table(all_elem)
-
-    @classmethod
-    def from_mpc(cls, targetid):
-        """Load orbital elements from the Minor Planet Center
-        (http://minorplanetcenter.net/).
-
-        Parameters
-        ----------
-        targetid: str, mandatory
-            target identifier
-
-        Returns
-        -------
-        `~Orbit` object
-
-        Examples
-        --------
-        >>> from sbpy.data import Orbit  # doctest: +SKIP
-        >>> orb = Orbit.from_mpc('ceres')  # doctest: +SKIP
-
-        not yet implemented
-
-        """
 
     # functions using pyoorb
 
@@ -190,29 +167,35 @@ class Orbit(DataClass):
         """
 
         # identify orbit type based on available table columns
-        orbittype = None
-        for testtype in ['KEP', 'COM', 'CART']:
-            try:
-                self._translate_columns(
-                    conf.oorb_orbit_fields[testtype][1:6])
-                orbittype = testtype
-                break
-            except KeyError:
-                pass
+        if 'orbtype' in self.field_names:
+            orbittype = self.table['orbtype'][0]
+        else:
+            orbittype = None
+
+            for testtype in ['KEP', 'COM', 'CART']:
+                try:
+                    for field in conf.oorb_orbit_fields[testtype][1:6]:
+                        self.__getitem__(field)
+                    orbittype = testtype
+                    break
+                except KeyError:
+                    pass
 
         if orbittype is None:
             raise ValueError(
                 'orbit type cannot be determined from elements')
 
         # rename TDB to TT, if ``timescale`` fields available
-        if ('timescale' in self.column_names and
+        if ('timescale' in self.field_names and
                 any(self.table['timescale'] == 'TDB')):
             self.table['timescale'][self.table['timescale'] == 'TDB'] = 'TT'
+        if timescale == 'TDB':
+            timescale = 'TT'
 
         if timescale is not None:
             # override timescale, if provided
             timescale_ = [conf.oorb_timeScales[timescale]] * len(self.table)
-        elif 'timescale' not in self.column_names:
+        elif 'timescale' not in self.field_names:
             # assume UTC if no timescale information provided
             timescale_ = [conf.oorb_timeScales['UTC']] * len(self.table)
         else:
@@ -221,7 +204,7 @@ class Orbit(DataClass):
                           for t in self.table['timescale']]
 
         # implant ``targetname`` field information, if not available
-        if 'targetname' not in self.column_names:
+        if 'targetname' not in self.field_names:
             self.table['targetname'] = ['orbit_'+str(i) for i in
                                         range(len(self.table))]
 
@@ -369,7 +352,7 @@ class Orbit(DataClass):
                     field)[0]] = conf.oorb_orbit_units[orbittype][idx]
             except KeyError:
                 pass
-        for colname in self.column_names:
+        for colname in self.field_names:
             if (colname in default_units.keys() and
                 not isinstance(self[colname],
                                (u.Quantity, u.CompositeUnit))):
@@ -384,16 +367,18 @@ class Orbit(DataClass):
             RuntimeError('pyoorb failed with error code {:d}'.format(err))
 
         # reorder data in Orbit object
-        columns = conf.oorb_orbit_fields[orbittype]
+        field_names = conf.oorb_orbit_fields[orbittype]
 
-        orbits = self.from_array(oo_orbits.transpose(), names=columns)
+        columns = []
+        for i, col in enumerate(oo_orbits.transpose()):
+            columns.append(Orbit._unit_apply(
+                col, conf.oorb_orbit_units[orbittype][i]))
+        orbits = self.from_columns(columns, names=field_names)
 
-        for i, col in enumerate(orbits.column_names):
+        for i, col in enumerate(orbits.field_names):
             # convert from radians to degrees where unit == deg
             if conf.oorb_orbit_units[orbittype][i] == 'deg':
                 orbits._table[col] = rad2deg(orbits[col])
-            # apply units
-            orbits[col].unit = conf.oorb_orbit_units[orbittype][i]
 
         # replace id column with actual target names from original orbits
         orbits.table.replace_column('id', self['targetname'])
@@ -406,7 +391,7 @@ class Orbit(DataClass):
 
         # identify time scales returned by Horizons query
         timescales = [timescale] * len(orbits.table)
-        orbits.table.add_column(Column(timescales, name='timescale'))
+        orbits.table['timescale'] = timescales
 
         if bib.status() is None or bib.status():
             bib.register('sbpy.data.Ephem.from_oo',
@@ -517,7 +502,7 @@ class Orbit(DataClass):
                     field)[0]] = conf.oorb_orbit_units[orbittype][idx]
             except KeyError:
                 pass
-        for colname in self.column_names:
+        for colname in self.field_names:
             if (colname in default_units.keys() and
                 not isinstance(self[colname],
                                (u.Quantity, u.CompositeUnit))):
@@ -537,16 +522,18 @@ class Orbit(DataClass):
             RuntimeError('pyoorb failed with error code {:d}'.format(err))
 
         # reorder data in Orbit object
-        columns = conf.oorb_orbit_fields[orbittype]
+        field_names = conf.oorb_orbit_fields[orbittype]
 
-        orbits = self.from_array(oo_orbits.transpose(), names=columns)
+        columns = []
+        for i, col in enumerate(oo_orbits.transpose()):
+            columns.append(Orbit._unit_apply(
+                col, conf.oorb_orbit_units[orbittype][i]))
+        orbits = self.from_columns(columns, names=field_names)
 
-        for i, col in enumerate(orbits.column_names):
+        for i, col in enumerate(orbits.field_names):
             # convert from radians to degrees where unit == deg
             if conf.oorb_orbit_units[orbittype][i] == 'deg':
                 orbits._table[col] = rad2deg(orbits[col])
-            # apply units
-            orbits[col].unit = conf.oorb_orbit_units[orbittype][i]
 
         # replace id column with actual target names from original orbits
         orbits.table.replace_column('id', self.table['targetname'])
@@ -562,7 +549,7 @@ class Orbit(DataClass):
 
         # identify time scales returned by Horizons query
         timescales = [timescale] * len(orbits.table)
-        orbits.table.add_column(Column(timescales, name='timescale'))
+        orbits.table['timescale'] = timescales
 
         if bib.status() is None or bib.status():
             bib.register('sbpy.data.Ephem.from_oo',

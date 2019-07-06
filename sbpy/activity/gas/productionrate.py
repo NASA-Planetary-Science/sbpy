@@ -65,7 +65,7 @@ def intensity_conversion(mol_data):
     if not isinstance(mol_data, Phys):
         raise ValueError('mol_data must be a `sbpy.data.phys` instance.')
 
-    temp = mol_data['Temperature'][0]
+    temp = mol_data['temp'][0]
     lgint = mol_data['lgint300'][0]
     part300 = mol_data['partfn300'][0]
     partition = mol_data['partfn'][0]
@@ -146,7 +146,7 @@ def einstein_coeff(mol_data):
     partition = mol_data['partfn'][0]
     energy_J = mol_data['eup_j'][0]
     elo_J = mol_data['elo_J'][0]
-    df = mol_data['degfr'][0]
+    df = mol_data['degfreedom'][0]
     t_freq = mol_data['t_freq'][0]
     gu = mol_data['dgup'][0]
 
@@ -376,7 +376,8 @@ class LTE():
         >>> import astropy.units as u  # doctest: +SKIP
         >>> from astropy.time import Time # doctest: +SKIP
         >>> from sbpy.data import Ephem, Phys # doctest: +SKIP
-        >>> from sbpy.activity import LTE, einstein_coeff, intensity_conversion, beta_factor  # doctest: +SKIP
+        >>> from sbpy.activity import (LTE, einstein_coeff,
+        ...                            intensity_conversion, beta_factor)  # doctest: +SKIP
 
         >>> temp_estimate = 47. * u.K  # doctest: +SKIP
         >>> target = '103P'  # doctest: +SKIP
@@ -393,14 +394,16 @@ class LTE():
         >>> mol_data = Phys.from_jplspec(temp_estimate, transition_freq, mol_tag) # doctest: +SKIP
 
         >>> intl = intensity_conversion(mol_data) # doctest: +SKIP
-        >>> mol_data.add_column([intl.value] * intl.unit, name='intl') # doctest: +SKIP
+        >>> mol_data.table.add_column(Column([intl.value] * intl.unit,
+        ...                                  name='intl')) # doctest: +SKIP
 
         >>> au = einstein_coeff(mol_data) # doctest: +SKIP
-        >>> mol_data.add_column([au.value] * au.unit, name='eincoeff') # doctest: +SKIP
+        >>> mol_data.table.add_column(Column([au.value] * au.unit,
+        ...                                  name='eincoeff')) # doctest: +SKIP
 
         >>> lte = LTE() # doctest: +SKIP
-        >>> q = lte.from_Drahus(integrated_flux, mol_data, # doctest: +SKIP
-                            ephemobj, vgas, aper, b=b)
+        >>> q = lte.from_Drahus(integrated_flux, mol_data,
+        ...                     ephemobj, vgas, aper, b=b)  # doctest: +SKIP
 
         >>> q  # doctest: +SKIP
         <Quantity 1.05828096e+25 1 / s>
@@ -514,16 +517,20 @@ class LTE():
         >>> mol_data = Phys.from_jplspec(temp_estimate, transition_freq, mol_tag) # doctest: +SKIP
 
         >>> intl = intensity_conversion(mol_data) # doctest: +SKIP
-        >>> mol_data.add_column([intl.value] * intl.unit, name='intl') # doctest: +SKIP
+        >>> mol_data.table.add_column(Column([intl.value] * intl.unit,
+        ...                                  name='intl')) # doctest: +SKIP
 
         >>> au = einstein_coeff(mol_data) # doctest: +SKIP
-        >>> mol_data.add_column([au.value] * au.unit, name='eincoeff') # doctest: +SKIP
+        >>> mol_data.table.add_column(Column([au.value] * au.unit,
+        ...                                  name='eincoeff')) # doctest: +SKIP
 
         >>> beta = beta_factor(mol_data, ephemobj) # doctest: +SKIP
-        >>> mol_data.add_column([beta.value] * beta.unit, name='beta') # doctest: +SKIP
+        >>> mol_data.table.add_column(Column([beta.value] * beta.unit,
+        ...                                  name='beta')) # doctest: +SKIP
 
         >>> tnum = total_number_nocd(integrated_flux, mol_data, aper, b) # doctest: +SKIP
-        >>> mol_data.add_column([tnum], name='total_number_nocd') # doctest: +SKIP
+        >>> mol_data.table.add_column(Column([tnum],
+        ...                                  name='total_number_nocd')) # doctest: +SKIP
 
         >>> Q_estimate = 2.8*10**(28) / u.s # doctest: +SKIP
         >>> parent = photo_timescale('CO') * vgas # doctest: +SKIP
