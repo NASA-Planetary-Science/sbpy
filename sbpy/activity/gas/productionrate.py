@@ -402,7 +402,7 @@ class LTE():
         ...                                  name='eincoeff')) # doctest: +SKIP
 
         >>> lte = LTE() # doctest: +SKIP
-        >>> q = lte.from_Drahus(integrated_flux, mol_data, 
+        >>> q = lte.from_Drahus(integrated_flux, mol_data,
         ...                     ephemobj, vgas, aper, b=b)  # doctest: +SKIP
 
         >>> q  # doctest: +SKIP
