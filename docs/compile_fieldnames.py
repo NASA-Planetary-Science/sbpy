@@ -92,7 +92,7 @@ rsttab = sys.stdout.read()
 out += rsttab
 
 # write fieldnames.rst
-with open('fieldnames.rst', 'w') as outf:
+with open('sbpy/data/fieldnames.rst', 'w') as outf:
     outf.write(out)
 
 sys.stdout.close()
