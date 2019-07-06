@@ -5,7 +5,7 @@ import numpy as np
 import astropy.units as u
 from astropy.time import Time
 from astropy.tests.helper import remote_data
-from astropy.table import Table
+from astropy.table import Table, Column
 from astroquery.lamda import Lamda
 from astroquery.jplspec import JPLSpec
 from .. import Haser, photo_timescale
@@ -33,10 +33,10 @@ def test_remote_prodrate_simple_hcn():
     q_found = []
     mol_data = Phys.from_jplspec(temp_estimate, transition_freq, mol_tag)
     intl = intensity_conversion(mol_data)
-    mol_data.add_column([intl.value] * intl.unit,
-                        name='Integrated line intensity at desired temp')
+    mol_data.table.add_column(Column([intl.value] * intl.unit,
+                                     name='lgint'))
     au = einstein_coeff(mol_data)
-    mol_data.add_column([au.value] * au.unit, name='eincoeff')
+    mol_data.table.add_column(Column([au.value] * au.unit, name='eincoeff'))
 
     for i in range(0, 28):
 
@@ -46,7 +46,8 @@ def test_remote_prodrate_simple_hcn():
 
         lte = LTE()
 
-        q = lte.from_Drahus(integrated_flux, mol_data, ephemobj, vgas, aper, b=b)
+        q = lte.from_Drahus(integrated_flux, mol_data,
+                            ephemobj, vgas, aper, b=b)
 
         q = np.log10(q.value)
 
@@ -75,10 +76,10 @@ def test_remote_prodrate_simple_ch3oh():
     q_found = []
     mol_data = Phys.from_jplspec(temp_estimate, transition_freq, mol_tag)
     intl = intensity_conversion(mol_data)
-    mol_data.add_column([intl.value] * intl.unit,
-                        name='Integrated line intensity at desired temp')
+    mol_data.table.add_column(Column([intl.value] * intl.unit,
+                                     name='lgint'))
     au = einstein_coeff(mol_data)
-    mol_data.add_column([au.value] * au.unit, name='eincoeff')
+    mol_data.table.add_column(Column([au.value] * au.unit, name='eincoeff'))
 
     for i in range(0, 20):
 
@@ -88,7 +89,8 @@ def test_remote_prodrate_simple_ch3oh():
 
         lte = LTE()
 
-        q = lte.from_Drahus(integrated_flux, mol_data, ephemobj, vgas, aper, b=b)
+        q = lte.from_Drahus(integrated_flux, mol_data,
+                            ephemobj, vgas, aper, b=b)
 
         q = np.log10(q.value)
 
@@ -121,8 +123,8 @@ def test_einstein():
 
         mol_data = Phys.from_jplspec(temp_estimate, transition_freq, mol_tag)
         intl = intensity_conversion(mol_data)
-        mol_data.add_column([intl.value] * intl.unit,
-                            name='Integrated line intensity at desired temp')
+        mol_data.table.add_column(Column([intl.value] * intl.unit,
+                                         name='lgint'))
 
         au = einstein_coeff(mol_data)
 
@@ -167,12 +169,12 @@ def test_Haser_prodrate():
     b = 0.74
     mol_data = Phys.from_jplspec(temp_estimate, transition_freq, mol_tag)
     intl = intensity_conversion(mol_data)
-    mol_data.add_column([intl.value] * intl.unit,
-                        name='Integrated line intensity at desired temp')
+    mol_data.table.add_column(Column([intl.value] * intl.unit,
+                                     name='lgint'))
     au = einstein_coeff(mol_data)
-    mol_data.add_column([au.value] * au.unit, name='eincoeff')
-    mol_data.add_column([1.] * u.AU * u.AU * u.s, name='beta')
-    mol_data.add_column([1.], name='total_number_nocd')
+    mol_data.table.add_column(Column([au.value] * au.unit, name='eincoeff'))
+    mol_data.table.add_column(Column([1.] * u.AU * u.AU * u.s, name='beta'))
+    mol_data.table.add_column(Column([1.], name='total_number_nocd'))
 
     q_found = []
 

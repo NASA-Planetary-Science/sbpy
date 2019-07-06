@@ -285,15 +285,20 @@ class Phys(DataClass):
 
         quantities = [t_freq, temp, lgint, part300, partition, gu, energy_J,
                       elo_J, df, mol_tag]
-        names = ('Transition frequency',
-                 'Temperature',
-                 'Integrated line intensity at 300 K',
-                 'Partition function at 300 K',
-                 'Partition function at designated temperature',
-                 'Upper state degeneracy',
-                 'Upper level energy in Joules',
-                 'Lower level energy in Joules',
-                 'Degrees of freedom', 'Molecule Identifier')
-        result = cls.from_array(quantities, names)
+
+        names = ['t_freq', 'temp', 'lgint300', 'partfn300', 'partfn',
+                 'dgup', 'eup_J', 'elo_J', 'degfreedom', 'mol_tag']
+
+        # names = ('Transition frequency',
+        #          'Temperature',
+        #          'Integrated line intensity at 300 K',
+        #          'Partition function at 300 K',
+        #          'Partition function at designated temperature',
+        #          'Upper state degeneracy',
+        #          'Upper level energy in Joules',
+        #          'Lower level energy in Joules',
+        #          'Degrees of freedom', 'Molecule Identifier')
+
+        result = cls.from_dict(dict(zip(names, quantities)))
 
         return result
