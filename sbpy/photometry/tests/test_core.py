@@ -67,7 +67,7 @@ class TestLinear():
         eph = linphase.to_ref(pha_test, append_results=True)
         assert np.isclose(eph['ref'], ref_test).all()
         assert np.isclose(eph['alpha'], pha_test).all()
-        assert set(eph.column_names) == {'alpha', 'ref'}
+        assert set(eph.field_names) == {'alpha', 'ref'}
         eph_norm = linphase.to_ref(pha_test, normalized=0, append_results=True)
         assert np.isclose(eph_norm['ref'], ref_norm_test).all()
         assert np.isclose(eph_norm['alpha'], pha_test).all()
@@ -242,7 +242,7 @@ class TestHG:
              10.886692329621765, 12.143261499943726, 14.18326309145893,
              18.48388800989832])
         eph1 = ceres.to_mag(eph_test, append_results=True)
-        assert set(eph1.column_names) == {'alpha', 'delta', 'mag', 'r'}
+        assert set(eph1.field_names) == {'alpha', 'delta', 'mag', 'r'}
         assert np.isclose(eph1['mag'], mag1_test).all()
         pha_test = np.linspace(0, np.pi*0.9, 10)
         mag2_test = np.array(
