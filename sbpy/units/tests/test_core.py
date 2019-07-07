@@ -9,9 +9,10 @@ import astropy.units as u
 from astropy.io import ascii
 from astropy.utils.data import get_pkg_data_filename
 import synphot
+from .. import core
 from ..core import *
 from ...utils import get_bandpass
-from ...calib import vega_fluxd
+from ...calib import vega_fluxd, solar_fluxd, solar_spectrum, Sun
 from ...utils import get_bandpass
 
 
@@ -28,7 +29,7 @@ JohnsonV = get_bandpass('Johnson V')
     ('mag(JM)', 'mag(JM)'),
     ('mag(JMflux)', 'mag(JM)')))
 def test_enable(unit, test):
-    with enable():
+    with core.enable():
         assert str(u.Unit(unit)) == test
 
 
@@ -100,56 +101,63 @@ def test_spectral_density_vega_bp(filename, fluxd, to, tol):
 
 
 def test_spectral_density_vega_synphot_import_fail(monkeypatch):
-    monkeypatch.setattr(core, 'synphot', None)
+    from ...calib import core as calib_core
+    monkeypatch.setattr(calib_core, 'synphot', None)
     assert spectral_density_vega(1 * u.um) == []
 
 
-@pytest.mark.parametrize('mag, wfb, f_sun, M_sun, ref', (
-    (3.4 * VEGAmag, None, None, None, 0.02865984),
-    (3.4 * VEGAmag, JohnsonV, None, None, 0.02865984),
-    (3.4 * VEGAmag, 5500 * u.AA, None, None, 0.02774623),
-    (1.56644783e-09 * u.Unit('W/(m2 um)'), None,
-        1839.93273227 * u.Unit('W/(m2 um)'), None, 0.02865984),
-    (1.55728147e-24 * u.Unit('W/(m2 Hz)'), None,
-        1.86599755e-12 * u.Unit('W/(m2 Hz)'), None, 0.02809415),
-    (3.4 * VEGAmag, None, None, -26.77471503 * VEGAmag, 0.02865984),
-    (3.4 * u.ABmag, None, None, -26.77471503 * u.ABmag, 0.02865984),
+@pytest.mark.parametrize('fluxd, wfb, f_sun, ref', (
+    (3.4 * VEGAmag, JohnsonV, None, 0.02865984),
+    (3.4 * VEGAmag, 5500 * u.AA, None, 0.02774623),
+    (1.56644783e-09 * u.Unit('W/(m2 um)'), 'V',
+        1839.93273227 * u.Unit('W/(m2 um)'), 0.02865984),
+    (1.55728147e-24 * u.Unit('W/(m2 Hz)'), 'V',
+        1.86599755e-12 * u.Unit('W/(m2 Hz)'), 0.02809415),
+    (3.4 * VEGAmag, 'V', -26.77471503 * VEGAmag, 0.02865984),
+    (3.4 * u.ABmag, 'V', -26.77471503 * u.ABmag, 0.02865984),
 ))
-def test_reflectance_ref(mag, wfb, f_sun, M_sun, ref):
+def test_reflectance_ref(fluxd, wfb, f_sun, ref):
     """Test conversion from flux to reflectance
 
     Use Ceres as the reference: H = 3.4 mag, radius = 460 km, average
     bidirectional reflectance at zero phase angle 0.029 (~1/pi of geometric
     albedo).
+
     """
+
     xsec = 6.648e5 * u.km**2
-    r = mag.to('1/sr', reflectance(cross_section=xsec, wfb=wfb, f_sun=f_sun,
-                                   M_sun=M_sun))
+
+    with vega_fluxd.set({'V': u.Quantity(3.589e-9, 'erg/(s cm2 AA)')}):
+        with solar_fluxd.set({wfb: f_sun}):
+            r = fluxd.to('1/sr', reflectance(wfb, cross_section=xsec))
     assert r.unit == u.sr**-1
     assert np.isclose(r.value, ref)
 
 
-@pytest.mark.parametrize('mag, wfb, f_sun, M_sun, radius', (
-    (3.4 * VEGAmag, None, None, None, 460.01351274),
-    (3.4 * VEGAmag, JohnsonV, None, None, 460.01351274),
-    (3.4 * VEGAmag, 5500 * u.AA, None, None, 452.62198065),
-    (1.56644783e-09 * u.Unit('W/(m2 um)'), None,
-        1839.93273227 * u.Unit('W/(m2 um)'), None, 460.01351274),
-    (1.55728147e-24 * u.Unit('W/(m2 Hz)'), None,
-        1.86599755e-12 * u.Unit('W/(m2 Hz)'), None, 455.45095634),
-    (3.4 * VEGAmag, None, None, -26.77471503 * VEGAmag, 460.01351274),
-    (3.4 * u.ABmag, None, None, -26.77471503 * u.ABmag, 460.01351274),
+@pytest.mark.parametrize('fluxd, wfb, f_sun, radius', (
+    (3.4 * VEGAmag, JohnsonV, None, 460.01351274),
+    (3.4 * VEGAmag, 5500 * u.AA, None, 452.62198065),
+    (1.56644783e-09 * u.Unit('W/(m2 um)'), 'V',
+        1839.93273227 * u.Unit('W/(m2 um)'), 460.01351274),
+    (1.55728147e-24 * u.Unit('W/(m2 Hz)'), 'V',
+        1.86599755e-12 * u.Unit('W/(m2 Hz)'), 455.45095634),
+    (3.4 * VEGAmag, 'V', -26.77471503 * VEGAmag, 460.01351274),
+    (3.4 * u.ABmag, 'V', -26.77471503 * u.ABmag, 460.01351274),
 ))
-def test_reflectance_xsec(mag, wfb, f_sun, M_sun, radius):
+def test_reflectance_xsec(fluxd, wfb, f_sun, radius):
     """Test conversion from flux to reflectance
 
     Use Ceres as the reference: H = 3.4 mag, radius = 460 km, average
     bidirectional reflectance at zero phase angle 0.029 (~1/pi of geometric
     albedo 0.09).
+
     """
+
     ref = 0.02865984 / u.sr
-    xs = mag.to('km2', reflectance(reflectance=ref, wfb=wfb, M_sun=M_sun))
-    ra = np.sqrt(xs/np.pi)
+    with vega_fluxd.set({'V': u.Quantity(3.589e-9, 'erg/(s cm2 AA)')}):
+        with solar_fluxd.set({wfb: f_sun}):
+            xs = fluxd.to('km2', reflectance(wfb, reflectance=ref))
+            ra = np.sqrt(xs / np.pi)
     assert ra.unit == u.km
     assert np.isclose(ra.value, radius)
 
@@ -161,26 +169,28 @@ def test_reflectance_spec():
     2005-07-04 05:32 UT as the standard.  Data file
     'data/hi05070405_9000036-avg-spec.txt', data from McLaughlin et al (2014).
     """
-    fn = get_pkg_data_filename(os.path.join('data',
-                                            'hi05070405_9000036-avg-spec.txt'))
-    t1 = ascii.read(fn)
+
     ifov = 1e-5 * u.rad
     delta = 15828 * u.km
     rh = 1.5 * u.au
-    wave = t1['wave'] * u.um
-    spec = (t1['spec'] * u.Unit('W/(m2 um sr)') * ifov**2).to('W/(m2 um)',
-                                                              u.dimensionless_angles()) * delta.to('au').value**2 \
-        * rh.to('au').value**2
-    spec_nu = spec.to('W/(m2 Hz)', u.spectral_density(wave))
-    xsec = (ifov * delta).to('km', u.dimensionless_angles())**2
-    ref1 = spec.to('1/sr', reflectance(cross_section=xsec, wfb=wave))
-    ref2 = spec.to('1/sr', reflectance(cross_section=xsec,
-                                       f_sun=t1['flux_sun']*u.Unit('W/(m2 um)')))
-    ref3 = spec_nu.to('1/sr', reflectance(cross_section=xsec,
-                                          f_sun=t1['flux_sun_nu']*u.Unit('W/(m2 Hz)')))
+
+    # Tempel 1 spectrum, includes reference solar spectrum
+    fn = get_pkg_data_filename(
+        os.path.join('data', 'hi05070405_9000036-avg-spec.txt'))
+    t1 = ascii.read(fn)
+    sun = Sun.from_array(t1['wave'] * u.um,
+                         t1['flux_sun_nu'] * u.Unit('W/(m2 Hz)'))
+    with solar_spectrum.set(sun):
+        wave = t1['wave'] * u.um
+        spec = ((t1['spec'] * u.Unit('W/(m2 um sr)') * ifov**2)
+                * (delta * rh / u.au**2)**2).to('W/(m2 um)')
+        spec_nu = spec.to('W/(m2 Hz)', u.spectral_density(wave))
+
+        xsec = (ifov * delta)**2 / u.sr
+        ref1 = spec.to('1/sr', reflectance(wave, cross_section=xsec))
+        ref2 = spec_nu.to('1/sr', reflectance(wave, cross_section=xsec))
+
     assert ref1.unit == '1/sr'
     assert np.allclose(ref1.value, t1['ref'])
     assert ref2.unit == '1/sr'
     assert np.allclose(ref2.value, t1['ref'])
-    assert ref3.unit == '1/sr'
-    assert np.allclose(ref3.value, t1['ref'])

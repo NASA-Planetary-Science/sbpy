@@ -36,6 +36,10 @@ class SinglePointSpectrumError(SbpyException):
     """Single point provided, but multiple values expected."""
 
 
+class SynphotRequired(SbpyException):
+    pass
+
+
 class SpectralSource(ABC):
     """Abstract base class for SBPy spectral sources.
 
@@ -294,6 +298,10 @@ class SpectralSource(ABC):
 
         from .. import units as sbu  # avoid circular dependency
 
+        if synphot is None:
+            raise SynphotRequired(
+                'synphot is required for observations through bandpass')
+
         # promote single bandpasses to a list, but preserve number of
         # dimensions
         if isinstance(bp, (SpectralElement, str)):
@@ -365,10 +373,14 @@ class SpectralSource(ABC):
 
         from .. import units as sbu  # avoid circular dependency
 
+        if synphot is None:
+            raise SynphotRequired(
+                'synphot is required for spectral binning of sources')
+
         if np.size(wave_or_freq) == 1:
             raise SinglePointSpectrumError(
                 'Multiple wavelengths or frequencies required for '
-                'observe.  Consider interpolation with {}() instead.'
+                'observe.  Instead consider interpolation with {}().'
                 .format(self.__class__.__name__))
 
         if unit is None:

@@ -7,11 +7,13 @@ __all__ = [
     'vega_fluxd',
     'Sun',
     'Vega',
+    'FilterLookupError',
     'UndefinedSourceError'
 ]
 
 import os
 from abc import ABC
+from warnings import warn
 import numpy as np
 from astropy.utils.state import ScienceState
 from astropy.utils.data import get_pkg_data_filename
@@ -36,6 +38,10 @@ __doctest_requires__ = {'Sun': 'synphot'}
 
 class UndefinedSourceError(SbpyException):
     "SpectralStandard was initialized without a source, but it was accessed."
+
+
+class FilterLookupError(SbpyException):
+    "Attempted to look up filter in, e.g., solar_fluxd, but not present."
 
 
 class SpectralStandard(SpectralSource, ABC):
@@ -122,7 +128,7 @@ class SpectralStandard(SpectralSource, ABC):
 
         """
         if synphot is None:
-            warnings.warn(OptionalPackageUnavailable(
+            warn(OptionalPackageUnavailable(
                 'synphot is not installed, returning an empty spectral'
                 ' standard.'))
             standard = cls(None)
@@ -161,7 +167,7 @@ class SpectralStandard(SpectralSource, ABC):
         """Observe as through filters or spectrometer.
 
         Calls `observe_bandpass`, `observe_spectrum`, or
-        `observe_filter` as appropriate.
+        `observe_filter_name` as appropriate.
 
 
         Parameters
@@ -191,14 +197,14 @@ class SpectralStandard(SpectralSource, ABC):
                 fluxd.append(self.observe(wfb[i], unit=unit, **kwargs))
             fluxd = u.Quantity(fluxd)
         elif isinstance(wfb, str):
-            lambda_eff, lambda_pivot, fluxd = self.observe_filter(
+            lambda_eff, lambda_pivot, fluxd = self.observe_filter_name(
                 wfb, unit=unit)
         else:
             fluxd = super().observe(wfb, unit=unit, **kwargs)
 
         return fluxd
 
-    def observe_filter(self, filt, unit=None):
+    def observe_filter_name(self, filt, unit=None):
         """Flux density through this filter.
 
         Does not use the spectrum, but instead the flux density
@@ -227,36 +233,48 @@ class SpectralStandard(SpectralSource, ABC):
         lambda_pivot: `~astropy.units.Quantity`
             Pivot wavelength.  ``None`` if it is not provided.
 
-         fluxd : `~astropy.units.Quantity`
+        fluxd : `~astropy.units.Quantity`
             Spectral flux density.
 
 
         Raises
         ------
-        ``KeyError`` if the filter is not defined.
+        ``FilterLookupError`` if the filter is not defined.
 
         """
 
-        unit = 'W/(m2 um)' if unit is None else unit
+        from .. import units as sbu
 
         source_fluxd = self._fluxd_state.get()
-        fluxd = source_fluxd[filt]
+        try:
+            fluxd = source_fluxd[filt]
+        except KeyError:
+            raise FilterLookupError(
+                'Filter "{}" is not present in `{}`'
+                .format(filt, self._fluxd_state.__name__))
 
         lambda_eff = source_fluxd.get(filt + '(lambda eff)')
         lambda_pivot = source_fluxd.get(filt + '(lambda pivot)')
 
-        # convert to requested units, may need lambda_pivot
-        if lambda_pivot is None:
-            equiv = None
-        else:
-            equiv = u.spectral_density(lambda_pivot)
+        if unit is not None:
+            unit = u.Unit(unit)
 
-        try:
-            fluxd = fluxd.to(unit, equiv)
-        except u.UnitConversionError as e:
-            raise type(e)(
-                '{}  Is "{}(lambda pivot)" required and'
-                ' was it provided?'.format(e, filt))
+            # convert to requested units, may need lambda_pivot
+            if lambda_pivot is None:
+                equiv = []
+            else:
+                equiv = u.spectral_density(lambda_pivot)
+
+            # are VEGAmag involved?
+            if sbu.VEGA.is_equivalent((unit, fluxd.unit)):
+                equiv += sbu.spectral_density_vega(filt)
+
+            try:
+                fluxd = fluxd.to(unit, equiv)
+            except u.UnitConversionError as e:
+                raise type(e)(
+                    '{}  Is "{}(lambda pivot)" required and'
+                    ' was it provided?'.format(e, filt))
 
         return lambda_eff, lambda_pivot, fluxd
 
@@ -298,7 +316,7 @@ class SpectralStandard(SpectralSource, ABC):
                 w, m[i] = self.observe_bandpass(wfb[i], unit=unit)
                 eff_wave.append(w)
             elif isinstance(wfb[i], str):
-                w, pivot, m[i] = self.observe_filter(
+                w, pivot, m[i] = self.observe_filter_name(
                     wfb[i], unit=unit)
                 eff_wave.append(w)
             else:

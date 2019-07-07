@@ -13,7 +13,6 @@ from astroquery.jplhorizons import Horizons, conf
 from astropy import log
 from ..bib import register
 from ..data import Phys
-from ..calib import Sun
 
 
 try:
@@ -127,6 +126,8 @@ class SpectralGradient(u.SpecificTypeQuantity):
         spectrum.
 
         """
+        from ..calib import Sun
+
         lambda_eff, ci = Sun.from_default().color_index(wfb, u.ABmag)
 
         return lambda_eff
