@@ -45,14 +45,17 @@ def _process_ephem_input(eph, key=None):
         `None`.
     out : ndarray, numbers, `~astropy.units.Qauntity`
         The colume extracted from input `eph` if it can be converted to
-        `~sbpy.data.Ephem`, or the original input `eph` if it cannot be converted.
+        `~sbpy.data.Ephem`, or the original input `eph` if it cannot be
+        converted.
     """
     if eph is None:
         return None, None
     if not isinstance(eph, (Ephem, list, tuple, np.ndarray, Number,
                             u.Quantity)):
         raise TypeError(
-            '`~sbpy.data.Ephem`, numbers, iterables of numbers, or `~astropy.units.Quantity` expected, {0} received'.format(type(eph)))
+            '`~sbpy.data.Ephem`, numbers, iterables of numbers, or'
+            ' `~astropy.units.Quantity` expected, {0} received'.format(
+                type(eph)))
     if isinstance(eph, Ephem):
         if key is None:
             out = None
@@ -379,7 +382,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         >>>
         >>> # Failed initialization due to the lack of field 'G'
         >>> phys = Phys.from_sbdb('12893')      # doctest: +REMOTE_DATA
-        >>> print('G' in phys.column_names)     # doctest: +REMOTE_DATA
+        >>> print('G' in phys.field_names)      # doctest: +REMOTE_DATA
         False
         >>> m = HG.from_phys(phys)              # doctest: +REMOTE_DATA
         Traceback (most recent call last):
@@ -397,7 +400,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
             for p in cls.param_names:
                 par[p] = par[p][valid]
             meta = kwargs.pop('meta', OrderedDict())
-            if 'targetname' in phys.column_names:
+            if 'targetname' in phys.field_names:
                 meta.update({'targetname': phys['targetname'][valid]})
             kwargs['meta'] = meta
             for p in cls.param_names:
