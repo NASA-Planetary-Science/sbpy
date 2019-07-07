@@ -81,7 +81,7 @@ model parameters:
       ---- ----
       3.34 0.12
 
-Note that  model set is not supported.  Only one model can be initialized with
+Note that model set is not supported.  Only one model can be initialized with
 the first set of valid parameters in the input `~sbpy.data.DataClass`.
 
 To fit a photometric model, one may follow the standard procedure defined in
@@ -111,13 +111,13 @@ submodule, such as `~astropy.modeling.fitting.LevMarLSQFitter`.
       3.305001580933622 0.08532754955207918
 
 Alternatively, one may use the wrapper method
-`~sbpy.photometry.DiskIntegratedPhaseFunc.fit` pre-defined in the photometric
+`~sbpy.photometry.DiskIntegratedPhaseFunc._fit` pre-defined in the photometric
 model classes to fit magnitude data and return a model class object, or use
 class method `~sbpy.photometry.DiskIntegratedPhaseFunc.from_data` to
 initialize a model directly from data by fitting.
 
-  >>> # use .fit method
-  >>> model3 = HG1G2().fit(alpha, mag)
+  >>> # use ._fit method
+  >>> model3 = HG1G2()._fit(alpha, mag)
   >>> print(model3)  # doctest: +SKIP
   Model: HG1G2
   Inputs: ('x',)
