@@ -24,7 +24,7 @@ Getting Started
    structure.rst
    Tutorials <https://github.com/NASA-Planetary-Science/sbpy-tutorial>
    Report Problems <https://github.com/astropy/astropy/issues>
-   About the Sbpy Project <https://sbpy.org/about.html>
+   About the sbpy Project <https://sbpy.org/about.html>
    status.rst
 
 
@@ -80,6 +80,31 @@ Developer Documentation
 
    development/index.rst
 
+**************
+Current Status
+**************
+
+.. image:: http://img.shields.io/badge/powered%20by-AstroPy-orange.svg?style=flat
+    :target: http://www.astropy.org
+    :alt: Powered by Astropy Badge
+
+.. image:: https://readthedocs.org/projects/sbpy/badge/?version=latest
+    :target: http://sbpy.readthedocs.io/en/latest/?badge=latest
+    :alt: Documentation status
+
+.. image:: http://joss.theoj.org/papers/10.21105/joss.01426/status.svg
+    :target: https://doi.org/10.21105/joss.01426
+    :alt: JOSS documentation
+	  
+.. image:: https://travis-ci.org/NASA-Planetary-Science/sbpy.svg?branch=master
+    :target: https://travis-ci.org/NASA-Planetary-Science/sbpy
+    :alt: Travis-CI status
+
+.. image:: https://codecov.io/gh/NASA-Planetary-Science/sbpy/branch/master/graph/badge.svg
+    :target: https://codecov.io/gh/NASA-Planetary-Science/sbpy
+    :alt: codecov status
+
+   
 *************************
 Other Project Information
 *************************
