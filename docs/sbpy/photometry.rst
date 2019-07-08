@@ -52,7 +52,7 @@ by supplying the model parameters as either dimensionless numbers or
 
 Calculate geometric albedo, Bond albedo, and phase integral:
 
-  >>> print(m.geoalb)  # doctest: +FLOAT_CMP
+  >>> print(m.geomalb)  # doctest: +FLOAT_CMP
   0.09825058857735823
   >>> print(m.bondalb)  # doctest: +FLOAT_CMP
   0.035797658494252343

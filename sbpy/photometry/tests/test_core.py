@@ -96,7 +96,7 @@ class TestLinear():
 
     def test_props(self):
         linphase = LinearPhaseFunc(5, 2.29, radius=300)
-        assert np.isclose(linphase.geoalb, 0.05007354222252798)
+        assert np.isclose(linphase.geomalb, 0.05007354222252798)
         assert np.isclose(linphase.bondalb, 0.018404727835791654)
         assert np.isclose(linphase.phaseint, 0.3675539420399024)
 
@@ -183,12 +183,12 @@ class TestHG:
 
     def test_props(self):
         ceres = HG(3.34, 0.12, radius=480)
-        assert np.isclose(ceres.geoalb, 0.09023361346774741)
+        assert np.isclose(ceres.geomalb, 0.09023361346774741)
         assert np.isclose(ceres.bondalb, 0.03287666899906162)
         assert np.isclose(ceres.phaseint, 0.36435057552929395)
         ceres.radius = 480*u.km
         if LooseVersion(astropy.__version__) >= req_ver:
-            assert u.isclose(ceres.geoalb,
+            assert u.isclose(ceres.geomalb,
                              0.09023361*u.dimensionless_unscaled)
             assert u.isclose(ceres.bondalb, 0.03287667 *
                              u.dimensionless_unscaled)
@@ -406,12 +406,12 @@ class TestHG1G2:
 
     def test_props(self):
         themis = HG1G2(7.063, 0.62, 0.14, radius=100)
-        assert np.isclose(themis.geoalb, 0.06739859193616704)
+        assert np.isclose(themis.geomalb, 0.06739859193616704)
         assert np.isclose(themis.bondalb, 0.02521731797010077)
         assert np.isclose(themis.phaseint, 0.374152)
         themis.radius = 100*u.km
         if LooseVersion(astropy.__version__) >= req_ver:
-            assert u.isclose(themis.geoalb, 0.06739859 *
+            assert u.isclose(themis.geomalb, 0.06739859 *
                              u.dimensionless_unscaled)
             assert u.isclose(themis.bondalb, 0.02521732 *
                              u.dimensionless_unscaled)
@@ -530,12 +530,12 @@ class TestHG12:
 
     def test_props(self):
         themis = HG12(7.121, 0.68, radius=100)
-        assert np.isclose(themis.geoalb, 0.06389263856216909)
+        assert np.isclose(themis.geomalb, 0.06389263856216909)
         assert np.isclose(themis.bondalb, 0.02522850358089249)
         assert np.isclose(themis.phaseint, 0.3948577512)
         themis.radius = 100*u.km
         if LooseVersion(astropy.__version__) >= req_ver:
-            assert u.isclose(themis.geoalb, 0.06389264 *
+            assert u.isclose(themis.geomalb, 0.06389264 *
                              u.dimensionless_unscaled)
             assert u.isclose(themis.bondalb, 0.0252285 *
                              u.dimensionless_unscaled)
@@ -640,12 +640,12 @@ class TestHG12_Pen16:
 
     def test_props(self):
         themis = HG12_Pen16(7.121, 0.68, radius=100)
-        assert np.isclose(themis.geoalb, 0.06389263856216909)
+        assert np.isclose(themis.geomalb, 0.06389263856216909)
         assert np.isclose(themis.bondalb, 0.024306474259348763)
         assert np.isclose(themis.phaseint, 0.38042683486452)
         themis.radius = 100*u.km
         if LooseVersion(astropy.__version__) >= req_ver:
-            assert u.isclose(themis.geoalb, 0.06389264 *
+            assert u.isclose(themis.geomalb, 0.06389264 *
                              u.dimensionless_unscaled)
             assert u.isclose(themis.bondalb, 0.02430647 *
                              u.dimensionless_unscaled)
