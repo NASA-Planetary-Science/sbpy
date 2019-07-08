@@ -67,6 +67,7 @@ def test_register_single():
 
     assert (set(['test1:', 'track_this:', 'bibcode1'])
             == set(show().split()))
+    reset()
 
 
 def test_register_list():
@@ -76,6 +77,7 @@ def test_register_list():
 
     assert (set(['test1:', 'track_this:', 'bibcode1', 'bibcode2'])
             == set(show().split()))
+    reset()
 
 
 def test_register_double():
@@ -86,6 +88,7 @@ def test_register_double():
         register('test1', {'track_this': ['bibcode3']})
 
     assert show().count('bibcode2') == 1
+    reset()
 
 
 def test_Tracking():
@@ -107,6 +110,7 @@ def test_Tracking():
                 'and_track_that:', 'bibcode']) == set(show().split())
     # different builds will have different orders for bibcode 1 and 2, to
     # avoid the build failing because of this we use sets
+    reset()
 
 
 def test_Tracking_issue_64():
@@ -118,6 +122,7 @@ def test_Tracking_issue_64():
     words = show().split()
     assert 'OH' in words
     assert 'H2O' in words
+    reset()
 
 
 def test_Tracking_reporter(capsys):
@@ -127,6 +132,7 @@ def test_Tracking_reporter(capsys):
     captured = capsys.readouterr()
     assert (set(['test1:', 'track_this:', 'bibcode1'])
             == set(captured.out.split()))
+    reset()
 
 
 def test_cite():
@@ -141,9 +147,11 @@ def test_cite():
     assert (set(['sbpy.bib.tests.test_bib.force:', 'method:',
                  '1687pnpm.book.....N'])
             == set(show().split()))
+    reset()
 
 
 def test_filter():
+    reset()
     with Tracking():
         register('test1', {'track_this': 'bibcode1'})
         register('test1', {'software': 'bibcode2'})
@@ -158,3 +166,4 @@ def test_filter():
                 'bibcode']) == set(show(filter='software').split())
     # different builds will have different orders for bibcode 1 and 2, to
     # avoid the build failing because of this we use sets
+    reset()

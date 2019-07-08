@@ -28,7 +28,7 @@ __all__ = [
     'fluorescence_band_strength',
 
     'Haser',
-    'Vectorial',
+    'Vectorial'
 ]
 
 from warnings import warn
@@ -46,10 +46,10 @@ except ImportError:
 
 from astropy.table import Table
 from astropy.utils.exceptions import AstropyWarning
-from .. import bib
-from .core import (Aperture, RectangularAperture, GaussianAperture,
+from ... import bib
+from .. core import (Aperture, RectangularAperture, GaussianAperture,
                    AnnularAperture, CircularAperture)
-from .core import rho_as_length
+from .. core import rho_as_length
 
 
 def photo_lengthscale(species, source=None):

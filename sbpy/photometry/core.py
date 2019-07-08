@@ -284,16 +284,16 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
     >>> from sbpy.data import Phys, Orbit, Ephem
     >>>
     >>> # Initialize from physical parameters pulled from JPL SBDB
-    >>> phys = Phys.from_sbdb('Ceres')
-    >>> print(phys['targetname','H','G'])
+    >>> phys = Phys.from_sbdb('Ceres')       # doctest: +REMOTE_DATA
+    >>> print(phys['targetname','H','G'])    # doctest: +REMOTE_DATA
     <QTable length=1>
     targetname    H       G
        str7    float64 float64
     ---------- ------- -------
        1 Ceres    3.34    0.12
-    >>> m = HG(data = phys)
+    >>> m = HG(data = phys)                  # doctest: +REMOTE_DATA
     INFO: Model initialized for 1 Ceres. [sbpy.photometry.core]
-    >>> print(m)
+    >>> print(m)                             # doctest: +REMOTE_DATA
     Model: HG
     Inputs: ('x',)
     Outputs: ('y',)
@@ -302,29 +302,29 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
          H    G
         ---- ----
         3.34 0.12
-    >>> print(m.meta['targetname'])
+    >>> print(m.meta['targetname'])          # doctest: +REMOTE_DATA
     1 Ceres
-    >>> print(m.radius)
+    >>> print(m.radius)                      # doctest: +REMOTE_DATA
     469.7 km
     >>>
     >>> # Initialize from orbital elements pulled from JPL Horizons that also
     >>> # contain the H and G parameters
-    >>> elem = Orbit.from_horizons('Ceres')
-    >>> print(elem['targetname','H','G'])
+    >>> elem = Orbit.from_horizons('Ceres')  # doctest: +REMOTE_DATA
+    >>> print(elem['targetname','H','G'])    # doctest: +REMOTE_DATA
     <QTable masked=True length=1>
     targetname    H       G
                  mag
        str7    float64 float64
     ---------- ------- -------
        1 Ceres    3.34    0.12
-    >>> m = HG(data=elem)
+    >>> m = HG(data=elem)                    # doctest: +REMOTE_DATA
     INFO: Model initialized for 1 Ceres. [sbpy.photometry.core]
     >>>
     >>> # Failed initialization due to the lack of field 'G'
-    >>> phys = Phys.from_sbdb('12893')
-    >>> print('G' in phys.column_names)
+    >>> phys = Phys.from_sbdb('12893')       # doctest: +REMOTE_DATA
+    >>> print('G' in phys.column_names)      # doctest: +REMOTE_DATA
     False
-    >>> m = HG(data=phys)
+    >>> m = HG(data=phys)                    # doctest: +REMOTE_DATA
     Traceback (most recent call last):
       File "<stdin>", line 1, in <module>
     KeyError: 'field G not available.'

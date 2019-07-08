@@ -44,6 +44,8 @@ def get_bandpass(name):
     +-------------+---------------------------+
     | Johnson V   | STScI CDBS, v4            |
     +-------------+---------------------------+
+    | Cousins R   | STScI CDBS, v4            |
+    +-------------+---------------------------+
     | Cousins I   | STScI CDBS, v4            |
     +-------------+---------------------------+
     | SDSS u      | SDSS, dated 2001          |
@@ -57,7 +59,7 @@ def get_bandpass(name):
     | SDSS z      | SDSS, dated 2001          |
     +-------------+---------------------------+
 
-    WFC3, Johnson V, and Cousins I filters from [CDBS]_, SDSS filters
+    WFC3, Johnson V, Cousins R and I filters from [CDBS]_, SDSS filters
     from [SDSS]_.
 
     References
@@ -79,6 +81,7 @@ def get_bandpass(name):
         'wfc3 f438w': 'wfc3_uvis_f438w_004_syn.fits',
         'wfc3 f606w': 'wfc3_uvis_f606w_004_syn.fits',
         'johnson v': 'johnson_v_004_syn.fits',
+        'cousins r': 'cousins_r_004_syn.fits',
         'cousins i': 'cousins_i_004_syn.fits',
         'sdss u': 'sdss-u.fits',
         'sdss g': 'sdss-g.fits',

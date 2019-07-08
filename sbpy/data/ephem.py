@@ -442,7 +442,7 @@ class Ephem(DataClass):
         >>> from sbpy.data import Orbit, Ephem
         >>> from astropy.time import Time
         >>> epochs = Time.now().jd + np.arange(0, 10, 1/24)
-        >>> ceres = Orbit.from_horizons('1')
+        >>> ceres = Orbit.from_horizons('1')    # doctest: +REMOTE_DATA
         >>> eph = Ephem.from_oo(ceres, epochs=epochs, location='G37') # doctest: +SKIP
         >>> print(eph)  # doctest: +SKIP
         <QTable length=240>

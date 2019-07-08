@@ -9,7 +9,7 @@ magnitude conversions.  ``sbpy`` units may be added to the top-level
 ``astropy.units`` namespace via:
 
   >>> import sbpy.units
-  >>> sbpy.units.enable()    # doctest: +SKIP
+  >>> sbpy.units.enable()    # doctest: +IGNORE_OUTPUT
 
 This will make them searchable via strings, such as
 ``u.Unit('mag(VEGA)')``.
@@ -68,10 +68,11 @@ To use a bandpass, pass the name as a string (see
 of `~synphot.spectrum.SpectralElement`:
 
   >>> from sbpy.units import VEGAmag, spectral_density_vega
+  >>> from sbpu.utils import get_bandpass
+  >>> V = get_bandpass('Johnson V')
   >>> m = 0.0 * VEGAmag
-  >>> fluxd = m.to('erg/(cm2 s AA)',
-  ...     spectral_density_vega('johnson_v'))  # doctest: +REMOTE_DATA
-  >>> fluxd.value                   # doctest: +FLOAT_CMP +REMOTE_DATA
+  >>> fluxd = m.to('erg/(cm2 s AA)', spectral_density_vega(V))
+  >>> fluxd.value                   # doctest: +FLOAT_CMP
   3.588524658721229e-09
 
 
@@ -100,8 +101,10 @@ Users can supply solar flux via keyword ``f_sun``, or solar magnitude in any
 magnitude system via keyword ``M_sun`` as long as the quantity to be converted
 is in the same unit as the supplied solar flux or magnitude, respectively:
 
+  >>> from sbpy.utils import get_bandpass
+  >>> V = get_bandpass('Johnson V')
   >>> ref = 0.0287 / u.sr
-  >>> flux_ceres = mag.to('W/(m2 um)', spectral_density_vega('johnson_v')) # doctest: +IGNORE_OUTPUT
+  >>> flux_ceres = mag.to('W/(m2 um)', spectral_density_vega(V))
   >>> flux_sun = 1839.93273227 * u.Unit('W/(m2 um)')
   >>> cross_sec = flux_ceres.to('km2', reflectance(reflectance=ref,
   ...     f_sun=flux_sun))

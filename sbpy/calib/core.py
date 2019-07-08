@@ -7,30 +7,47 @@ __all__ = [
     'vega_fluxd',
     'Sun',
     'Vega',
+    'FilterLookupError',
     'UndefinedSourceError'
 ]
 
+__doctest_requires__ = {
+    'SpectralStandard': ['synphot'],
+    'solar_spectrum': ['synphot'],
+    'vega_spectrum': ['synphot'],
+    'Sun': ['synphot'],
+    'Vega': ['synphot'],
+}
+
 import os
 from abc import ABC
+from warnings import warn
+import numpy as np
 from astropy.utils.state import ScienceState
 from astropy.utils.data import get_pkg_data_filename
 from astropy.table import Table
 import astropy.units as u
 from ..spectroscopy.sources import SpectralSource
-from ..exceptions import SbpyException
+from ..exceptions import SbpyException, OptionalPackageUnavailable
 from .. import bib
 from . import solar_sources, vega_sources
 
 try:
     import synphot
+    from synphot import SpectralElement
 except ImportError:
     synphot = None
 
-__doctest_requires__ = {'Sun': 'synphot'}
+    class SpectralElement:
+        pass
 
 
 class UndefinedSourceError(SbpyException):
     "SpectralStandard was initialized without a source, but it was accessed."
+
+
+class FilterLookupError(SbpyException):
+    "Attempted to look up filter in, e.g., solar_fluxd, but not present."
 
 
 class SpectralStandard(SpectralSource, ABC):
@@ -45,8 +62,11 @@ class SpectralStandard(SpectralSource, ABC):
     fluxd_state : `~astropy.utils.state.ScienceState`
         Context manager for this source's calibration by filter.
 
-    source : `~synphot.SourceSpectrum`, optional
-        The source spectrum.
+    source : `~synphot.SourceSpectrum` or ``None``
+        The source spectrum or ``None`` if unspecified.
+
+    interpolate : bool, optional
+        Interpolate rather than re-bin with `observe_spectrum`.
 
     description : string, optional
         A brief description of the source spectrum.
@@ -68,11 +88,13 @@ class SpectralStandard(SpectralSource, ABC):
 
     """
 
-    def __init__(self, source=None, description=None, bibcode=None):
+    def __init__(self, source, description=None, bibcode=None,
+                 interpolate=False):
         self._source = source
         self._description = description
         self._bibcode = bibcode
         self._bibtask = '.'.join((self.__module__, self.__class__.__name__))
+        self.interpolate = interpolate
 
     def __repr__(self):
         if self.description is None:
@@ -117,6 +139,9 @@ class SpectralStandard(SpectralSource, ABC):
 
         """
         if synphot is None:
+            warn(OptionalPackageUnavailable(
+                'synphot is not installed, returning an empty spectral'
+                ' standard.'))
             standard = cls(None)
         else:
             standard = cls._spectrum_state.get()
@@ -153,7 +178,7 @@ class SpectralStandard(SpectralSource, ABC):
         """Observe as through filters or spectrometer.
 
         Calls `observe_bandpass`, `observe_spectrum`, or
-        `observe_filter` as appropriate.
+        `observe_filter_name` as appropriate.
 
 
         Parameters
@@ -183,14 +208,14 @@ class SpectralStandard(SpectralSource, ABC):
                 fluxd.append(self.observe(wfb[i], unit=unit, **kwargs))
             fluxd = u.Quantity(fluxd)
         elif isinstance(wfb, str):
-            lambda_eff, lambda_pivot, fluxd = self.observe_filter(
+            lambda_eff, lambda_pivot, fluxd = self.observe_filter_name(
                 wfb, unit=unit)
         else:
             fluxd = super().observe(wfb, unit=unit, **kwargs)
 
         return fluxd
 
-    def observe_filter(self, filt, unit=None):
+    def observe_filter_name(self, filt, unit=None):
         """Flux density through this filter.
 
         Does not use the spectrum, but instead the flux density
@@ -198,8 +223,8 @@ class SpectralStandard(SpectralSource, ABC):
         the expected keys are:
 
             BP : flux density
-            BP_lambda_eff : effective wavelength, optional
-            BP_lambda_pivot : pivot wavelength, optional
+            BP(lambda eff) : effective wavelength, optional
+            BP(lambda pivot) : pivot wavelength, optional
 
 
         Parameters
@@ -219,38 +244,100 @@ class SpectralStandard(SpectralSource, ABC):
         lambda_pivot: `~astropy.units.Quantity`
             Pivot wavelength.  ``None`` if it is not provided.
 
-         fluxd : `~astropy.units.Quantity`
+        fluxd : `~astropy.units.Quantity`
             Spectral flux density.
 
 
         Raises
         ------
-        ``KeyError`` if the filter is not defined.
+        ``FilterLookupError`` if the filter is not defined.
 
         """
 
-        unit = 'W/(m2 um)' if unit is None else unit
+        from .. import units as sbu
 
         source_fluxd = self._fluxd_state.get()
-        fluxd = source_fluxd[filt]
-
-        lambda_eff = source_fluxd.get(filt + '_lambda_eff')
-        lambda_pivot = source_fluxd.get(filt + '_lambda_pivot')
-
-        # convert to requested units, may need lambda_pivot
-        if lambda_pivot is None:
-            equiv = None
-        else:
-            equiv = u.spectral_density(lambda_pivot)
-
         try:
-            fluxd = fluxd.to(unit, equiv)
-        except u.UnitConversionError as e:
-            raise type(e)(
-                '{}  Is "{}_lambda_pivot" required and'
-                ' was it provided?'.format(e, filt))
+            fluxd = source_fluxd[filt]
+        except KeyError:
+            raise FilterLookupError(
+                'Filter "{}" is not present in `{}`'
+                .format(filt, self._fluxd_state.__name__))
+
+        lambda_eff = source_fluxd.get(filt + '(lambda eff)')
+        lambda_pivot = source_fluxd.get(filt + '(lambda pivot)')
+
+        if unit is not None:
+            unit = u.Unit(unit)
+
+            # convert to requested units, may need lambda_pivot
+            if lambda_pivot is None:
+                equiv = []
+            else:
+                equiv = u.spectral_density(lambda_pivot)
+
+            # are VEGAmag involved and is a conversion needed?
+            if (sbu.VEGA.is_equivalent((unit, fluxd.unit)) and
+                    not unit.is_equivalent(fluxd.unit)):
+                equiv += sbu.spectral_density_vega(filt)
+
+            try:
+                fluxd = fluxd.to(unit, equiv)
+            except u.UnitConversionError as e:
+                raise type(e)(
+                    '{}  Is "{}(lambda pivot)" required and'
+                    ' was it provided?'.format(e, filt))
 
         return lambda_eff, lambda_pivot, fluxd
+
+    def color_index(self, wfb, unit):
+        """Color index (magnitudes) and effective wavelengths.
+
+
+        Parameters
+        ----------
+        wfb : `~astropy.units.Quantity`, or tuple/list of `~synphot.SectralElement`, string
+            Two wavelengths, frequencies, or bandpasses.
+
+        unit : string or `~astropy.units.MagUnit`
+            Units for the output, e.g., ``astropy.units.ABmag`` or
+            ``sbpy.units.VEGAmag``.
+
+
+        Returns
+        -------
+        eff_wave : `~astropy.units.Quantity`
+            Effective wavelengths for each ``wfb``.
+
+        ci : `~astropy.units.Quantity`
+            Color index, ``m_0 - m_1``, where 0 and 1 are element
+            indexes for ``wfb``.
+
+        """
+
+        eff_wave = []
+        m = np.zeros(2) * u.Unit(unit)
+        for i in range(2):
+            if isinstance(wfb[i], u.Quantity):
+                if wfb[i].unit.is_equivalent(u.Hz):
+                    eff_wave.append(wfb[i].to(u.um, u.spectral()))
+                else:
+                    eff_wave.append(wfb[i])
+                m[i] = self(eff_wave[i], unit=unit)
+            elif isinstance(wfb[i], (list, tuple, SpectralElement)):
+                w, m[i] = self.observe_bandpass(wfb[i], unit=unit)
+                eff_wave.append(w)
+            elif isinstance(wfb[i], str):
+                w, pivot, m[i] = self.observe_filter_name(
+                    wfb[i], unit=unit)
+                eff_wave.append(w)
+            else:
+                raise TypeError('Unsupported type for `wfb` type: {}'
+                                .format(type(wfb[i])))
+
+        ci = m[0] - m[1]
+
+        return u.Quantity(eff_wave), ci
 
 
 class solar_spectrum(ScienceState):
@@ -344,15 +431,15 @@ class solar_fluxd(ScienceState):
     ...     'PS1_i': -27.05 * u.ABmag
     ... })  # doctest: +IGNORE_OUTPUT
 
-    When wavelength is required, specify ``bandpass_lambda_eff`` for
-    effective wavelength and/or ``bandpass_lambda_pivot`` for pivot
+    When wavelength is required, specify ``bandpass(lambda eff)`` for
+    effective wavelength and/or ``bandpass(lambda pivot)`` for pivot
     wavelength:
 
     >>> import sbpy.units as sbu
     >>> solar_fluxd.set({
     ...     'V': -26.76 * sbu.VEGAmag,
-    ...     'V_lambda_eff': 548 * u.nm,
-    ...     'V_lambda_pivot': 551 * u.nm
+    ...     'V(lambda eff)': 548 * u.nm,
+    ...     'V(lambda pivot)': 551 * u.nm
     ... })  # doctest: +IGNORE_OUTPUT
 
     """
@@ -389,15 +476,15 @@ class vega_fluxd(ScienceState):
     ...     'PS1_i': 2656 * u.Jy
     ... })  # doctest: +IGNORE_OUTPUT
 
-    When wavelength is required, specify ``bandpass_lambda_eff`` for
-    effective wavelength and/or ``bandpass_lambda_pivot`` for pivot
+    When wavelength is required, specify ``bandpass(lambda eff)`` for
+    effective wavelength and/or ``bandpass(lambda pivot)`` for pivot
     wavelength:
 
     >>> import astropy.units as u
     >>> vega_fluxd.set({
     ...     'V': 3674 * u.Jy,
-    ...     'V_lambda_eff': 548 * u.nm,
-    ...     'V_lambda_pivot': 551 * u.nm
+    ...     'V(lambda eff)': 548 * u.nm,
+    ...     'V(lambda pivot)': 551 * u.nm
     ... })  # doctest: +IGNORE_OUTPUT
 
     """
@@ -482,8 +569,10 @@ class Sun(SpectralStandard):
 
     Observe as through a filter:
 
+    >>> from sbpy.utils import get_bandpass
     >>> sun = Sun.from_default()
-    >>> sun.observe('johnson_v')               # doctest: +FLOAT_CMP
+    >>> v = get_bandpass('Johnson V')
+    >>> sun.observe(v)               # doctest: +FLOAT_CMP
     <Quantity [1839.93273227] W / (m2 um)>
 
     Observe through a filter, using `sbpy`'s filter calibration system:
@@ -492,8 +581,8 @@ class Sun(SpectralStandard):
     >>> import sbpy.units as sbu
     >>> solar_fluxd.set({
     ...     'V': -26.76 * sbu.VEGAmag,
-    ...     'V_lambda_eff': 548 * u.nm,
-    ...     'V_lambda_pivot': 551 * u.nm
+    ...     'V(lambda eff)': 548 * u.nm,
+    ...     'V(lambda pivot)': 551 * u.nm
     ... })
     >>> sun = Sun.from_default()
     >>> print(sun.observe('V'))
@@ -562,7 +651,7 @@ class Vega(SpectralStandard):
     >>> from sbpy.calib import vega_fluxd
     >>> vega = Vega(None)
     >>> with vega_fluxd.set({'V': 3674 * u.Jy,
-    ...                      'V_lambda_pivot': 5511 * u.AA}):
+    ...                      'V(lambda pivot)': 5511 * u.AA}):
     ...     print(vega.observe('V', unit='Jy'))
     3674.0 Jy
 
