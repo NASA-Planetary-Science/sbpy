@@ -110,28 +110,18 @@ submodule, such as `~astropy.modeling.fitting.LevMarLSQFitter`.
       ----------------- -------------------
       3.305001580933622 0.08532754955207918
 
-Alternatively, one may use the wrapper method
-`~sbpy.photometry.DiskIntegratedPhaseFunc._fit` pre-defined in the photometric
-model classes to fit magnitude data and return a model class object, or use
-class method `~sbpy.photometry.DiskIntegratedPhaseFunc.from_data` to
-initialize a model directly from data by fitting.
-
-  >>> # use ._fit method
-  >>> model3 = HG1G2()._fit(alpha, mag)
-  >>> print(model3)  # doctest: +SKIP
-  Model: HG1G2
-  Inputs: ('x',)
-  Outputs: ('y',)
-  Model set size: 1
-  Parameters:
-              H                  G1                  G2
-
-      ------------------ ------------------ -------------------
-      3.3391210178858013 0.6551118013498317 0.09728839079940735
+Alternatively, one may use the class method
+`~sbpy.photometry.DiskIntegratedPhaseFunc.from_obs` to
+initialize a model directly from an `~sbpy.data.Obs` object by fitting the
+data contained therein.
 
   >>> # use class method .from_data
-  >>> model4 = HG12.from_data(alpha, mag)
-  >>> print(model4)  # doctest: +SKIP
+  >>> from astropy.modeling.fitting import LevMarLSQFitter
+  >>> fitter = LevMarLSQFitter()
+  >>> from sbpy.data import Obs
+  >>> obs = Obs.from_dict({'alpha': alpha, 'mag': mag})
+  >>> model3 = HG12.from_obs(obs, 'mag', fitter)
+  >>> print(model3)  # doctest: +SKIP
   Model: HG12
   Inputs: ('x',)
   Outputs: ('y',)
