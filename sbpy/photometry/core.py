@@ -457,11 +457,11 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         <class 'sbpy.data.phys.Phys'>
         >>> print(p)  # doctest: +REMOTE_DATA
         <QTable length=1>
-        targetname diameter    H       G
+        targetname diameter    H       G             pv                  A
                       km
-           str7    float64  float64 float64
-        ---------- -------- ------- -------
-           1 Ceres    939.4    3.34    0.12
+           str7    float64  float64 float64       float64             float64
+        ---------- -------- ------- ------- ------------------- -------------------
+           1 Ceres    939.4    3.34    0.12 0.09423445077857852 0.03433437637586201
         """
         cols = {}
         if (self.meta is not None) and ('targetname' in self.meta.keys()):
@@ -477,6 +477,11 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
                 cols[p] = val.value
             else:
                 cols[p] = val.quantity
+        try:
+            cols['pv'] = self.geoalb
+            cols['A'] = self.bondalb
+        except ValueError:
+            pass
         return Phys.from_dict(cols)
 
     @classmethod

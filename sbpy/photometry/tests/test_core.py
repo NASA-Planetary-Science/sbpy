@@ -156,6 +156,8 @@ class TestHG:
         assert np.isclose(p['G'], 0.12)
         assert np.isclose(p['diameter'].value, 960)
         assert p['diameter'].unit == u.km
+        assert np.isclose(p['pv'], 0.09023361346774741)
+        assert np.isclose(p['A'], 0.03287666899906162)
 
     def test_evaluate(self):
         pha_test = np.linspace(0, np.pi, 10)
