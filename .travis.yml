@@ -93,5 +93,5 @@ script:
 
 after_success:
     - if [[ $SETUP_CMD == 'test --coverage' ]]; then
-          coveralls --rcfile='sbpy/tests/coveragerc';
+          codecov;
       fi
