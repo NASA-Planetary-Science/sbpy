@@ -273,10 +273,10 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
     >>> pha = np.linspace(0, 180, 200)
     >>> mag = linear_phasefunc.to_mag(np.deg2rad(pha))
     >>> ref = linear_phasefunc.to_ref(np.deg2rad(pha))
-    >>> geoalb = linear_phasefunc.geoalb
+    >>> geomalb = linear_phasefunc.geomalb
     >>> phaseint = linear_phasefunc.phaseint
     >>> bondalb = linear_phasefunc.bondalb
-    >>> print('Geometric albedo is {0:.3}'.format(geoalb))
+    >>> print('Geometric albedo is {0:.3}'.format(geomalb))
     Geometric albedo is 0.0501
     >>> print('Bond albedo is {0:.3}'.format(bondalb))
     Bond albedo is 0.0184
@@ -318,7 +318,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
             raise ValueError('the unit of phase function is unknown')
 
     @property
-    def geoalb(self):
+    def geomalb(self):
         """Geometric albedo"""
         alb = np.pi*self.to_ref(0)
         if hasattr(alb, 'unit'):
@@ -328,7 +328,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
     @property
     def bondalb(self):
         """Bond albedo"""
-        return self.geoalb*self.phaseint
+        return self.geomalb*self.phaseint
 
     @property
     def phaseint(self):
@@ -478,7 +478,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
             else:
                 cols[p] = val.quantity
         try:
-            cols['pv'] = self.geoalb
+            cols['pv'] = self.geomalb
             cols['A'] = self.bondalb
         except ValueError:
             pass
@@ -775,10 +775,10 @@ class LinearPhaseFunc(DiskIntegratedPhaseFunc):
     >>> pha = np.linspace(0, 180, 200)
     >>> mag = linear_phasefunc.to_mag(np.deg2rad(pha))
     >>> ref = linear_phasefunc.to_ref(np.deg2rad(pha))
-    >>> geoalb = linear_phasefunc.geoalb
+    >>> geomalb = linear_phasefunc.geomalb
     >>> phaseint = linear_phasefunc.phaseint
     >>> bondalb = linear_phasefunc.bondalb
-    >>> print('Geometric albedo is {0:.3}'.format(geoalb))
+    >>> print('Geometric albedo is {0:.3}'.format(geomalb))
     Geometric albedo is 0.0501
     >>> print('Bond albedo is {0:.3}'.format(bondalb))
     Bond albedo is 0.0184
@@ -819,7 +819,7 @@ class HG(DiskIntegratedPhaseFunc):
     >>> # Define the phase function for Ceres with H = 3.34, G = 0.12
     >>> from sbpy.photometry import HG
     >>> ceres = HG(3.34, 0.12, radius=480)
-    >>> print('{0:.4f}'.format(ceres.geoalb))
+    >>> print('{0:.4f}'.format(ceres.geomalb))
     0.0902
     >>> print('{0:.4f}'.format(ceres.phaseint))
     0.3644
@@ -985,7 +985,7 @@ class HG1G2(HG12BaseClass):
     >>>
     >>> from sbpy.photometry import HG1G2
     >>> themis = HG1G2(7.063,0.62,0.14,radius=100)
-    >>> print('{0:.4f}'.format(themis.geoalb))
+    >>> print('{0:.4f}'.format(themis.geomalb))
     0.0674
     >>> print('{0:.4f}'.format(themis.phaseint))
     0.3742
@@ -1074,7 +1074,7 @@ class HG12(HG12BaseClass):
     >>>
     >>> from sbpy.photometry import HG12
     >>> themis = HG12(7.121, 0.68, radius=100)
-    >>> print('{0:.4f}'.format(themis.geoalb))
+    >>> print('{0:.4f}'.format(themis.geomalb))
     0.0639
     >>> print('{0:.4f}'.format(themis.phaseint))
     0.3949
@@ -1167,7 +1167,7 @@ class HG12_Pen16(HG12):
     >>>
     >>> from sbpy.photometry import HG12
     >>> themis = HG12_Pen16(7.121, 0.68, radius=100)
-    >>> print('{0:.4f}'.format(themis.geoalb))
+    >>> print('{0:.4f}'.format(themis.geomalb))
     0.0639
     >>> print('{0:.4f}'.format(themis.phaseint))
     0.3804
