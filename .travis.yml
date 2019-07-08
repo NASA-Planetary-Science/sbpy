@@ -63,7 +63,7 @@ matrix:
         # Test docs, PEP8, and coverage
         - os: linux
           stage: Test docs, PEP8, and coverage
-          env: MAIN_CMD='test --coverage' SETUP_CMD=''
+          env: SETUP_CMD='test --coverage'
 
         - os: linux
           stage: Test docs, PEP8, and coverage
