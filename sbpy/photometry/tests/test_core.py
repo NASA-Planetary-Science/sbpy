@@ -335,7 +335,7 @@ class TestHG:
                              u.dimensionless_unscaled).all()
 
     def test_g_validate(self):
-        with pytest.warns(RuntimeWarning):
+        with pytest.warns(NonmonotonicPhaseFunctionWarning):
             m = HG(0, 1.2)
 
 
@@ -480,7 +480,7 @@ class TestHG1G2:
             assert u.isclose(themis.to_ref(pha_test), ref_test).all()
 
     def test_g1g2_validator(self):
-        with pytest.warns(RuntimeWarning):
+        with pytest.warns(NonmonotonicPhaseFunctionWarning):
             m = HG1G2(0, -0.2, 0.5)
             m = HG1G2(0, 0.5, -0.2)
             m = HG1G2(0, 0.6, 0.6)
@@ -592,7 +592,7 @@ class TestHG12:
             assert u.isclose(themis.to_ref(pha_test), ref_test).all()
 
     def test_g_validator(self):
-        with pytest.warns(RuntimeWarning):
+        with pytest.warns(NonmonotonicPhaseFunctionWarning):
             m = HG12(0, -0.71)
             m = HG12(0, 1.31)
 
@@ -703,6 +703,6 @@ class TestHG12_Pen16:
             assert u.isclose(themis.to_ref(pha_test), ref_test).all()
 
     def test_g_validator(self):
-        with pytest.warns(RuntimeWarning):
+        with pytest.warns(NonmonotonicPhaseFunctionWarning):
             m = HG12(0, -0.71)
             m = HG12(0, 1.31)
