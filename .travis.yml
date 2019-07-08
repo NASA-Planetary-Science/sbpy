@@ -33,7 +33,7 @@ env:
         - MAIN_CMD='python setup.py'
         - SETUP_CMD='test'
         - EVENT_TYPE='pull_request push'
-        - PIP_DEPENDENCIES='scipy matplotlib ads synphot https://github.com/astropy/astroquery/archive/master.zip pytest-astropy'
+        - PIP_DEPENDENCIES='scipy matplotlib ads synphot https://github.com/astropy/astroquery/archive/master.zip pytest-astropy codecov'
         - ADS_DEV_KEY=TjUyPHFOH48m5Katkeq0UCZQcejTg6bDbTuTGHxT
 
     matrix:
