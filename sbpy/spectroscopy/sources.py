@@ -349,6 +349,13 @@ class SpectralSource(ABC):
     def observe_spectrum(self, wave_or_freq, unit=None, **kwargs):
         """Observe source as through a spectrometer.
 
+        .. Important:: This method works best when the requested
+        spectral resolution is lower than the spectral resolution of
+        the internal data.  If the requested wavelengths/frequencies
+        are exactly the same as the internal spectrum, then the
+        internal spectrum will be returned without binning.  This
+        special case does not work for subsets of the wavelengths.
+
 
         Parameters
         ----------
@@ -406,22 +413,33 @@ class SpectralSource(ABC):
         else:
             unit = u.Unit(unit)
 
-        specele = synphot.SpectralElement(synphot.ConstFlux1D(1))
+        try:
+            w = wave_or_freq.to(self.source.waveset.unit, u.spectral())
+            test = np.allclose(w.value, self.source.waveset.value)
+        except ValueError:
+            test = False
 
-        # Use force='extrap' to prevent PartialOverlap execption.
-        # Specele is defined over all wavelengths, but most spectral
-        # standards are not.  force='taper' will affect retrieving
-        # flux densities at the edges of the spectrum.
-        kwargs['force'] = kwargs.get('force', 'extrap')
-
-        obs = synphot.Observation(
-            self.source, specele, binset=wave_or_freq, **kwargs)
-
-        if unit.is_equivalent(sbu.VEGAmag):
-            fluxd = obs.sample_binned(flux_unit='W/(m2 um)').to(
-                unit, sbu.spectral_density_vega(wave_or_freq))
+        if test:
+            # user requested the same wavelengths as stored for the
+            # interal solar spectrum: do not rebin.
+            fluxd = self(wave_or_freq, unit=unit)
         else:
-            fluxd = obs.sample_binned(flux_unit=unit)
+            specele = synphot.SpectralElement(synphot.ConstFlux1D(1))
+
+            # Use force='extrap' to prevent PartialOverlap execption.
+            # Specele is defined over all wavelengths, but most
+            # spectral standards are not.  force='taper' will affect
+            # retrieving flux densities at the edges of the spectrum.
+            kwargs['force'] = kwargs.get('force', 'extrap')
+
+            obs = synphot.Observation(
+                self.source, specele, binset=wave_or_freq, **kwargs)
+
+            if unit.is_equivalent(sbu.VEGAmag):
+                fluxd = obs.sample_binned(flux_unit='W/(m2 um)').to(
+                    unit, sbu.spectral_density_vega(wave_or_freq))
+            else:
+                fluxd = obs.sample_binned(flux_unit=unit)
 
         return fluxd
 
