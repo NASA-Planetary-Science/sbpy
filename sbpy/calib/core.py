@@ -265,8 +265,9 @@ class SpectralStandard(SpectralSource, ABC):
             else:
                 equiv = u.spectral_density(lambda_pivot)
 
-            # are VEGAmag involved?
-            if sbu.VEGA.is_equivalent((unit, fluxd.unit)):
+            # are VEGAmag involved and is a conversion needed?
+            if (sbu.VEGA.is_equivalent((unit, fluxd.unit)) and
+                    not unit.is_equivalent(fluxd.unit)):
                 equiv += sbu.spectral_density_vega(filt)
 
             try:
