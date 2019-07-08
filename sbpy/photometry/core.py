@@ -14,12 +14,11 @@ import warnings
 import numpy as np
 from numbers import Number
 from scipy.integrate import quad
-from astropy.modeling import (FittableModel, Fittable1DModel,
-                              Fittable2DModel, Parameter)
+from astropy.modeling import (Fittable1DModel, Parameter)
 from astropy.table import Column
 import astropy.units as u
 from astropy import log
-from ..data import Ephem, Phys
+from ..data import DataClass, Phys, Obs
 from ..bib import cite
 
 
@@ -50,13 +49,15 @@ def _process_ephem_input(eph, key=None):
     """
     if eph is None:
         return None, None
-    if not isinstance(eph, (Ephem, list, tuple, np.ndarray, Number,
+    if not isinstance(eph, (DataClass, list, dict, tuple, np.ndarray, Number,
                             u.Quantity)):
         raise TypeError(
-            '`~sbpy.data.Ephem`, numbers, iterables of numbers, or'
+            '`~sbpy.data.DataClass`, numbers, iterables of numbers, or'
             ' `~astropy.units.Quantity` expected, {0} received'.format(
                 type(eph)))
-    if isinstance(eph, Ephem):
+    if isinstance(eph, dict):
+        eph = Obs.from_dict(eph)
+    if isinstance(eph, DataClass):
         if key is None:
             out = None
         else:
@@ -472,32 +473,23 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
                 cols[p] = val.quantity
         return Phys.from_dict(cols)
 
-    def _fit(self, eph, mag, fitter=None, return_fitter=False, **kwargs):
-        """Fit disk-integrated phase function model to magnitude data and the
-        corresponding ephemerides data.
-
-        This is a wrapper that provides a consistent interface that is
-        compatible with the `sbpy` guideline.
+    @classmethod
+    def from_obs(cls, obs, mag, fitter, init=None, **kwargs):
+        """Instantiate a photometric model class object from data
 
         Parameters
         ----------
-        eph : `~sbpy.data.Ephem`, dict_like, or array_like of float
-            If `~sbpy.data.Ephem` or dict_like, must contain 'phaseangle' or
-            the equivalent (see `~sbpy.data.DataClass`).  If array_like, then
-            it is the phase angles of object.  If any distance (heliocentric
-            and geocentric) is provided, then they will be used to correct
-            magnitude to 1 au before fitting.  If no unit is provided via type
-            `~astropy.units.Quantity`, then radians is assumed for phase
-            angle, and au is assumed for distances.
-        mag : array_like, `~astropy.units.Quantity`
+        obs : `~sbpy.data.DataClass`, dict_like
+            If `~sbpy.data.DataClass` or dict_like, must contain
+            ``'phaseangle'`` or the equivalent names (see
+            `~sbpy.data.DataClass`).  If any distance (heliocentric and
+            geocentric) is provided, then they will be used to correct
+            magnitude to 1 au before fitting.
+        mag : str, `~astropy.units.Quantity`
             Magnitude data to be fitted
-        fitter : `~astropy.modeling.fitting.Fitter` class, optional
-            The fitter class to be used for fitting.  Default:
-            `~astropy.modeling.fitting.LevMarLSQFitter`
-        return_fitter : bool, optional
-            If `True`, then the fitter class is returned in a tuple.
-            Default: `False`
-        **kwargs : Keyword parameters accepted by `fitter.__call__()`.
+        fitter : `~astropy.modeling.fitting.Fitter`
+            The fitter to be used for fitting.
+        **kwargs : Keyword parameters accepted by `fitter()`.
             Note that the magnitude uncertainty can also be supplied to the fit
             via `weights` keyword for all fitters provided by
             `~astropy.modeling.fitting`.
@@ -511,28 +503,27 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         --------
         >>> from sbpy.photometry import HG # doctest: +SKIP
         >>> from sbpy.data import Misc # doctest: +SKIP
-        >>> eph = Misc.mpc_observations('Bennu') # doctest: +SKIP
+        >>> from astropy.modeling.fitting import LevMarLSQFitter
+        >>> fitter = LevMarLSQFitter()
+        >>> obs = Misc.mpc_observations('Bennu') # doctest: +SKIP
         >>> hg = HG() # doctest: +SKIP
-        >>> best_hg = hg._fit(eph, eph['mag']) # doctest: +SKIP
+        >>> best_hg = hg.from_obs(obs, eph['mag'], fitter) # doctest: +SKIP
         """
-        eph, pha = _process_ephem_input(eph, 'alpha')
+        obs, pha = _process_ephem_input(obs, 'alpha')
 
-        mag = np.asanyarray(mag)
-        dist_corr = self._distance_module(eph)
+        if init is None:
+            m0 = cls()
+        else:
+            m0 = cls(*init)
+
+        mag = obs[mag]
+        dist_corr = m0._distance_module(obs)
         if isinstance(mag, u.Quantity):
             dist_corr = dist_corr * u.mag
         mag0 = mag + dist_corr
 
-        if fitter is None:
-            from astropy.modeling.fitting import LevMarLSQFitter, SLSQPLSQFitter
-            fitter = LevMarLSQFitter
-        fit = fitter()
-
-        model = fit(self, pha, mag0, **kwargs)
-        if return_fitter:
-            return model, fit
-        else:
-            return model
+        model = fitter(m0, pha, mag0, **kwargs)
+        return model
 
     def _distance_module(self, eph):
         """Return the correction magnitude or factor for heliocentric distance
@@ -579,43 +570,6 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
             return -2.5 * np.log10(module)
         else:
             return module
-
-    @classmethod
-    def from_data(cls, eph, mag, init=None, fitter=None, **kwargs):
-        """Instantiate a photometric model class object from data
-
-        Parameters
-        ----------
-        eph : `~sbpy.data.Ephem`, dict_like, or array_like of float
-            Ephemerides of data.  See `.fit()` for more details.
-        mag : array_like, `~astropy.units.Quantity`
-            Magnitude data to be fitted
-        init : array_like, `~astropy.units.Quantity`
-            The intial guess parameters
-        fitter : `~astropy.modeling.fitting.Fitter` class, optional
-            The fitter class to be used for fitting.  See `.fit()` for
-            details.
-        **kwargs : Keyword parameters accepted by `fitter.__call__()`.
-            Note that the magnitude uncertainty can also be supplied to the fit
-            via `weights` keyword for all fitters provided by
-            `~astropy.modeling.fitting`.
-
-        Returns
-        -------
-        `~DiskIntegratedPhaseFunc` class object
-
-        Examples
-        --------
-        >>> from sbpy.photometry import HG # doctest: +SKIP
-        >>> from sbpy.data import Misc # doctest: +SKIP
-        >>> eph = Misc.mpc_observations('Bennu') # doctest: +SKIP
-        >>> hg = HG.from_data(eph, eph['mag']) # doctest: +SKIP
-        """
-        if init is None:
-            m0 = cls()
-        else:
-            m0 = cls(*init)
-        return m0._fit(eph, mag, fitter=fitter, **kwargs)
 
     def to_mag(self, eph, append_results=False, **kwargs):
         """Calculate phase function in magnitude
@@ -679,7 +633,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
             out = out - dist_corr
         if append_results:
             if eph is None:
-                eph = Ephem.from_dict({'alpha': pha, 'mag': out})
+                eph = Obs.from_dict({'alpha': pha, 'mag': out})
             else:
                 name = 'mag'
                 i = 1
@@ -758,7 +712,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
                 out /= mag2ref(norm, self.radius, M_sun=self.M_sun)
         if append_results:
             if eph is None:
-                eph = Ephem.from_dict({'alpha': pha, 'ref': out})
+                eph = Obs.from_dict({'alpha': pha, 'ref': out})
             else:
                 name = 'ref'
                 i = 1
