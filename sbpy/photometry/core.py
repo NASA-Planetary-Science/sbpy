@@ -7,7 +7,8 @@ created on June 23, 2017
 """
 
 __all__ = ['ref2mag', 'mag2ref', 'DiskIntegratedPhaseFunc', 'LinearPhaseFunc',
-           'HG', 'HG12BaseClass', 'HG12', 'HG1G2', 'HG12_Pen16']
+           'HG', 'HG12BaseClass', 'HG12', 'HG1G2', 'HG12_Pen16',
+           'NonmonotonicPhaseFunctionWarning']
 
 from collections import OrderedDict
 import warnings
@@ -20,6 +21,7 @@ import astropy.units as u
 from astropy import log
 from ..data import DataClass, Phys, Obs
 from ..bib import cite
+from ..exceptions import SbpyWarning
 
 
 def _process_ephem_input(eph, key=None):
@@ -238,6 +240,10 @@ class _spline(object):
         if idx.any():
             out[idx] = self.polys[-1](x[idx])
         return out
+
+
+class NonmonotonicPhaseFunctionWarning(SbpyWarning):
+    pass
 
 
 class DiskIntegratedPhaseFunc(Fittable1DModel):
@@ -832,7 +838,7 @@ class HG(DiskIntegratedPhaseFunc):
         """
         if np.any(value > 1.194):
             warnings.warn(
-                'G parameter could result in a non-monotonic phase function', RuntimeWarning)
+                'G parameter could result in a non-monotonic phase function', NonmonotonicPhaseFunctionWarning)
 
     @staticmethod
     def _hgphi(pha, i):
@@ -994,7 +1000,7 @@ class HG1G2(HG12BaseClass):
         """
         if np.any(value < 0) or np.any(value + self.G2 > 1):
             warnings.warn(
-                'G1, G2 parameter combination might result in a non-monotonic phase function', RuntimeWarning)
+                'G1, G2 parameter combination might result in a non-monotonic phase function', NonmonotonicPhaseFunctionWarning)
 
     @G2.validator
     def G2(self, value):
@@ -1005,7 +1011,7 @@ class HG1G2(HG12BaseClass):
         """
         if np.any(value < 0) or np.any(value + self.G1 > 1):
             warnings.warn(
-                'G1, G2 parameter combination might result in a non-monotonic phase function', RuntimeWarning)
+                'G1, G2 parameter combination might result in a non-monotonic phase function', NonmonotonicPhaseFunctionWarning)
 
     @property
     def _G1(self):
@@ -1082,7 +1088,7 @@ class HG12(HG12BaseClass):
         """
         if np.any(value < -0.70) or np.any(value > 1.30):
             warnings.warn(
-                'G12 parameter could result in a non-monotonic phase function', RuntimeWarning)
+                'G12 parameter could result in a non-monotonic phase function', NonmonotonicPhaseFunctionWarning)
 
     @property
     def _G1(self):
