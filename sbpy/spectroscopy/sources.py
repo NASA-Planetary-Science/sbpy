@@ -29,7 +29,10 @@ except ImportError:
 from ..exceptions import SbpyException
 from .. import bib
 
-__doctest_requires__ = {'Sun': 'synphot'}
+__doctest_requires__ = {
+    'SpectralSource': ['synphot'],
+    'BlackbodySource': ['synphot'],
+}
 
 
 class SinglePointSpectrumError(SbpyException):
@@ -54,6 +57,9 @@ class SpectralSource(ABC):
     description : string, optional
         A brief description of the source spectrum.
 
+    interpolate : bool, optional
+        Disable spectral re-binning with ``observe``.
+
 
     Attributes
     ----------
@@ -64,13 +70,14 @@ class SpectralSource(ABC):
 
     """
 
-    def __init__(self, source, description=None):
+    def __init__(self, source, description=None, interpolate=False):
         if synphot is None:
             raise ImportError(
                 'synphot required for {}.'.format(cls.__name__))
 
         self._source = source
         self._description = description
+        self.interpolate = interpolate
 
     @classmethod
     def from_array(cls, wave, fluxd, meta=None, **kwargs):
@@ -220,6 +227,10 @@ class SpectralSource(ABC):
 
         Calls `observe_bandpass` or `observe_spectrum` as appropriate.
 
+        Spectral re-binning for wavelengths and frequencies can be
+        disabled with ``self.interpolate``.
+
+
         Parameters
         ----------
         wfb : `~astropy.units.Quantity`, `~synphot.SpectralElement`
@@ -259,7 +270,10 @@ class SpectralSource(ABC):
             lambda_eff, fluxd = self.observe_bandpass(
                 wfb, unit=unit, **kwargs)
         elif isinstance(wfb, u.Quantity):
-            fluxd = self.observe_spectrum(wfb, unit=unit, **kwargs)
+            if self.interpolate:
+                fluxd = self(wfb, unit=unit)
+            else:
+                fluxd = self.observe_spectrum(wfb, unit=unit, **kwargs)
         else:
             raise TypeError('Unsupported type for `wfb` type: {}'
                             .format(type(wfb)))
@@ -335,6 +349,7 @@ class SpectralSource(ABC):
     def observe_spectrum(self, wave_or_freq, unit=None, **kwargs):
         """Observe source as through a spectrometer.
 
+
         Parameters
         ----------
         wave_or_freq : `~astropy.units.Quantity`
@@ -393,10 +408,11 @@ class SpectralSource(ABC):
 
         specele = synphot.SpectralElement(synphot.ConstFlux1D(1))
 
-        # Use force='taper' to prevent PartialOverlap execption.
-        # Specele is defined over all wavelengths, but most
-        # spectral standards are not.
-        kwargs['force'] = kwargs.get('force', 'taper')
+        # Use force='extrap' to prevent PartialOverlap execption.
+        # Specele is defined over all wavelengths, but most spectral
+        # standards are not.  force='taper' will affect retrieving
+        # flux densities at the edges of the spectrum.
+        kwargs['force'] = kwargs.get('force', 'extrap')
 
         obs = synphot.Observation(
             self.source, specele, binset=wave_or_freq, **kwargs)

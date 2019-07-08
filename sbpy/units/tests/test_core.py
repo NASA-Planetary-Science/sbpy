@@ -179,7 +179,8 @@ def test_reflectance_spec():
         os.path.join('data', 'hi05070405_9000036-avg-spec.txt'))
     t1 = ascii.read(fn)
     sun = Sun.from_array(t1['wave'] * u.um,
-                         t1['flux_sun_nu'] * u.Unit('W/(m2 Hz)'))
+                         t1['flux_sun_nu'] * u.Unit('W/(m2 Hz)'),
+                         interpolate=True)
     with solar_spectrum.set(sun):
         wave = t1['wave'] * u.um
         spec = ((t1['spec'] * u.Unit('W/(m2 um sr)') * ifov**2)
@@ -190,7 +191,9 @@ def test_reflectance_spec():
         ref1 = spec.to('1/sr', reflectance(wave, cross_section=xsec))
         ref2 = spec_nu.to('1/sr', reflectance(wave, cross_section=xsec))
 
-    assert ref1.unit == '1/sr'
-    assert np.allclose(ref1.value, t1['ref'])
-    assert ref2.unit == '1/sr'
-    assert np.allclose(ref2.value, t1['ref'])
+    # use built-in solar spectrum
+    ref3 = spec.to('1/sr', reflectance(wave, cross_section=xsec))
+
+    for ref in (ref1, ref2, ref3):
+        assert ref.unit == '1/sr'
+        assert np.allclose(ref.value, t1['ref'])

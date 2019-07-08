@@ -11,6 +11,14 @@ __all__ = [
     'UndefinedSourceError'
 ]
 
+__doctest_requires__ = {
+    'SpectralStandard': ['synphot'],
+    'solar_spectrum': ['synphot'],
+    'vega_spectrum': ['synphot'],
+    'Sun': ['synphot'],
+    'Vega': ['synphot'],
+}
+
 import os
 from abc import ABC
 from warnings import warn
@@ -32,8 +40,6 @@ except ImportError:
 
     class SpectralElement:
         pass
-
-__doctest_requires__ = {'Sun': 'synphot'}
 
 
 class UndefinedSourceError(SbpyException):
@@ -59,6 +65,9 @@ class SpectralStandard(SpectralSource, ABC):
     source : `~synphot.SourceSpectrum` or ``None``
         The source spectrum or ``None`` if unspecified.
 
+    interpolate : bool, optional
+        Interpolate rather than re-bin with `observe_spectrum`.
+
     description : string, optional
         A brief description of the source spectrum.
 
@@ -79,11 +88,13 @@ class SpectralStandard(SpectralSource, ABC):
 
     """
 
-    def __init__(self, source, description=None, bibcode=None):
+    def __init__(self, source, description=None, bibcode=None,
+                 interpolate=False):
         self._source = source
         self._description = description
         self._bibcode = bibcode
         self._bibtask = '.'.join((self.__module__, self.__class__.__name__))
+        self.interpolate = interpolate
 
     def __repr__(self):
         if self.description is None:
