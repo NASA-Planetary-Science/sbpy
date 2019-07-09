@@ -17,7 +17,8 @@ from ...data import Phys
 conf.horizons_server = 'https://ssd.jpl.nasa.gov/horizons_batch.cgi'
 
 __all__ = ['LTE', 'NonLTE', 'einstein_coeff',
-           'intensity_conversion', 'beta_factor', 'total_number_nocd']
+           'intensity_conversion', 'beta_factor', 'total_number_nocd',
+           'cdensity_Bockelee']
 
 
 def intensity_conversion(mol_data):
@@ -65,7 +66,7 @@ def intensity_conversion(mol_data):
     if not isinstance(mol_data, Phys):
         raise ValueError('mol_data must be a `sbpy.data.phys` instance.')
 
-    temp = mol_data['temp'][0]
+    temp = mol_data['Temperature'][0]
     lgint = mol_data['lgint300'][0]
     part300 = mol_data['partfn300'][0]
     partition = mol_data['partfn'][0]
@@ -146,7 +147,7 @@ def einstein_coeff(mol_data):
     partition = mol_data['partfn'][0]
     energy_J = mol_data['eup_j'][0]
     elo_J = mol_data['elo_J'][0]
-    df = mol_data['degfreedom'][0]
+    df = mol_data['degfr'][0]
     t_freq = mol_data['t_freq'][0]
     gu = mol_data['dgup'][0]
 
@@ -255,13 +256,65 @@ def beta_factor(mol_data, ephemobj):
     return beta
 
 
-def total_number_nocd(integrated_flux, mol_data, aper, b):
+def cdensity_Bockelee(integrated_flux, mol_data):
     """
-    Basic equation relating number of molecules with observed integrated flux
-    without the need for column density to be given
-    This is given by equation 10 in
+    Basic equation relating column density with observed integrated flux
+    without the need for an initial column density to be given
+    This is found in equation 10 in
     https://ui.adsabs.harvard.edu/#abs/2004come.book..391B
-    and is derived from data from JPLSpec, feel free to use your own total number
+    and is derived from data from JPLSpec, feel free to use your own column density
+    to calculate production rate or use this function with your own molecular data
+    as long as you are aware of the needed data
+
+    Parameters
+    ----------
+    integrated_flux : `~astropy.units.Quantity`
+        Integrated flux of emission line.
+
+    mol_data : `sbpy.data.phys`
+        `sbpy.data.phys` object that contains AT LEAST the following data:
+                | Transition frequency in MHz
+                | Einstein Coefficient (1/s)
+
+        This function will calculate the column
+        density from Bockelee-Morvan et al. 2004 and append it to the phys
+        object as 'Column Density' or any of its alternative field names.
+        The values above can either be given by the user or obtained from the
+        functions `~sbpy.activity.gas.productionrate.einstein_coeff` and
+        `~sbpy.activity.gas.productionrate.beta_factor`
+        Keywords that can be used for these values are found under
+        `~sbpy.data.conf.fieldnames` documentation. We recommend the use of the
+        JPL Molecular Spectral Catalog and the use of
+        `~sbpy.data.phys.from_jplspec` to obtain
+        these values in order to maintain consistency. Yet, if you wish to
+        use your own molecular data, it is possible. Make sure to inform
+        yourself on the values needed for each function, their units, and
+        their interchangeable keywords as part of the Phys data class.
+
+    Returns
+    -------
+    Column Density : `astropy.units.Quantity`
+        Column density from Bockelee-Morvan et al. 2004 as astropy Quantity
+        (1/m^2)
+
+    """
+
+    if not isinstance(mol_data, Phys):
+        raise ValueError('mol_data must be a `sbpy.data.phys` instance.')
+
+    register('Spectroscopy', {'Total Number (eq. 10)': '2004come.book..391B'})
+
+    cdensity = integrated_flux
+    cdensity *= (8*np.pi*con.k_B*mol_data['t_freq'][0]**2 /
+                 (con.h*con.c**3 * mol_data['eincoeff'][0])).decompose()
+
+    return cdensity
+
+
+def total_number_nocd(mol_data, aper, b):
+    """
+    Equation relating number of molecules with observed integrated flux
+    derived from data provided, feel free to use your own total number
     to calculate production rate or use this function with your own molecular data
     as long as you are aware of the needed data
 
@@ -275,6 +328,7 @@ def total_number_nocd(integrated_flux, mol_data, aper, b):
                 | Transition frequency in MHz
                 | Einstein Coefficient (1/s)
                 | Beta: (Timescale (in s) * r^2 (in au))
+                | Column Density in 1/m^2
 
         The values above can either be given by the user or obtained from the
         functions `~sbpy.activity.gas.productionrate.einstein_coeff` and
@@ -290,25 +344,20 @@ def total_number_nocd(integrated_flux, mol_data, aper, b):
 
     Returns
     -------
-    total_number : float
-        Total number of molecules within the aperture (Dimensionless)
+    total_number: `astropy.units.Quantity`
+        An astropy Quantity containing the total number of molecules within the
+        aperture (Dimensionless)
 
     """
 
     if not isinstance(mol_data, Phys):
         raise ValueError('mol_data must be a `sbpy.data.phys` instance.')
 
-    register('Spectroscopy', {'Total Number (eq. 10)': '2004come.book..391B'})
-
-    cdensity = integrated_flux
-    cdensity *= (8*np.pi*con.k_B*mol_data['t_freq'][0]**2 /
-                 (con.h*con.c**3 * mol_data['eincoeff'][0])).decompose()
-
     beta = mol_data['beta'][0]
 
     sigma = (1./2. * beta * b * con.c / (mol_data['t_freq'][0] * aper)).value
 
-    total_number = cdensity.decompose() * sigma * u.m * u.m / np.sqrt(np.log(2))
+    total_number = mol_data['cdensity'][0].decompose() * sigma * u.m * u.m / np.sqrt(np.log(2))
 
     return total_number
 
@@ -376,8 +425,7 @@ class LTE():
         >>> import astropy.units as u  # doctest: +SKIP
         >>> from astropy.time import Time # doctest: +SKIP
         >>> from sbpy.data import Ephem, Phys # doctest: +SKIP
-        >>> from sbpy.activity import (LTE, einstein_coeff,
-        ...                            intensity_conversion, beta_factor)  # doctest: +SKIP
+        >>> from sbpy.activity import LTE, einstein_coeff, intensity_conversion, beta_factor  # doctest: +SKIP
 
         >>> temp_estimate = 47. * u.K  # doctest: +SKIP
         >>> target = '103P'  # doctest: +SKIP
@@ -394,16 +442,14 @@ class LTE():
         >>> mol_data = Phys.from_jplspec(temp_estimate, transition_freq, mol_tag) # doctest: +SKIP
 
         >>> intl = intensity_conversion(mol_data) # doctest: +SKIP
-        >>> mol_data.table.add_column(Column([intl.value] * intl.unit,
-        ...                                  name='intl')) # doctest: +SKIP
+        >>> mol_data.add_column([intl.value] * intl.unit, name='intl') # doctest: +SKIP
 
         >>> au = einstein_coeff(mol_data) # doctest: +SKIP
-        >>> mol_data.table.add_column(Column([au.value] * au.unit,
-        ...                                  name='eincoeff')) # doctest: +SKIP
+        >>> mol_data.add_column([au.value] * au.unit, name='eincoeff') # doctest: +SKIP
 
         >>> lte = LTE() # doctest: +SKIP
-        >>> q = lte.from_Drahus(integrated_flux, mol_data,
-        ...                     ephemobj, vgas, aper, b=b)  # doctest: +SKIP
+        >>> q = lte.from_Drahus(integrated_flux, mol_data, # doctest: +SKIP
+                            ephemobj, vgas, aper, b=b)
 
         >>> q  # doctest: +SKIP
         <Quantity 1.05828096e+25 1 / s>
@@ -517,20 +563,16 @@ class LTE():
         >>> mol_data = Phys.from_jplspec(temp_estimate, transition_freq, mol_tag) # doctest: +SKIP
 
         >>> intl = intensity_conversion(mol_data) # doctest: +SKIP
-        >>> mol_data.table.add_column(Column([intl.value] * intl.unit,
-        ...                                  name='intl')) # doctest: +SKIP
+        >>> mol_data.add_column([intl.value] * intl.unit, name='intl') # doctest: +SKIP
 
         >>> au = einstein_coeff(mol_data) # doctest: +SKIP
-        >>> mol_data.table.add_column(Column([au.value] * au.unit,
-        ...                                  name='eincoeff')) # doctest: +SKIP
+        >>> mol_data.add_column([au.value] * au.unit, name='eincoeff') # doctest: +SKIP
 
         >>> beta = beta_factor(mol_data, ephemobj) # doctest: +SKIP
-        >>> mol_data.table.add_column(Column([beta.value] * beta.unit,
-        ...                                  name='beta')) # doctest: +SKIP
+        >>> mol_data.add_column([beta.value] * beta.unit, name='beta') # doctest: +SKIP
 
         >>> tnum = total_number_nocd(integrated_flux, mol_data, aper, b) # doctest: +SKIP
-        >>> mol_data.table.add_column(Column([tnum],
-        ...                                  name='total_number_nocd')) # doctest: +SKIP
+        >>> mol_data.add_column([tnum], name='total_number_nocd') # doctest: +SKIP
 
         >>> Q_estimate = 2.8*10**(28) / u.s # doctest: +SKIP
         >>> parent = photo_timescale('CO') * vgas # doctest: +SKIP
@@ -556,6 +598,8 @@ class LTE():
             raise ValueError('coma must be a GasComa instance.')
         if not isinstance(mol_data, Phys):
             raise ValueError('mol_data must be a `sbpy.data.phys` instance.')
+
+        register('Spectroscopy', {'Total Number (eq. 15)': '2004come.book..391B'})
 
         # integrated_line = self.integrated_flux(transition_freq) - not yet implemented
 
