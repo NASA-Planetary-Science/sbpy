@@ -1,9 +1,19 @@
-A Python Module for Small-Body Planetary Astronomy
---------------------------------------------------
+.. image:: logo/sbpy_logo_short.png
+    :width: 400px
+    :align: center	    
+    :alt: sbpy	     
+	  
+       
+sbpy is an `Astropy <http://www.astropy.org/>`_ affiliated package for small-body
+planetary astronomy.
 
 .. image:: http://img.shields.io/badge/powered%20by-AstroPy-orange.svg?style=flat
     :target: http://www.astropy.org
     :alt: Powered by Astropy Badge
+
+.. image:: https://travis-ci.org/NASA-Planetary-Science/sbpy.svg?branch=master
+    :target: https://travis-ci.org/NASA-Planetary-Science/sbpy
+    :alt: Travis-CI status
 
 .. image:: https://readthedocs.org/projects/sbpy/badge/?version=latest
     :target: http://sbpy.readthedocs.io/en/latest/?badge=latest
@@ -12,56 +22,48 @@ A Python Module for Small-Body Planetary Astronomy
 .. image:: http://joss.theoj.org/papers/10.21105/joss.01426/status.svg
     :target: https://doi.org/10.21105/joss.01426
     :alt: JOSS documentation
-	  
-.. image:: https://travis-ci.org/NASA-Planetary-Science/sbpy.svg?branch=master
-    :target: https://travis-ci.org/NASA-Planetary-Science/sbpy
-    :alt: Travis-CI status
 
 .. image:: https://codecov.io/gh/NASA-Planetary-Science/sbpy/branch/master/graph/badge.svg
     :target: https://codecov.io/gh/NASA-Planetary-Science/sbpy
     :alt: codecov status
+	  
 
-       
-`sbpy` is a community effort to build a Python package for small-body
-planetary astronomy in the form of an
-`astropy <http://www.astropy.org/>`_ affiliated package.
+Overview
+--------
 
-The goal is to collect and implement well-tested and well-documented
-code for the scientific study of asteroids and comets, including (but
-not limited to):
-
-* observation planning tools tailored to moving objects,
-* photometry models for resolved and unresolved observations,
-* wrappers and tools for astrometry and orbit fitting,
-* spectroscopy analysis tools and models for reflected solar light and
-  emission from gas,
-* cometary gas and dust coma simulation and analysis tools,
-* asteroid thermal models for flux estimation and size/albedo estimation,
-* image enhancement tools for comet comae and PSF subtraction tools,
-* lightcurve and shape analysis tools, and
-* access tools for various databases for orbital and physical data, as well as
-  ephemerides services.
+For an overview of the sbpy project please visit this `project
+overview page <https://sbpy.readthedocs.io/en/latest/about.html>`_ and
+the `official sbpy website <http://sbpy.org>`_.
 
 
-This package is under heavy development and currently provides only
-very limited functionality. The full functionality is planned to be
-established by mid-2021. `sbpy` is supported by NASA PDART Grant
-No. 80NSSC18K0987.
+Installation
+------------
 
+The current development version of sbpy can be installed with pip:
+
+.. code-block:: bash
+
+    $ pip install git+https://github.com/NASA-Planetary-Science/sbpy.git
+
+For details on the installation process, please refer to the `detailed installation guide <https://sbpy.readthedocs.io/en/latest/install.html>`_.
+    
 
 Documentation
 -------------
 
-The official documentation is available `here <http://sbpy.readthedocs.io/en/latest/>`_.
+The official documentation and API reference is available `here <http://sbpy.readthedocs.io/en/latest/>`_.
+
+Status
+------
+
+sbpy is still under development, which will be finished in 2021. For an overview on the status of individual features see the `Status Page <https://sbpy.readthedocs.io/en/latest/status.html>`_.
 
 
-More information
+Acknowledgements
 ----------------
 
-More information on `sbpy` are available on the `official sbpy website <http://sbpy.org>`_.
+`sbpy` is supported by NASA PDART Grant No. 80NSSC18K0987.
 
-License
--------
+If you use `sbpy` in your work, please acknowledge it by citing
 
-This project is Copyright (c) sbpy team and licensed under the terms of the BSD 3-Clause license. See the license file for more information.
-
+    `Mommert, Kelley, de-Val Borro, Li et al., (2019). sbpy: A Python module for small-body planetary astronomy. Journal of Open Source Software, 4(38), 1426 <http://joss.theoj.org/papers/8b8e7bb15fb4a14f80f2afd06b6ce060>`_
