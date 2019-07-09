@@ -43,9 +43,9 @@ PACKAGENAME = metadata.get('package_name', 'sbpy')
 DESCRIPTION = metadata.get(
     'description', 'A Python Module for Small-Body Planetary Astronomy')
 AUTHOR = metadata.get('author', 'sbpy team')
-AUTHOR_EMAIL = metadata.get('author_email', 'michael.mommert@nau.edu')
+AUTHOR_EMAIL = metadata.get('author_email', 'mommermiscience@gmail.com')
 LICENSE = metadata.get('license', 'BSD 3-Clause')
-URL = metadata.get('url', 'http://www.github.com/mommermi/sbpy')
+URL = metadata.get('url', 'http://sbpy.org')
 
 # order of priority for long_description:
 #   (1) set in setup.cfg,
@@ -76,7 +76,7 @@ else:
 builtins._ASTROPY_PACKAGE_NAME_ = PACKAGENAME
 
 # VERSION should be PEP440 compatible (http://www.python.org/dev/peps/pep-0440)
-VERSION = metadata.get('version', '0.0.dev')
+VERSION = metadata.get('version', '0.2dev')
 
 # Indicates if this version is a release version
 RELEASE = 'dev' not in VERSION
