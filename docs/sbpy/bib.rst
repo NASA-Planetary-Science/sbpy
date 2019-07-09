@@ -52,6 +52,9 @@ queried by the `~sbpy.data.Ephem.from_horizons`
 function. `~sbpy.bib.to_text` outputs the current citation registry in
 simple text form.
 
+To disable tracking, use `~sbpy.bib.stop()`:
+
+    >>> bib.stop()
 
 Bibliography tracking can also be used in a context manager:
 

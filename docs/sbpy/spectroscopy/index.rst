@@ -5,19 +5,29 @@ Spectroscopy Module (`sbpy.spectroscopy`)
 Introduction
 ------------
 
-`~sbpy.spectroscopy` provides routines for the modeling and analysis of emission spectra of gas in comets and reflection spectra of asteroid surfaces and cometary comae.  Sub-module `sources` control `sbpy`'s photometric calibration using spectra of the Sun and Vega.
+`~sbpy.spectroscopy` provides routines for working with emission and reflected/scattered light from asteroids and comets.
 
 
 Spectral Gradients
 ------------------
 
-Spectral gradient or slope is commonly expressed as a percent change
-per wavelength interval, usually % per 100 nm or % per 0.1 μm.  The
-class `~sbpy.photometry.SpectralGradient` enables easy conversion
-between spectral gradient and color index (magnitudes), and
+Spectral gradient or slope is a measurement of the shape of a
+spectrum.  It is commonly expressed as a percent change per wavelength
+interval, e.g., % per 100 nm or % per 0.1 μm.  Equation 1 of A'Hearn et
+al. [ADT84]_:
+
+.. math::
+   S = \frac{R(λ_1) - R(λ_0)}{R(λ_1) + R(λ_0)} \frac{2}{λ_1 - λ_0}
+
+where *R(λ)* is the reflectivity at wavelength *λ*.
+
+The class `~sbpy.spectroscopy.SpectralGradient` enables easy
+conversion between spectral gradient and color index (magnitudes), and
 re-normalization to other wavelengths.
 
-Initialize a spectral gradient object using ``astropy``'s `~astropy.units`:
+`SpectralGradient` is a `~astropy.units.Quantity` with units of
+inverse length.  For convenience, `sbpy` includes a
+`~sbpy.units.hundred_nm` unit, which is equal to 100 nm:
 
   >>> import astropy.units as u
   >>> from sbpy.spectroscopy import SpectralGradient
@@ -31,6 +41,9 @@ Initialize a spectral gradient from a color index:
   >>> w = (550, 650) * u.nm
   >>> SpectralGradient.from_color(w, 0.1 * u.mag)  # doctest: +FLOAT_CMP
   <SpectralGradient 9.20383492 % / 100 nm>
+
+Note we use the dimensionless magnitude unit from `astropy`, i.e., not
+one that carries flux density units such as `astropy.units.ABmag`.
 
 Convert spectral gradient (normalized to 550 nm) to a color index:
 

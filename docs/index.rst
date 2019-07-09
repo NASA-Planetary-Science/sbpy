@@ -47,6 +47,7 @@ Photometry and Spectroscopy
 .. toctree::
    :maxdepth: 2
 
+   sbpy/calib.rst
    sbpy/spectroscopy/index.rst
    sbpy/spectroscopy/sources.rst
    sbpy/photometry.rst
