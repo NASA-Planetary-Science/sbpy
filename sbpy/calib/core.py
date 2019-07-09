@@ -537,8 +537,12 @@ class Sun(SpectralStandard):
     >>> import astropy.constants as const
     >>> import synphot
     >>> source = (synphot.SourceSpectrum(synphot.BlackBody1D, temperature=5770)
-    ...           (3.14159 * const.R_sun**2 / const.au**2).decompose())
+    ...           * (3.14159 * const.R_sun**2 / const.au**2).decompose())
     >>> sun = Sun(source, description='5770 K blackbody Sun')
+
+    Create solar standard from a file:
+
+    >>> sun = Sun.from_file('filename')        # doctest: +SKIP
 
     Create solar standard from an array:
 
@@ -546,18 +550,15 @@ class Sun(SpectralStandard):
     >>> import astropy.units as u
     >>> import astropy.constants as const
     >>> from astropy.modeling.blackbody import blackbody_lambda
-    >>> wave = np.logspace(-1, 2) * u.um
+    >>> wave = np.logspace(-1, 2, 300) * u.um
     >>> fluxd = (blackbody_lambda(wave, 5770 * u.K) * np.pi * u.sr
-    ...          (const.R_sun**2 / const.au**2).decompose())
+    ...          * (const.R_sun**2 / const.au**2).decompose())
     >>> sun = Sun.from_array(wave, fluxd, description='5770 K blackbody Sun')
 
-    Create solar standard from a file:
+    Interpolate to / evaluate at 0.62 μm:
 
-    >>> sun = Sun.from_file('filename')        # doctest: +SKIP
-
-    Interpolate to 0.62 μm:
-    >>> sun(0.62 * u.um)                       # doctest: +FLOAT_CMP
-    <Quantity 1720.5108871 W / (m2 um)>
+    >>> print(sun(0.62 * u.um))                # doctest: +FLOAT_CMP
+    1611.7057927532567 W / (m2 um)
 
     Observe as through a spectrometer:
 
@@ -567,13 +568,13 @@ class Sun(SpectralStandard):
     >>> wave = np.linspace(1, 2.5) * u.um
     >>> fluxd = sun.observe(wave)              # doctest: +IGNORE_OUTPUT
 
-    Observe as through a filter:
+    Observe as through a filter, integrating with the bandpass transmission:
 
     >>> from sbpy.utils import get_bandpass
     >>> sun = Sun.from_default()
     >>> v = get_bandpass('Johnson V')
-    >>> sun.observe(v)               # doctest: +FLOAT_CMP
-    <Quantity [1839.93273227] W / (m2 um)>
+    >>> print(sun.observe(v))                  # doctest: +FLOAT_CMP
+    1839.93273227  W / (m2 um)
 
     Observe through a filter, using `sbpy`'s filter calibration system:
 
@@ -583,10 +584,10 @@ class Sun(SpectralStandard):
     ...     'V': -26.76 * sbu.VEGAmag,
     ...     'V(lambda eff)': 548 * u.nm,
     ...     'V(lambda pivot)': 551 * u.nm
-    ... })
+    ... })                                     # doctest: +IGNORE_OUTPUT
     >>> sun = Sun.from_default()
     >>> print(sun.observe('V'))
-    -26.76 VEGAmag
+    -26.76 mag(VEGA)
 
     """
 

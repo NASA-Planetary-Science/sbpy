@@ -28,19 +28,13 @@ class TestVega:
         vega = Vega.from_array([1, 2] * u.um, [1, 2] * u.Jy)
         assert repr(vega) == '<Vega>'
 
-    @pytest.mark.parametrize('unit', ('W/(m2 um)', sbu.VEGA))
-    def test_call_wavelength(self, unit):
+    @pytest.mark.parametrize('fluxd0', (
+        u.Quantity(3.44e-8, 'W/(m2 um)'), 1 * sbu.VEGA
+    ))
+    def test_call_wavelength(self, fluxd0):
         vega = Vega.from_default()
-        w = u.Quantity(np.linspace(0.3, 1.0), 'um')
-        f = u.Quantity(0.5 * w.value + 0.1, 'W/(m2 um)')
-        s = Star.from_array(w, f)
-        w = np.linspace(0.31, 0.99) * u.um
-
-        test = (0.5 * w.value + 0.1)
-        if unit == sbu.VEGA:
-            test /= vega(w).value
-
-        assert np.allclose(s(w, unit=unit).value, test, rtol=0.0005)
+        fluxd = vega(5557.5 * u.AA, unit=fluxd0.unit)
+        assert np.isclose(fluxd.value, fluxd0.value)
 
     def test_source_error(self, monkeypatch):
         monkeypatch.setattr(core, 'synphot', None)
