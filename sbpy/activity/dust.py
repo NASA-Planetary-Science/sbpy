@@ -404,6 +404,10 @@ class Afrho(DustComaQuantity):
         Phi : callable, optional
             Phase function, see :func:`~Afrho.to_phase`.
 
+        **kwargs
+            Keyword arguments for `~Sun.observe`.
+
+
         Returns
         -------
         fluxd : `~astropy.units.Quantity`
@@ -440,14 +444,14 @@ class Afrho(DustComaQuantity):
         """
 
     def _source_fluxd(self, wfb, eph, unit=None, phasecor=False,
-                      Phi=None):
+                      Phi=None, **kwargs):
         bib.register('activity.dust.Afrho', {
                      'model': '1984AJ.....89..579A'})
 
         # get solar flux density
         sun = Sun.from_default()
         try:
-            S = sun.observe(wfb, unit=unit)
+            S = sun.observe(wfb, unit=unit, **kwargs)
         except SinglePointSpectrumError:
             S = sun(wfb, unit=unit)
 
