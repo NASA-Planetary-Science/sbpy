@@ -187,8 +187,10 @@ def test_reflectance_spec():
         spec_nu = spec.to('W/(m2 Hz)', u.spectral_density(wave))
 
         xsec = (ifov * delta)**2 / u.sr
-        ref1 = spec.to('1/sr', reflectance(wave, cross_section=xsec))
-        ref2 = spec_nu.to('1/sr', reflectance(wave, cross_section=xsec))
+        ref1 = spec.to('1/sr', reflectance(
+            wave, cross_section=xsec, interpolate=True))
+        ref2 = spec_nu.to('1/sr', reflectance(
+            wave, cross_section=xsec, interpolate=True))
 
     # use built-in solar spectrum
     ref3 = spec.to('1/sr', reflectance(wave, cross_section=xsec))

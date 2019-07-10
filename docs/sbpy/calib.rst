@@ -137,7 +137,7 @@ Some `sbpy` calculations will require the effective wavelength or the pivot wave
 Observe the Sun
 ^^^^^^^^^^^^^^^
 
-`sbpy` can simulate observations of comets and asteroids through spectrometers and filter bandpasses.  To support this functionality, the `Sun` and `Vega` classes have the :func:`~sbpy.observe` method that returns simulated flux densities.
+`sbpy` can simulate observations of comets and asteroids through spectrometers and filter bandpasses.  To support this functionality, the `Sun` and `Vega` classes have the :func:`~sbpy.calib.SpectralStandard.observe` method that returns simulated flux densities.  Users may request observations through filter bandpasses, or at a set of wavelengths (the default is to rebin the source spectrum).
 
 Get the default solar spectrum, observe it through the Johnson V-band filter (distributed with `sbpy`), returning the result as a Vega-based magnitude in the Johnson-Morgan system:
 
@@ -152,6 +152,36 @@ Get the default solar spectrum, observe it through the Johnson V-band filter (di
   >>> fluxd = sun.observe(bp, unit=JMmag)
   >>> print(fluxd)    # doctest: +FLOAT_CMP
   -26.744715028702647 mag(JM)
+
+
+Binning versus interpolation with ``observe()``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If a user requests a series of wavelengths or frequencies with a `~astropy.units.Quantity` object, the default for :func:`~sbpy.calib.SpectralStandard.observe` is to rebin the source spectrum using the requested values as bin centers.  This behavior is appropriate when the source spectrum is at a higher spectral resolution than the requested wavelengths.  This is because `~synphot` assumes source spectra are continuous functions, rather observations through a spectrometer (binned data).
+
+When the requested spectral resolution is comparable to the spectral resolution of the source, rebinning may result in errors at the percent-level or more.  Instead, use the ``interpolate=True`` parameter for ``observe``.
+
+Compare interpolation and rebinning for the E490 low-resolution solar spectrum, using the stored wavelengths of the spectrum:
+
+  >>> import numpy as np
+  >>> import astropy.units as u
+  >>> from sbpy.calib import Sun
+  >>> 
+  >>> sun = Sun.from_builtin('E490_2014LR')
+  >>> wave = sun.wave[430:435]
+  >>> S = sun.fluxd[430:435]
+  >>> print(wave)
+  [5495. 5505. 5515. 5525. 5535.] Angstrom
+  >>> print(S)
+  [1895. 1862. 1871. 1846. 1882.] W / (m2 um)
+  >>> S_interp = sun.observe(wave, interpolate=True)
+  >>> np.allclose(S.value, S_interp.value)
+  True
+  >>> S_rebin = sun.observe(wave)
+  >>> np.allclose(S.value, S_rebin.value)
+  False
+  >>> print((S_rebin - S) / (S_rebin + S) * 2)    # doctest: +FLOAT_CMP
+  [-0.00429693  0.00281266 -0.00227604  0.00412338 -0.00132301]
 
 
 Plot solar spectra

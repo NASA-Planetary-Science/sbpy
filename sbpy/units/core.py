@@ -162,7 +162,7 @@ def spectral_density_vega(wfb):
 
 
 @u.quantity_input(cross_section='km2', reflectance='1/sr')
-def reflectance(wfb, cross_section=None, reflectance=None):
+def reflectance(wfb, cross_section=None, reflectance=None, **kwargs):
     """Reflectance related equivalencies.
 
     Supports conversion from/to reflectance and scattering
@@ -188,6 +188,9 @@ def reflectance(wfb, cross_section=None, reflectance=None):
     reflectance : `astropy.units.Quantity`, optional
         Average reflectance.  One of `cross_section` or `reflectance`
         is required.
+
+    **kwargs
+        Keyword arguments for `~Sun.observe()`.
 
 
     Returns
@@ -234,7 +237,7 @@ def reflectance(wfb, cross_section=None, reflectance=None):
     sun = Sun.from_default()
     for unit in ('W/(m2 um)', 'W/(m2 Hz)', VEGA):
         try:
-            f_sun.append(sun.observe(wfb, unit=unit))
+            f_sun.append(sun.observe(wfb, unit=unit, **kwargs))
         except SinglePointSpectrumError:
             f_sun.append(sun(wfb, unit=unit))
         except (u.UnitConversionError, FilterLookupError):

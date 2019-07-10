@@ -65,9 +65,6 @@ class SpectralStandard(SpectralSource, ABC):
     source : `~synphot.SourceSpectrum` or ``None``
         The source spectrum or ``None`` if unspecified.
 
-    interpolate : bool, optional
-        Interpolate rather than re-bin with `observe_spectrum`.
-
     description : string, optional
         A brief description of the source spectrum.
 
@@ -88,13 +85,11 @@ class SpectralStandard(SpectralSource, ABC):
 
     """
 
-    def __init__(self, source, description=None, bibcode=None,
-                 interpolate=False):
+    def __init__(self, source, description=None, bibcode=None):
         self._source = source
         self._description = description
         self._bibcode = bibcode
         self._bibtask = '.'.join((self.__module__, self.__class__.__name__))
-        self.interpolate = interpolate
 
     def __repr__(self):
         if self.description is None:
@@ -174,11 +169,11 @@ class SpectralStandard(SpectralSource, ABC):
 
         return self._source
 
-    def observe(self, wfb, unit=None, **kwargs):
+    def observe(self, wfb, unit=None, interpolate=False, **kwargs):
         """Observe as through filters or spectrometer.
 
-        Calls `observe_bandpass`, `observe_spectrum`, or
-        `observe_filter_name` as appropriate.
+        Calls ``observe_bandpass``, ``observe_spectrum``, or
+        ``self()``, as appropriate.
 
 
         Parameters
@@ -190,6 +185,12 @@ class SpectralStandard(SpectralSource, ABC):
 
         unit : string, `~astropy.units.Unit`, optional
             Units of the output (spectral flux density).
+
+        interpolate : bool, optional
+            For wavelengths/frequencies, set to ``True`` for
+            interpolation instead of rebinning.  Use this when the
+            spectral resolution of the source is close to that of the
+            requested wavelengths.
 
         **kwargs
             Additional keyword arguments for
@@ -205,13 +206,16 @@ class SpectralStandard(SpectralSource, ABC):
         if isinstance(wfb, (list, tuple)):
             fluxd = []
             for i in range(len(wfb)):
-                fluxd.append(self.observe(wfb[i], unit=unit, **kwargs))
+                fluxd.append(self.observe(wfb[i], unit=unit,
+                                          interpolate=interpolate,
+                                          **kwargs))
             fluxd = u.Quantity(fluxd)
         elif isinstance(wfb, str):
             lambda_eff, lambda_pivot, fluxd = self.observe_filter_name(
                 wfb, unit=unit)
         else:
-            fluxd = super().observe(wfb, unit=unit, **kwargs)
+            fluxd = super().observe(wfb, unit=unit, interpolate=interpolate,
+                                    **kwargs)
 
         return fluxd
 

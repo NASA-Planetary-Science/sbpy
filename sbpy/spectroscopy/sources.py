@@ -57,10 +57,6 @@ class SpectralSource(ABC):
     description : string, optional
         A brief description of the source spectrum.
 
-    interpolate : bool, optional
-        Disable spectral re-binning with ``observe``.
-
-
     Attributes
     ----------
     wave        - Wavelengths of the source spectrum.
@@ -70,14 +66,13 @@ class SpectralSource(ABC):
 
     """
 
-    def __init__(self, source, description=None, interpolate=False):
+    def __init__(self, source, description=None):
         if synphot is None:
             raise ImportError(
                 'synphot required for {}.'.format(cls.__name__))
 
         self._source = source
         self._description = description
-        self.interpolate = interpolate
 
     @classmethod
     def from_array(cls, wave, fluxd, meta=None, **kwargs):
@@ -181,7 +176,7 @@ class SpectralSource(ABC):
         self._source.meta
 
     def __call__(self, wave_or_freq, unit=None):
-        """Evaluate or interpolate the source spectrum.
+        """Evaluate/interpolate the source spectrum.
 
 
         Parameters
@@ -199,7 +194,7 @@ class SpectralSource(ABC):
         Returns
         -------
         fluxd : `~astropy.units.Quantity`
-            The spectrum evaluated at or interpolated to the requested
+            The spectrum evaluated/interpolated to the requested
             wavelengths or frequencies.
 
         """
@@ -222,13 +217,11 @@ class SpectralSource(ABC):
 
         return fluxd
 
-    def observe(self, wfb, unit=None, **kwargs):
+    def observe(self, wfb, unit=None, interpolate=False, **kwargs):
         """Observe source as through filters or spectrometer.
 
-        Calls `observe_bandpass` or `observe_spectrum` as appropriate.
-
-        Spectral re-binning for wavelengths and frequencies can be
-        disabled with ``self.interpolate``.
+        Calls ``observe_bandpass``, ``observe_spectrum``, or
+        ``self()``, as appropriate.
 
 
         Parameters
@@ -241,6 +234,12 @@ class SpectralSource(ABC):
             Spectral flux density units for the output.  If ``None``,
             the default depends on ``wfb``: W/(m2 μm) for wavelengths
             or bandpasses, Jy for frequencies.
+
+        interpolate : bool, optional
+            For wavelengths/frequencies, set to ``True`` for
+            interpolation instead of rebinning.  Use this when the
+            spectral resolution of the source is close to that of the
+            requested wavelengths.
 
         **kwargs
             Additional keyword arguments for
@@ -270,7 +269,7 @@ class SpectralSource(ABC):
             lambda_eff, fluxd = self.observe_bandpass(
                 wfb, unit=unit, **kwargs)
         elif isinstance(wfb, u.Quantity):
-            if self.interpolate:
+            if interpolate:
                 fluxd = self(wfb, unit=unit)
             else:
                 fluxd = self.observe_spectrum(wfb, unit=unit, **kwargs)
@@ -402,7 +401,8 @@ class SpectralSource(ABC):
         if np.size(wave_or_freq) == 1:
             raise SinglePointSpectrumError(
                 'Multiple wavelengths or frequencies required for '
-                'observe.  Instead consider interpolation with {}().'
+                'observe_spectrum.  Instead consider interpolation '
+                'with {}().'
                 .format(self.__class__.__name__))
 
         if unit is None:
@@ -413,33 +413,22 @@ class SpectralSource(ABC):
         else:
             unit = u.Unit(unit)
 
-        try:
-            w = wave_or_freq.to(self.source.waveset.unit, u.spectral())
-            test = np.allclose(w.value, self.source.waveset.value)
-        except ValueError:
-            test = False
+        specele = synphot.SpectralElement(synphot.ConstFlux1D, amplitude=1)
 
-        if test:
-            # user requested the same wavelengths as stored for the
-            # interal solar spectrum: do not rebin.
-            fluxd = self(wave_or_freq, unit=unit)
+        # Specele is defined over all wavelengths, but most spectral
+        # standards are not.  force='taper' will affect retrieving
+        # flux densities at the edges of the spectrum, but is
+        # preferered to avoid wild extrapolation.
+        kwargs['force'] = kwargs.get('force', 'taper')
+
+        obs = synphot.Observation(
+            self.source, specele, binset=wave_or_freq, **kwargs)
+
+        if unit.is_equivalent(sbu.VEGAmag):
+            fluxd = obs.sample_binned(flux_unit='W/(m2 um)').to(
+                unit, sbu.spectral_density_vega(wave_or_freq))
         else:
-            specele = synphot.SpectralElement(synphot.ConstFlux1D(1))
-
-            # Use force='extrap' to prevent PartialOverlap execption.
-            # Specele is defined over all wavelengths, but most
-            # spectral standards are not.  force='taper' will affect
-            # retrieving flux densities at the edges of the spectrum.
-            kwargs['force'] = kwargs.get('force', 'extrap')
-
-            obs = synphot.Observation(
-                self.source, specele, binset=wave_or_freq, **kwargs)
-
-            if unit.is_equivalent(sbu.VEGAmag):
-                fluxd = obs.sample_binned(flux_unit='W/(m2 um)').to(
-                    unit, sbu.spectral_density_vega(wave_or_freq))
-            else:
-                fluxd = obs.sample_binned(flux_unit=unit)
+            fluxd = obs.sample_binned(flux_unit=unit)
 
         return fluxd
 
