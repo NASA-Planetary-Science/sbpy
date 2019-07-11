@@ -41,7 +41,9 @@ Observe the source through a low-resolution spectrometer:
   >>> wave = np.logspace(0.5, 1.5, 100) * u.um
   >>> fluxd = B.observe(wave, unit='MJy')
   >>>
-  >>> plt.plot(wave, fluxd, ls='steps-mid', label=str(B.T))
+  >>> plt.plot(wave.value, fluxd.value, ls='steps-mid', label=str(B.T))
+  ...     # doctest: +IGNORE_OUTPUT
+  >>> plt.setp(plt.gca(), xlabel='Wavelength (μm)', ylabel='$F_ν$ (MJy)')
   ...     # doctest: +IGNORE_OUTPUT
 
 .. plot::
@@ -49,11 +51,13 @@ Observe the source through a low-resolution spectrometer:
    import matplotlib.pyplot as plt
    import astropy.units as u
    from sbpy.spectroscopy.sources import BlackbodySource
-  
+
+   B = BlackbodySource(T=278 * u.K)
    wave = np.logspace(0.5, 1.5, 100) * u.um
    fluxd = B.observe(wave, unit='MJy')
   
-   plt.plot(wave, fluxd, ls='steps-mid', label=str(B.T))
+   plt.plot(wave.value, fluxd.value, ls='steps-mid', label=str(B.T))
+   plt.setp(plt.gca(), xlabel='Wavelength (μm)', ylabel='$F_ν$ (MJy)')
 
 
 Developers' Notes
