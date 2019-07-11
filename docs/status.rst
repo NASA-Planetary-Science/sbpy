@@ -3,15 +3,12 @@
 Status Page
 ===========
 
-This page indicates the progress on specific modules, classes, and
-functions.
+This page indicates the development status of `sbpy`. The development
+is expected to conclude in 2021.
 
-While this page is mainly intented for internal purposes, it provides
-insight into functionality that is already available and can be
-tested.
 
-If you are or have been working on code, please indicate its status
-here.
+
+
 
 The current development version status is as follows:
 
@@ -19,16 +16,21 @@ The current development version status is as follows:
     :target: https://travis-ci.org/NASA-Planetary-Science/sbpy
     :alt: Travis-CI status
 
-.. image:: https://coveralls.io/repos/github/NASA-Planetary-Science/sbpy/badge.svg?branch=master
-    :target: https://coveralls.io/github/NASA-Planetary-Science/sbpy?branch=master
-    :alt: Coveralls status
+.. image:: https://codecov.io/gh/NASA-Planetary-Science/sbpy/branch/master/graph/badge.svg
+    :target: https://codecov.io/gh/NASA-Planetary-Science/sbpy
+    :alt: codecov status
 
 .. image:: https://readthedocs.org/projects/sbpy/badge/?version=latest
     :target: http://sbpy.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
 
-Legend
-~~~~~~
+
+Current development status
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The current development status of `sbpy` sub-modules is indicated in
+the following tables.  The column `Dev` indicates the lead developer
+for the respective sub-packages and classes.
 
 .. raw:: html
 
@@ -88,12 +90,7 @@ Legend
 
 
 
-Current development status
-~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The current development status of `sbpy` sub-modules is indicated in
-the following tables.  The column `Dev` indicates the lead developer
-for the respective sub-packages and classes.
 
 
 `sbpy.data`
@@ -183,7 +180,7 @@ for the respective sub-packages and classes.
                 MM
             </td>
             <td>
-                crude jplsbdb query implemented, no tests or documentation available; lowell query tbd.
+                jplsbdb query implemented; lowell query tbd.
             </td>
         </tr>
     </table>

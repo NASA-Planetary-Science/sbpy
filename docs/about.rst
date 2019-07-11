@@ -1,5 +1,63 @@
+About sbpy
+==========
+
+What is sbpy?
+-------------
+
+
+`sbpy` is an `Astropy`_ affiliated package for small-body planetary
+astronomy. It is meant to supplement functionality provided by
+`Astropy`_ with functions and methods that are frequently used in the
+context of planetary astronomy with a clear focus on asteroids and
+comets.
+
+As such, `sbpy` is open source and freely available to everyone. The
+development of `sbpy` is funded through NASA PDART Grant
+No. 80NSSC18K0987, but contributions are welcome for everyone!
+
+
+Why sbpy?
+---------
+
+In our interpretation, `sbpy` means *Python for Small Bodies* - it's
+the simplest acronym that we came up with that would neither favor
+asteroids nor comets. That's because we equally like both!
+
+`sbpy` is motivated by the idea to provide a basis of well-tested and
+well-documented methods to planetary astronomers in order to boost
+productivity and reproduceability. Python has been chosen as the
+language of choice as it is highly popular especially among
+early-career researchers and it enables the integration of `sbpy` into
+the `Astropy`_ ecosystem.
+
+
+What is implemented in sbpy?
+----------------------------
+
+`sbpy` will provide the following functionality once the development
+has been completed:
+
+* observation planning tools tailored to moving objects
+* photometry models for resolved and unresolved observations
+* wrappers and tools for astrometry and orbit fitting
+* spectroscopy analysis tools and models for reflected solar light and
+  emission from gas
+* cometary gas and dust coma simulation and analysis tools
+* asteroid thermal models for flux estimation and size/albedo estimation
+* image enhancement tools for comet comae and PSF subtraction tools
+* lightcurve and shape analysis tools
+* access tools for various databases for orbital and physical data, as
+  well as ephemerides services
+
+The development is expected to be completed in 2021. For an overview
+of the progress of development, please have a look at the :ref:`status
+page`.
+  
+Additional functionality may be implemented. If you are interested in
+contributing to `sbpy`, please have a look at the :ref:`contributing`.
+  
 Module Structure
-================
+----------------
 
 `sbpy` consists of a number of modules, each of which is set up as a
 class structure to encapsulate functionality and allow the user to
@@ -22,7 +80,7 @@ detailed below.
 
    
 `sbpy.data`
------------
+~~~~~~~~~~~
 
 The `~sbpy.data` module provides data containers used throughout
 `sbpy` for orbital elements (`~sbpy.data.Orbit`), ephemerides and
@@ -60,7 +118,7 @@ existing information on a specific small body in the PDS.
 
 
 `sbpy.activity`
----------------
+~~~~~~~~~~~~~~~
 
 The `~sbpy.activity` module provides classes for modeling cometary
 comae, tails, and ice sublimation, and functions for working with
@@ -80,7 +138,7 @@ parameters will be incorporated, too.
 
 
 `sbpy.photometry`
------------------
+~~~~~~~~~~~~~~~~~
 
 The `~sbpy.photometry` module implements a number of light scattering
 models for asteroidal surfaces and cometary coma dust. The goal of
@@ -108,7 +166,7 @@ function will also be implemented.
 
 
 `sbpy.shape`
-------------
+~~~~~~~~~~~~
 
 The `~sbpy.shape` module provides tools for the use of 3D shape models
 of small bodies and the analysis of lightcurve observations. The user
@@ -132,7 +190,7 @@ provided through classes defined in the `~sbpy.photometry` module.
 
 
 `sbpy.spectroscopy`
--------------------
+~~~~~~~~~~~~~~~~~~~
 
 As part of `~sbpy.spectroscopy`, we provide routines for fitting
 measured spectra, as well as simulating synthetic spectra over a wide
@@ -169,7 +227,7 @@ derivation of photometric colors from spectral slopes.
 
 
 `sbpy.thermal`
---------------
+~~~~~~~~~~~~~~
 
 Thermal modeling capabilities for asteroids are available through the
 `~sbpy.thermal` module.  The module provides implementations of the
@@ -182,7 +240,7 @@ data.
 
 
 `sbpy.imageanalysis`
---------------------
+~~~~~~~~~~~~~~~~~~~~
 
 The `~sbpy.imageanalysis` module will focus on the analysis of
 telescopic images. `~sbpy.imageanalysis.Centroid` provides a range of
@@ -206,7 +264,7 @@ imageanalysis.Cometary- Enhancements for further analysis.
 
 
 `sbpy.obsutil`
---------------
+~~~~~~~~~~~~~~
 
 The `~sbpy.obsutil` module enables the user to conveniently check
 observability of moving targets and to plan future observations. Using
@@ -223,7 +281,7 @@ calibration purposes, and other moving objects.
 
 
 `sbpy.bib`
-----------
+~~~~~~~~~~
 
 `~sbpy.bib` provides a unique feature that simplifies the
 acknowledgment of methods and code utilized by the user. After
