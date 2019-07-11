@@ -24,6 +24,7 @@ from abc import ABC
 from warnings import warn
 from functools import wraps
 import inspect
+import json
 
 import numpy as np
 from astropy.utils.state import ScienceState
@@ -437,7 +438,42 @@ class vega_spectrum(ScienceState):
                 "vega_spectrum must be a string or Vega instance.")
 
 
-class solar_fluxd(ScienceState):
+class FluxdScienceState(ScienceState, ABC):
+    """sbpy photometric calibration science states.
+
+    Requires attribute: _sources.
+
+    """
+
+    @classmethod
+    def validate(cls, value):
+        if isinstance(value, str):
+            source = getattr(cls._sources, value)
+
+            # only load the data once, save to hidden attribute ``_data``
+            data = source.get('data', None)
+            if data is None:
+                fn = get_pkg_data_filename(
+                    os.path.join('data', source['filename']))
+                with open(fn, 'r') as inf:
+                    phot = json.load(inf)
+
+                data = {}
+                for name, parameters in phot['data'].items():
+                    for k, v in parameters.items():
+                        if k == 'fluxd':
+                            k = name
+                        else:
+                            k = '{}({})'.format(name, k)
+                        data[k] = u.Quantity(v[0], v[1], subok=True)
+                source['data'] = data
+
+            return data
+        else:
+            return value
+
+
+class solar_fluxd(FluxdScienceState):
     """Get/set the `sbpy` solar flux density.
 
     To set the current values:
@@ -480,25 +516,10 @@ class solar_fluxd(ScienceState):
 
     """
     _value = 'Willmer2018'
-
-    @classmethod
-    def validate(cls, value):
-        if isinstance(value, str):
-            source = getattr(solar_sources.SolarPhotometry, value)
-            fn = get_pkg_data_filename(
-                os.path.join('data', source['filename']))
-            tab = QTable(ascii.read(fn))
-            phot = {}
-            for row in tab:
-                phot[row['name']] = row['fluxd']
-                phot[row['name'] + '(lambda eff)'] = row['lambda eff']
-                phot[row['name'] + '(lambda pivot)'] = row['lambda pivot']
-            return phot
-        else:
-            return value
+    _sources = solar_sources.SolarPhotometry
 
 
-class vega_fluxd(ScienceState):
+class vega_fluxd(FluxdScienceState):
     """Get/set the `sbpy` Vega flux density.
 
     To set the current values:
@@ -542,22 +563,7 @@ class vega_fluxd(ScienceState):
     """
 
     _value = 'Willmer2018'
-
-    @classmethod
-    def validate(cls, value):
-        if isinstance(value, str):
-            source = getattr(vega_sources.VegaPhotometry, value)
-            fn = get_pkg_data_filename(
-                os.path.join('data', source['filename']))
-            tab = QTable(ascii.read(fn))
-            phot = {}
-            for row in tab:
-                phot[row['name']] = row['fluxd']
-                phot[row['name'] + '(lambda eff)'] = row['lambda eff']
-                phot[row['name'] + '(lambda pivot)'] = row['lambda pivot']
-            return phot
-        else:
-            return value
+    _sources = vega_sources.VegaPhotometry
 
 
 class Sun(SpectralStandard):

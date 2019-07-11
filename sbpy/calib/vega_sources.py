@@ -20,38 +20,59 @@ class VegaSpectra:
     }
 
 
-"""Willmer table generated with source files downloaded from ApJS:
-
-https://iopscience.iop.org/0067-0049/236/2/47/suppdata/apjsaabfdft3_ascii.txt
-https://iopscience.iop.org/0067-0049/236/2/47/suppdata/apjsaabfdft4_ascii.txt
-
-Commented out header lines.
-
-from astropy.io import ascii
-from astropy.table import join
-phot = ascii.read('apjsaabfdft4_ascii.txt')
-phot['(1)'].name = 'name'
-phot['(14)'].name = 'fluxd'
-phot['(3)'].name = 'lambda pivot'
-phot['(4)'].name = 'lambda eff'
-phot['fluxd'].unit = 'erg/(s cm2 AA)'
-phot['lambda eff'].unit = 'um'
-phot['lambda pivot'].unit = 'um'
-phot['name'][phot['name'] == 'WFC3_F098m'] = 'WFC3_F098M'
-phot.keep_columns(('name', 'fluxd', 'lambda pivot', 'lambda eff'))
-for i in range(len(phot)):
-    phot[i]['name'] = phot[i]['name'].replace('_', ' ').replace('cfhtls', 'CFHTLS')
-phot.meta['comments'] = [
-  'Flux density of Vega',
-  'Table 4 of Willmer (2018, ApJS 236, 47)'
-]
-phot.write('vega-photometry-willmer2018.csv', format='ascii.ecsv', delimiter=',')
-"""
-
-
 class VegaPhotometry:
+    """Built-in Vega photometry.
+
+    Format:
+        {
+            'filename': 'vega-photometry-willmer2018.json',
+            'data': { ... },
+            'description': 'Willmer (2018) flux densities',
+            'bibcode': '2018ApJS..236...47W'
+        }
+
+    Only one of 'filename' or 'data' required.  The file must be in
+    the calib/data directory.
+
+    Willmer data generated with source files downloaded from ApJS:
+
+    https://iopscience.iop.org/0067-0049/236/2/47/suppdata/apjsaabfdft3_ascii.txt
+    https://iopscience.iop.org/0067-0049/236/2/47/suppdata/apjsaabfdft4_ascii.txt
+
+    Commented out header lines.
+
+    from astropy.io import ascii
+    from astropy.table import join
+    tab = ascii.read('apjsaabfdft4_ascii.txt')
+    tab['(1)'].name = 'name'
+    tab['(14)'].name = 'fluxd'
+    tab['(3)'].name = 'lambda pivot'
+    tab['(4)'].name = 'lambda eff'
+    tab['fluxd'].unit = 'erg/(s cm2 AA)'
+    tab['lambda eff'].unit = 'um'
+    tab['lambda pivot'].unit = 'um'
+    tab['name'][tab['name'] == 'WFC3_F098m'] = 'WFC3_F098M'
+
+    phot = {}
+    phot['data'] = {}
+    for row in tab:
+        name = row['name'].replace('_', ' ').replace('cfhtls', 'CFHTLS')
+        phot['data'][name] = {
+            'fluxd': [row['fluxd'], 'erg/(s cm2 AA)'],
+            'lambda pivot': [row['lambda pivot'], 'um'],
+            'lambda eff': [row['lambda eff'], 'um']
+        }
+
+    phot['meta'] = {
+      'comments': ['Flux density of Vega)',
+                   'Table 4 of Willmer (2018, ApJS 236, 47)']
+    }
+    with open('vega-photometry-willmer2018.json', 'w') as outf:
+        json.dump(phot, outf)
+
+    """
     Willmer2018 = {
-        'filename': 'vega-photometry-willmer2018.csv',
+        'filename': 'vega-photometry-willmer2018.json',
         'description': 'Willmer (2018) flux densities',
         'bibcode': '2018ApJS..236...47W'
     }

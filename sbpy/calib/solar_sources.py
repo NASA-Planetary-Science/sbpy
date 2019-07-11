@@ -49,40 +49,62 @@ class SolarSpectra:
     }
 
 
-"""Willmer table generated with source files downloaded from ApJS:
-
-https://iopscience.iop.org/0067-0049/236/2/47/suppdata/apjsaabfdft3_ascii.txt
-https://iopscience.iop.org/0067-0049/236/2/47/suppdata/apjsaabfdft4_ascii.txt
-
-Commented out header lines.
-
-from astropy.io import ascii
-from astropy.table import join
-sun = ascii.read('apjsaabfdft3_ascii.txt')
-filters = ascii.read('apjsaabfdft4_ascii.txt')
-tab = join(sun, filters, keys=('(1)',))
-solar_phot = tab[['(1)', '(6)_1', '(4)_2', '(10)_1']]
-solar_phot['(1)'].name = 'name'
-solar_phot['(6)_1'].name = 'fluxd'
-solar_phot['(4)_2'].name = 'lambda eff'
-solar_phot['(10)_1'].name = 'lambda pivot'
-solar_phot['fluxd'].unit = 'mag(AB)'
-solar_phot['lambda eff'].unit = 'um'
-solar_phot['lambda pivot'].unit = 'um'
-solar_phot['name'][solar_phot['name'] == 'WFC3_F098m'] = 'WFC3_F098M'
-for i in range(len(solar_phot)):
-    solar_phot[i]['name'] = solar_phot[i]['name'].replace('_', ' ').replace('cfhtls', 'CFHTLS')
-solar_phot.meta['comments'] = [
-  'Apparent magnitude of the Sun, (AB mag)',
-  'Tables 3 and 4 of Willmer (2018, ApJS 236, 47)'
-]
-solar_phot.write('solar-photometry-willmer2018.csv', format='ascii.ecsv', delimiter=',')
-"""
-
-
 class SolarPhotometry:
+    """Built-in solar photometry.
+
+    Format:
+        {
+            'filename': 'solar-photometry-willmer2018.json',
+            'data': { ... },
+            'description': 'Willmer (2018) apparent mangitudes',
+            'bibcode': '2018ApJS..236...47W'
+        }
+
+    Only one of 'filename' or 'data' required.  The file must be in
+    the calib/data directory.
+
+    Willmer data generated with source files downloaded from ApJS:
+
+    https://iopscience.iop.org/0067-0049/236/2/47/suppdata/apjsaabfdft3_ascii.txt
+    https://iopscience.iop.org/0067-0049/236/2/47/suppdata/apjsaabfdft4_ascii.txt
+
+    Commented out header lines.
+
+    from astropy.io import ascii
+    from astropy.table import join
+    import json
+    sun = ascii.read('apjsaabfdft3_ascii.txt')
+    filters = ascii.read('apjsaabfdft4_ascii.txt')
+    tab = join(sun, filters, keys=('(1)',))
+    tab['(1)'].name = 'name'
+    tab['(6)_1'].name = 'fluxd'
+    tab['(4)_2'].name = 'lambda eff'
+    tab['(10)_1'].name = 'lambda pivot'
+    tab['fluxd'].unit = 'mag(AB)'
+    tab['lambda eff'].unit = 'um'
+    tab['lambda pivot'].unit = 'um'
+    tab['name'][tab['name'] == 'WFC3_F098m'] = 'WFC3_F098M'
+
+    phot = {}
+    phot['data'] = {}
+    for row in tab:
+        name = row['name'].replace('_', ' ').replace('cfhtls', 'CFHTLS')
+        phot['data'][name] = {
+            'fluxd': [row['fluxd'], 'mag(AB)'],
+            'lambda pivot': [row['lambda pivot'], 'um'],
+            'lambda eff': [row['lambda eff'], 'um']
+        }
+
+    phot['meta'] = {
+      'comments': ['Apparent magnitude of the Sun',
+                   'Tables 3 and 4 of Willmer (2018, ApJS 236, 47)']
+    }
+    with open('solar-photometry-willmer2018.json', 'w') as outf:
+        json.dump(phot, outf)
+
+    """
     Willmer2018 = {
-        'filename': 'solar-photometry-willmer2018.csv',
+        'filename': 'solar-photometry-willmer2018.json',
         'description': 'Willmer (2018) apparent mangitudes',
         'bibcode': '2018ApJS..236...47W'
     }
