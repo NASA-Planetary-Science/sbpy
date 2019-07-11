@@ -8,6 +8,7 @@ from ... import units as sbu
 from ... import utils, bib
 from ...spectroscopy import sources
 from ..core import SpectralStandard
+from .. import core as calib_core
 from .. import *
 
 
@@ -95,6 +96,7 @@ class TestSpectralStandard:
         s = Star.from_array(w, f)
         w = [0.3, 0.35, 0.4] * u.um
         assert np.isclose(s.observe(w).value[1], 1.0, rtol=0.001)
+        assert np.isclose(s.observe(w, interpolate=True).value[1], 1.0)
 
     def test_observe_frequency(self):
         nu = u.Quantity(np.linspace(300, 1000), 'THz')
@@ -120,6 +122,9 @@ class TestSpectralStandard:
         fluxd = s.observe(bps, unit='W/(m2 um)')
         assert np.allclose(fluxd.value, [1, 1])
 
+        lambda_eff, fluxd = s.observe_bandpass(bps, unit='W/(m2 um)')
+        assert np.allclose(fluxd.value, [1, 1])
+
     def test_observe_singlepointspectrumerror(self):
         w = u.Quantity(np.linspace(0.3, 1.0), 'um')
         f = u.Quantity(np.ones(len(w)), 'W/(m2 um)')
@@ -128,6 +133,36 @@ class TestSpectralStandard:
             s.observe(1 * u.um)
         with pytest.raises(sources.SinglePointSpectrumError):
             s.observe([1] * u.um)
+
+    def test_observe_filter_name(self):
+        s = Star(None)
+        s._fluxd_state = solar_fluxd
+        with solar_fluxd.set({'B': 0.327 * u.ABmag}):
+            fluxd = s.observe_filter_name('B', unit=u.ABmag)[-1]
+            assert fluxd.value == 0.327
+
+        with pytest.raises(FilterLookupError):
+            fluxd = s.observe_filter_name('B', unit=u.ABmag)
+
+    def test_observe_synphotrequired(self, monkeypatch):
+        s = Star(None)
+
+        monkeypatch.setattr(calib_core, 'synphot', None)
+
+        with pytest.raises(sources.SynphotRequired):
+            s.observe_bandpass([None])
+
+        with pytest.raises(sources.SynphotRequired):
+            s.observe_spectrum([1, 2, 3] * u.um)
+
+    def test_observe_bad_wfb(self):
+        w = u.Quantity(np.linspace(0.3, 1.0), 'um')
+        f = u.Quantity(np.ones(len(w)), 'W/(m2 um)')
+        source = synphot.SourceSpectrum(synphot.Empirical1D, points=w,
+                                        lookup_table=f)
+        s = Star(source)
+        with pytest.raises(TypeError):
+            s.observe(np.arange(5))
 
     def test_bibcode(self):
         w = u.Quantity(np.linspace(0.3, 1.0), 'um')

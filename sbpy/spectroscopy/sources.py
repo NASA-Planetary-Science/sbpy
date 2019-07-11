@@ -68,8 +68,8 @@ class SpectralSource(ABC):
 
     def __init__(self, source, description=None):
         if synphot is None:
-            raise ImportError(
-                'synphot required for {}.'.format(cls.__name__))
+            raise SynphotRequired(
+                'synphot required for {}.'.format(self.__class__.__name__))
 
         self._source = source
         self._description = description
@@ -201,13 +201,12 @@ class SpectralSource(ABC):
 
         from .. import units as sbu  # avoid circular dependency
 
-        if unit is None:
-            if wave_or_freq.unit.is_equivalent('m'):
-                unit = u.Unit('W/(m2 um)')
-            else:
-                unit = u.Jy
-        else:
+        if unit is not None:
             unit = u.Unit(unit)
+        elif wave_or_freq.unit.is_equivalent('m'):
+            unit = u.Unit('W/(m2 um)')
+        else:
+            unit = u.Jy
 
         if unit.is_equivalent(sbu.VEGA):
             fluxd = self.source(wave_or_freq, 'W/(m2 um)').to(
@@ -282,8 +281,6 @@ class SpectralSource(ABC):
     def observe_bandpass(self, bp, unit=None, **kwargs):
         """Observe through a bandpass.
 
-        Requires `~synphot`.
-
 
         Parameters
         ----------
@@ -310,10 +307,6 @@ class SpectralSource(ABC):
         """
 
         from .. import units as sbu  # avoid circular dependency
-
-        if synphot is None:
-            raise SynphotRequired(
-                'synphot is required for observations through bandpass')
 
         # promote single bandpasses to a list, but preserve number of
         # dimensions
@@ -394,10 +387,6 @@ class SpectralSource(ABC):
 
         from .. import units as sbu  # avoid circular dependency
 
-        if synphot is None:
-            raise SynphotRequired(
-                'synphot is required for spectral binning of sources')
-
         if np.size(wave_or_freq) == 1:
             raise SinglePointSpectrumError(
                 'Multiple wavelengths or frequencies required for '
@@ -442,7 +431,7 @@ class SpectralSource(ABC):
             Two wavelengths, frequencies, or bandpasses.
 
         unit : string or `~astropy.units.MagUnit`
-            Units for the output, e.g., ``astropy.units.ABmag`` or
+            Units for the calculation, e.g., ``astropy.units.ABmag`` or
             ``sbpy.units.VEGAmag``.
 
 

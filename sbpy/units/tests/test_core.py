@@ -12,8 +12,9 @@ import synphot
 from .. import core
 from ..core import *
 from ...utils import get_bandpass
-from ...calib import vega_fluxd, solar_fluxd, solar_spectrum, Sun
-from ...utils import get_bandpass
+from ...calib import (vega_spectrum, vega_fluxd, solar_fluxd,
+                      solar_spectrum, Sun, Vega, UndefinedSourceError)
+from ...exceptions import OptionalPackageUnavailable
 
 
 JohnsonV = get_bandpass('Johnson V')
@@ -103,7 +104,12 @@ def test_spectral_density_vega_bp(filename, fluxd, to, tol):
 def test_spectral_density_vega_synphot_import_fail(monkeypatch):
     from ...calib import core as calib_core
     monkeypatch.setattr(calib_core, 'synphot', None)
-    assert spectral_density_vega(1 * u.um) == []
+    assert spectral_density_vega([1, 2, 3] * u.um) == []
+
+
+def test_spectral_density_vega_undefinedsourceerror():
+    with vega_spectrum.set(Vega(None)):
+        assert spectral_density_vega([1, 2, 3] * u.um) == []
 
 
 @pytest.mark.parametrize('fluxd, wfb, f_sun, ref', (

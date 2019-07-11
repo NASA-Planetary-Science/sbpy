@@ -22,12 +22,13 @@ __doctest_requires__ = {
 import os
 from abc import ABC
 from warnings import warn
+from functools import wraps
 import numpy as np
 from astropy.utils.state import ScienceState
 from astropy.utils.data import get_pkg_data_filename
 from astropy.table import Table
 import astropy.units as u
-from ..spectroscopy.sources import SpectralSource
+from ..spectroscopy.sources import SpectralSource, SynphotRequired
 from ..exceptions import SbpyException, OptionalPackageUnavailable
 from .. import bib
 from . import solar_sources, vega_sources
@@ -213,11 +214,33 @@ class SpectralStandard(SpectralSource, ABC):
         elif isinstance(wfb, str):
             lambda_eff, lambda_pivot, fluxd = self.observe_filter_name(
                 wfb, unit=unit)
+        elif isinstance(wfb, u.Quantity):
+            if interpolate:
+                fluxd = self(wfb, unit=unit)
+            else:
+                fluxd = self.observe_spectrum(wfb, unit=unit, **kwargs)
+        elif isinstance(wfb, SpectralElement):
+            lambda_eff, fluxd = self.observe_bandpass(wfb, unit=unit,
+                                                      **kwargs)
         else:
-            fluxd = super().observe(wfb, unit=unit, interpolate=interpolate,
-                                    **kwargs)
+            raise TypeError('Unsupported type for `wfb` type: {}'
+                            .format(type(wfb)))
 
         return fluxd
+
+    @wraps(SpectralSource.observe_bandpass)
+    def observe_bandpass(self, *args, **kwargs):
+        if synphot is None:
+            raise SynphotRequired(
+                'synphot is required for observations through bandpass')
+        return super().observe_bandpass(*args, **kwargs)
+
+    @wraps(SpectralSource.observe_spectrum)
+    def observe_spectrum(self, *args, **kwargs):
+        if synphot is None:
+            raise SynphotRequired(
+                'synphot is required for observations through bandpass')
+        return super().observe_spectrum(*args, **kwargs)
 
     def observe_filter_name(self, filt, unit=None):
         """Flux density through this filter.
@@ -304,7 +327,7 @@ class SpectralStandard(SpectralSource, ABC):
             Two wavelengths, frequencies, or bandpasses.
 
         unit : string or `~astropy.units.MagUnit`
-            Units for the output, e.g., ``astropy.units.ABmag`` or
+            Units for the calculation, e.g., ``astropy.units.ABmag`` or
             ``sbpy.units.VEGAmag``.
 
 
