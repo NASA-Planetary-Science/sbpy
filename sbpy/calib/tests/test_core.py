@@ -288,8 +288,9 @@ class TestSolarFluxd:
     def test_willmer2018(self):
         with solar_fluxd.set('Willmer2018'):
             filters = solar_fluxd.get()
-            assert filters['PS1 r'].value == -26.93
-            assert filters['PS1 r'].unit == u.ABmag
+            assert np.isclose(filters['PS1 r'].value,
+                              10**(-0.4 * (21.1 - 26.66)))
+            assert filters['PS1 r'].unit == 'erg/(s cm2 AA)'
             assert filters['PS1 r(lambda eff)'].value == 0.6156
             assert filters['PS1 r(lambda eff)'].unit == u.um
             assert filters['PS1 r(lambda pivot)'].value == 0.6201

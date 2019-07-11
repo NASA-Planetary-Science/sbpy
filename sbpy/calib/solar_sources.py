@@ -77,7 +77,7 @@ class SolarPhotometry:
     filters = ascii.read('apjsaabfdft4_ascii.txt')
     tab = join(sun, filters, keys=('(1)',))
     tab['(1)'].name = 'name'
-    tab['(6)_1'].name = 'fluxd'
+    tab['(7)_1'].name = 'fluxd'
     tab['(4)_2'].name = 'lambda eff'
     tab['(10)_1'].name = 'lambda pivot'
     tab['fluxd'].unit = 'mag(AB)'
@@ -90,7 +90,7 @@ class SolarPhotometry:
     for row in tab:
         name = row['name'].replace('_', ' ').replace('cfhtls', 'CFHTLS')
         phot['data'][name] = {
-            'fluxd': [row['fluxd'], 'mag(AB)'],
+            'fluxd': [10**(-0.4 * (21.1 + row['fluxd'])), 'erg/(s cm2 AA)'],
             'lambda pivot': [row['lambda pivot'], 'um'],
             'lambda eff': [row['lambda eff'], 'um']
         }

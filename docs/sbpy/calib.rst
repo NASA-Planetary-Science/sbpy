@@ -103,7 +103,7 @@ The `~astropy.utils.state.ScienceState` objects `~sbpy.calib.solar_fluxd` and `s
   >>> solar_fluxd.set('Willmer2018')   # doctest: +IGNORE_OUTPUT
   >>> sun = Sun(None)
   >>> print(sun.observe('PS1 r'))    # doctest: +FLOAT_CMP
-  -26.93 mag(AB)
+  167.49428760264365 erg / (Angstrom cm2 s)
   >>> vega_fluxd.set('Willmer2018')   # doctest: +IGNORE_OUTPUT
   >>> print(sun.observe('PS1 r', unit=sbu.VEGAmag))    # doctest: +FLOAT_CMP
   -27.05 mag(VEGA)
