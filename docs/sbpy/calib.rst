@@ -114,7 +114,7 @@ Some `sbpy` calculations will require the effective wavelength or the pivot wave
   >>> vega_fluxd.set({
   ...     'V': 3674.73 * u.Jy,
   ...     'V(lambda eff)': 5476 * u.AA
-  ... })
+  ... })    # doctest: +IGNORE_OUTPUT
   <ScienceState vega_fluxd: {'V': <Quantity 3674.73 Jy>, 'V(lambda eff)': <Quantity 5476. Angstrom>}>
   >>> vega = Vega.from_default()
   >>> print(vega.observe('V'))
@@ -129,7 +129,7 @@ Some `sbpy` calculations will require the effective wavelength or the pivot wave
   ...     'V': 3674.73 * u.Jy,
   ...     'V(lambda eff)': 5476 * u.AA,
   ...     'V(lambda pivot)': 5511 * u.AA
-  ... })
+  ... })    # doctest: +IGNORE_OUTPUT
   <ScienceState vega_fluxd: {'V': <Quantity 3674.73 Jy>, 'V(lambda eff)': <Quantity 5476. Angstrom>, 'V(lambda pivot)': <Quantity 5511. Angstrom>}>
   >>> print(vega.observe('V', unit='erg/(s cm2 AA)'))   # doctest: +FLOAT_CMP
   3.62701e-9 erg / (Angstrom cm2 s)
