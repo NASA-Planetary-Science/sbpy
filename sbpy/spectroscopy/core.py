@@ -13,7 +13,13 @@ from astroquery.jplhorizons import Horizons, conf
 from astropy import log
 from ..bib import register
 from ..data import Phys
-from .sun import Sun
+
+
+try:
+    from synphot import SpectralElement
+except ImportError:
+    class SpectralElement:
+        pass
 
 
 conf.horizons_server = 'https://ssd.jpl.nasa.gov/horizons_batch.cgi'
@@ -73,12 +79,13 @@ class SpectralGradient(u.SpecificTypeQuantity):
     10.0 % / 100 nm
 
     >>> from sbpy.units import VEGAmag
-    >>> bp = ('johnson_v', 'cousins_r')
+    >>> from sbpy.utils import get_bandpass
+    >>> V = get_bandpass('Johnson V')
+    >>> R = get_bandpass('Cousins R')
     >>> VmR = 15.8 * VEGAmag - 15.3 * VEGAmag
     >>> VmR_sun = 0.37 * u.mag
-    >>> S = SpectralGradient.from_color(bp, VmR - VmR_sun)
-    ...                              # doctest: +REMOTE_DATA +IGNORE_OUTPUT
-    >>> print(S)                     # doctest: +REMOTE_DATA +FLOAT_CMP
+    >>> S = SpectralGradient.from_color((V, R), VmR - VmR_sun)
+    >>> print(S)    # doctest: +FLOAT_CMP
     12.29185986266534 % / 100 nm
 
 
@@ -102,7 +109,7 @@ class SpectralGradient(u.SpecificTypeQuantity):
                 raise ValueError(
                     'Two wavelengths must be provided, got {}'
                     .format(np.size(wave)))
-            S.wave = S._eff_wave(wave)
+            S.wave = S._lambda_eff(wave)
 
         if wave0 is None and wave is not None:
             S.wave0 = S.wave.mean()
@@ -112,24 +119,18 @@ class SpectralGradient(u.SpecificTypeQuantity):
         return S
 
     @classmethod
-    def _eff_wave(cls, wfb):
+    def _lambda_eff(cls, wfb):
         """Wavelength/frequency/bandpass to wavelength.
 
         Bandpass is converted to effective wavelength using a solar
         spectrum.
 
         """
+        from ..calib import Sun
 
-        eff_wave = (0, 0) * u.um
-        sun = Sun.from_default()
-        for i in range(2):
-            if isinstance(wfb, u.Quantity):
-                eff_wave[i] = wfb[i].to(u.um)
-            else:
-                eff_wave[i] = sun.filt(wfb[i])[0]
-                log.info('Using λ_eff = {}'.format(eff_wave[i]))
+        lambda_eff, ci = Sun.from_default().color_index(wfb, u.ABmag)
 
-        return eff_wave
+        return lambda_eff
 
     @classmethod
     def from_color(cls, wfb, color):
@@ -184,7 +185,7 @@ class SpectralGradient(u.SpecificTypeQuantity):
         """
         from ..units import hundred_nm
 
-        eff_wave = SpectralGradient._eff_wave(wfb)
+        lambda_eff = SpectralGradient._lambda_eff(wfb)
 
         try:
             # works for u.Magnitudes and dimensionless u.Quantity
@@ -193,11 +194,11 @@ class SpectralGradient(u.SpecificTypeQuantity):
             # works for u.mag
             alpha = color.to(u.dimensionless_unscaled, u.logarithmic())
 
-        dw = eff_wave[0] - eff_wave[1]
+        dw = lambda_eff[0] - lambda_eff[1]
         S = ((2 / dw * (alpha - 1) / (alpha + 1))
              .to(u.percent / hundred_nm))
 
-        return SpectralGradient(S, wave=eff_wave)
+        return SpectralGradient(S, wave=lambda_eff)
 
     def to_color(self, wfb):
         r"""Express as a color index.
@@ -250,10 +251,10 @@ class SpectralGradient(u.SpecificTypeQuantity):
 
         """
 
-        eff_wave = self._eff_wave(wfb)
+        lambda_eff = self._lambda_eff(wfb)
 
-        S = self.renormalize(eff_wave.mean())
-        dw = eff_wave[0] - eff_wave[1]
+        S = self.renormalize(lambda_eff.mean())
+        dw = lambda_eff[0] - lambda_eff[1]
         beta = (S * dw / 2).decompose()  # dimensionless
         color = ((1 + beta) / (1 - beta)).to(u.mag, u.logarithmic())
 

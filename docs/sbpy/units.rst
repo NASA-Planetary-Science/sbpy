@@ -68,10 +68,11 @@ To use a bandpass, pass the name as a string (see
 of `~synphot.spectrum.SpectralElement`:
 
   >>> from sbpy.units import VEGAmag, spectral_density_vega
+  >>> from sbpy.utils import get_bandpass
+  >>> V = get_bandpass('Johnson V')
   >>> m = 0.0 * VEGAmag
-  >>> fluxd = m.to('erg/(cm2 s AA)',
-  ...     spectral_density_vega('johnson_v'))  # doctest: +REMOTE_DATA
-  >>> fluxd.value                   # doctest: +FLOAT_CMP +REMOTE_DATA
+  >>> fluxd = m.to('erg/(cm2 s AA)', spectral_density_vega(V))
+  >>> fluxd.value                   # doctest: +FLOAT_CMP
   3.588524658721229e-09
 
 
@@ -88,37 +89,37 @@ phase angle can be calculated:
 
   >>> import numpy as np
   >>> from astropy import units as u
+  >>> from sbpy.calib import solar_fluxd, vega_fluxd
   >>> from sbpy.units import reflectance, VEGAmag, spectral_density_vega
+  >>>
+  >>> solar_fluxd.set({'V': -26.775 * VEGAmag})
+  <ScienceState solar_fluxd: {'V': <Magnitude -26.775 mag(VEGA)>}>
+  >>> vega_fluxd.set({'V': 3.5885e-08 * u.Unit('W / (m2 um)')})
+  <ScienceState vega_fluxd: {'V': <Quantity 3.5885e-08 W / (m2 um)>}>
   >>> mag = 3.4 * VEGAmag
   >>> radius = 460 * u.km
   >>> cross_sec = np.pi * (radius)**2
-  >>> ref = mag.to('1/sr', reflectance(cross_section=cross_sec))
+  >>> ref = mag.to('1/sr', reflectance('V', cross_section=cross_sec))
   >>> print('{0:.4f}'.format(ref))
   0.0287 1 / sr
 
-Users can supply solar flux via keyword ``f_sun``, or solar magnitude in any
-magnitude system via keyword ``M_sun`` as long as the quantity to be converted
-is in the same unit as the supplied solar flux or magnitude, respectively:
+`~sbpy.units.reflectance` works with `sbpy`'s spectral calibration system (see :ref:`sbpy_calib`):
 
   >>> from sbpy.utils import get_bandpass
   >>> V = get_bandpass('Johnson V')
   >>> ref = 0.0287 / u.sr
-  >>> flux_ceres = mag.to('W/(m2 um)', spectral_density_vega(V))
-  >>> flux_sun = 1839.93273227 * u.Unit('W/(m2 um)')
-  >>> cross_sec = flux_ceres.to('km2', reflectance(reflectance=ref,
-  ...     f_sun=flux_sun))
-  >>> radius = np.sqrt(cross_sec/np.pi)
+  >>> cross_sec = mag.to('km2', reflectance(V, reflectance=ref))
+  >>> radius = np.sqrt(cross_sec / np.pi)
   >>> print('{0:.2f}'.format(radius))
   459.69 km
 
-`~sbpy.units.reflectance` can also support conversion between flux spectrum and
-reflectance spectrum:
+`~sbpy.units.reflectance` also supports conversion between a flux spectrum and a reflectance spectrum:
 
   >>> wave = [1.046, 1.179, 1.384, 1.739, 2.416] * u.um
   >>> flux = [1.636e-18, 1.157e-18, 8.523e-19, 5.262e-19, 1.9645e-19] \
   ...     * u.Unit('W/(m2 um)')
   >>> xsec = 0.0251 * u.km**2
-  >>> ref = flux.to('1/sr', reflectance(cross_section=xsec, wfb=wave))
+  >>> ref = flux.to('1/sr', reflectance(wave, cross_section=xsec))
   >>> print(ref)  # doctest: +FLOAT_CMP
   [0.0021763  0.00201223 0.0022041  0.00269637 0.00292785] 1 / sr
 

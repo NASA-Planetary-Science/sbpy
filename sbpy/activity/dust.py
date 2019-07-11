@@ -37,7 +37,8 @@ import astropy.units as u
 
 from astropy.utils.exceptions import AstropyWarning
 from .. import bib
-from ..spectroscopy import Sun, BlackbodySource
+from ..calib import Sun
+from ..spectroscopy import BlackbodySource
 from ..data import Ephem
 from ..spectroscopy.sources import SinglePointSpectrumError
 from .core import Aperture, rho_as_length
@@ -372,22 +373,27 @@ class Afrho(DustComaQuantity):
     from_fluxd.__doc__ = DustComaQuantity.from_fluxd.__doc__ + """
         Examples
         --------
+        Convert observed flux density to Afρ, with a user-provided
+        solar flux density for the V-band:
         >>> from sbpy.activity import Afrho
         >>> import astropy.units as u
+        >>> from sbpy.calib import solar_fluxd
+        >>>
+        >>> solar_fluxd.set({'V': 1869 * u.W / u.m**2 / u.um})
+        >>>
         >>> fluxd = 6.730018324465526e-14 * u.W / u.m**2 / u.um
         >>> aper = 1 * u.arcsec
         >>> eph = dict(rh=1.5 * u.au, delta=1.0 * u.au)
-        >>> S = 1869 * u.W / u.m**2 / u.um
-        >>> afrho = Afrho.from_fluxd(None, fluxd, aper, eph=eph, S=S)
+        >>> afrho = Afrho.from_fluxd('V', fluxd, aper, eph=eph)
         >>> print(afrho)                        # doctest: +FLOAT_CMP
         999.9999999999999 cm
 
         """
 
     def to_fluxd(self, wfb, aper, eph, unit=None, phasecor=False,
-                 Phi=None, S=None):
+                 Phi=None):
         return super().to_fluxd(wfb, aper, eph, unit=unit, phasecor=phasecor,
-                                Phi=Phi, S=S)
+                                Phi=Phi)
 
     to_fluxd.__doc__ = DustComaQuantity.to_fluxd.__doc__ + """
         phasecor: bool, optional
@@ -398,10 +404,9 @@ class Afrho(DustComaQuantity):
         Phi : callable, optional
             Phase function, see :func:`~Afrho.to_phase`.
 
-        S : `~astropy.units.Quantity`, optional
-            Solar flux density at 1 au and ``wave``.  If ``None``,
-            then the default solar spectrum will be used via
-            `~sbpy.spectroscopy.sun.default_sun`.
+        **kwargs
+            Keyword arguments for `~Sun.observe`.
+
 
         Returns
         -------
@@ -439,24 +444,23 @@ class Afrho(DustComaQuantity):
         """
 
     def _source_fluxd(self, wfb, eph, unit=None, phasecor=False,
-                      Phi=None, S=None):
+                      Phi=None, **kwargs):
         bib.register('activity.dust.Afrho', {
                      'model': '1984AJ.....89..579A'})
 
-        # check solar flux density
-        if S is None:
-            sun = Sun.from_default()
-            try:
-                S = sun.observe(wfb, unit=unit)
-            except SinglePointSpectrumError:
-                S = sun(wfb, unit=unit)
-        else:
-            if not (S.unit.is_equivalent(u.W / u.m**2 / u.um)
-                    or S.unit.is_equivalent(u.W / u.m**2 / u.Hz)
-                    or isinstance(S, u.Magnitude)):
-                raise ValueError(
-                    'S must be a magnitude or have units of spectral '
-                    'flux density, e.g., W/m2/μm or W/m2/Hz')
+        # get solar flux density
+        sun = Sun.from_default()
+        try:
+            S = sun.observe(wfb, unit=unit, **kwargs)
+        except SinglePointSpectrumError:
+            S = sun(wfb, unit=unit)
+
+        if not (S.unit.is_equivalent(u.W / u.m**2 / u.um)
+                or S.unit.is_equivalent(u.W / u.m**2 / u.Hz)
+                or isinstance(S, u.Magnitude)):
+            raise ValueError(
+                'Solar flux density must have units of spectral flux '
+                'density, e.g., W/m2/μm or W/m2/Hz')
 
         if phasecor:
             Phi = phase_HalleyMarcus if Phi is None else Phi

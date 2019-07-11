@@ -8,6 +8,7 @@ import astropy.units as u
 import synphot
 from ..dust import *
 from ..core import CircularAperture
+from ...calib import solar_fluxd
 from ...units import VEGAmag, JMmag
 from ...data import Ephem
 from ... import utils
@@ -62,11 +63,11 @@ class TestAfrho:
          1.5, 1.0, None, 1000, 0.001),
         (666.21 * u.THz, 5.0717 * u.mJy, 1 * u.arcsec, 1.5, 1.0, None,
          1000, 0.001),
-        (None, 4.68e-15 * Wm2um, 5000 * u.km, 4.582, 4.042, 1707 * Wm2um,
+        ('PS1 g', 4.68e-15 * Wm2um, 5000 * u.km, 4.582, 4.042, 1707 * Wm2um,
          1682, 0.01),
-        (None, 16.98 * VEGAmag, 5000 * u.km, 4.582, 4.042, -26.92 * VEGAmag,
-         1682, 0.01),
-        (None, 11.97 * u.ABmag, 19.2 * u.arcsec, 1.098, 0.164,
+        ('WFC3 F606W', 16.98 * VEGAmag, 5000 * u.km, 4.582, 4.042,
+         -26.92 * VEGAmag, 1682, 0.01),
+        ('PS1 r', 11.97 * u.ABmag, 19.2 * u.arcsec, 1.098, 0.164,
          -26.93 * u.ABmag, 34.9, 0.01),
         ('WFC3 F606W', 16.98 * VEGAmag, 5000 * u.km, 4.582, 4.042, None,
          1682, 0.02),
@@ -102,42 +103,49 @@ class TestAfrho:
 
         """
         eph = Ephem.from_dict(dict(rh=rh * u.au, delta=delta * u.au))
+
+        cal = {}
         if isinstance(wfb, str):
-            wfb = utils.get_bandpass(wfb)
+            if S is None:
+                wfb = utils.get_bandpass(wfb)
+            else:
+                cal = {wfb: S}
 
-        # test from_fluxd
-        afrho = Afrho.from_fluxd(wfb, fluxd0, rho, eph, S=S).to('cm')
-        assert np.isclose(afrho.value, afrho0, rtol=tol)
+        with solar_fluxd.set(cal):
+            # test from_fluxd
+            afrho = Afrho.from_fluxd(wfb, fluxd0, rho, eph).to('cm')
+            assert np.isclose(afrho.value, afrho0, rtol=tol)
 
-        # test to_fluxd
-        fluxd = Afrho(afrho0 * u.cm).to_fluxd(
-            wfb, rho, eph, unit=fluxd0.unit, S=S)
-        k = 'atol' if isinstance(fluxd, u.Magnitude) else 'rtol'
-        assert np.isclose(fluxd.value, fluxd0.value, **{k: tol})
+            # test to_fluxd
+            fluxd = Afrho(afrho0 * u.cm).to_fluxd(
+                wfb, rho, eph, unit=fluxd0.unit)
+            k = 'atol' if isinstance(fluxd, u.Magnitude) else 'rtol'
+            assert np.isclose(fluxd.value, fluxd0.value, **{k: tol})
 
     def test_source_fluxd_S_error(self):
         eph = Ephem.from_dict(dict(rh=1 * u.au, delta=1 * u.au))
         with pytest.raises(ValueError):
-            assert Afrho.from_fluxd(1 * u.um, 1 * u.Jy, 1 * u.arcsec, eph,
-                                    S=5 * u.m)
+            with solar_fluxd.set({'J': 5 * u.um}):
+                assert Afrho.from_fluxd('J', 1 * u.Jy, 1 * u.arcsec, eph)
 
     def test_phasecor(self):
         a0frho = Afrho(100 * u.cm)
-        wave = 1 * u.um
+        filt = 'J'
         eph = {'rh': 1 * u.au, 'delta': 1 * u.au, 'phase': 100 * u.deg}
         aper = 10 * u.arcsec
-        S = 1000 * Wm2um
 
-        # fluxd at 0 deg phase
-        fluxd0 = a0frho.to_fluxd(wave, aper, eph, S=S, phasecor=False)
+        with solar_fluxd.set({filt: 1000 * Wm2um}):
+            # fluxd at 0 deg phase
+            fluxd0 = a0frho.to_fluxd(filt, aper, eph, phasecor=False)
 
-        # fluxd at 100 deg phase
-        fluxd = a0frho.to_fluxd(wave, aper, eph, S=S, phasecor=True)
-        assert np.isclose(fluxd / fluxd0, phase_HalleyMarcus(eph['phase']))
+            # fluxd at 100 deg phase
+            fluxd = a0frho.to_fluxd(filt, aper, eph, phasecor=True)
+            assert np.isclose(fluxd / fluxd0,
+                              phase_HalleyMarcus(eph['phase']))
 
-        # convert back to 0 deg phase
-        afrho = Afrho.from_fluxd(wave, fluxd, aper, eph, S=S, phasecor=True)
-        assert np.isclose(a0frho.value, afrho.value)
+            # convert back to 0 deg phase
+            afrho = Afrho.from_fluxd(filt, fluxd, aper, eph, phasecor=True)
+            assert np.isclose(a0frho.value, afrho.value)
 
     def test_to_phase(self):
         afrho = Afrho(10 * u.cm).to_phase(15 * u.deg, 0 * u.deg).to('cm')
@@ -146,22 +154,24 @@ class TestAfrho:
     def test_from_fluxd_PR125(self):
         """Regression test for PR#125: User requested Phi was ignored."""
         afrho = Afrho(100 * u.cm)
-        wave = 1 * u.um
+        filt = 'J'
         eph = {'rh': 1 * u.au, 'delta': 1 * u.au, 'phase': 100 * u.deg}
         aper = 10 * u.arcsec
-        opts = {
+
+        def Phi(phase):
             # nonsense phase function:
-            'Phi': lambda phase: 1 + u.Quantity(phase, 'deg').value,
-            'S': 1000 * Wm2um
-        }
+            return 1 + u.Quantity(phase, 'deg').value
 
-        f0 = afrho.to_fluxd(wave, aper, eph, phasecor=False, **opts)
-        f1 = afrho.to_fluxd(wave, aper, eph, phasecor=True, **opts)
-        assert np.isclose(f0.value * 101, f1.value)
+        with solar_fluxd.set({filt: 1000 * Wm2um}):
+            f0 = afrho.to_fluxd(filt, aper, eph, phasecor=False, Phi=Phi)
+            f1 = afrho.to_fluxd(filt, aper, eph, phasecor=True, Phi=Phi)
+            assert np.isclose(f0.value * 101, f1.value)
 
-        a0 = Afrho.from_fluxd(wave, f0, aper, eph, phasecor=False, **opts)
-        a1 = Afrho.from_fluxd(wave, f0, aper, eph, phasecor=True, **opts)
-        assert np.isclose(a0.value / 101, a1.value)
+            a0 = Afrho.from_fluxd(filt, f0, aper, eph, phasecor=False,
+                                  Phi=Phi)
+            a1 = Afrho.from_fluxd(filt, f0, aper, eph, phasecor=True,
+                                  Phi=Phi)
+            assert np.isclose(a0.value / 101, a1.value)
 
 
 class TestEfrho:
