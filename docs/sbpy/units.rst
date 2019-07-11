@@ -41,7 +41,7 @@ Vega Magnitudes
 With the `~synphot` package, ``sbpy`` has the capability to convert
 between flux densities and Vega-based magnitude systems.
 The conversions require a spectrum of Vega.
-``sbpy`` includes the dust-free spectrum from `Bohlin 2014 <https://ui.adsabs.harvard.edu/#abs/2014AJ....147..127B/abstract>`_, but any user-provided spectrum may be used (`:ref:_sbpy_spectral_standards`).
+``sbpy`` includes the dust-free spectrum from `Bohlin 2014 <https://ui.adsabs.harvard.edu/#abs/2014AJ....147..127B/abstract>`_, but any user-provided spectrum may be used (`:ref:_sbpy_calib`).
 
 ``sbpy`` defines two new units: ``VEGA`` and ``JM``.  ``VEGA`` represents the flux density of Vega.  ``JM`` represents the flux density zeropoint of the Johnson-Morgan system, assuming Vega has a magnitude of 0.03 at all wavelengths (`Johnson et al. 1966 <https://ui.adsabs.harvard.edu/#abs/1966CoLPL...4...99J/abstract>`_, `Bessell & Murphy 2012 <https://ui.adsabs.harvard.edu/#abs/2012PASP..124..140B/abstract>`_).  Two magnitude units are also defined: ``VEGAmag`` and ``JMmag``.
 

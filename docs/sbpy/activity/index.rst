@@ -114,7 +114,7 @@ Compare to 397.0 cm and 424.6 cm listed in Kelley et al. (2013).
 Magnitudes
 ^^^^^^^^^^
 
-`Afrho` and `Efrho` work with `astropy`'s magnitude units.  If the conversion between Vega-based magnitudes is required, then `sbpy`'s calibration framework (:ref:`sbpy_spectral_standards`) will be used.
+`Afrho` and `Efrho` work with `astropy`'s magnitude units.  If the conversion between Vega-based magnitudes is required, then `sbpy`'s calibration framework (:ref:`sbpy_calib`) will be used.
 
 Estimate the *Afρ* of comet C/2012 S1 (ISON) based on Pan-STARRS 1 photometry in the *r* band (Meech et al. 2013)
 
