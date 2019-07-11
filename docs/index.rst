@@ -4,28 +4,33 @@
 sbpy Documentation
 ##################
 
+`sbpy` is an `Astropy`_ affiliated package for small-body planetary
+astronomy.
+       
+For an overview on the expected structure and functionality of `sbpy`,
+please refer to the :doc:`about` page; the :doc:`status` page provides
+an overview on the implementation status of all modules and functions.
 
-`sbpy` is a community effort to build a Python package for small-body
-planetary astronomy in the form of an `astropy`_ affiliated package.
+.. Important:: `sbpy` is functional, but incomplete, and under heavy
+               development.  Expect API changes between v0.1 and v0.2.
+               However, the code's functionality will remain the same.
+               Starting with v0.2, we expect most modules will have a
+               stable API.
 
-.. Important:: `sbpy` is functional, but incomplete, and under heavy development.  Expect API changes between v0.1 and v0.2.  However, the code's functionality will remain the same.  Starting with v0.2, we expect most modules will have a stable API.
-
-For an overview on the expected structure and functionality of `sbpy`, please refer to the :doc:`structure` page; the :doc:`status` page provides an overview on the implementation status of all modules and functions.
-
-
+	     
 ***************
 Getting Started
 ***************
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
+   about.rst
    install.rst
-   structure.rst
    Tutorials <https://github.com/NASA-Planetary-Science/sbpy-tutorial>
-   Report Problems <https://github.com/astropy/astropy/issues>
-   About the sbpy Project <https://sbpy.org/about.html>
    status.rst
+   development/index.rst
+
 
 
 ******************

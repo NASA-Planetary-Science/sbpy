@@ -1,5 +1,7 @@
-Contributing to `sbpy`
-======================
+.. _contributing:
+
+Contributing to sbpy
+====================
 
 If you are interested in contributing to `sbpy`, you can do that
 through testing existing code (somewhat easy), contributing Python
@@ -32,9 +34,16 @@ to make this task worthwhile for you, we only ask you to test routines
 that are stable and which you can already use for your research. We
 will indicate which functions are ready to be tested on this dedicated
 `status page <status.rst>`_. Keep in mind that there might be issues,
-so feel free to compare the function results with your own results. If
-you find a problem, please create an `issue report
-<https://github.com/NASA-Planetary-Science/sbpy/issues>`__.
+so feel free to compare the function results with your own results.
+
+
+Reporting Problems
+------------------
+
+ If you find a problem, please create an `issue report
+<https://github.com/NASA-Planetary-Science/sbpy/issues>`__. An issue
+report template is available there.
+ 
 
 Code Contributions
 ------------------
