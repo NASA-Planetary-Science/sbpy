@@ -17,6 +17,31 @@ an overview on the implementation status of all modules and functions.
                Starting with v0.2, we expect most modules will have a
                stable API.
 
+
+**************
+Current Status
+**************
+
+.. image:: http://img.shields.io/badge/powered%20by-AstroPy-orange.svg?style=flat
+    :target: http://www.astropy.org
+    :alt: Powered by Astropy Badge
+
+.. image:: https://readthedocs.org/projects/sbpy/badge/?version=latest
+    :target: http://sbpy.readthedocs.io/en/latest/?badge=latest
+    :alt: Documentation status
+
+.. image:: http://joss.theoj.org/papers/10.21105/joss.01426/status.svg
+    :target: https://doi.org/10.21105/joss.01426
+    :alt: JOSS documentation
+	  
+.. image:: https://travis-ci.org/NASA-Planetary-Science/sbpy.svg?branch=master
+    :target: https://travis-ci.org/NASA-Planetary-Science/sbpy
+    :alt: Travis-CI status
+
+.. image:: https://codecov.io/gh/NASA-Planetary-Science/sbpy/branch/master/graph/badge.svg
+    :target: https://codecov.io/gh/NASA-Planetary-Science/sbpy
+    :alt: codecov status
+
 	     
 ***************
 Getting Started
@@ -75,7 +100,24 @@ Miscellaneous
    sbpy/units.rst
    sbpy/utils.rst
 
+External packages that have been modified as part of `sbpy`
+-----------------------------------------------------------
+
+* `pyoorb <https://github.com/oorb/oorb/tree/master/python>`__: additional functionality for ephemerides computation, orbit transformation, and orbit propagation
+* `astroquery <https://github.com/astropy/astroquery>`__: added submodules ``jplhorizons``, ``jplsbdb``, ``jplspec``, ``imcce``, and modified ``mpc``
    
+   
+*********
+Reference
+*********
+
+.. toctree::
+   :maxdepth: 2
+
+   api_reference.rst
+   sbpy/data/fieldnames.rst
+
+
 ***********************
 Developer Documentation
 ***********************
@@ -83,45 +125,12 @@ Developer Documentation
 .. toctree::
    :maxdepth: 2
 
-   development/index.rst
-
-**************
-Current Status
-**************
-
-.. image:: http://img.shields.io/badge/powered%20by-AstroPy-orange.svg?style=flat
-    :target: http://www.astropy.org
-    :alt: Powered by Astropy Badge
-
-.. image:: https://readthedocs.org/projects/sbpy/badge/?version=latest
-    :target: http://sbpy.readthedocs.io/en/latest/?badge=latest
-    :alt: Documentation status
-
-.. image:: http://joss.theoj.org/papers/10.21105/joss.01426/status.svg
-    :target: https://doi.org/10.21105/joss.01426
-    :alt: JOSS documentation
-	  
-.. image:: https://travis-ci.org/NASA-Planetary-Science/sbpy.svg?branch=master
-    :target: https://travis-ci.org/NASA-Planetary-Science/sbpy
-    :alt: Travis-CI status
-
-.. image:: https://codecov.io/gh/NASA-Planetary-Science/sbpy/branch/master/graph/badge.svg
-    :target: https://codecov.io/gh/NASA-Planetary-Science/sbpy
-    :alt: codecov status
+   development/index.rst   
 
    
-*************************
-Other Project Information
-*************************
-
-External packages that have been modified as part of `sbpy`
------------------------------------------------------------
-
-* `pyoorb <https://github.com/oorb/oorb/tree/master/python>`__: additional functionality for ephemerides computation, orbit transformation, and orbit propagation
-* `astroquery <https://github.com/astropy/astroquery>`__: added submodules ``jplhorizons``, ``jplsbdb``, ``jplspec``, ``imcce``, and modified ``mpc``
-
+***************  
 Acknowledgments
----------------
+***************
 
 `sbpy` is supported by NASA PDART Grant No. 80NSSC18K0987.
 
@@ -132,3 +141,5 @@ If you use `sbpy` in your work, please acknowledge it by citing
 and also please consider using the `~sbpy.bib` reference tracking
 system to properly acknowledge and reference the methods you used in
 the preparation of your manuscript.
+
+The `sbpy` Team is introduced `here <https://sbpy.org/team.html>`__.
