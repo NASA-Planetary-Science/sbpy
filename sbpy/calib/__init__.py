@@ -4,8 +4,8 @@
 
 Most functionality requires the `synphot` package.
 
-Users may use any of the built-in spectra for the Sun or Vega, or
-provide their own.
+Users may use any of the built-in spectra or photometry for the Sun or
+Vega, or provide their own.
 
 
 Solar calibration
@@ -19,12 +19,15 @@ are downloaded and cached as needed::
   Kurucz1993 - Kurucz (1993) model scaled by Colina et al. (1996).
   Castelli1996 - Catelli model spectrum from Colina et al. (1996).
 
+Filter photometry from Willmer (2018).
+
 
 Vega calibration
 ----------------
 
 The spectrum of Bohlin (2014) is included with `sbpy`.
 
+Filter photometry from Willmer (2018).
 
 
 References
@@ -38,6 +41,8 @@ Bohlin, R. C. 2014, Astronomical Journal, 147, 127.
 Colina et al. 1996, Astronomical Journal 112, 307.
 
 Kurucz 1993, Smithsonian Astropys. Obs. CD-ROM No. 13.
+
+Willmer 2018, ApJS 236, 47.
 
 """
 

@@ -232,17 +232,19 @@ class Test_solar_spectrum:
         with pytest.raises(TypeError):
             solar_spectrum.validate(1)
 
-    @pytest.mark.parametrize('name,source',
-                             (('E490_2014', solar_sources.E490_2014),
-                              ('E490_2014LR', solar_sources.E490_2014LR)))
+    @pytest.mark.parametrize('name,source', (
+        ('E490_2014', solar_sources.SolarSpectra.E490_2014),
+        ('E490_2014LR', solar_sources.SolarSpectra.E490_2014LR))
+    )
     def test_set_string(self, name, source):
         with solar_spectrum.set(name):
             assert solar_spectrum.get().description == source['description']
 
     @pytest.mark.remote_data
-    @pytest.mark.parametrize('name,source',
-                             (('Kurucz1993', solar_sources.Kurucz1993),
-                              ('Castelli1996', solar_sources.Castelli1996)))
+    @pytest.mark.parametrize('name,source', (
+        ('Kurucz1993', solar_sources.SolarSpectra.Kurucz1993),
+        ('Castelli1996', solar_sources.SolarSpectra.Castelli1996))
+    )
     def test_set_string_remote(self, name, source):
         with solar_spectrum.set(name):
             assert solar_spectrum.get().description == source['description']
@@ -272,7 +274,7 @@ class Test_vega_spectrum:
     def test_set_string(self):
         with vega_spectrum.set('Bohlin2014'):
             assert vega_spectrum.get(
-            ).description == vega_sources.Bohlin2014['description']
+            ).description == vega_sources.VegaSpectra.Bohlin2014['description']
 
     def test_set_source(self):
         wave = [1, 2] * u.um
@@ -280,3 +282,27 @@ class Test_vega_spectrum:
         source = Vega.from_array(wave, fluxd, description='dummy source')
         with vega_spectrum.set(source):
             assert vega_spectrum.get().description == 'dummy source'
+
+
+class TestSolarFluxd:
+    def test_willmer2018(self):
+        with solar_fluxd.set('Willmer2018'):
+            filters = solar_fluxd.get()
+            assert filters['PS1 r'].value == -26.93
+            assert filters['PS1 r'].unit == u.ABmag
+            assert filters['PS1 r(lambda eff)'].value == 0.6156
+            assert filters['PS1 r(lambda eff)'].unit == u.um
+            assert filters['PS1 r(lambda pivot)'].value == 0.6201
+            assert filters['PS1 r(lambda pivot)'].unit == u.um
+
+
+class TestVegaFluxd:
+    def test_willmer2018(self):
+        with vega_fluxd.set('Willmer2018'):
+            filters = vega_fluxd.get()
+            assert filters['PS1 r'].value == 2.53499e-09
+            assert filters['PS1 r'].unit == 'erg/(s cm2 AA)'
+            assert filters['PS1 r(lambda eff)'].value == 0.6156
+            assert filters['PS1 r(lambda eff)'].unit == u.um
+            assert filters['PS1 r(lambda pivot)'].value == 0.6201
+            assert filters['PS1 r(lambda pivot)'].unit == u.um

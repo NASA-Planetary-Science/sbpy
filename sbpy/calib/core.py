@@ -23,11 +23,15 @@ import os
 from abc import ABC
 from warnings import warn
 from functools import wraps
+import inspect
+
 import numpy as np
 from astropy.utils.state import ScienceState
 from astropy.utils.data import get_pkg_data_filename
-from astropy.table import Table
+from astropy.table import Table, QTable
+from astropy.io import ascii
 import astropy.units as u
+
 from ..spectroscopy.sources import SpectralSource, SynphotRequired
 from ..exceptions import SbpyException, OptionalPackageUnavailable
 from .. import bib
@@ -146,11 +150,16 @@ class SpectralStandard(SpectralSource, ABC):
     @classmethod
     def show_builtin(cls, print=True):
         """List built-in spectra."""
+
         from builtins import print as print_func
+
+        sources = inspect.getmembers(
+            cls._sources, lambda v: isinstance(v, dict))
+
         rows = []
-        for name in cls._sources.available:
-            source = getattr(cls._sources, name)
+        for name, source in sources:
             rows.append((name, source['description']))
+
         tab = Table(rows=rows, names=('name', 'description')).pformat(
             max_lines=-1, max_width=-1)
         tab = '\n'.join(tab)
@@ -470,7 +479,23 @@ class solar_fluxd(ScienceState):
     ... })  # doctest: +IGNORE_OUTPUT
 
     """
-    _value = {}  # default is disabled
+    _value = 'Willmer2018'
+
+    @classmethod
+    def validate(cls, value):
+        if isinstance(value, str):
+            source = getattr(solar_sources.SolarPhotometry, value)
+            fn = get_pkg_data_filename(
+                os.path.join('data', source['filename']))
+            tab = QTable(ascii.read(fn))
+            phot = {}
+            for row in tab:
+                phot[row['name']] = row['fluxd']
+                phot[row['name'] + '(lambda eff)'] = row['lambda eff']
+                phot[row['name'] + '(lambda pivot)'] = row['lambda pivot']
+            return phot
+        else:
+            return value
 
 
 class vega_fluxd(ScienceState):
@@ -515,7 +540,24 @@ class vega_fluxd(ScienceState):
     ... })  # doctest: +IGNORE_OUTPUT
 
     """
-    _value = {}  # default is disabled
+
+    _value = 'Willmer2018'
+
+    @classmethod
+    def validate(cls, value):
+        if isinstance(value, str):
+            source = getattr(vega_sources.VegaPhotometry, value)
+            fn = get_pkg_data_filename(
+                os.path.join('data', source['filename']))
+            tab = QTable(ascii.read(fn))
+            phot = {}
+            for row in tab:
+                phot[row['name']] = row['fluxd']
+                phot[row['name'] + '(lambda eff)'] = row['lambda eff']
+                phot[row['name'] + '(lambda pivot)'] = row['lambda pivot']
+            return phot
+        else:
+            return value
 
 
 class Sun(SpectralStandard):
@@ -618,7 +660,7 @@ class Sun(SpectralStandard):
 
     """
 
-    _sources = solar_sources
+    _sources = solar_sources.SolarSpectra
     _spectrum_state = solar_spectrum
     _fluxd_state = solar_fluxd
 
@@ -685,6 +727,6 @@ class Vega(SpectralStandard):
 
     """
 
-    _sources = vega_sources
+    _sources = vega_sources.VegaSpectra
     _spectrum_state = vega_spectrum
     _fluxd_state = vega_fluxd

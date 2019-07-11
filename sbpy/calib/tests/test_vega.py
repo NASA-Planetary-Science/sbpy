@@ -1,4 +1,5 @@
 import sys
+import inspect
 import pytest
 import numpy as np
 import astropy.units as u
@@ -44,7 +45,7 @@ class TestVega:
 
     def test_from_builtin(self):
         vega = Vega.from_builtin('Bohlin2014')
-        assert vega.description == vega_sources.Bohlin2014['description']
+        assert vega.description == vega_sources.VegaSpectra.Bohlin2014['description']
 
     def test_from_builtin_unknown(self):
         with pytest.raises(UndefinedSourceError):
@@ -53,7 +54,7 @@ class TestVega:
     def test_from_default(self):
         with vega_spectrum.set('Bohlin2014'):
             vega = Vega.from_default()
-            assert vega.description == vega_sources.Bohlin2014['description']
+            assert vega.description == vega_sources.VegaSpectra.Bohlin2014['description']
 
     def test_call_single_wavelength(self):
         with vega_spectrum.set('Bohlin2014'):
@@ -70,8 +71,10 @@ class TestVega:
     def test_show_builtin(self, capsys):
         Vega.show_builtin()
         captured = capsys.readouterr()
-        for spec in vega_sources.available:
-            assert spec in captured.out
+        sources = inspect.getmembers(
+            Vega._sources, lambda v: isinstance(v, dict))
+        for k, v in sources:
+            assert k in captured.out
 
     def test_observe_vega_fluxd(self):
         with vega_fluxd.set({'V': 3631 * u.Jy}):

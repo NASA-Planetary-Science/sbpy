@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import inspect
 import pytest
 import numpy as np
 import astropy.units as u
@@ -27,7 +28,7 @@ class TestSun:
 
     def test_from_builtin(self):
         sun = Sun.from_builtin('E490_2014LR')
-        assert sun.description == solar_sources.E490_2014LR['description']
+        assert sun.description == solar_sources.SolarSpectra.E490_2014LR['description']
 
     def test_from_builtin_unknown(self):
         with pytest.raises(UndefinedSourceError):
@@ -36,7 +37,7 @@ class TestSun:
     def test_from_default(self):
         with solar_spectrum.set('E490_2014LR'):
             sun = Sun.from_default()
-            assert sun.description == solar_sources.E490_2014LR['description']
+            assert sun.description == solar_sources.SolarSpectra.E490_2014LR['description']
 
     def test_call_single_wavelength(self):
         with solar_spectrum.set('E490_2014'):
@@ -151,5 +152,7 @@ class TestSun:
     def test_show_builtin(self, capsys):
         Sun.show_builtin()
         captured = capsys.readouterr()
-        for spec in solar_sources.available:
-            assert spec in captured.out
+        sources = inspect.getmembers(
+            Sun._sources, lambda v: isinstance(v, dict))
+        for k, v in sources:
+            assert k in captured.out

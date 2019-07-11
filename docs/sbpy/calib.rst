@@ -9,10 +9,10 @@ Spectral standards and photometric calibration
 
 The spectrum of `Bohlin (2014) <https://dx.doi.org/10.1088/0004-6256/147/6/127>`_ is the default and only built-in spectrum for Vega.  It is distributed with `sbpy`.  Four solar spectra are built-in:
 
+  * Castelli1996 - Castelli model from Colina et al. (1996).
   * E490_2014 - E490 (2014) standard.
   * E490_2014LR - A low resolution version of the E490 standard.
   * Kurucz1993 - Kurucz (1993) model.
-  * Castelli1996 - Castelli model from Colina et al. (1996).
 
 The E490 spectra are included with `sbpy`, and the Kurucz and Castelli spectra are downloaded as needed from `STScI's reference data system <http://www.stsci.edu/hst/observatory/crds/astronomical_catalogs.html>`_.
 
@@ -33,10 +33,10 @@ The names of the built-in sources are stored as an internal array.  They can be 
   >>> Sun.show_builtin()
       name                                description
   ------------ -----------------------------------------------------------------
+  Castelli1996      Castelli model, scaled and presented by Colina et al. (1996)
      E490_2014                E490-00a (2014) reference solar spectrum (Table 3)
    E490_2014LR E490-00a (2014) low resolution reference solar spectrum (Table 4)
     Kurucz1993               Kurucz (1993) model, scaled by Colina et al. (1996)
-  Castelli1996      Castelli model, scaled and presented by Colina et al. (1996)
   >>> sun = Sun.from_builtin('E490_2014LR')
   >>> print(sun)
   <Sun: E490-00a (2014) low resolution reference solar spectrum (Table 4)>
@@ -95,11 +95,23 @@ An example showing how to change the default Vega spectrum:
 Calibration without spectra or `synphot`
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-For users wanting to calibrate data with their own flux densities, use the `~astropy.utils.state.ScienceState` objects `~sbpy.calib.solar_fluxd` and `sbpy.calib.vega_fluxd`.  This calibration system can be used without the optional `synphot` package.  For example, set the *V*-band apparent magnitude of the Sun based on Colina et al. (1996).  Observations through the `'V'` filter will use the specified value:
+The `~astropy.utils.state.ScienceState` objects `~sbpy.calib.solar_fluxd` and `sbpy.calib.vega_fluxd` control photometric calibration by filter name.  These are completely independent of the spectroscopic calibration.  Therefore, it can be used without the optional `synphot` package.  The apparent magnitude of the Sun in the AB-magnitude system and spectral flux densities (per wavelength) of Vega are provided (and loaded by default).  Values and filters are from Willmer (2018):
 
-  >>> from sbpy.calib import solar_fluxd, Sun
+  >>> from sbpy.calib import Sun, solar_fluxd, vega_fluxd
   >>> import sbpy.units as sbu
   >>>
+  >>> solar_fluxd.set('Willmer2018')   # doctest: +IGNORE_OUTPUT
+  >>> sun = Sun(None)
+  >>> print(sun.observe('PS1 r'))    # doctest: +FLOAT_CMP
+  -26.93 mag(AB)
+  >>> vega_fluxd.set('Willmer2018')   # doctest: +IGNORE_OUTPUT
+  >>> print(sun.observe('PS1 r', unit=sbu.VEGAmag))    # doctest: +FLOAT_CMP
+  -27.05 mag(VEGA)
+
+Use `~sbpy.calib.solar_fluxd.get('Willmer2018')` to discover all built-in values.
+
+Users wanting to calibrate data with their own flux densities may do so.  For example, set the *V*-band apparent magnitude of the Sun to that in Colina et al. (1996).  Observations through the `'V'` filter will use the specified value:
+
   >>> solar_fluxd.set({'V': -26.75 * sbu.VEGAmag})  # doctest: +IGNORE_OUTPUT
   >>> sun = Sun.from_default()
   >>> print(sun.observe('V'))
@@ -170,9 +182,9 @@ Compare interpolation and rebinning for the E490 low-resolution solar spectrum, 
   >>> sun = Sun.from_builtin('E490_2014LR')
   >>> wave = sun.wave[430:435]
   >>> S = sun.fluxd[430:435]
-  >>> print(wave)
+  >>> print(wave)    # doctest: +FLOAT_CMP
   [5495. 5505. 5515. 5525. 5535.] Angstrom
-  >>> print(S)
+  >>> print(S)       # doctest: +FLOAT_CMP
   [1895. 1862. 1871. 1846. 1882.] W / (m2 um)
   >>> S_interp = sun.observe(wave, interpolate=True)
   >>> np.allclose(S.value, S_interp.value)
