@@ -14,3 +14,7 @@ class SbpyException(Exception):
 
 class SbpyWarning(Warning):
     """Warning base class for all sbpy warnings."""
+
+
+class OptionalPackageUnavailable(SbpyWarning):
+    pass

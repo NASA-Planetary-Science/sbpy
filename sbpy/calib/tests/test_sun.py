@@ -1,11 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import inspect
 import pytest
 import numpy as np
 import astropy.units as u
 from astropy.tests.helper import remote_data
-from ....units import JMmag, VEGAmag
-from ....utils import get_bandpass
+from ...units import JMmag, VEGAmag
+from ...utils import get_bandpass
 from .. import *
 
 try:
@@ -17,7 +18,7 @@ except ImportError:
 
 class TestSun:
     def test___repr__(self):
-        with default_sun.set('E490_2014LR'):
+        with solar_spectrum.set('E490_2014LR'):
             assert (repr(Sun.from_default()) ==
                     ('<Sun: E490-00a (2014) low resolution reference '
                      'solar spectrum (Table 4)>'))
@@ -27,26 +28,26 @@ class TestSun:
 
     def test_from_builtin(self):
         sun = Sun.from_builtin('E490_2014LR')
-        assert sun.description == sources.E490_2014LR['description']
+        assert sun.description == solar_sources.SolarSpectra.E490_2014LR['description']
 
     def test_from_builtin_unknown(self):
-        with pytest.raises(ValueError):
+        with pytest.raises(UndefinedSourceError):
             Sun.from_builtin('not a solar spectrum')
 
     def test_from_default(self):
-        with default_sun.set('E490_2014LR'):
+        with solar_spectrum.set('E490_2014LR'):
             sun = Sun.from_default()
-            assert sun.description == sources.E490_2014LR['description']
+            assert sun.description == solar_sources.SolarSpectra.E490_2014LR['description']
 
     def test_call_single_wavelength(self):
-        with default_sun.set('E490_2014'):
-            sun = default_sun.get()
+        with solar_spectrum.set('E490_2014'):
+            sun = solar_spectrum.get()
             f = sun(0.5555 * u.um)
             assert np.isclose(f.value, 1897)
 
     def test_call_single_frequency(self):
-        with default_sun.set('E490_2014'):
-            sun = default_sun.get()
+        with solar_spectrum.set('E490_2014'):
+            sun = solar_spectrum.get()
             f = sun(3e14 * u.Hz)
             assert np.isclose(f.value, 2.49484251e+14)
 
@@ -84,8 +85,8 @@ class TestSun:
         """
         sun = Sun.from_builtin('E490_2014')
         V = get_bandpass('johnson v')
-        wave, fluxd = sun.filt(V, unit='erg/(s cm2 AA)')
-        assert np.isclose(wave.value, 5502, rtol=0.001)
+        weff, fluxd = sun.observe_bandpass(V, unit='erg/(s cm2 AA)')
+        assert np.isclose(weff.value, 5502, rtol=0.001)
         assert np.isclose(fluxd.value, 183.94, rtol=0.0003)
 
     def test_filt_vegamag(self):
@@ -97,7 +98,7 @@ class TestSun:
         """
         sun = Sun.from_builtin('E490_2014')
         V = get_bandpass('johnson v')
-        wave, fluxd = sun.filt(V, unit=JMmag)
+        fluxd = sun.observe(V, unit=JMmag)
         assert np.isclose(fluxd.value, -26.75, atol=0.006)
 
     def test_filt_abmag(self):
@@ -109,7 +110,7 @@ class TestSun:
         """
         sun = Sun.from_builtin('E490_2014')
         V = get_bandpass('johnson v')
-        wave, fluxd = sun.filt(V, unit=u.ABmag)
+        fluxd = sun.observe(V, unit=u.ABmag)
         assert np.isclose(fluxd.value, -26.77, atol=0.007)
 
     def test_filt_stmag(self):
@@ -121,13 +122,20 @@ class TestSun:
         """
         sun = Sun.from_builtin('E490_2014')
         V = get_bandpass('johnson v')
-        wave, fluxd = sun.filt(V, unit=u.STmag)
+        fluxd = sun.observe(V, unit=u.STmag)
         assert np.isclose(fluxd.value, -26.76, atol=0.003)
+
+    def test_filt_solar_fluxd(self):
+        with solar_fluxd.set({'V': -26.76 * VEGAmag}):
+            sun = Sun(None)
+            fluxd = sun.observe('V', unit=VEGAmag)
+        assert np.isclose(fluxd.value, -26.76)
 
     def test_meta(self):
         sun = Sun.from_builtin('E490_2014')
         assert sun.meta is None
 
+    @pytest.mark.skipif('True')
     @remote_data
     def test_kurucz_nan_error(self):
         """sbpy#113
@@ -139,49 +147,13 @@ class TestSun:
         """
         sun = Sun.from_builtin('Kurucz1993')
         V = get_bandpass('johnson v')
-        wave, fluxd = sun.filt(V, unit=u.ABmag)
+        fluxd = sun.observe(V, unit=u.ABmag)
         assert np.isclose(fluxd.value, -26.77, atol=0.005)
 
     def test_show_builtin(self, capsys):
-        from ..sources import available
         Sun.show_builtin()
         captured = capsys.readouterr()
-        for spec in available:
-            assert spec in captured.out
-
-
-class Test_default_sun:
-    def test_validate_str(self):
-        assert isinstance(default_sun.validate('E490_2014'), Sun)
-
-    def test_validate_Sun(self):
-        wave = [1, 2] * u.um
-        fluxd = [1, 2] * u.Jy
-        sun = Sun.from_array(wave, fluxd, description='dummy source')
-        assert isinstance(default_sun.validate(sun), Sun)
-
-    def test_validate_error(self):
-        with pytest.raises(TypeError):
-            default_sun.validate(1)
-
-    @pytest.mark.parametrize('name,source',
-                             (('E490_2014', sources.E490_2014),
-                              ('E490_2014LR', sources.E490_2014LR)))
-    def test_set_string(self, name, source):
-        with default_sun.set(name):
-            assert default_sun.get().description == source['description']
-
-    @remote_data
-    @pytest.mark.parametrize('name,source',
-                             (('Kurucz1993', sources.Kurucz1993),
-                              ('Castelli1996', sources.Castelli1996)))
-    def test_set_string_remote(self, name, source):
-        with default_sun.set(name):
-            assert default_sun.get().description == source['description']
-
-    def test_set_source(self):
-        wave = [1, 2] * u.um
-        fluxd = [1, 2] * u.Jy
-        source = Sun.from_array(wave, fluxd, description='dummy source')
-        with default_sun.set(source):
-            assert default_sun.get().description == 'dummy source'
+        sources = inspect.getmembers(
+            Sun._sources, lambda v: isinstance(v, dict))
+        for k, v in sources:
+            assert k in captured.out
