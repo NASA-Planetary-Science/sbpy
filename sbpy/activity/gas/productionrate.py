@@ -6,11 +6,13 @@ created on June 26, 2019
 """
 
 import numpy as np
+import tempfile
 import astropy.constants as con
 import astropy.units as u
 from astropy.time import Time
 from astroquery.jplhorizons import Horizons, conf
 from astroquery.jplspec import JPLSpec
+from astroquery.lamda import Lamda
 from ...bib import register
 from ...data import Phys
 
@@ -618,3 +620,174 @@ class NonLTE():
     Not Yet implemented
 
     """
+    def from_pyradex(self, integrated_flux, mol_data, line_width=1.0 * u.km/ u.s,
+                     escapeProbGeom='lvg', iter=100):
+        """
+        Calculate production rate from the Non-LTE iterative code pyradex
+        Presently, only the LAMDA catalog is supported by this function.
+        In the future a function will be provided by sbpy to build your own
+        molecular data file from JPLSpec for use in this function.
+        Collider is assumed to be H2O since we are only considering comet
+        prodcution rates.
+
+        Parameters
+        ----------
+
+        integrated_flux : `~astropy.units.Quantity`
+            The integrated flux in K * km/s
+
+        mol_data : `sbpy.data.phys`
+            `sbpy.data.phys` object that contains AT LEAST the following data:
+
+                    | mol_tag: molecule of interest as string or int JPLSpec identifier
+                    | temp: kinetic temperature in gas coma (unit K)
+                    | cdensity : cdensity estimate (can be calculated from cdensity_Bockelee) (unit 1/cm^2)
+                    | temp_back: (optional) background temperature in K (default is 2.730 K)
+                    | lamda_name: (optional) LAMDA molecule identifier to avoid ambiguity. `Lamda.molecule_dict` provides list
+
+            Keywords that can be used for these values are found under
+            `~sbpy.data.conf.fieldnames` documentation. Make sure to inform
+            yourself on the values needed for each function, their units, and
+            their interchangeable keywords as part of the Phys data class.
+
+        line_width : `~astropy.units.Quantity`
+            The FWHM line width (really, the single-zone velocity width to
+            scale the column density by: this is most sensibly interpreted as a
+            velocity gradient (dv/length)) in km/s (default is 1.0 km/s)
+
+        escapeProbGeom : str
+            Which escape probability method to use, available choices are 'sphere',
+            'lvg', and 'slab'
+
+        iter : int
+            Number of iterations you wish to perform. Default is 100, more
+            iterations will take more time to do but will offer a better range
+            of results to compare against. The range of guesses is built by having
+            the column density guess and subtracting/adding an order of magnitude
+            for the start and end values of the loop, respectively. i.e.
+            a guess of 1e15 will create a range between 1e14 and 1e16
+
+        Returns
+        -------
+        Q : `~astropy.units.Quantity`
+            production rate
+
+        Examples
+        --------
+        >>> from sbpy.activity import NonLTE  # doctest: +SKIP
+        >>> from sbpy.data import Phys # doctest: +SKIP
+        >>> import astropy.units as u # doctest: +SKIP
+
+        >>> transition_freq = (177.196 * u.GHz).to(u.MHz) # doctest: +SKIP
+        >>> mol_tag =  29002  # doctest: +SKIP
+        >>> cdensity_guess = (1.89*10.**(14) / (u.cm * u.cm)) # doctest: +SKIP
+        >>> temp_estimate = 20. * u.K # doctest: +SKIP
+
+        >>> mol_data = Phys.from_jplspec(temp_estimate, transition_freq, # doctest: +SKIP
+                                         mol_tag)
+        >>> mol_data.apply([cdensity_guess.value] * cdensity_guess.unit, name= 'cdensity') # doctest: +SKIP
+        >>> mol_data.apply(['HCO+@xpol'], name='lamda_name') # doctest: +SKIP
+
+        >>> nonLTE = NonLTE() # doctest: +SKIP
+        >>> cdensity = nonLTE.from_pyradex(1.234 * u.K * u.km / u.s, mol_data, iter=500) # doctest: +SKIP
+            Closest Integrated Flux:[1.2352747] K km / s # doctest: +SKIP
+            Given Integrated Flux: 1.234 K km / s # doctest: +SKIP
+        >>> print(cdensity)
+            [1.05143086e+14] 1 / cm4
+
+        References
+        ----------
+        Haser 1957, Bulletin de la Societe Royale des Sciences de Liege
+        43, 740.
+
+        """
+
+        try:
+            import pyradex
+        except ImportError:
+            raise ImportError('Pyradex not installed. Please see \
+            https://github.com/keflavich/pyradex/blob/master/INSTALL.rst')
+
+        #if not isinstance(mol_data, Phys):
+            #raise ValueError('mol_data must be a `sbpy.data.phys` instance.')
+
+        register('Production Rates', {'Radex': '2007A&A...468..627V'})
+
+        # convert mol_tag JPLSpec identifier to verbose name if neeeded
+        if mol_data['lamda_name']:
+            name = mol_data['lamda_name'][0]
+            name = name.lower()
+        elif not isinstance(mol_data['mol_tag'][0], str):
+            cat = JPLSpec.get_species_table()
+            mol = cat[cat['TAG'] == mol_data['mol_tag'][0]]
+            name = mol['NAME'].data[0]
+            name = name.lower()
+        else:
+            name = mol_data['mol_tag'][0]
+            name = name.lower()
+
+        # try various common instances of molecule names and check them against LAMDA before complaining
+        try:
+            Lamda.molecule_dict[name]
+        except KeyError:
+            try_name = "{}@xpol".format(name)
+            try:
+                Lamda.molecule_dict[name]
+                name = try_name
+            except KeyError:
+                print('Molecule name {} not found in LAMDA, module tried {} and also\
+                       found no molecule with this identifier within LAMDA. Please\
+                       enter LAMDA identifiable name using mol_data["lamda_name"]\
+                       . Use Lamda.molecule_dict to see all available options.'.format(name, try_name))
+                raise
+
+        # define Temperature
+        temp = mol_data['temp']
+
+        # check for optional values within mol_data
+        if 'temp_back' in mol_data:
+            tbackground = mol_data['temp_back']
+        else:
+            tbackground = 2.730 * u.K
+
+        # define cdensity and iteration parameters
+        cdensity = mol_data['cdensity'].to(1/ (u.cm * u.cm))
+        cdensity_low = cdensity - (cdensity*0.9)
+        cdensity_high = cdensity + (cdensity*9)
+        #range for 400 iterations
+        cdensity_range = np.linspace(cdensity_low, cdensity_high, iter)
+        fluxes = []
+        column_density = []
+
+        with tempfile.TemporaryDirectory() as datapath:
+            for i in cdensity_range:
+                R = pyradex.Radex(column=i, deltav=line_width, tbackground=tbackground,
+                                  species=name, temperature=temp,
+                                  datapath=datapath, escapeProbGeom=escapeProbGeom,
+                                  collider_densities={'oH2':900})
+
+                table = R()
+
+                # find closest matching frequency to user defined
+                indx = (np.abs(table['frequency']-mol_data['t_freq'])).argmin()
+                radexfreq = table['frequency'][indx]
+                # get table for that frequency
+                values = table[table['frequency'] == radexfreq]
+                # use eq in io.f from Pyradex to get integrated flux in K * km/s
+                int_flux_pyradex = 1.0645 * values['T_B'] * line_width
+
+                fluxes.append(int_flux_pyradex)
+                column_density.append(i)
+
+        # closest matching integrated flux from pyradex
+
+        fluxes = np.array(fluxes)
+
+        index_flux = (np.abs(fluxes-integrated_flux.to(u.K * u.km / u.s).value)).argmin()
+
+        # corresponding column density in 1/cm^2
+        column_density = column_density[index_flux] / (u.cm * u.cm)
+        print('Closest Integrated Flux:{}'.format(fluxes[index_flux] * u.K * u.km / u.s))
+        print('Given Integrated Flux: {}'.format(integrated_flux))
+
+        return column_density
