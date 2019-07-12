@@ -620,7 +620,8 @@ class NonLTE():
     Not Yet implemented
 
     """
-    def from_pyradex(self, integrated_flux, mol_data, line_width=1.0 * u.km/ u.s,
+
+    def from_pyradex(self, integrated_flux, mol_data, line_width=1.0 * u.km / u.s,
                      escapeProbGeom='lvg', iter=100):
         """
         Calculate production rate from the Non-LTE iterative code pyradex
@@ -692,7 +693,7 @@ class NonLTE():
         >>> cdensity = nonLTE.from_pyradex(1.234 * u.K * u.km / u.s, mol_data, iter=500) # doctest: +SKIP
             Closest Integrated Flux:[1.2352747] K km / s # doctest: +SKIP
             Given Integrated Flux: 1.234 K km / s # doctest: +SKIP
-        >>> print(cdensity)
+        >>> print(cdensity) # doctest: +SKIP
             [1.05143086e+14] 1 / cm4
 
         References
@@ -708,8 +709,8 @@ class NonLTE():
             raise ImportError('Pyradex not installed. Please see \
             https://github.com/keflavich/pyradex/blob/master/INSTALL.rst')
 
-        #if not isinstance(mol_data, Phys):
-            #raise ValueError('mol_data must be a `sbpy.data.phys` instance.')
+        if not isinstance(mol_data, Phys):
+            raise ValueError('mol_data must be a `sbpy.data.phys` instance.')
 
         register('Production Rates', {'Radex': '2007A&A...468..627V'})
 
@@ -751,10 +752,10 @@ class NonLTE():
             tbackground = 2.730 * u.K
 
         # define cdensity and iteration parameters
-        cdensity = mol_data['cdensity'].to(1/ (u.cm * u.cm))
+        cdensity = mol_data['cdensity'].to(1 / (u.cm * u.cm))
         cdensity_low = cdensity - (cdensity*0.9)
         cdensity_high = cdensity + (cdensity*9)
-        #range for 400 iterations
+        # range for 400 iterations
         cdensity_range = np.linspace(cdensity_low, cdensity_high, iter)
         fluxes = []
         column_density = []
@@ -764,7 +765,7 @@ class NonLTE():
                 R = pyradex.Radex(column=i, deltav=line_width, tbackground=tbackground,
                                   species=name, temperature=temp,
                                   datapath=datapath, escapeProbGeom=escapeProbGeom,
-                                  collider_densities={'oH2':900})
+                                  collider_densities={'oH2': 900})
 
                 table = R()
 
