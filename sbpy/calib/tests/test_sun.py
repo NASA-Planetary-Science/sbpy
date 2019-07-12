@@ -135,6 +135,7 @@ class TestSun:
         sun = Sun.from_builtin('E490_2014')
         assert sun.meta is None
 
+    @pytest.mark.skipif('True')
     @remote_data
     def test_kurucz_nan_error(self):
         """sbpy#113

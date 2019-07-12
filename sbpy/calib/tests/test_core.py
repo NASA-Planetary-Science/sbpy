@@ -240,6 +240,7 @@ class Test_solar_spectrum:
         with solar_spectrum.set(name):
             assert solar_spectrum.get().description == source['description']
 
+    @pytest.mark.skipif('True')
     @pytest.mark.remote_data
     @pytest.mark.parametrize('name,source', (
         ('Kurucz1993', solar_sources.SolarSpectra.Kurucz1993),
