@@ -14,7 +14,7 @@ Spectral Gradients
 Spectral gradient or slope is a measurement of the shape of a
 spectrum.  It is commonly expressed as a percent change per wavelength
 interval, e.g., % per 100 nm or % per 0.1 μm.  Equation 1 of A'Hearn et
-al. [ADT84]_:
+al. (1984):
 
 .. math::
    S = \frac{R(λ_1) - R(λ_0)}{R(λ_1) + R(λ_0)} \frac{2}{λ_1 - λ_0}
