@@ -7,8 +7,6 @@ sbpy.data core module
 created on June 22, 2017
 """
 
-import inspect
-from functools import wraps
 from copy import deepcopy
 from collections import OrderedDict
 from numpy import ndarray, array, hstack
@@ -18,7 +16,7 @@ import astropy.units as u
 from . import conf
 from .. import exceptions
 
-__all__ = ['DataClass', 'DataClassError', 'quantity_to_dataclass']
+__all__ = ['DataClass', 'DataClassError']
 
 
 class DataClassError(exceptions.SbpyException):
@@ -826,74 +824,3 @@ class DataClass():
         _newtable.add_column(Column(_newcolumn, name=name, unit=unit))
 
         self._table = _newtable
-
-
-def quantity_to_dataclass(parameter, field, dataclass):
-    """Decorator that converts astropy quantities to sbpy data classes.
-
-
-    Parameters
-    ----------
-    parameter : string
-        Function parameter name (``DataClass``) that the quantity
-        input will be converted to.
-
-    field : string
-        Name of the field the quantity corresponds to.
-
-    dataclass : DataClass
-        Object that will hold the field.
-
-
-    Returns
-    -------
-    decorator : function
-        Function decorator.
-
-
-    Examples
-    --------
-    >>> import astropy.units as u
-    >>> @quantity_to_dataclass('eph', 'rh', Ephem)
-    ... def temperature(eph):
-    ...     return 278 * u.K / (eph['rh'] / u.au)**0.5
-    >>> print(temperature(1 * u.au))
-    278.0 K
-    >>> print(temperature(Ephem.from_dict({'rh': 1 * u.au})))
-    278.0 K
-
-    """
-
-    def decorator(func):
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-
-            # In case of multiple decorators, find the original
-            # wrapped function
-            f = func
-            while True:
-                try:
-                    f = getattr(f, '__wrapped__')
-                except AttributeError:
-                    break
-            argspec = inspect.getfullargspec(f)
-
-            if parameter not in argspec.args:
-                raise ValueError('Parameter {} not in {} argument list'
-                                 .format(parameter, f.__qualname__))
-
-            new_args = []  # args, but with replaced parameter
-            for name, value in zip(argspec.args, args):
-                # find argument name matching parameter
-                if name != parameter:
-                    new_args.append(value)
-                elif isinstance(value, DataClass):
-                    new_args.append(value)
-                else:
-                    # create DataClass object
-                    data = dataclass.from_dict({field: value})
-                    new_args.append(data)
-
-            return func(*new_args, **kwargs)
-        return wrapper
-    return decorator
