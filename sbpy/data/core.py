@@ -854,13 +854,16 @@ def quantity_to_dataclass(parameter, field, dataclass):
     Examples
     --------
     >>> import astropy.units as u
+    >>> from sbpy.data import quantity_to_dataclass, Ephem
     >>> @quantity_to_dataclass('eph', 'rh', Ephem)
     ... def temperature(eph):
     ...     return 278 * u.K / (eph['rh'] / u.au)**0.5
-    >>> print(temperature(1 * u.au))
-    278.0 K
-    >>> print(temperature(Ephem.from_dict({'rh': 1 * u.au})))
-    278.0 K
+    >>> print(temperature(1 * u.au))    # doctest: +FLOAT_CMP
+    [278.] K
+    >>> print(temperature(
+    ...     Ephem.from_dict({'rh': 1 * u.au})
+    ... ))                              # doctest: +FLOAT_CMP
+    [278.] K
 
     """
 
@@ -888,6 +891,7 @@ def quantity_to_dataclass(parameter, field, dataclass):
                 if name != parameter:
                     new_args.append(value)
                 elif isinstance(value, DataClass):
+                    # already a DataClass
                     new_args.append(value)
                 else:
                     # create DataClass object
