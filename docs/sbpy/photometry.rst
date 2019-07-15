@@ -5,7 +5,8 @@ Introduction
 ------------
 
 `~sbpy.photometry` provides routines for photometric phase curve
-modeling of small bodies.
+modeling of small bodies, and for retrieving `sbpy`'s built-in filter
+bandpasses.
 
 
 Disk-integrated Phase Function Models
@@ -140,6 +141,18 @@ initialize a model directly from data by fitting.
 
       ----------------- ------------------
       3.424576008941485 0.8052670564595159
+
+
+Filter Bandpasses
+-----------------
+A few filter bandpasses are included with `sbpy` for internal tests and your convenience.  The function `~sbpy.photometry.bandpass` will return the filter transmission as a `~synphot.SpectralElement` (requires `~synphot`):
+
+  >>> from sbpy.photometry import bandpass
+  >>> bp = bandpass('Cousins R')
+  >>> print(bp.avgwave())    # doctest: +FLOAT_CMP
+  6499.914781904409 Angstrom
+
+See `~sbpy.photometry.bandpass` for the full list of included filters.
 
 
 Reference/API
