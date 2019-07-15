@@ -7,13 +7,13 @@ from .. import quantity_to_dataclass, Ephem, Orbit, Phys
 
 def test_quantity_to_dataclass_single():
     @quantity_to_dataclass('eph', 'rh', Ephem)
-    def temperature(eph):
+    def temperature(eph, a, b, c, d=5):
         return 278 * u.K / np.sqrt(eph['rh'] / u.au)
 
     rh = 1 * u.au
     eph = Ephem.from_dict({'rh': 1 * u.au})
-    assert temperature(rh) == temperature(eph)
-    assert np.isclose(temperature(rh).value, 278.0)
+    assert temperature(rh, 1, 2, 3) == temperature(eph, 7, 8, 9, d=10)
+    assert np.isclose(temperature(rh, 4, 5, 6).value, 278.0)
 
 
 def test_quantity_to_dataclass_double():
