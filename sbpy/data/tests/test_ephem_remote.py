@@ -6,6 +6,7 @@ from copy import deepcopy
 from numpy.testing import assert_allclose
 import astropy.units as u
 from astropy.time import Time
+from astropy.coordinates import EarthLocation
 
 from sbpy.data import Ephem, Orbit
 from sbpy import bib
@@ -50,6 +51,12 @@ def test_from_horizons():
     # query two objects
     data = Ephem.from_horizons(['Ceres', 'Pallas'])
     assert len(data.table) == 2
+
+    # query relative to EarthLocation
+    lowell = EarthLocation.of_site('Lowell Observatory')
+    data = Ephem.from_horizons(1, epochs=Time('2018-01-01', format='iso'),
+                               location=lowell)
+    assert len(data.table) == 1
 
     # test bib service
     with bib.Tracking():

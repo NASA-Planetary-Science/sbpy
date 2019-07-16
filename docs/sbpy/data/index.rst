@@ -569,12 +569,31 @@ derived from the interval and ``number`` in units of full minutes. The
 second example uses a specific epoch as input. The
 `~astropy.time.Time` object provided to ``epochs`` can also be
 initialized with a list of epochs, querying multiple epochs at the
-same time. Note that the total number of epochs should be less than
-a few hundred (see `~astroquery.jplhorizons.HorizonsClass.ephemerides`
-for details).
+same time. Note that the total number of epochs queried using this
+option should be less than a few hundred to prevent corruption of the
+query (see `~astroquery.jplhorizons.HorizonsClass.ephemerides` for
+details).
 
-Similarly, the `~sbpy.data.Ephem.from_mpc` method will retrieve
-ephemerides from the Minor Planet Center:
+Observer locations can be defined as strings using offical `IAU
+observatory codes
+<https://www.minorplanetcenter.net/iau/lists/ObsCodesF.html>`__
+or using `~astropy.coordinates.EarthLocation` as shown in the following example:
+
+    >>> from astropy.coordinates import EarthLocation
+    >>> lowell = EarthLocation.of_site('Lowell Observatory')
+    >>> eph = Ephem.from_horizons(1, epochs=Time('2018-01-01', format='iso'),
+    ... 			  location=lowell) # doctest: +REMOTE_DATA
+    >>> eph # doctest: +REMOTE_DATA
+    <QTable masked=True length=1>
+    targetname       datetime_str       datetime_jd ...  PABLon   PABLat timescale
+					     d      ...   deg      deg            
+       str7             str24             float64   ... float64  float64    str3  
+    ---------- ------------------------ ----------- ... -------- ------- ---------
+    1 Ceres 2018-Jan-01 00:00:00.000   2458119.5 ... 130.4303  9.2004       UTC
+
+Offering almost identical functionality, the
+`~sbpy.data.Ephem.from_mpc` method will retrieve ephemerides from the
+Minor Planet Center:
 
     >>> eph = Ephem.from_mpc('2P', location='568',
     ...                      epochs={'start': '2018-10-22',

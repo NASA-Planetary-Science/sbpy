@@ -17,6 +17,7 @@ from astropy.table import vstack, Column
 import astropy.units as u
 from astroquery.jplhorizons import Horizons
 from astroquery.mpc import MPC
+from astropy.coordinates import EarthLocation
 
 from .. import bib
 from .core import DataClass, conf
@@ -65,8 +66,12 @@ class Ephem(DataClass):
             in units of full minutes. If ``None`` is
             provided, current date and time are
             used. Default: ``None``
-        location : str, optional, default ``'500'`` (geocentric)
-            Location of the observer.
+        location : str or `~astropy.coordinates.EarthLocation`, optional
+            Location of the observer using IAU observatory codes
+            (see `IAU observatory codes
+            <https://www.minorplanetcenter.net/iau/lists/ObsCodesF.html>`__)
+            or as `~astropy.coordinates.EarthLocation`.
+            Default: ``'500'`` (geocentric)
         **kwargs : optional
             Arguments that will be provided to
             `astroquery.jplhorizons.HorizonsClass.ephemerides`.
@@ -124,6 +129,13 @@ class Ephem(DataClass):
         # if targetids is a list, run separate Horizons queries and append
         if not isinstance(targetids, (list, ndarray, tuple)):
             targetids = [targetids]
+
+        # turn EarthLocation into dictionary of strings as used by
+        # astroquery.jplhorizons
+        if isinstance(location, EarthLocation):
+            location = {'lon': location.lon.deg,
+                        'lat': location.lat.deg,
+                        'elevation': location.height.to('km')}
 
         # append ephemerides table for each targetid
         all_eph = None
