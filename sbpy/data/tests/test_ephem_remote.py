@@ -28,12 +28,19 @@ def test_from_horizons():
     data = Ephem.from_horizons('Ceres', epochs=epochs)
     assert len(data.table) == 13
 
-    # date range - strings
+    # date range - strings (this is not really supported by sbpy)
     epochs = {'start': '2018-01-02',
               'stop': '2018-01-05',
               'step': '6h'}
     data = Ephem.from_horizons('Ceres', epochs=epochs)
     assert len(data.table) == 13
+
+    # date range - number of steps
+    epochs = {'start': Time('2018-01-02', format='iso'),
+              'stop': Time('2018-01-05', format='iso'),
+              'number': 10}
+    data = Ephem.from_horizons('Ceres', epochs=epochs)
+    assert len(data.table) == 10
 
     # astropy.time.Time object with list of Dates
     epochs = Time(['2018-01-01', '2018-01-02'])

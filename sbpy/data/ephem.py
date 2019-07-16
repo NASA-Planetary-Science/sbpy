@@ -50,11 +50,20 @@ class Ephem(DataClass):
             Epochs of elements to be queried; `~astropy.time.Time` objects
             support iterables within the object so an `~astropy.time.Time`
             object should still be used for a number of discrete epochs;
-            a dictionary including keywords ``start``, ``step``, and ``stop``
-            and `~astropy.time.Time` objects can be used to generate a range
-            of epochs (see
+            a dictionary including keywords ``start`` and ``stop``, as well
+            as either ``step`` or ``number``, can be used to generate a range
+            of epochs. ``start`` and ``stop`` have to be
+            `~astropy.time.Time` objects. If ``step`` is provided as a string,
+            the interval
+            defined by ``start``
+            and ``stop`` is split into time steps defined by ``step`` (see
             `~astroquery.jplhorizons.HorizonsClass.Horizons.ephemerides`
-            for details); if ``None`` is provided, current date and time are
+            for details). If ``number`` is provided as an integer, the
+            interval defined by
+            ``start`` and ``stop`` is split into ``number`` equidistant
+            intervals by calculating ``step`` from the interval and ``number``
+            in units of full minutes. If ``None`` is
+            provided, current date and time are
             used. Default: ``None``
         location : str, optional, default ``'500'`` (geocentric)
             Location of the observer.
@@ -97,13 +106,20 @@ class Ephem(DataClass):
                 new_epochs[i] = epochs[i]
             epochs = new_epochs
         elif isinstance(epochs, dict):
-            for key, val in epochs.items():
-                if isinstance(val, Time):
-                    val.format = 'iso'
-                    val.out_subfmt = 'date_hm'
-                    epochs[key] = val.value
-                else:
-                    epochs[key] = epochs[key]
+            if 'start' in epochs and 'stop' in epochs and 'number' in epochs:
+                # turn interval/number into step size based on full minutes
+                epochs['step'] = '{:d}m'.format(
+                    int((epochs['stop']-epochs['start']).jd*1440 /
+                        (epochs['number']-1)))
+            if 'start' in epochs and 'stop' in epochs and 'step' in epochs:
+                # default format used in astroquery.jplhorizons
+                for key, val in epochs.items():
+                    if isinstance(val, Time):
+                        val.format = 'iso'
+                        val.out_subfmt = 'date_hms'
+                        epochs[key] = val.value
+                    else:
+                        epochs[key] = epochs[key]
 
         # if targetids is a list, run separate Horizons queries and append
         if not isinstance(targetids, (list, ndarray, tuple)):
@@ -456,8 +472,7 @@ class Ephem(DataClass):
             if (colname in default_units.keys() and
                 not isinstance(orb[colname],
                                (u.Quantity, u.CompositeUnit))):
-                orb[colname].unit = \
-                    default_units[colname]
+                orb[colname].unit = default_units[colname]
 
         # modify epochs input to make it work with pyoorb
         if epochs is None:

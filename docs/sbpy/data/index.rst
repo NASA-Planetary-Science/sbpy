@@ -559,6 +559,20 @@ layouts (e.g., different magnitude systems: ``T-mag`` and ``N-mag``
 instead of ``V-mag``), which will complicate the interpretation of the
 data. It might be safest to query asteroids and comets separately.
 
+Also note that the two examples shown above use different ways to
+define epochs. The first example uses a dictionary that defines a
+``start`` and ``stop`` epoch, as well as a ``step`` size (see
+`~astroquery.jplhorizons.HorizonsClass.ephemerides` for
+details). Instead of a ``step`` size, the user can also provide a
+``number`` of steps as an integer; ``step`` is then automatically
+derived from the interval and ``number`` in units of full minutes. The
+second example uses a specific epoch as input. The
+`~astropy.time.Time` object provided to ``epochs`` can also be
+initialized with a list of epochs, querying multiple epochs at the
+same time. Note that the total number of epochs should be less than
+a few hundred (see `~astroquery.jplhorizons.HorizonsClass.ephemerides`
+for details).
+
 Similarly, the `~sbpy.data.Ephem.from_mpc` method will retrieve
 ephemerides from the Minor Planet Center:
 
