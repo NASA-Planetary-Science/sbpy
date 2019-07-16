@@ -29,7 +29,7 @@ class TestEphemFromHorizons:
         assert len(data.table) == 13
 
     def test_daterange_strings(self):
-        #(this is not really supported by sbpy)
+        # (this is not really supported by sbpy)
         epochs = {'start': '2018-01-02',
                   'stop': '2018-01-05',
                   'step': '6h'}
