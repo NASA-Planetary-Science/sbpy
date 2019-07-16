@@ -17,6 +17,7 @@ htmlcov
 MANIFEST
 .ipynb_checkpoints
 .pytest_cache*
+website/.firebase/*cache
 
 # Sphinx
 docs/api
@@ -59,6 +60,7 @@ distribute-*.tar.gz
 .pydevproject
 .settings
 *py#
+.firebase
 
 # Mac OSX
 .DS_Store

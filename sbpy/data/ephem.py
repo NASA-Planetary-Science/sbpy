@@ -184,16 +184,17 @@ class Ephem(DataClass):
         return cls.from_table(all_eph)
 
     @classmethod
-    def from_mpc(cls, targetid, epochs=None, location='500', **kwargs):
+    def from_mpc(cls, targetids, epochs=None, location='500', **kwargs):
         """Load ephemerides from the
         `Minor Planet Center <http://minorplanetcenter.net>`_.
 
         Parameters
         ----------
-        targetid : str
+        targetids : str or iterable of str
             Target identifier, resolvable by the Minor Planet
             Ephemeris Service [MPES]_, e.g., 2P, C/1995 O1, P/Encke,
-            (1), 3200, Ceres, and packed designations.
+            (1), 3200, Ceres, and packed designations, for one or more
+            targets.
 
         epochs : various, optional
             Request ephemerides at these epochs.  May be a single
@@ -215,7 +216,7 @@ class Ephem(DataClass):
             Unless otherwise specified, the UTC scale is assumed.
 
             ``step`` should be an integer in units of seconds,
-            minutes, hours, or days.  Anythng that can initialize an
+            minutes, hours, or days.  Anything that can initialize an
             `~astropy.units.Quantity` object is allowed.
 
         location : various, optional
@@ -269,6 +270,11 @@ class Ephem(DataClass):
         """
 
         # parameter check
+
+        # if targetids is a list, run separate Horizons queries and append
+        if not isinstance(targetids, (list, ndarray, tuple)):
+            targetids = [targetids]
+
         if isinstance(epochs, dict):
             start = epochs['start']  # required
             step = epochs.get('step')
@@ -310,35 +316,48 @@ class Ephem(DataClass):
                 if isinstance(epochs[i], (float, int)):
                     epochs[i] = Time(epochs[i], format='jd', scale='utc')
 
-        # get ephemeris
-        if start is None:
-            eph = []
-            for i in range(len(epochs)):
-                start = Time(epochs[i], scale='utc')
-                e = MPC.get_ephemeris(targetid, location=location,
-                                      start=start, number=1, **kwargs)
-                e['Date'] = e['Date'].iso  # for vstack to work
-                eph.append(e)
-            eph = vstack(eph)
-            eph['Date'] = Time(eph['Date'], scale='utc')
-        else:
-            eph = MPC.get_ephemeris(targetid, location=location,
-                                    start=start, step=step, number=number,
-                                    **kwargs)
+        # append ephemerides table for each targetid
+        all_eph = None
+        for targetid in targetids:
+
+            # get ephemeris
+            if start is None:
+                eph = []
+                for i in range(len(epochs)):
+                    e = MPC.get_ephemeris(targetid, location=location,
+                                          start=Time(epochs[i], scale='utc'),
+                                          number=1, **kwargs)
+                    e['Date'] = e['Date'].iso  # for vstack to work
+                    eph.append(e)
+                eph = vstack(eph)
+                eph['Date'] = Time(eph['Date'], scale='utc')
+            else:
+                eph = MPC.get_ephemeris(targetid, location=location,
+                                        start=start, step=step,
+                                        number=number, **kwargs)
+
+            # add targetname column
+            eph.add_column(Column([targetid]*len(eph),
+                                  name='Targetname'), index=0)
+
+            if all_eph is None:
+                all_eph = eph
+            else:
+                all_eph = vstack([all_eph, eph])
 
         # if ra_format or dec_format is defined, then units must be
         # dropped or else QTable will raise an exception because
         # strings cannot have units
         if 'ra_format' in kwargs:
-            eph['RA'].unit = None
+            all_eph['RA'].unit = None
         if 'dec_format' in kwargs:
-            eph['Dec'].unit = None
+            all_eph['Dec'].unit = None
 
         # only UTC scale is supported
-        eph.add_column(Column(['UTC'] * len(eph), name='timescale'),
-                       index=eph.colnames.index('Date') + 1)
+        all_eph.add_column(Column(['UTC'] * len(all_eph), name='timescale'),
+                           index=all_eph.colnames.index('Date') + 1)
 
-        return cls.from_table(eph)
+        return cls.from_table(all_eph)
 
     @classmethod
     def from_oo(self, orbit, epochs=None, location='500', scope='full',

@@ -14,55 +14,55 @@ from ..core import conf
 
 
 @pytest.mark.remote_data
-def test_from_horizons():
-    """ test from_horizons method"""
+class TestEphemFromHorizons:
 
-    # current epoch
-    now = Time.now()
-    data = Ephem.from_horizons('Ceres')
-    assert_allclose(data['datetime_jd'], now.jd*u.d)
+    def test_current_epoch(self):
+        now = Time.now()
+        data = Ephem.from_horizons('Ceres')
+        assert_allclose(data['datetime_jd'], now.jd*u.d)
 
-    # date range - astropy.time.Time objects
-    epochs = {'start': Time('2018-01-02', format='iso'),
-              'stop': Time('2018-01-05', format='iso'),
-              'step': '6h'}
-    data = Ephem.from_horizons('Ceres', epochs=epochs)
-    assert len(data.table) == 13
+    def test_daterange_Time(self):
+        epochs = {'start': Time('2018-01-02', format='iso'),
+                  'stop': Time('2018-01-05', format='iso'),
+                  'step': '6h'}
+        data = Ephem.from_horizons('Ceres', epochs=epochs)
+        assert len(data.table) == 13
 
-    # date range - strings (this is not really supported by sbpy)
-    epochs = {'start': '2018-01-02',
-              'stop': '2018-01-05',
-              'step': '6h'}
-    data = Ephem.from_horizons('Ceres', epochs=epochs)
-    assert len(data.table) == 13
+    def test_daterange_strings(self):
+        #(this is not really supported by sbpy)
+        epochs = {'start': '2018-01-02',
+                  'stop': '2018-01-05',
+                  'step': '6h'}
+        data = Ephem.from_horizons('Ceres', epochs=epochs)
+        assert len(data.table) == 13
 
-    # date range - number of steps
-    epochs = {'start': Time('2018-01-02', format='iso'),
-              'stop': Time('2018-01-05', format='iso'),
-              'number': 10}
-    data = Ephem.from_horizons('Ceres', epochs=epochs)
-    assert len(data.table) == 10
+    def test_daterange_number(self):
+        epochs = {'start': Time('2018-01-02', format='iso'),
+                  'stop': Time('2018-01-05', format='iso'),
+                  'number': 10}
+        data = Ephem.from_horizons('Ceres', epochs=epochs)
+        assert len(data.table) == 10
 
-    # astropy.time.Time object with list of Dates
-    epochs = Time(['2018-01-01', '2018-01-02'])
-    data = Ephem.from_horizons('Ceres', epochs=epochs)
-    assert len(data.table) == 2
+    def test_Time_list(self):
+        epochs = Time(['2018-01-01', '2018-01-02'])
+        data = Ephem.from_horizons('Ceres', epochs=epochs)
+        assert len(data.table) == 2
 
-    # query two objects
-    data = Ephem.from_horizons(['Ceres', 'Pallas'])
-    assert len(data.table) == 2
+    def test_multiple_objects(self):
+        data = Ephem.from_horizons(['Ceres', 'Pallas'])
+        assert len(data.table) == 2
 
-    # query relative to EarthLocation
-    lowell = EarthLocation.of_site('Lowell Observatory')
-    data = Ephem.from_horizons(1, epochs=Time('2018-01-01', format='iso'),
-                               location=lowell)
-    assert len(data.table) == 1
+    def test_Earthlocation(self):
+        lowell = EarthLocation.of_site('Lowell Observatory')
+        data = Ephem.from_horizons(1, epochs=Time('2018-01-01',
+                                                  format='iso'),
+                                   location=lowell)
+        assert len(data.table) == 1
 
-    # test bib service
-    with bib.Tracking():
+    def test_bib(self):
+        bib.track()
         data = Ephem.from_horizons(['Ceres', 'Pallas'])
         assert 'sbpy.data.Ephem' in bib.to_text()
-    bib.reset()
 
 
 @pytest.mark.remote_data
@@ -125,6 +125,10 @@ class TestEphemFromMPC:
                              dec_format=dec_format)
         assert isinstance(eph['RA'][0], str)
         assert isinstance(eph['Dec'][0], str)
+
+    def test_multiple_targets(self):
+        eph = Ephem.from_mpc(['Ceres', 'Pallas', 'Vesta'])
+        assert all(eph['Targetname'].data == ['Ceres', 'Pallas', 'Vesta'])
 
 
 @pytest.mark.remote_data
