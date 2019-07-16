@@ -580,10 +580,10 @@ observatory codes
 or using `~astropy.coordinates.EarthLocation` as shown in the following example:
 
     >>> from astropy.coordinates import EarthLocation
-    >>> lowell = EarthLocation.of_site('Lowell Observatory')
+    >>> lowell = EarthLocation.of_site('Lowell Observatory')  # doctest: +SKIP
     >>> eph = Ephem.from_horizons(1, epochs=Time('2018-01-01', format='iso'),
-    ... 			  location=lowell) # doctest: +REMOTE_DATA
-    >>> eph # doctest: +REMOTE_DATA
+    ... 			  location=lowell) # doctest: +SKIP
+    >>> eph # doctest: +REMOTE_DATA +SKIP
     <QTable masked=True length=1>
     targetname       datetime_str       datetime_jd ...  PABLon   PABLat timescale
 					     d      ...   deg      deg            
