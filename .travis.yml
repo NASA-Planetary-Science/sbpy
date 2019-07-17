@@ -82,6 +82,6 @@ script:
    - $MAIN_CMD $SETUP_CMD
 
 after_success:
-    - if [[ $SETUP_CMD == 'test --coverage -R -V -a "--durations=50"' PYTEST_VERSION='<3.7' ]]; then
+    - if [[ $SETUP_CMD == 'test --coverage -R -V -a "--durations=50"' ]]; then
           codecov;
       fi
