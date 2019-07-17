@@ -239,10 +239,10 @@ class Conf():
          'fieldnames': ['totnum', 'total_number_nocd'],
          'provenance': ['phys'],
          'dimension': None},
-         {'description': 'Column Density from Bockelee Morvan et al. 2004',
-          'fieldnames': ['cdensity', 'col_density'],
-          'provenance': ['phys'],
-          'dimension': '1/length^2'},
+        {'description': 'Column Density from Bockelee Morvan et al. 2004',
+         'fieldnames': ['cdensity', 'col_density'],
+         'provenance': ['phys'],
+         'dimension': '1/length^2'},
         # {'description': '',
         #  'fieldnames': [],
         #  'provenance': [],
@@ -306,7 +306,7 @@ class Conf():
 
 conf = Conf()
 
-from .core import DataClass, DataClassError
+from .core import DataClass, DataClassError, quantity_to_dataclass
 from .ephem import Ephem
 from .orbit import Orbit
 from .phys import Phys
