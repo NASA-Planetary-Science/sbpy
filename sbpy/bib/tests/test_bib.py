@@ -144,8 +144,8 @@ def test_Tracking_reporter(capsys):
 def test_cite_function():
 
     @cite({'method': '1687pnpm.book.....N'})
-    def force(mass, accelleration):
-        return mass * accelleration
+    def force(mass, acceleration):
+        return mass * acceleration
 
     reset()
     track()
@@ -158,13 +158,33 @@ def test_cite_function():
     reset()
 
 
+def test_cite_function_twice():
+
+    @cite({'method': '1687pnpm.book.....N'})
+    @cite({'interpretation': 'philosophical reference'})
+    def force(mass, acceleration):
+        return mass * acceleration
+
+    reset()
+    track()
+    force(1, 2)
+    assert (set(
+        ['sbpy.bib.tests.test_bib.test_cite_function_twice.<locals>.force:',
+         'method:', '1687pnpm.book.....N', 'interpretation:',
+         'philosophical', 'reference'])
+        == set(show().split()))
+    stop()
+    reset()
+
+
 def test_cite_class_method():
     reset()
 
     class Physics:
+        @staticmethod
         @cite({'method': '1687pnpm.book.....N'})
-        def force(self, mass, accelleration):
-            return mass * accelleration
+        def force(mass, acceleration):
+            return mass * acceleration
 
     with Tracking():
         p = Physics()
@@ -183,8 +203,8 @@ def test_cite_class():
 
     @cite({'method': '1687pnpm.book.....N'})
     class Force:
-        def __call__(self, mass, accelleration):
-            return mass * accelleration
+        def __call__(self, mass, acceleration):
+            return mass * acceleration
 
     with Tracking():
         f = Force()
