@@ -67,6 +67,7 @@ def test_register_single():
 
     assert (set(['test1:', 'track_this:', 'bibcode1'])
             == set(show().split()))
+    stop()
     reset()
 
 
@@ -77,6 +78,7 @@ def test_register_list():
 
     assert (set(['test1:', 'track_this:', 'bibcode1', 'bibcode2'])
             == set(show().split()))
+    stop()
     reset()
 
 
@@ -88,6 +90,7 @@ def test_register_double():
         register('test1', {'track_this': ['bibcode3']})
 
     assert show().count('bibcode2') == 1
+    stop()
     reset()
 
 
@@ -110,6 +113,7 @@ def test_Tracking():
                 'and_track_that:', 'bibcode']) == set(show().split())
     # different builds will have different orders for bibcode 1 and 2, to
     # avoid the build failing because of this we use sets
+    stop()
     reset()
 
 
@@ -122,6 +126,7 @@ def test_Tracking_issue_64():
     words = show().split()
     assert 'OH' in words
     assert 'H2O' in words
+    stop()
     reset()
 
 
@@ -132,21 +137,83 @@ def test_Tracking_reporter(capsys):
     captured = capsys.readouterr()
     assert (set(['test1:', 'track_this:', 'bibcode1'])
             == set(captured.out.split()))
+    stop()
     reset()
 
 
-def test_cite():
+def test_cite_function():
 
     @cite({'method': '1687pnpm.book.....N'})
-    def force(mass, accelleration):
-        return mass * accelleration
+    def force(mass, acceleration):
+        return mass * acceleration
 
     reset()
     track()
     force(1, 2)
-    assert (set(['sbpy.bib.tests.test_bib.force:', 'method:',
-                 '1687pnpm.book.....N'])
-            == set(show().split()))
+    assert (set(
+        ['sbpy.bib.tests.test_bib.test_cite_function.<locals>.force:',
+         'method:', '1687pnpm.book.....N'])
+        == set(show().split()))
+    stop()
+    reset()
+
+
+def test_cite_function_twice():
+
+    @cite({'method': '1687pnpm.book.....N'})
+    @cite({'interpretation': 'philosophical reference'})
+    def force(mass, acceleration):
+        return mass * acceleration
+
+    reset()
+    track()
+    force(1, 2)
+    assert (set(
+        ['sbpy.bib.tests.test_bib.test_cite_function_twice.<locals>.force:',
+         'method:', '1687pnpm.book.....N', 'interpretation:',
+         'philosophical', 'reference'])
+        == set(show().split()))
+    stop()
+    reset()
+
+
+def test_cite_class_method():
+    reset()
+
+    class Physics:
+        @staticmethod
+        @cite({'method': '1687pnpm.book.....N'})
+        def force(mass, acceleration):
+            return mass * acceleration
+
+    with Tracking():
+        p = Physics()
+        p.force(1, 2)
+
+    assert (set([
+        'sbpy.bib.tests.test_bib.test_cite_class_method'
+        '.<locals>.Physics.force:',
+        'method:', '1687pnpm.book.....N'])
+        == set(show().split()))
+    reset()
+
+
+def test_cite_class():
+    reset()
+
+    @cite({'method': '1687pnpm.book.....N'})
+    class Force:
+        def __call__(self, mass, acceleration):
+            return mass * acceleration
+
+    with Tracking():
+        f = Force()
+        f(1, 2)
+
+    assert (set([
+        'sbpy.bib.tests.test_bib.test_cite_class'
+        '.<locals>.Force:', 'method:', '1687pnpm.book.....N'])
+        == set(show().split()))
     reset()
 
 
@@ -166,4 +233,5 @@ def test_filter():
                 'bibcode']) == set(show(filter='software').split())
     # different builds will have different orders for bibcode 1 and 2, to
     # avoid the build failing because of this we use sets
+    stop()
     reset()

@@ -160,7 +160,7 @@ def cite(citations):
             # only cite after successful call
             result = f(*args, **kwargs)
 
-            task = '.'.join((f.__module__, f.__name__))
+            task = '.'.join((f.__module__, f.__qualname__))
             register(task, citations)
 
             return result
