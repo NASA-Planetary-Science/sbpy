@@ -2,11 +2,13 @@
 
 import pytest
 from copy import deepcopy
+from numpy import abs
 
 from numpy.testing import assert_allclose
 import astropy.units as u
 from astropy.time import Time
 from astropy.coordinates import EarthLocation
+from astropy.tests.helper import assert_quantity_allclose
 
 from sbpy.data import Ephem, Orbit
 from sbpy import bib
@@ -129,6 +131,55 @@ class TestEphemFromMPC:
     def test_multiple_targets(self):
         eph = Ephem.from_mpc(['Ceres', 'Pallas', 'Vesta'])
         assert all(eph['Targetname'].data == ['Ceres', 'Pallas', 'Vesta'])
+
+
+@pytest.mark.remote_data
+class TestEphemFromMiriade:
+    def test_singleobj_now(self):
+        eph = Ephem.from_miriade("Ceres")
+        assert_quantity_allclose(eph['epoch'][0], Time.now().jd*u.d)
+
+    def test_multiobj_now(self):
+        eph = Ephem.from_miriade(["Ceres", 'Pallas'],
+                                 epochs=Time.now())
+        assert len(eph.table) == 2
+
+    def test_epochTime(self):
+        eph = Ephem.from_miriade(["Ceres", 'Pallas'],
+                                 epochs=Time('2018-10-01'))
+        assert_quantity_allclose(eph['epoch'][0], Time('2018-10-01').jd*u.d)
+
+    def test_epochstart(self):
+        eph = Ephem.from_miriade(["Ceres", 'Pallas'],
+                                 epochs={'start': Time('2018-10-01')})
+        assert_quantity_allclose(eph['epoch'][0], Time('2018-10-01').jd*u.d)
+
+    def test_epochrange_number(self):
+        eph = Ephem.from_miriade(["Ceres", 'Pallas'],
+                                 epochs={'start': Time('2018-10-01'),
+                                         'stop': Time('2018-11-01'),
+                                         'number': 10})
+        assert len(eph.table) == 20
+
+    def test_epochrange_step(self):
+        eph = Ephem.from_miriade(["Ceres", 'Pallas'],
+                                 epochs={'start': Time('2018-10-01'),
+                                         'stop': Time('2018-10-10'),
+                                         'step': '0.5d'})
+        assert len(eph.table) == 38
+
+    def test_iaulocation(self):
+        eph1 = Ephem.from_miriade(
+            "Ceres", location='G37', epochs=Time('2019-01-01'))
+        eph2 = Ephem.from_miriade("Ceres", epochs=Time('2019-01-01'))
+        assert abs(eph1['RA'][0]-eph2['RA'][0]) > 0.00001*u.deg
+
+    def test_EarthLocation(self):
+        lowell = EarthLocation.of_site('Lowell Observatory')
+        eph1 = Ephem.from_miriade(
+            "Ceres", location=lowell, epochs=Time('2019-01-01'))
+        eph2 = Ephem.from_miriade("Ceres", epochs=Time('2019-01-01'))
+        assert abs(eph1['RA'][0]-eph2['RA'][0]) > 0.0001*u.deg
 
 
 @pytest.mark.remote_data

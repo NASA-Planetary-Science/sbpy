@@ -17,6 +17,7 @@ from astropy.table import vstack, Column
 import astropy.units as u
 from astroquery.jplhorizons import Horizons
 from astroquery.mpc import MPC
+from astroquery.imcce import Miriade
 from astropy.coordinates import EarthLocation
 
 from .. import bib
@@ -47,7 +48,7 @@ class Ephem(DataClass):
             ``'name'`` (asteroid or comet name), ``'asteroid_name'``,
             ``'comet_name'``, ``'id'`` (Horizons id).
             Default: ``'smallbody'``
-        epochs : `~astropy.time.Time` object, or dictionary of `astropy.time.Time` objects, optional
+        epochs : `~astropy.time.Time` object, or dictionary, optional
             Epochs of elements to be queried; `~astropy.time.Time` objects
             support iterables within the object so an `~astropy.time.Time`
             object should still be used for a number of discrete epochs;
@@ -356,6 +357,160 @@ class Ephem(DataClass):
         # only UTC scale is supported
         all_eph.add_column(Column(['UTC'] * len(all_eph), name='timescale'),
                            index=all_eph.colnames.index('Date') + 1)
+
+        return cls.from_table(all_eph)
+
+    @classmethod
+    def from_miriade(cls, targetids, objtype='asteroid',
+                     epochs=None, location='500', **kwargs):
+        """Load target ephemerides from
+        `IMCCE Miriade <http://vo.imcce.fr/webservices/miriade/>`_ using
+        `astroquery.imcce.MiriadeClass.get_ephemerides`
+
+        Parameters
+        ----------
+        targetids : str or iterable of str
+            Target identifier, i.e., a number, name, designation, or JPL
+            Horizons record number, for one or more targets.
+        objtype : str, optional
+            The nature of ``targetids`` provided; possible values are
+            ``'asteroid'``, ``'comet'``, ``'dwarf planet'``,
+            ``'planet'``, or ``'satellite'``. Default: ``'asteroid'``
+        epochs : `~astropy.time.Time` object, or dictionary, optional
+            Epochs of elements to be queried; `~astropy.time.Time` objects
+            only support single epochs;
+            a dictionary including keywords ``start`` and ``stop``, as well
+            as either ``step`` or ``number``, can be used to generate a range
+            of epochs. ``start`` and ``stop`` have to be
+            `~astropy.time.Time` objects or strings in ISO format
+            (``'YYYY-MM-DD HH:MM:SS'``). If ``step`` is provided as a
+            string, the interval
+            defined by ``start``
+            and ``stop`` is split into time steps defined by ``step``. If
+            ``number`` is provided as an integer, the
+            interval defined by
+            ``start`` and ``stop`` is split into ``number`` equidistant
+            intervals. If ``None`` is
+            provided, current date and time are
+            used. Default: ``None``
+        location : str or `~astropy.coordinates.EarthLocation`, optional
+            Location of the observer using IAU observatory codes
+            (see `IAU observatory codes
+            <https://www.minorplanetcenter.net/iau/lists/ObsCodesF.html>`__)
+            or as `~astropy.coordinates.EarthLocation`.
+            Default: ``'500'`` (geocentric)
+        **kwargs : optional
+            Arguments that will be provided to
+            `astroquery.imcce.MiriadeClass.get_ephemerides`.
+
+        Notes
+        -----
+        * For detailed explanations of the queried fields, refer to
+          `astroquery.imcce.MiriadeClass.get_ephemerides` and the
+          `Miriade documentation
+          <http://vo.imcce.fr/webservices/miriade/?documentation>`_.
+        * By default, all properties are provided in the J2000.0 reference
+          system. Different settings can be chosen using
+          additional keyword arguments as used by
+          `astroquery.imcce.MiriadeClass.get_ephemerides`.
+
+        Returns
+        -------
+        `~Ephem` object
+
+        Examples
+        --------
+        >>> from sbpy.data import Ephem
+        >>> from astropy.time import Time
+        >>> epoch = Time('2018-05-14', scale='utc')
+        >>> eph = Ephem.from_horizons('ceres', epochs=epoch) # doctest: +SKIP
+        """
+
+        # modify epoch input to make it work with astroquery.imcce.Miriade
+        if epochs is None:
+            epochs = {'start': Time.now().jd}
+        elif isinstance(epochs, Time):
+            epochs = {'start': epochs}
+        elif isinstance(epochs, dict):
+            if 'number' in epochs:
+                # turn interval/number into step size based on full minutes
+                epochs['step'] = '{:d}m'.format(
+                    int((Time(epochs['stop'])-Time(epochs['start'])).jd *
+                        1440 / (epochs['number']-1)))
+            elif 'step' in epochs:
+                # parse 'step'
+                stepsize_s = (float(epochs['step'][:-1]) *
+                              {'s': 1, 'm': 60, 'h': 3600, 'd': 86400}[
+                                  epochs['step'][-1]])
+                epochs['number'] = ((Time(epochs['stop']) -
+                                     Time(epochs['start'])).jd *
+                                    86400/stepsize_s)+1
+
+        # if targetids is a list, run separate Horizons queries and append
+        if not isinstance(targetids, (list, ndarray, tuple)):
+            targetids = [targetids]
+
+        # turn EarthLocation into dictionary of strings as used by
+        # astroquery.jplhorizons
+
+        if isinstance(location, EarthLocation):
+            location = '{:+f} {:+f} {:.1f}'.format(
+                location.lon.deg,
+                location.lat.deg,
+                location.height.to('m').value)
+
+        # append ephemerides table for each targetid
+        all_eph = None
+        for targetid in targetids:
+            query = Miriade()
+            if 'step' not in epochs and 'number' not in epochs:
+                # single epoch
+                try:
+                    # load ephemerides using astroquery.imcce
+                    eph = query.get_ephemerides(targetname=targetid,
+                                                objtype=objtype,
+                                                location=location,
+                                                epoch=epochs['start'],
+                                                **kwargs)
+                except ValueError as e:
+                    raise RuntimeError(
+                        ('Error raised by astroquery.imcce: {:s}\n'
+                         'The following query was attempted: {:s}').format(
+                             str(e), query.uri))
+            else:
+                # range of epochs
+                try:
+                    # load ephemerides using astroquery.imcce
+                    eph = query.get_ephemerides(
+                        targetname=targetid, objtype=objtype,
+                        location=location, epoch=epochs['start'],
+                        epoch_step=epochs['step'],
+                        epoch_nsteps=epochs['number'],
+                        **kwargs)
+                except ValueError as e:
+                    raise RuntimeError(
+                        ('Error raised by astroquery.imcce: {:s}\n'
+                         'The following query was attempted: {:s}').format(
+                             str(e), query.uri))
+
+            if all_eph is None:
+                all_eph = eph
+            else:
+                all_eph = vstack([all_eph, eph])
+
+        # extract timescale and append to data
+        timescale = 'UTC'
+        if 'timescale' in kwargs:
+            timescale = kwargs['timescale']
+
+        # identify time scales returned by query
+        timescales = array([timescale] * len(all_eph))
+        all_eph.add_column(Column(timescales, name='timescale'))
+
+        if bib.status() is None or bib.status():
+            bib.register('sbpy.data.Ephem.from_miriade',
+                         {'data service':
+                          'http://vo.imcce.fr/webservices/miriade/'})
 
         return cls.from_table(all_eph)
 

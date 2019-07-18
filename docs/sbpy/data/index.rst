@@ -464,7 +464,9 @@ How to use Ephem and Obs
 As shown above (`How to use Ephem, Orbit, Obs, and Phys objects`_),
 `~sbpy.data.Ephem` objects can be created on the fly. However,
 `~sbpy.data.Ephem` can also be used to access ephemerides information
-from remote services. For instance, the following few lines will query
+from remote services with a largely uniform API.
+
+For instance, the following few lines will query
 ephemerides for asteroid Ceres on a given date and for the position of
 Mauna Kea Observatory (IAU observatory code ``568``) from the `JPL Horizons service <https://ssd.jpl.nasa.gov/horizons.cgi>`_:
 
@@ -576,8 +578,9 @@ details).
 
 Observer locations can be defined as strings using offical `IAU
 observatory codes
-<https://www.minorplanetcenter.net/iau/lists/ObsCodesF.html>`__
-or using `~astropy.coordinates.EarthLocation` as shown in the following example:
+<https://www.minorplanetcenter.net/iau/lists/ObsCodesF.html>`__ or
+using `~astropy.coordinates.EarthLocation` as shown in the following
+example:
 
     >>> from astropy.coordinates import EarthLocation
     >>> lowell = EarthLocation.of_site('Lowell Observatory')  # doctest: +SKIP
@@ -593,7 +596,7 @@ or using `~astropy.coordinates.EarthLocation` as shown in the following example:
 
 Offering almost identical functionality, the
 `~sbpy.data.Ephem.from_mpc` method will retrieve ephemerides from the
-Minor Planet Center:
+`Minor Planet Center <https://minorplanetcenter.net/>`_:
 
     >>> eph = Ephem.from_mpc('2P', location='568',
     ...                      epochs={'start': '2018-10-22',
@@ -611,6 +614,28 @@ Minor Planet Center:
     2018-10-25 00:00:00.000       UTC ...          67.0         -53.0
     2018-10-26 00:00:00.000       UTC ...          81.0         -56.0
 
+Finally, `~sbpy.data.Ephem.from_miriade` will retrieve ephemerides
+from the `Miriade ephemeris generator
+<http://vo.imcce.fr/webservices/miriade/>`_ at `IMCCE
+<https://www.imcce.fr/>`_:
+
+    >>> eph = Ephem.from_miriade('2P', objtype='comet', location='568',
+    ...                          epochs={'start': '2018-10-22',
+    ...                                  'stop': '2018-10-26',
+    ...                                  'step': '1d'})  # doctest: +REMOTE_DATA
+    >>> eph  # doctest: +REMOTE_DATA
+    <QTable masked=True length=5>
+     target        epoch                 RA         ...  delta_rate  timescale
+		     d                  deg         ...    km / s             
+    bytes20       float64             float64       ...   float64       str3  
+    ------- -------------------- ------------------ ... ------------ ---------
+	 2P            2458413.5 329.99213124999994 ...   24.7933113       UTC
+	 2P            2458414.5 329.91132124999996 ...   25.0280603       UTC
+	 2P            2458415.5 329.83517041666664 ...    25.253586       UTC
+	 2P            2458416.5 329.76366666666667 ...   25.4700287       UTC
+	 2P            2458417.5  329.6967958333333 ...    25.677518       UTC    
+
+    
 Ephemerides can also be derived from `~Orbit` objects using `sbpy`'s
 interface to `pyoorb
 <https://github.com/oorb/oorb/tree/master/python>`_ with the function
