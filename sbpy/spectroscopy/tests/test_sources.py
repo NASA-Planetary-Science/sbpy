@@ -10,10 +10,11 @@ import synphot
 from .. import sources
 from ..sources import (BlackbodySource, SinglePointSpectrumError,
                        SpectralSource, SynphotRequired)
-from ... import bib, units, utils
+from ... import bib, units
+from ...photometry import bandpass
 
-V = utils.get_bandpass('johnson v')
-I = utils.get_bandpass('cousins i')
+V = bandpass('johnson v')
+I = bandpass('cousins i')
 
 
 class Star(SpectralSource):

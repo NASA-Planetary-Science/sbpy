@@ -5,7 +5,7 @@ import numpy as np
 import astropy.units as u
 from astropy.tests.helper import remote_data
 from ... import units as sbu
-from ... import utils
+from ...photometry import bandpass
 from .. import core
 from .. import *
 
@@ -118,8 +118,7 @@ class TestVega:
 
     def test_color_index_bandpass(self):
         """Compare to Willmer 2018."""
-        bp = (utils.get_bandpass('johnson v'),
-              utils.get_bandpass('cousins i'))
+        bp = (bandpass('johnson v'), bandpass('cousins i'))
         vega = Vega.from_default()
         lambda_eff, ci = vega.color_index(bp, u.ABmag)
         # I bandpass seems to be very different:

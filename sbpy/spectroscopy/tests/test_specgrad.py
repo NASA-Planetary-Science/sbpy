@@ -2,7 +2,7 @@ import numpy as np
 import astropy.units as u
 import pytest
 from ...units import hundred_nm
-from ...utils import get_bandpass
+from ...photometry import bandpass
 from ..core import SpectralGradient
 
 
@@ -16,15 +16,15 @@ class TestSpectralGradient():
             SpectralGradient(100 / u.um, wave=525 * u.nm)
 
     @pytest.mark.parametrize('wfb, color, S0, atol', (
-        ((get_bandpass('WFC3 F438W'), get_bandpass('WFC3 F606W')),
+        ((bandpass('WFC3 F438W'), bandpass('WFC3 F606W')),
          0.09 * u.mag, 5.0 * u.percent / hundred_nm, 0.2),
         ((550, 650) * u.nm, 0.12 * u.mag, 11 * u.percent / hundred_nm, 0.5),
         ((550, 650) * u.nm, 0.11 * u.mag, 10 * u.percent / hundred_nm, 0.5),
         ((550, 650) * u.nm, -0.04 * u.mag,
          -3.2 * u.percent / hundred_nm, 1),
-        ((get_bandpass('SDSS g'), get_bandpass('SDSS r')),
+        ((bandpass('SDSS g'), bandpass('SDSS r')),
          0.21 * u.mag, 12 * u.percent / hundred_nm, 2),
-        ((get_bandpass('SDSS g'), get_bandpass('SDSS r')),
+        ((bandpass('SDSS g'), bandpass('SDSS r')),
          -0.15 * u.mag, -10 * u.percent / hundred_nm, 0.5),
     ))
     def test_from_color(self, wfb, color, S0, atol):
@@ -45,15 +45,15 @@ class TestSpectralGradient():
         assert np.isclose(S.to(S0.unit).value, S0.value, atol=atol)
 
     @pytest.mark.parametrize('wfb, color0, S, atol', (
-        ((get_bandpass('WFC3 F438W'), get_bandpass('WFC3 F606W')),
+        ((bandpass('WFC3 F438W'), bandpass('WFC3 F606W')),
          0.09 * u.mag, 5.0 * u.percent / hundred_nm, 0.003),
         ((550, 650) * u.nm, 0.12 * u.mag, 11 * u.percent / hundred_nm, 0.005),
         ((550, 650) * u.nm, 0.11 * u.mag, 10 * u.percent / hundred_nm, 0.005),
         ((550, 650) * u.nm, -0.04 * u.mag,
          -3.2 * u.percent / hundred_nm, 0.01),
-        ((get_bandpass('SDSS g'), get_bandpass('SDSS r')),
+        ((bandpass('SDSS g'), bandpass('SDSS r')),
          0.21 * u.mag, 12 * u.percent / hundred_nm, 0.03),
-        ((get_bandpass('SDSS g'), get_bandpass('SDSS r')),
+        ((bandpass('SDSS g'), bandpass('SDSS r')),
          -0.15 * u.mag, -10 * u.percent / hundred_nm, 0.005),
     ))
     def test_to_color(self, wfb, color0, S, atol):

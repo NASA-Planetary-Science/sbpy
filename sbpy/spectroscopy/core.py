@@ -79,9 +79,9 @@ class SpectralGradient(u.SpecificTypeQuantity):
     10.0 % / 100 nm
 
     >>> from sbpy.units import VEGAmag
-    >>> from sbpy.utils import get_bandpass
-    >>> V = get_bandpass('Johnson V')
-    >>> R = get_bandpass('Cousins R')
+    >>> from sbpy.photometry import bandpass
+    >>> V = bandpass('Johnson V')
+    >>> R = bandpass('Cousins R')
     >>> VmR = 15.8 * VEGAmag - 15.3 * VEGAmag
     >>> VmR_sun = 0.37 * u.mag
     >>> S = SpectralGradient.from_color((V, R), VmR - VmR_sun)

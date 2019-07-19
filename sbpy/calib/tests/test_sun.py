@@ -6,7 +6,7 @@ import numpy as np
 import astropy.units as u
 from astropy.tests.helper import remote_data
 from ...units import JMmag, VEGAmag
-from ...utils import get_bandpass
+from ...photometry import bandpass
 from .. import *
 
 try:
@@ -84,7 +84,7 @@ class TestSun:
            36.7e-10 ergs/s/cm2/Å.
         """
         sun = Sun.from_builtin('E490_2014')
-        V = get_bandpass('johnson v')
+        V = bandpass('johnson v')
         weff, fluxd = sun.observe_bandpass(V, unit='erg/(s cm2 AA)')
         assert np.isclose(weff.value, 5502, rtol=0.001)
         assert np.isclose(fluxd.value, 183.94, rtol=0.0003)
@@ -97,7 +97,7 @@ class TestSun:
 
         """
         sun = Sun.from_builtin('E490_2014')
-        V = get_bandpass('johnson v')
+        V = bandpass('johnson v')
         fluxd = sun.observe(V, unit=JMmag)
         assert np.isclose(fluxd.value, -26.75, atol=0.006)
 
@@ -109,7 +109,7 @@ class TestSun:
 
         """
         sun = Sun.from_builtin('E490_2014')
-        V = get_bandpass('johnson v')
+        V = bandpass('johnson v')
         fluxd = sun.observe(V, unit=u.ABmag)
         assert np.isclose(fluxd.value, -26.77, atol=0.007)
 
@@ -121,7 +121,7 @@ class TestSun:
 
         """
         sun = Sun.from_builtin('E490_2014')
-        V = get_bandpass('johnson v')
+        V = bandpass('johnson v')
         fluxd = sun.observe(V, unit=u.STmag)
         assert np.isclose(fluxd.value, -26.76, atol=0.003)
 
@@ -146,7 +146,7 @@ class TestSun:
 
         """
         sun = Sun.from_builtin('Kurucz1993')
-        V = get_bandpass('johnson v')
+        V = bandpass('johnson v')
         fluxd = sun.observe(V, unit=u.ABmag)
         assert np.isclose(fluxd.value, -26.77, atol=0.005)
 

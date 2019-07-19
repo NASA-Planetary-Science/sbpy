@@ -11,13 +11,13 @@ from astropy.utils.data import get_pkg_data_filename
 import synphot
 from .. import core
 from ..core import *
-from ...utils import get_bandpass
+from ...photometry import bandpass
 from ...calib import (vega_spectrum, vega_fluxd, solar_fluxd,
                       solar_spectrum, Sun, Vega, UndefinedSourceError)
 from ...exceptions import OptionalPackageUnavailable
 
 
-JohnsonV = get_bandpass('Johnson V')
+JohnsonV = bandpass('Johnson V')
 
 
 @pytest.mark.parametrize('unit,test', (

@@ -156,11 +156,11 @@ Get the default solar spectrum, observe it through the Johnson V-band filter (di
 .. doctest-requires:: synphot
 
   >>> from sbpy.calib import Sun
-  >>> from sbpy.utils import get_bandpass
+  >>> from sbpy.photometry import bandpass
   >>> from sbpy.units import JMmag
   >>>
   >>> sun = Sun.from_default()
-  >>> bp = get_bandpass('Johnson V')
+  >>> bp = bandpass('Johnson V')
   >>> fluxd = sun.observe(bp, unit=JMmag)
   >>> print(fluxd)    # doctest: +FLOAT_CMP
   -26.744715028702647 mag(JM)
