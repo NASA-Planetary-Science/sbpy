@@ -23,7 +23,7 @@ four models classes `~sbpy.photometry.HG`, `~sbpy.photometry.HG1G2`,
 `~sbpy.photometry.HG12`, and `~sbpy.photometry.HG12_Pen16`, respectively.
 
 The photometric model class can be initialized with the default parameters,
-by supplying the model parameters as either dimensionless numbers or the
+by supplying the model parameters as either dimensionless numbers or
 `~astropy.units.Quantity`:
 
   >>> import astropy.units as u
@@ -85,8 +85,8 @@ Note that  model set is not supported.  Only one model can be initialized with
 the first set of valid parameters in the input `~sbpy.data.DataClass`.
 
 To fit a photometric model, one may follow the standard procedure defined in
-``astropy.modeling`` submodule, first initializing a model, then using one of
-the fitter classes defined in ``astropy``'s `~astropy.modeling.fitting`
+`astropy.modeling` submodule, first initializing a model, then using one of
+the fitter classes defined in `astropy.modeling.fitting`
 submodule, such as `~astropy.modeling.fitting.LevMarLSQFitter`.
 
   >>> import numpy as np
@@ -145,7 +145,7 @@ initialize a model directly from data by fitting.
 
 Filter Bandpasses
 -----------------
-A few filter bandpasses are included with `sbpy` for internal tests and your convenience.  The function `~sbpy.photometry.bandpass` will return the filter transmission as a `~synphot.SpectralElement` (requires `~synphot`):
+A few filter bandpasses are included with `sbpy` for internal tests and your convenience.  The function `~sbpy.photometry.bandpass` will return the filter transmission as a `~synphot.spectrum.SpectralElement` (requires `synphot`):
 
   >>> from sbpy.photometry import bandpass
   >>> bp = bandpass('Cousins R')
@@ -157,7 +157,7 @@ For other bandpasses, obtain the photon-counting relative spectral response curv
   >>> from synphot import SpectralElement             # doctest: +SKIP
   >>> bp = SpectralElement.from_file('filename.txt')  # doctest: +SKIP
 
-See `~synphot.SpectralElement` for other options and file format details.
+See `synphot.spectrum.SpectralElement` for other options and file format details.
 
 Reference/API
 -------------

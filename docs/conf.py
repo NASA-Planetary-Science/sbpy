@@ -180,3 +180,6 @@ github_issues_url = 'https://github.com/{0}/issues/'.format(
 # --- intersphinx setup
 intersphinx_mapping['astroquery'] = (
     'https://astroquery.readthedocs.io/en/latest/', None)
+
+intersphinx_mapping['syphot'] = (
+    'https://synphot.readthedocs.io/en/latest/', None)
