@@ -434,8 +434,8 @@ class Afrho(DustComaQuantity):
 
         In magnitudes through the Johnson V filter:
         >>> import sbpy.units as sbu
-        >>> import sbpy.utils
-        >>> bp = sbpy.utils.get_bandpass('Johnson V')
+        >>> from sbpy.photometry import bandpass
+        >>> bp = bandpass('Johnson V')
         >>> fluxd = afrho.to_fluxd(bp, aper, eph, unit=sbu.JMmag,
         ...                     phasecor=True)
         >>> print(fluxd)    # doctest: +FLOAT_CMP

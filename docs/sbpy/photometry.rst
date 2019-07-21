@@ -5,7 +5,8 @@ Introduction
 ------------
 
 `~sbpy.photometry` provides routines for photometric phase curve
-modeling of small bodies.
+modeling of small bodies, and for retrieving `sbpy`'s built-in filter
+bandpasses.
 
 
 Disk-integrated Phase Function Models
@@ -22,7 +23,7 @@ four models classes `~sbpy.photometry.HG`, `~sbpy.photometry.HG1G2`,
 `~sbpy.photometry.HG12`, and `~sbpy.photometry.HG12_Pen16`, respectively.
 
 The photometric model class can be initialized with the default parameters,
-by supplying the model parameters as either dimensionless numbers or the
+by supplying the model parameters as either dimensionless numbers or
 `~astropy.units.Quantity`:
 
   >>> import astropy.units as u
@@ -84,8 +85,8 @@ Note that  model set is not supported.  Only one model can be initialized with
 the first set of valid parameters in the input `~sbpy.data.DataClass`.
 
 To fit a photometric model, one may follow the standard procedure defined in
-``astropy.modeling`` submodule, first initializing a model, then using one of
-the fitter classes defined in ``astropy``'s `~astropy.modeling.fitting`
+`astropy.modeling` submodule, first initializing a model, then using one of
+the fitter classes defined in `astropy.modeling.fitting`
 submodule, such as `~astropy.modeling.fitting.LevMarLSQFitter`.
 
   >>> import numpy as np
@@ -141,6 +142,22 @@ initialize a model directly from data by fitting.
       ----------------- ------------------
       3.424576008941485 0.8052670564595159
 
+
+Filter Bandpasses
+-----------------
+A few filter bandpasses are included with `sbpy` for internal tests and your convenience.  The function `~sbpy.photometry.bandpass` will return the filter transmission as a `~synphot.spectrum.SpectralElement` (requires `synphot`):
+
+  >>> from sbpy.photometry import bandpass
+  >>> bp = bandpass('Cousins R')
+  >>> print(bp.avgwave())    # doctest: +FLOAT_CMP
+  6499.914781904409 Angstrom
+
+For other bandpasses, obtain the photon-counting relative spectral response curves as a two-column file.  If the first column is wavelength in Angstroms, and the second is the response, then read the file with:
+
+  >>> from synphot import SpectralElement             # doctest: +SKIP
+  >>> bp = SpectralElement.from_file('filename.txt')  # doctest: +SKIP
+
+See `synphot.spectrum.SpectralElement` for other options and file format details.
 
 Reference/API
 -------------

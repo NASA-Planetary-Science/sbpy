@@ -11,7 +11,7 @@ from ..core import CircularAperture
 from ...calib import solar_fluxd
 from ...units import VEGAmag, JMmag
 from ...data import Ephem
-from ... import utils
+from ... import photometry
 
 
 Wm2um = u.W / u.m**2 / u.um
@@ -107,7 +107,7 @@ class TestAfrho:
         cal = {}
         if isinstance(wfb, str):
             if S is None:
-                wfb = utils.get_bandpass(wfb)
+                wfb = photometry.bandpass(wfb)
             else:
                 cal = {wfb: S}
 

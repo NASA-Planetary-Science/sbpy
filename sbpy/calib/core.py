@@ -645,9 +645,9 @@ class Sun(SpectralStandard):
 
     Observe as through a filter, integrating with the bandpass transmission:
 
-    >>> from sbpy.utils import get_bandpass
+    >>> from sbpy.photometry import bandpass
     >>> sun = Sun.from_default()
-    >>> v = get_bandpass('Johnson V')
+    >>> v = bandpass('Johnson V')
     >>> print(sun.observe(v))                  # doctest: +FLOAT_CMP
     1839.93273227  W / (m2 um)
 
@@ -719,8 +719,8 @@ class Vega(SpectralStandard):
     >>> spec = vega.observe(wave)
 
     Observe Vega through a filter:
-    >>> import sbpy.utils
-    >>> V = sbpy.utils.get_bandpass('Johnson V')
+    >>> from sbpy.photometry import bandpass
+    >>> V = bandpass('Johnson V')
     >>> fluxd = vega.observe(V)
 
     User provided calibration:

@@ -68,8 +68,8 @@ To use a bandpass, pass the name as a string (see
 of `~synphot.spectrum.SpectralElement`:
 
   >>> from sbpy.units import VEGAmag, spectral_density_vega
-  >>> from sbpy.utils import get_bandpass
-  >>> V = get_bandpass('Johnson V')
+  >>> from sbpy.photometry import bandpass
+  >>> V = bandpass('Johnson V')
   >>> m = 0.0 * VEGAmag
   >>> fluxd = m.to('erg/(cm2 s AA)', spectral_density_vega(V))
   >>> fluxd.value                   # doctest: +FLOAT_CMP
@@ -105,8 +105,8 @@ phase angle can be calculated:
 
 `~sbpy.units.reflectance` works with `sbpy`'s spectral calibration system (see :ref:`sbpy_calib`):
 
-  >>> from sbpy.utils import get_bandpass
-  >>> V = get_bandpass('Johnson V')
+  >>> from sbpy.photometry import bandpass
+  >>> V = bandpass('Johnson V')
   >>> ref = 0.0287 / u.sr
   >>> cross_sec = mag.to('km2', reflectance(V, reflectance=ref))
   >>> radius = np.sqrt(cross_sec / np.pi)

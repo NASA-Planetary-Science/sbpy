@@ -5,7 +5,8 @@ import numpy as np
 import astropy.units as u
 import synphot
 from ... import units as sbu
-from ... import utils, bib
+from ... import bib
+from ...photometry import bandpass
 from ...spectroscopy import sources
 from ..core import SpectralStandard
 from .. import core as calib_core
@@ -179,13 +180,13 @@ class TestSpectralStandard:
         w = u.Quantity(np.linspace(0.3, 1.0), 'um')
         f = u.Quantity(np.ones(len(w)), 'W/(m2 um)')
         s = Star.from_array(w, f)
-        V = utils.get_bandpass('johnson v')
+        V = bandpass('johnson v')
         mag = s.observe(V, unit=sbu.VEGAmag)
         # -18.60 is -2.5 * log10(3636e-11)
         assert np.isclose(mag.value, -18.60, atol=0.02)
 
     @pytest.mark.parametrize('wfb, test, atol', (
-        ((utils.get_bandpass('johnson v'), utils.get_bandpass('cousins i')),
+        ((bandpass('johnson v'), bandpass('cousins i')),
          0.0140 * sbu.VEGAmag, 0.004),
         ((600 * u.nm, 750 * u.nm), -0.2422 * u.ABmag, 0.001)
     ))
