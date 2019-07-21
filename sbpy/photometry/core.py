@@ -565,11 +565,11 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
                 if init is None:
                     m0 = cls()
                 else:
-                    m0 = cls(*init[:,i])
+                    m0 = cls(*init[:, i])
                 m = fitter(m0, pha, mag0, **kwargs)
-                par[:,i] = m.parameters
+                par[:, i] = m.parameters
             pars_list = []
-            for i,p_name in enumerate(cls.param_names):
+            for i, p_name in enumerate(cls.param_names):
                 p = getattr(m, p_name)
                 if p.unit is None:
                     pars_list.append(par[i])
