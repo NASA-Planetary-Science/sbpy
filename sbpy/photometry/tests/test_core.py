@@ -209,12 +209,42 @@ class TestHG:
              8.40595306]) * u.mag
         from astropy.modeling.fitting import LevMarLSQFitter
         fitter = LevMarLSQFitter()
-        m = HG.from_obs({'alpha': pha, 'mag': data}, 'mag', fitter)
+        # test fit with one column
+        m = HG.from_obs({'alpha': pha, 'mag': data}, fitter)
         assert isinstance(m, HG)
         assert isinstance(m.H, Parameter) & np.isclose(
             m.H.value, 3.436677) & (m.H.unit == u.mag)
         assert isinstance(m.G, Parameter) & np.isclose(
             m.G.value, 0.1857588) & (m.G.unit == u.dimensionless_unscaled)
+        # test fit with one column and `init` parameters
+        m = HG.from_obs({'alpha': pha, 'mag': data}, fitter, init=[3, 0.1])
+        assert isinstance(m, HG)
+        assert isinstance(m.H, Parameter) & np.isclose(
+            m.H.value, 3.4366849) & (m.H.unit == u.mag)
+        assert isinstance(m.G, Parameter) & np.isclose(
+            m.G.value, 0.18576319) & (m.G.unit == u.dimensionless_unscaled)
+        # test fit with more than one column
+        m = HG.from_obs({'alpha': pha, 'mag': data, 'mag1': data,
+            'mag2': data}, fitter, fields=['mag', 'mag1', 'mag2'])
+        assert isinstance(m, HG)
+        assert isinstance(m.H, Parameter) & np.allclose(
+            m.H.value, [3.436677]*3) & (m.H.unit == u.mag)
+        assert isinstance(m.G, Parameter) & np.allclose(
+            m.G.value, [0.1857588]*3) & (m.G.unit == u.dimensionless_unscaled)
+        assert 'fields' in m.meta
+        assert m.meta['fields'] == ['mag', 'mag1', 'mag2']
+        # test fit with more than one column with `init` parameters
+        m = HG.from_obs({'alpha': pha, 'mag': data, 'mag1': data,
+            'mag2': data}, fitter, fields=['mag', 'mag1', 'mag2'],
+            init=[[3., 3., 3.],[0.1, 0.1, 0.1]])
+        assert isinstance(m, HG)
+        assert isinstance(m.H, Parameter) & np.allclose(
+            m.H.value, [3.4366849]*3) & (m.H.unit == u.mag)
+        assert isinstance(m.G, Parameter) & np.allclose(
+            m.G.value, [0.18576319]*3) & (m.G.unit == u.dimensionless_unscaled)
+        assert 'fields' in m.meta
+        assert m.meta['fields'] == ['mag', 'mag1', 'mag2']
+
 
     def test_to_mag(self):
         ceres = HG(3.34, 0.12, radius=480)
@@ -432,7 +462,7 @@ class TestHG1G2:
              11.43888611]) * u.mag
         from astropy.modeling.fitting import LevMarLSQFitter
         fitter = LevMarLSQFitter()
-        m = HG1G2.from_obs({'alpha': pha, 'mag': data}, 'mag', fitter)
+        m = HG1G2.from_obs({'alpha': pha, 'mag': data}, fitter)
         assert isinstance(m, HG1G2)
         assert isinstance(m.H, Parameter) & np.isclose(
             m.H.value, 7.1167) & (m.H.unit == u.mag)
@@ -556,7 +586,7 @@ class TestHG12:
              11.61018708]) * u.mag
         from astropy.modeling.fitting import LevMarLSQFitter
         fitter = LevMarLSQFitter()
-        m = HG12.from_obs({'alpha': pha, 'mag': data}, 'mag', fitter)
+        m = HG12.from_obs({'alpha': pha, 'mag': data}, fitter)
         assert isinstance(m, HG12)
         assert isinstance(m.H, Parameter) & np.isclose(
             m.H.value, 7.13939) & (m.H.unit == u.mag)
@@ -666,7 +696,7 @@ class TestHG12_Pen16:
              11.40468613]) * u.mag
         from astropy.modeling.fitting import LevMarLSQFitter
         fitter = LevMarLSQFitter()
-        m = HG12_Pen16.from_obs({'alpha': pha, 'mag': data}, 'mag', fitter)
+        m = HG12_Pen16.from_obs({'alpha': pha, 'mag': data}, fitter)
         assert isinstance(m, HG12_Pen16)
         assert isinstance(m.H, Parameter) & np.isclose(
             m.H.value, 7.091456) & (m.H.unit == u.mag)

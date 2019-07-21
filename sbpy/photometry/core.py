@@ -485,7 +485,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         return Phys.from_dict(cols)
 
     @classmethod
-    def from_obs(cls, obs, mag, fitter, init=None, **kwargs):
+    def from_obs(cls, obs, fitter, fields='mag', init=None, **kwargs):
         """Instantiate a photometric model class object from data
 
         Parameters
@@ -496,10 +496,17 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
             `~sbpy.data.DataClass`).  If any distance (heliocentric and
             geocentric) is provided, then they will be used to correct
             magnitude to 1 au before fitting.
-        mag : str, `~astropy.units.Quantity`
-            Magnitude data to be fitted
         fitter : `~astropy.modeling.fitting.Fitter`
             The fitter to be used for fitting.
+        fields : str or array_like of str
+            The field name or names in ``obs`` to be fitted.  If an array_like
+            str, then multiple fields will be fitted one by one and a model
+            set will be returned.  In this case, ``.meta['fields']`` of the
+            returned object contains the names of fields fitted.
+        init : numpy array, `~astropy.units.Quantity`, optional
+            The initial parameters for model fitting.  Its first dimension has
+            the length of the model parameters, and its second dimension has
+            the length of ``n_model`` if multiple models are fitted.
         **kwargs : Keyword parameters accepted by `fitter()`.
             Note that the magnitude uncertainty can also be supplied to the fit
             via `weights` keyword for all fitters provided by
@@ -522,19 +529,57 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         """
         obs, pha = _process_ephem_input(obs, 'alpha')
 
-        if init is None:
-            m0 = cls()
+        if isinstance(fields, (str, bytes)):
+            n_models = 1
         else:
-            m0 = cls(*init)
+            n_models = len(fields)
+        if init is not None:
+            init = np.asanyarray(init)
 
-        mag = obs[mag]
-        dist_corr = m0._distance_module(obs)
-        if isinstance(mag, u.Quantity):
-            dist_corr = dist_corr * u.mag
-        mag0 = mag + dist_corr
-
-        model = fitter(m0, pha, mag0, **kwargs)
-        return model
+        dist_corr = cls()._distance_module(obs)
+        if n_models == 1:
+            mag = obs[fields]
+            if isinstance(mag, u.Quantity):
+                dist_corr = dist_corr * u.mag
+            mag0 = mag + dist_corr
+            if init is None:
+                m0 = cls()
+            else:
+                m0 = cls(*init)
+            return fitter(m0, pha, mag0, **kwargs)
+        else:
+            if init is not None:
+                sz1 = init.shape
+                sz2 = len(cls.param_names), n_models
+                if sz1 != sz2:
+                    raise ValueError('`init` must have a shape of ({}, {}),'
+                        ' shape {} is given.'.format(sz2[0], sz2[1], sz1))
+            par = np.zeros((len(cls.param_names), n_models))
+            for i in range(n_models):
+                mag = obs[fields[i]]
+                if isinstance(mag, u.Quantity):
+                    dist_corr1 = dist_corr * u.mag
+                else:
+                    dist_corr1 = dist_corr
+                mag0 = mag + dist_corr1
+                if init is None:
+                    m0 = cls()
+                else:
+                    m0 = cls(*init[:,i])
+                m = fitter(m0, pha, mag0, **kwargs)
+                par[:,i] = m.parameters
+            pars_list = []
+            for i,p_name in enumerate(cls.param_names):
+                p = getattr(m, p_name)
+                if p.unit is None:
+                    pars_list.append(par[i])
+                else:
+                    pars_list.append(par[i]*p.unit)
+            model = cls(*pars_list)
+            if not isinstance(model.meta, dict):
+                model.meta = OrderedDict()
+            model.meta['fields'] = fields
+            return model
 
     def _distance_module(self, eph):
         """Return the correction magnitude or factor for heliocentric distance
@@ -555,10 +600,9 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         Returns
         -------
         float or numpy array
-            Magnitude correction to be added or scaling factor to be
-            multiplied to the apparent magnitude or flux, respectively, in
-            order to correct to heliocentric distance and observer distance of
-            both 1 au.
+            Factors to be applied to flux to correct to heliocentric distance
+            and observer distance of both 1 au.  The unit of correction
+            (linear or magnitude) is determined by ``._unit``.
         """
         eph, dummy = _process_ephem_input(eph)
         module = 1.
@@ -635,7 +679,8 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         if self._unit != 'mag':
             if self.radius is None:
                 raise ValueError(
-                    'cannot calculate phase funciton in magnitude because the size of object is unknown')
+                    'Cannot calculate phase funciton in magnitude because the'
+                    ' size of object is unknown')
             out = ref2mag(out, self.radius, M_sun=self.M_sun)
         else:
             dist_corr = self._distance_module(eph)
