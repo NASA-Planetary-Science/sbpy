@@ -575,7 +575,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
                     pars_list.append(par[i])
                 else:
                     pars_list.append(par[i]*p.unit)
-            model = cls(*pars_list)
+            model = cls(*pars_list, n_models=n_models)
             if not isinstance(model.meta, dict):
                 model.meta = OrderedDict()
             model.meta['fields'] = fields
