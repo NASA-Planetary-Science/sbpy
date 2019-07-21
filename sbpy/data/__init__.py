@@ -315,4 +315,4 @@ from .obs import Obs
 from .names import Names, natural_sort_key
 
 __all__ = ['DataClass', 'Ephem', 'Obs', 'Orbit', 'Phys', 'Names',
-           'conf', 'Conf', 'DataClassError']
+           'conf', 'Conf', 'DataClassError', 'quantity_to_dataclass']

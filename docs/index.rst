@@ -126,7 +126,8 @@ Developer Documentation
 .. toctree::
    :maxdepth: 2
 
-   development/index.rst   
+   development/index.rst
+   development/design-principles.rst
 
    
 ***************  
