@@ -142,8 +142,8 @@ def cite(citations):
     Examples
     --------
     >>> @cite({'method': '1687pnpm.book.....N'})
-    ... def force(mass, accelleration):
-    ...     return mass * accelleration
+    ... def force(mass, acceleration):
+    ...     return mass * acceleration
     >>>
     >>> with Tracking(to_text):
     ...     print(force(1, 2))    # doctest: +REMOTE_DATA
