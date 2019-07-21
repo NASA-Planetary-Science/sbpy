@@ -1,5 +1,5 @@
-Photometry Module (`sbpy.units`)
-=====================================
+Units Module (`sbpy.units`)
+===========================
 
 Introduction
 ------------
