@@ -99,38 +99,30 @@ submodule, such as `~astropy.modeling.fitting.LevMarLSQFitter`.
   >>> fitter = LevMarLSQFitter()
   >>> model2 = HG()
   >>> model2 = fitter(model2, alpha, mag)
-  >>> print(model2)  # doctest: +SKIP
-  Model: HG
-  Inputs: ('x',)
-  Outputs: ('y',)
-  Model set size: 1
-  Parameters:
-              H                  G
-
-      ----------------- -------------------
-      3.305001580933622 0.08532754955207918
 
 Alternatively, one may use the class method
 `~sbpy.photometry.DiskIntegratedPhaseFunc.from_obs` to
 initialize a model directly from an `~sbpy.data.Obs` object by fitting the
 data contained therein.
 
-  >>> # use class method .from_data
+  >>> # use class method .from_obs
   >>> from astropy.modeling.fitting import LevMarLSQFitter
   >>> fitter = LevMarLSQFitter()
   >>> from sbpy.data import Obs
   >>> obs = Obs.from_dict({'alpha': alpha, 'mag': mag})
-  >>> model3 = HG12.from_obs(obs, 'mag', fitter)
-  >>> print(model3)  # doctest: +SKIP
-  Model: HG12
-  Inputs: ('x',)
-  Outputs: ('y',)
-  Model set size: 1
-  Parameters:
-              H                G12
+  >>> model3 = HG12.from_obs(obs, fitter, 'mag')
 
-      ----------------- ------------------
-      3.424576008941485 0.8052670564595159
+One can also initialize a model set from multiple columns in the input
+`~sbpy.data.Obs` object if it contains more than one columns of brightness
+measurements.  The columns to be fitted are specified by a keyward argument
+``fields``.  By default, the column ``'mag'`` will be fitted.
+
+  >>> # Initialize model set
+  >>> model4 = HG(5.2, 0.18)
+  >>> mag4 = model4(alpha) + np.random.rand(20)*0.2-0.1
+  >>> fitter = LevMarLSQFitter()
+  >>> obs = Obs.from_dict({'alpha': alpha, 'mag': mag, 'mag1': mag4})
+  >>> model5 = HG.from_obs(obs, fitter, fields=['mag', 'mag1'])
 
 
 Filter Bandpasses
