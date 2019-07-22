@@ -94,7 +94,7 @@ class Conf():
          'provenance': ['ephem', 'obs'],
          'dimension': 'angle'},
         {'description': 'Solar Phase Angle',
-         'fieldnames': ['alpha', 'phaseangle', 'Phase'],
+         'fieldnames': ['alpha', 'phaseangle', 'Phase', 'phase'],
          'provenance': ['ephem', 'obs'],
          'dimension': 'angle'},
         {'description': 'Solar Elongation Angle',

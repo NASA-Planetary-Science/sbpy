@@ -15,7 +15,7 @@ fluorescence_band_strength - Fluorescence band efficiency of a specific
 
 Classes
 -------
-Activity            - Abstract base class for gas coma models.
+GasComa             - Abstract base class for gas coma models.
 Haser               - Haser coma model for gas (Haser 1957).
 Vectorial           - Vectorial coma model for gas (Festou 1981).
 
@@ -48,7 +48,7 @@ from astropy.table import Table
 from astropy.utils.exceptions import AstropyWarning
 from ... import bib
 from .. core import (Aperture, RectangularAperture, GaussianAperture,
-                   AnnularAperture, CircularAperture)
+                     AnnularAperture, CircularAperture)
 from .. core import rho_as_length
 
 
@@ -600,10 +600,9 @@ class Haser(GasComa):
 
     """
 
+    @bib.cite({'model': '1957BSRSL..43..740H'})
     def __init__(self, Q, v, parent, daughter=None):
         super().__init__(Q, v)
-
-        bib.register('activity.gas.Haser', {'model': '1957BSRSL..43..740H'})
 
         if not parent.unit.is_equivalent(u.m):
             raise ValueError('parent must have units of length')
@@ -643,10 +642,8 @@ class Haser(GasComa):
             raise AstropyWarning('scipy is not present, cannot continue.')
         return special.k1(x.decompose().value)
 
+    @bib.cite({'model': '1978Icar...35..360N'})
     def column_density(self, rho, eph=None):
-        bib.register('activity.gas.Haser.column_density',
-                     {'model': '1978Icar...35..360N'})
-
         r = rho_as_length(rho, eph=eph)
         x = 0 if self.parent is None else (r / self.parent).decompose()
         y = 0 if self.daughter is None else (r / self.daughter).decompose()
@@ -662,10 +659,8 @@ class Haser(GasComa):
         return sigma.decompose()
     column_density.__doc__ = GasComa.column_density.__doc__
 
+    @bib.cite({'model': '1978Icar...35..360N'})
     def total_number(self, aper, eph=None):
-        bib.register('activity.gas.Haser.total_number',
-                     {'model': '1978Icar...35..360N'})
-
         # Inspect aper and handle as appropriate
         if isinstance(aper, Aperture):
             aper = aper.as_length(eph)

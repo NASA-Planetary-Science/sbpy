@@ -16,7 +16,6 @@ Classes
 -------
 Afrho     - Coma dust quantity for scattered light.
 Efrho     - Coma dust quantity for thermal emission.
-Syndynes  - Dust dynamical model for zero-ejection velocities.
 
 
 """
@@ -24,8 +23,7 @@ Syndynes  - Dust dynamical model for zero-ejection velocities.
 __all__ = [
     'phase_HalleyMarcus',
     'Afrho',
-    'Efrho',
-    'Syndynes'
+    'Efrho'
 ]
 
 
@@ -35,15 +33,20 @@ import abc
 import numpy as np
 import astropy.units as u
 
-from astropy.utils.exceptions import AstropyWarning
 from .. import bib
 from ..calib import Sun
 from ..spectroscopy import BlackbodySource
-from ..data import Ephem
+from .. import data as sbd
+from .. import exceptions as sbe
 from ..spectroscopy.sources import SinglePointSpectrumError
 from .core import Aperture, rho_as_length
 
 
+@bib.cite({
+    'Halley-Marcus phase function': '2011AJ....141..177S',
+    'Halley phase function': '1998Icar..132..397S',
+    'Marcus phase function': '2007ICQ....29...39M'
+})
 def phase_HalleyMarcus(phase):
     """Halley-Marcus composite dust phase function.
 
@@ -105,15 +108,6 @@ def phase_HalleyMarcus(phase):
     except ImportError:
         scipy = None
 
-    bib.register(
-        'activity.dust.phase_HalleyMarcus',
-        {
-            'Halley-Marcus phase function': '2011AJ....141..177S',
-            'Halley phase function': '1998Icar..132..397S',
-            'Marcus phase function': '2007ICQ....29...39M'
-        }
-    )
-
     th = np.arange(181)
     ph = np.array(
         [1.0000e+00, 9.5960e-01, 9.2170e-01, 8.8590e-01,
@@ -168,7 +162,7 @@ def phase_HalleyMarcus(phase):
     if scipy:
         Phi = splev(_phase, splrep(th, ph))
     else:
-        warn(AstropyWarning(
+        warn(sbe.OptionalPackageUnavailable(
             'scipy is not present, using linear interpolation.'))
         Phi = np.interp(_phase, th, ph)
 
@@ -199,6 +193,7 @@ class DustComaQuantity(u.SpecificTypeQuantity, abc.ABC,
     def from_fluxd(cls, wfb, fluxd, aper, eph, **kwargs):
         """Initialize from spectral flux density.
 
+
         Parameters
         ----------
         wfb : `~astropy.units.Quantity`, `~synphot.SpectralElement`, list
@@ -214,8 +209,8 @@ class DustComaQuantity(u.SpecificTypeQuantity, abc.ABC,
             or angular units), or as an `~sbpy.activity.Aperture`.
 
         eph: dictionary-like, `~sbpy.data.Ephem`
-            Ephemerides of the comet, requires heliocentric distance
-            and observer-comet distance.
+            Ephemerides of the comet.  Required fields: 'rh', 'delta'.
+            Optional: 'phase'.
 
         **kwargs
             Keyword arguments for `~to_fluxd`.
@@ -232,6 +227,7 @@ class DustComaQuantity(u.SpecificTypeQuantity, abc.ABC,
 
         return coma
 
+    @sbd.dataclass_input(eph=sbd.Ephem)
     def to_fluxd(self, wfb, aper, eph, unit=None, **kwargs):
         """Express as spectral flux density in an observation.
 
@@ -250,8 +246,8 @@ class DustComaQuantity(u.SpecificTypeQuantity, abc.ABC,
             or angular units), or as an sbpy `~sbpy.activity.Aperture`.
 
         eph: dictionary-like, `~sbpy.data.Ephem`
-            Ephemerides of the comet, requires heliocentric distance
-            and observer-comet distance.
+            Ephemerides of the comet.  Required fields: 'rh', 'delta'.
+            Optional: 'phase'.
 
         unit : `~astropy.units.Unit`, string, optional
             The flux density unit for the output.
@@ -260,10 +256,6 @@ class DustComaQuantity(u.SpecificTypeQuantity, abc.ABC,
 
         # This method handles the geometric quantities.  Sub-classes
         # will handle the photometric quantities in `_source_fluxd`.
-
-        # validate eph
-        if not isinstance(eph, Ephem):
-            eph = Ephem.from_dict(eph)
 
         # rho = effective circular aperture radius at the distance of
         # the comet.  Keep track of array dimensionality as Ephem
@@ -443,11 +435,9 @@ class Afrho(DustComaQuantity):
 
         """
 
+    @bib.cite({'model': '1984AJ.....89..579A'})
     def _source_fluxd(self, wfb, eph, unit=None, phasecor=False,
                       Phi=None, **kwargs):
-        bib.register('activity.dust.Afrho', {
-                     'model': '1984AJ.....89..579A'})
-
         # get solar flux density
         sun = Sun.from_default()
         try:
@@ -617,10 +607,8 @@ class Efrho(DustComaQuantity):
 
     """
 
+    @bib.cite({'model': '2013Icar..225..475K'})
     def _source_fluxd(self, wfb, eph, unit=None, Tscale=1.1, T=None, B=None):
-        bib.register('activity.dust.Efrho',
-                     {'model': '2013Icar..225..475K'})
-
         if T is None:
             T = Tscale * 278 / np.sqrt(eph['rh'].to('au').value)
 
@@ -639,57 +627,3 @@ class Efrho(DustComaQuantity):
                     'flux density, e.g., W/m2/μm or W/m2/Hz')
 
         return B
-
-
-class Syndynes:
-    """Syndyne and synchrone generator.
-
-
-    Parameters
-    ----------
-    orbit : `~sbpy.data.Orbit`
-        Comet orbital parameters.
-
-    date : `~astropy.time.Time`
-        Date of observation.
-
-    location : various, optional
-        IAU observatory code as a string; a location on the Earth as
-        an `~astropy.coordinates.EarthLocation`; or, a location in the
-        Solar System via :mod"`~astropy.coordinates` objects, e.g.,
-        `~astropy.coordinates.HeliocentricTrueEcliptic`.
-
-    """
-
-    def __init__(self, orb, date, location='500'):
-        self.orb = orb
-        self.date = date
-        raise NotImplementedError
-
-    def plot_syndynes(self, beta, age):
-        """Plot syndynes for an observer.
-
-
-        Parameters
-        ----------
-        beta: array-like
-            Test particle β values.
-
-        age: `~astropy.units.Quantity`
-            Test particle ages.
-
-
-        Returns
-        -------
-        ax: `~matplotlib.pyplot.Axes`
-
-
-        Examples
-        --------
-        TBD
-
-        not yet implemented
-
-        """
-
-        pass
