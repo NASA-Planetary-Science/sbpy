@@ -39,7 +39,7 @@ from astropy.utils.exceptions import AstropyWarning
 from .. import bib
 from ..calib import Sun
 from ..spectroscopy import BlackbodySource
-from ..data import Ephem
+from .. import data as sbd
 from ..spectroscopy.sources import SinglePointSpectrumError
 from .core import Aperture, rho_as_length
 
@@ -199,6 +199,7 @@ class DustComaQuantity(u.SpecificTypeQuantity, abc.ABC,
     def from_fluxd(cls, wfb, fluxd, aper, eph, **kwargs):
         """Initialize from spectral flux density.
 
+
         Parameters
         ----------
         wfb : `~astropy.units.Quantity`, `~synphot.SpectralElement`, list
@@ -214,8 +215,8 @@ class DustComaQuantity(u.SpecificTypeQuantity, abc.ABC,
             or angular units), or as an `~sbpy.activity.Aperture`.
 
         eph: dictionary-like, `~sbpy.data.Ephem`
-            Ephemerides of the comet, requires heliocentric distance
-            and observer-comet distance.
+            Ephemerides of the comet.  Required fields: 'rh', 'delta'.
+            Optional: 'phase'.
 
         **kwargs
             Keyword arguments for `~to_fluxd`.
@@ -232,6 +233,7 @@ class DustComaQuantity(u.SpecificTypeQuantity, abc.ABC,
 
         return coma
 
+    @sbd.dataclass_input(eph=sbd.Ephem)
     def to_fluxd(self, wfb, aper, eph, unit=None, **kwargs):
         """Express as spectral flux density in an observation.
 
@@ -250,8 +252,8 @@ class DustComaQuantity(u.SpecificTypeQuantity, abc.ABC,
             or angular units), or as an sbpy `~sbpy.activity.Aperture`.
 
         eph: dictionary-like, `~sbpy.data.Ephem`
-            Ephemerides of the comet, requires heliocentric distance
-            and observer-comet distance.
+            Ephemerides of the comet.  Required fields: 'rh', 'delta'.
+            Optional: 'phase'.
 
         unit : `~astropy.units.Unit`, string, optional
             The flux density unit for the output.
@@ -260,10 +262,6 @@ class DustComaQuantity(u.SpecificTypeQuantity, abc.ABC,
 
         # This method handles the geometric quantities.  Sub-classes
         # will handle the photometric quantities in `_source_fluxd`.
-
-        # validate eph
-        if not isinstance(eph, Ephem):
-            eph = Ephem.from_dict(eph)
 
         # rho = effective circular aperture radius at the distance of
         # the comet.  Keep track of array dimensionality as Ephem
