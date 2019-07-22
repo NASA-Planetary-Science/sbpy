@@ -14,11 +14,17 @@ from astropy.time import Time
 from astropy.table import vstack, Column
 from astroquery.jplhorizons import Horizons
 import astropy.units as u
+from warnings import warn
 
 from .. import bib
+from ..exceptions import SbpyException, SbpyWarning
 from . import conf, DataClass
 
 __all__ = ['Orbit']
+
+
+class OrbitTimeError(SbpyException):
+    pass
 
 
 class Orbit(DataClass):
@@ -135,9 +141,11 @@ class Orbit(DataClass):
             else:
                 all_elem = vstack([all_elem, elem])
 
-        # identify time scales returned by Horizons query
-        timescales = ['TDB'] * len(all_elem)
-        all_elem['timescale'] = timescales
+        # turn epochs into astropy.time.Time and apply timescale
+        # https://ssd.jpl.nasa.gov/?horizons_doc
+        all_elem['epoch'] = Time(all_elem['datetime_jd'], format='jd',
+                                 scale='tdb')
+        all_elem.remove_column('datetime_jd')
 
         if bib.status() is None or bib.status():
             bib.register('sbpy.data.Orbit.from_horizons',
@@ -147,23 +155,14 @@ class Orbit(DataClass):
 
     # functions using pyoorb
 
-    def _to_oo(self, timescale=None):
+    def _to_oo(self):
         """Converts this orbit object to a openorb-compatible orbit array
-
-        Parameters
-        ----------
-        timescale : str (``UTC``|``UT1``|``TT``|``TAI``)
-            overrides timescale provided in `~Orbit` object; Default:
-            ``None``.
 
         Notes
         -----
-        * If no ``timescale`` field is provided in the orbit table and the
-          ``timescale`` option is not used (None), ``timescale=UTC`` is
-          assumed.
-        * ``TDB`` times are currently used as ``TT`` times, introducing
-          uncertainties of less than 0.002 seconds in the timing.
-
+        * Epochs must be provided as `~astropy.time.Time` objects with
+          time scales that are compatible with `pyoorb`. If epochs are
+          not provided appropriately, a `OrbitTimeError` will be raised.
         """
 
         # identify orbit type based on available table columns
@@ -185,28 +184,22 @@ class Orbit(DataClass):
             raise ValueError(
                 'orbit type cannot be determined from elements')
 
-        # rename TDB to TT, if ``timescale`` fields available
-        if ('timescale' in self.field_names and
-                any(self.table['timescale'] == 'TDB')):
-            self.table['timescale'][self.table['timescale'] == 'TDB'] = 'TT'
-        if timescale == 'TDB':
-            timescale = 'TT'
-
-        if timescale is not None:
-            # override timescale, if provided
-            timescale_ = [conf.oorb_timeScales[timescale]] * len(self.table)
-        elif 'timescale' not in self.field_names:
-            # assume UTC if no timescale information provided
-            timescale_ = [conf.oorb_timeScales['UTC']] * len(self.table)
-        else:
-            # use ``timescale`` field information
-            timescale_ = [conf.oorb_timeScales[t]
-                          for t in self.table['timescale']]
-
         # implant ``targetname`` field information, if not available
         if 'targetname' not in self.field_names:
             self.table['targetname'] = ['orbit_'+str(i) for i in
                                         range(len(self.table))]
+
+        # check that epochs are astropy.time.Time
+        if not isinstance(self['epoch'][0], Time):
+            raise OrbitTimeError(
+                'epochs have to be provided as astropy.time.Time objects')
+
+        # check that pyoorb can deal with time scale
+        if self['epoch'][0].scale.upper() not in ('UTC', 'UT1', 'TT', 'TAI'):
+            raise OrbitTimeError(
+                'epochs time scale is {} but must be either of '
+                'UTC, UT1, TT, TAI for use in pyoorb'.format(
+                    self['epoch'][0].scale.upper()))
 
         # assemble orbit array for oorb_ephemeris
         if orbittype == 'COM':
@@ -221,9 +214,10 @@ class Orbit(DataClass):
                                    2400000.5),
                                   [conf.oorb_elemType[orbittype]] *
                                   len(self.table),
-                                  (self['epoch'].to('d').value
-                                   - 2400000.5),
-                                  timescale_,
+                                  self['epoch'].mjd,
+                                  ([conf.oorb_timeScales
+                                    [self['epoch'][0].scale.upper()]] *
+                                   len(self.table)),
                                   self['H'].value,
                                   self['G'].data]).transpose(),
                            dtype=double, order='F')
@@ -238,9 +232,10 @@ class Orbit(DataClass):
                                   self['M'].to('radian').value,
                                   [conf.oorb_elemType[orbittype]] *
                                   len(self.table),
-                                  (self['epoch'].to('d').value
-                                   - 2400000.5),
-                                  timescale_,
+                                  self['epoch'].mjd,
+                                  ([conf.oorb_timeScales
+                                    [self['epoch'][0].scale.upper()]] *
+                                   len(self.table)),
                                   self['H'].value,
                                   self['G'].data]).transpose(),
                            dtype=double, order='F')
@@ -255,16 +250,17 @@ class Orbit(DataClass):
                                   self['dz'].to('au/d').value,
                                   [conf.oorb_elemType[orbittype]] *
                                   len(self.table),
-                                  self['datetime_jd'].to('d').value
-                                  - 2400000.5,
-                                  timescale_,
+                                  self['epoch'].mjd,
+                                  ([conf.oorb_timeScales
+                                    [self['epoch'][0].scale.upper()]] *
+                                   len(self.table)),
                                   self['H'].data,
                                   self['G'].data]).transpose(),
                            dtype=double, order='F')
 
         return orbits
 
-    def oo_transform(self, orbittype, timescale=None, ephfile='de430'):
+    def oo_transform(self, orbittype, ephfile='de430'):
         """Uses pyoorb to transform this orbit object to a different
         orbit type definition. Required fields are:
 
@@ -290,8 +286,6 @@ class Orbit(DataClass):
           z-component of velocity vector (``'vz'``, for cartesian orbit)
           in au/day
         * epoch (``'epoch'``) in JD
-        * epoch time scale (``'epoch_scale'``) either one of:
-          ``'UTC'`` | ``'UT1'`` | ``'TT'`` | ``'TAI'``
         * absolute magnitude (``'H'``) in mag
         * photometric phase slope (``'G'``)
 
@@ -301,12 +295,6 @@ class Orbit(DataClass):
             Orbit definition to be transformed to; available orbit
             definitions are ``KEP`` (Keplerian elements), ``CART``
             (cartesian elements), ``COM`` (cometary elements).
-        timescale : str
-            Overrides time scale to be used in the transformation;
-            the following
-            values are allowed: ``'UTC'``, ``'UT1'``, ``'TT'``,
-            ``'TAI'``. If ``None`` is used, the same time scale as in the
-            existing orbit is used. Default: ``None``
         ephfile : str, optional
             Planet and Lunar ephemeris file version as provided by JPL
             to be used in the propagation. Default: ``'de430'``
@@ -341,8 +329,8 @@ class Orbit(DataClass):
             ephfile = os.path.join(os.getenv('OORB_DATA'), ephfile+'.dat')
             pyoorb.pyoorb.oorb_init(ephfile)
 
-        if timescale is None:
-            timescale = self.table['timescale'][0]
+        # extract time scale
+        timescale = self.table['epoch'][0].scale.upper()
 
         # derive and apply default units
         default_units = {}
@@ -358,8 +346,12 @@ class Orbit(DataClass):
                                (u.Quantity, u.CompositeUnit))):
                 self[colname].unit = default_units[colname]
 
+        # convert epochs to TT and MJD
+        in_orbits = Orbit.from_table(self.table)
+        in_orbits['epoch'] = in_orbits['epoch'].tt
+
         oo_orbits, err = pyoorb.pyoorb.oorb_element_transformation(
-            in_orbits=self._to_oo(timescale),
+            in_orbits=in_orbits._to_oo(),
             in_element_type={'CART': 1, 'COM': 2, 'KEP': 3,
                              'DEL': 4, 'EQX': 5}[orbittype])
 
@@ -383,15 +375,14 @@ class Orbit(DataClass):
         # replace id column with actual target names from original orbits
         orbits.table.replace_column('id', self['targetname'])
 
-        # replace orbtype and epoch_scale columns
+        # epoch column into astropy.time.Time, original time scale, and JD
+        orbits.table['epoch'] = Time(
+            orbits['epoch'].to('d').value,
+            format='mjd', scale='tt').__getattr__(timescale.lower())
+
+        # replace orbtype column
         orbits.table.replace_column('orbtype',
                                     [orbittype] * len(orbits.table))
-        orbits.table.replace_column('epoch_scale',
-                                    [timescale] * len(orbits.table))
-
-        # identify time scales returned by Horizons query
-        timescales = [timescale] * len(orbits.table)
-        orbits.table['timescale'] = timescales
 
         if bib.status() is None or bib.status():
             bib.register('sbpy.data.Ephem.from_oo',
@@ -400,8 +391,7 @@ class Orbit(DataClass):
 
         return orbits
 
-    def oo_propagate(self, epoch, timescale='UTC',
-                     dynmodel='N', ephfile='de430'):
+    def oo_propagate(self, epoch, dynmodel='N', ephfile='de430'):
         """Uses pyoorb to propagate this `~Orbit` object. Required fields are:
 
         * target identifier (``'targetname'``)
@@ -426,20 +416,13 @@ class Orbit(DataClass):
           z-component of velocity vector (``'vz'``, for cartesian orbit)
           in au/day
         * epoch (``'epoch'``) in JD
-        * epoch time scale (``'epoch_scale'``) either one of:
-          ``'UTC'`` | ``'UT1'`` | ``'TT'`` | ``'TAI'``
         * absolute magnitude (``'H'``) in mag
         * photometric phase slope (``'G'``)
 
         Parameters
         ----------
-        epoch : `~astropy.time.Time` object or float
-            Epoch to which the orbit will be propagated to. A float
-            value will be interpreted as Julian date.
-        timescale : str, optional
-            Timescale to be used in the propagation; the following
-            values are allowed: ``'UTC'``, ``'UT1'``, ``'TT'``,
-            ``'TAI'``. Default: ``'UTC'``
+        epoch : `~astropy.time.Time` object
+            Epoch to which the orbit will be propagated to.
         dynmodel : str, optional
             The dynamical model to be used in the propagation: ``'N'``
             for n-body simulation or ``'2'`` for a 2-body
@@ -479,6 +462,9 @@ class Orbit(DataClass):
             ephfile = os.path.join(os.getenv('OORB_DATA'), ephfile+'.dat')
             pyoorb.pyoorb.oorb_init(ephfile)
 
+        # extract time scale
+        timescale = self.table['epoch'][0].scale.upper()
+
         # identify orbit type based on available table columns
         orbittype = None
         for testtype in ['KEP', 'COM', 'CART']:
@@ -508,13 +494,14 @@ class Orbit(DataClass):
                                (u.Quantity, u.CompositeUnit))):
                 self[colname].unit = default_units[colname]
 
-        if isinstance(epoch, Time):
-            ooepoch = [epoch.jd-2400000.5, conf.oorb_timeScales[timescale]]
-        else:
-            ooepoch = [epoch-2400000.5, conf.oorb_timeScales[timescale]]
+        ooepoch = [epoch.tt.mjd, conf.oorb_timeScales['TT']]
+
+        # convert epochs to TT and MJD
+        in_orbits = Orbit.from_table(self.table)
+        in_orbits['epoch'] = in_orbits['epoch'].tt
 
         oo_orbits, err = pyoorb.pyoorb.oorb_propagation(
-            in_orbits=self._to_oo(),
+            in_orbits=in_orbits._to_oo(),
             in_epoch=ooepoch,
             in_dynmodel=dynmodel)
 
@@ -538,14 +525,13 @@ class Orbit(DataClass):
         # replace id column with actual target names from original orbits
         orbits.table.replace_column('id', self.table['targetname'])
 
-        # replace orbtype and epoch_scale columns
-        orbits.table.replace_column('orbtype',
-                                    [orbittype] * len(orbits.table))
-        orbits.table.replace_column('epoch_scale',
-                                    [timescale] * len(orbits.table))
+        orbits.meta['orbit_type'] = orbittype
+        orbits.table.remove_column('epoch_scale'),
 
         # adjust epochs to standard jd
-        orbits.table['epoch'] = orbits.table['epoch'] + 2400000.5*u.d
+        orbits.table['epoch'] = Time(orbits.table['epoch'], format='mjd',
+                                     scale='tt').__getattr__(
+                                         timescale.lower())
 
         # identify time scales returned by Horizons query
         timescales = [timescale] * len(orbits.table)

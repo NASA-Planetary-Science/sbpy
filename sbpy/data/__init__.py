@@ -18,10 +18,10 @@ class Conf():
          'provenance': ['orbit', 'ephem', 'obs', 'phys'],
          'dimension': None},
         {'description': 'Epoch',
-         'fieldnames': ['epoch', 'datetime_jd', 'JD',
+         'fieldnames': ['epoch', 'datetime',
                         'Date', 'date', 'Time', 'time'],
          'provenance': ['orbit', 'ephem', 'obs'],
-         'dimension': 'time'},
+         'dimension': '`~astropy.time.Time`(time)'},
 
         # Orbital Elements
         {'description': 'Semi-Major Axis',

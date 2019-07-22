@@ -17,7 +17,7 @@ def test_from_horizons():
     # current epoch
     now = Time.now()
     data = Orbit.from_horizons('Ceres')
-    assert_allclose(data['datetime_jd'], now.jd*u.d)
+    assert_allclose(data['epoch'].utc.jd, now.utc.jd)
 
     # date range - astropy.time.Time objects
     epochs = {'start': Time('2018-01-02', format='iso'),
@@ -76,7 +76,7 @@ def test_oo_transform():
     u.isclose(orbit['Omega'][0], kep_orbit['Omega'][0])
     u.isclose(orbit['w'][0], kep_orbit['w'][0])
     u.isclose(orbit['M'][0], kep_orbit['M'][0])
-    u.isclose(orbit['epoch'][0], kep_orbit['epoch'][0])
+    u.isclose(orbit['epoch'][0].utc.jd, kep_orbit['epoch'][0].utc.jd)
 
     com_orbit = orbit.oo_transform('COM')
     kep_orbit = com_orbit.oo_transform('KEP')
@@ -86,7 +86,7 @@ def test_oo_transform():
     u.isclose(orbit['Omega'][0], kep_orbit['Omega'][0])
     u.isclose(orbit['w'][0], kep_orbit['w'][0])
     u.isclose(orbit['M'][0], kep_orbit['M'][0])
-    u.isclose(orbit['epoch'][0], kep_orbit['epoch'][0])
+    u.isclose(orbit['epoch'][0].utc.jd, kep_orbit['epoch'][0].utc.jd)
 
 
 @pytest.mark.remote_data
@@ -99,9 +99,11 @@ def test_oo_propagate():
         return None
 
     orbit = Orbit.from_horizons('Ceres')
-    epoch = Time.now().jd + 100
+    epoch = Time(Time.now().jd + 100, format='jd', scale='utc')
 
-    future_orbit = Orbit.from_horizons('Ceres', epochs=epoch)
+    future_orbit = Orbit.from_horizons('Ceres',
+                                       epochs=Time(epoch, format='jd',
+                                                   scale='utc'))
 
     oo_orbit = orbit.oo_propagate(epoch)
 
@@ -111,4 +113,5 @@ def test_oo_propagate():
     u.isclose(oo_orbit['Omega'][0], future_orbit['Omega'][0])
     u.isclose(oo_orbit['w'][0], future_orbit['w'][0])
     u.isclose(oo_orbit['M'][0], future_orbit['M'][0])
-    u.isclose(oo_orbit['epoch'][0], future_orbit['epoch'][0])
+    print(oo_orbit['epoch'][0], future_orbit['epoch'][0].jd)
+    u.isclose(oo_orbit['epoch'][0].utc.jd, future_orbit['epoch'][0].utc.jd)

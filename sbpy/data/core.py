@@ -11,6 +11,7 @@ from copy import deepcopy
 from collections import OrderedDict
 from numpy import ndarray, array, hstack
 from astropy.table import QTable, Column, vstack
+from astropy.time import Time
 import astropy.units as u
 
 from . import conf
@@ -204,6 +205,11 @@ class DataClass():
                 except (IndexError, TypeError):
                     if isinstance(val, u.Quantity):
                         data[key] = [val.value]*val.unit
+                    elif isinstance(val, Time):
+                        # workaround for scalar Time objects
+                        data[key] = Time([val.value],
+                                         format=val.format,
+                                         scale=val.scale)
                     else:
                         data[key] = [val]
 

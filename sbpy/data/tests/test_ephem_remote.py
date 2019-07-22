@@ -21,7 +21,7 @@ class TestEphemFromHorizons:
     def test_current_epoch(self):
         now = Time.now()
         data = Ephem.from_horizons('Ceres')
-        assert_allclose(data['datetime_jd'], now.jd*u.d)
+        assert_allclose(data['epoch'].jd, now.jd)
 
     def test_daterange_Time(self):
         epochs = {'start': Time('2018-01-02', format='iso'),
@@ -137,7 +137,7 @@ class TestEphemFromMPC:
 class TestEphemFromMiriade:
     def test_singleobj_now(self):
         eph = Ephem.from_miriade("Ceres")
-        assert_quantity_allclose(eph['epoch'][0], Time.now().jd*u.d)
+        assert_quantity_allclose(eph['epoch'][0].jd, Time.now().jd)
 
     def test_multiobj_now(self):
         eph = Ephem.from_miriade(["Ceres", 'Pallas'],
@@ -147,12 +147,12 @@ class TestEphemFromMiriade:
     def test_epochTime(self):
         eph = Ephem.from_miriade(["Ceres", 'Pallas'],
                                  epochs=Time('2018-10-01'))
-        assert_quantity_allclose(eph['epoch'][0], Time('2018-10-01').jd*u.d)
+        assert_quantity_allclose(eph['epoch'][0].jd, Time('2018-10-01').jd)
 
     def test_epochstart(self):
         eph = Ephem.from_miriade(["Ceres", 'Pallas'],
                                  epochs={'start': Time('2018-10-01')})
-        assert_quantity_allclose(eph['epoch'][0], Time('2018-10-01').jd*u.d)
+        assert_quantity_allclose(eph['epoch'][0].jd, Time('2018-10-01').jd)
 
     def test_epochrange_number(self):
         eph = Ephem.from_miriade(["Ceres", 'Pallas'],
@@ -216,11 +216,10 @@ def test_from_oo():
         'i': orbit['i'].value[0],
         'w': orbit['w'].value[0],
         'Omega': orbit['Omega'].value[0],
-        'datetime_jd': orbit['datetime_jd'][0].value,
+        'epoch': orbit['epoch'][0],
         'M': orbit['M'].value[0],
         'H': orbit['H'].value[0],
-        'G': orbit['G'][0],
-        'timescale': orbit['timescale'][0]})
+        'G': orbit['G'][0]})
 
     oo_ephem = Ephem.from_oo(manorbit)
 

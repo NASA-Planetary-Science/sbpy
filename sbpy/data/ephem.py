@@ -20,10 +20,15 @@ from astroquery.mpc import MPC
 from astroquery.imcce import Miriade
 from astropy.coordinates import EarthLocation
 
+from ..exceptions import SbpyException
 from .. import bib
 from .core import DataClass, conf
 
 __all__ = ['Ephem']
+
+
+class QueryError(SbpyException):
+    pass
 
 
 class Ephem(DataClass):
@@ -172,11 +177,17 @@ class Ephem(DataClass):
             else:
                 all_eph = vstack([all_eph, eph])
 
-        # identify time scales returned by Horizons query
-        timescales = array(['UTC'] * len(all_eph))
-        timescales[all_eph['datetime_jd'] < 2437665.5] = 'UT1'
-        # according to Horizons documentation
-        all_eph.add_column(Column(timescales, name='timescale'))
+        # turn epochs into astropy.time.Time and apply timescale
+        # https://ssd.jpl.nasa.gov/?horizons_doc
+        all_eph['epoch'] = Time(all_eph['datetime_jd'], format='jd',
+                                scale='utc')
+        if any(all_eph['datetime_jd'] < 2437665.5):
+            print('pimmel')
+            all_eph['epoch'][all_eph['datetime_jd'] < 2437665.5] = (
+                Time(all_eph['datetime_jd'][all_eph['datetime_jd'] <
+                                            2437665.5],
+                     format='jd', scale='ut1'))
+        all_eph.remove_column('datetime_jd')
 
         if bib.status() is None or bib.status():
             bib.register('sbpy.data.Ephem.from_horizons',
@@ -245,12 +256,17 @@ class Ephem(DataClass):
 
         Examples
         --------
+        Query a single set of ephemerides of Ceres as observed from
+        Maunakea:
         >>> from sbpy.data import Ephem
         >>> from astropy.time import Time
         >>> epoch = Time('2018-05-14', scale='utc')
-        >>> eph = Ephem.from_mpc('ceres', epoch, location='568') # doctest: +REMOTE_DATA +IGNORE_OUTPUT
+        >>> eph = Ephem.from_mpc('ceres', epoch, 568) # doctest: +REMOTE_DATA
+
+        Query a range of ephemerides of comet 2P/Encke as observed from
+        Maunakea:
         >>> epochs = {'start': '2019-01-01', 'step': '1d', 'number': 365}
-        >>> eph = Ephem.from_mpc('2P', epochs=epochs, location='568')  # doctest: +REMOTE_DATA +IGNORE_OUTPUT
+        >>> eph = Ephem.from_mpc('2P', epochs, 568) # doctest: +REMOTE_DATA
 
         Notes
         -----
@@ -353,10 +369,6 @@ class Ephem(DataClass):
             all_eph['RA'].unit = None
         if 'dec_format' in kwargs:
             all_eph['Dec'].unit = None
-
-        # only UTC scale is supported
-        all_eph.add_column(Column(['UTC'] * len(all_eph), name='timescale'),
-                           index=all_eph.colnames.index('Date') + 1)
 
         return cls.from_table(all_eph)
 
@@ -498,25 +510,25 @@ class Ephem(DataClass):
             else:
                 all_eph = vstack([all_eph, eph])
 
-        # extract timescale and append to data
+        self = cls.from_table(all_eph)
+
+        # turn epochs into astropy.time.Time and apply timescale
         timescale = 'UTC'
         if 'timescale' in kwargs:
             timescale = kwargs['timescale']
-
-        # identify time scales returned by query
-        timescales = array([timescale] * len(all_eph))
-        all_eph.add_column(Column(timescales, name='timescale'))
+        self.table['epoch'] = Time(self.table['epoch'],
+                                   format='jd', scale=timescale.lower())
 
         if bib.status() is None or bib.status():
             bib.register('sbpy.data.Ephem.from_miriade',
                          {'data service':
                           'http://vo.imcce.fr/webservices/miriade/'})
 
-        return cls.from_table(all_eph)
+        return self
 
     @classmethod
     def from_oo(self, orbit, epochs=None, location='500', scope='full',
-                timescale='UTC', dynmodel='N', ephfile='de430'):
+                dynmodel='N', ephfile='de430'):
         """Uses pyoorb to derive ephemerides from an `~Orbit` object. For a
         list of output parameters, please read the `pyoorb documentation
         <https://github.com/oorb/oorb/tree/master/python>`_.
@@ -549,8 +561,6 @@ class Ephem(DataClass):
               z-component of velocity vector (``'vz'``, for cartesian orbit)
               in au/day
             * epoch (``'epoch'``) in JD
-            * epoch time scale (``'epoch_scale'``) either one of:
-              ``'UTC'`` | ``'UT1'`` | ``'TT'`` | ``'TAI'``
             * absolute magnitude (``'H'``) in mag
             * photometric phase slope (``'G'``)
 
@@ -562,15 +572,10 @@ class Ephem(DataClass):
             time are used. Default: ``None``
         location : str, optional, default ``'500'`` (geocentric)
             Location of the observer.
-
         scope : str
             Scope of data to be determined: ``'full'`` obtains all
             available properties, ``'basic'`` obtains only a limited
             amount of data. Default: ``'full'``
-        timescale : str, optional
-            Timescale to be used in the computation; the following
-            values are allowed: ``'UTC'``, ``'UT1'``, ``'TT'``,
-            ``'TAI'``. Default: ``'UTC'``
         dynmodel : str, optional
             The dynamical model to be used in the propagation: ``'N'``
             for n-body simulation or ``'2'`` for a 2-body
@@ -591,9 +596,9 @@ class Ephem(DataClass):
         >>> import numpy as np
         >>> from sbpy.data import Orbit, Ephem
         >>> from astropy.time import Time
-        >>> epochs = Time.now().jd + np.arange(0, 10, 1/24)
+        >>> epochs = Time(Time.now().jd + np.arange(0, 10, 1/24), format='jd')
         >>> ceres = Orbit.from_horizons('1')    # doctest: +REMOTE_DATA
-        >>> eph = Ephem.from_oo(ceres, epochs=epochs, location='G37') # doctest: +SKIP
+        >>> eph = Ephem.from_oo(ceres, epochs, 'G37') # doctest: +REMOTE_DATA
         >>> eph  # doctest: +SKIP
         <QTable length=240>
         targetname       epoch        ...           obsz               trueanom
@@ -619,6 +624,9 @@ class Ephem(DataClass):
         # create a copy of orbit
         from . import Orbit
         orb = Orbit.from_table(orbit.table)
+
+        # extract time scale
+        timescale = orb.table['epoch'][0].scale.upper()
 
         # initialize pyoorb
         if os.getenv('OORB_DATA') is None:
@@ -657,28 +665,36 @@ class Ephem(DataClass):
         for colname in orb.field_names:
             if (colname in default_units.keys() and
                 not isinstance(orb[colname],
-                               (u.Quantity, u.CompositeUnit))):
+                               (u.Quantity, u.CompositeUnit, Time))):
                 orb[colname].unit = default_units[colname]
 
         # modify epochs input to make it work with pyoorb
         if epochs is None:
-            epochs = [Time.now()]
-        elif isinstance(epochs, Time):
-            epochs = [Time(epochs)]
-        elif isinstance(epochs, (float, int)):
-            epochs = [Time(epochs, format='jd')]
-        elif isinstance(epochs, str):
-            epochs = [Time(epochs, format='iso')]
-        elif isinstance(epochs, (list, tuple, ndarray)):
-            new_epochs = [None] * len(epochs)
-            for i in range(len(epochs)):
-                if isinstance(epochs[i], Time):
-                    new_epochs[i] = epochs[i]
-                else:
-                    new_epochs[i] = Time(epochs[i], format='jd')
-            epochs = new_epochs
-        epochs = list(zip([epoch.jd-2400000.5 for epoch in epochs],
-                          [conf.oorb_timeScales[timescale]]*len(epochs)))
+            epochs = Time.now()
+        # elif isinstance(epochs, Time):
+        #     epochs = [Time(epochs)]
+        # elif isinstance(epochs, (float, int)):
+        #     epochs = [Time(epochs, format='jd')]
+        # elif isinstance(epochs, str):
+        #     epochs = [Time(epochs, format='iso')]
+        # elif isinstance(epochs, (list, tuple, ndarray)):
+        #     new_epochs = [None] * len(epochs)
+        #     for i in range(len(epochs)):
+        #         if isinstance(epochs[i], Time):
+        #             new_epochs[i] = epochs[i]
+        #         else:
+        #             new_epochs[i] = Time(epochs[i], format='jd')
+        #     epochs = new_epochs
+
+        # convert epochs to TT
+        orb['epoch'] = orb['epoch'].tt
+        epochs = epochs.tt
+
+        try:
+            epochs = list(zip(epochs.mjd,
+                              [conf.oorb_timeScales['TT']]*len(epochs)))
+        except TypeError:
+            epochs = [(epochs.mjd, conf.oorb_timeScales['TT'])]
 
         if scope == 'full':
             oo_eph, err = pyoorb.pyoorb.oorb_ephemeris_full(
@@ -716,9 +732,9 @@ class Ephem(DataClass):
                                       name='targetname'),
                                index=0)
 
-        # convert MJD to Julian Date
-        ephem.table.add_column(
-            ephem['MJD']+2400000.5*u.d, name='epoch', index=1)
+        # convert MJD to astropy.time.TimeJulian Date
+        ephem.table['ephem'] = Time(ephem['MJD'], format='mjd',
+                                    scale=timescale.lower())
         ephem.table.remove_column('MJD')
 
         if bib.status() is None or bib.status():
