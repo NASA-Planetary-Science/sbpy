@@ -33,11 +33,11 @@ import abc
 import numpy as np
 import astropy.units as u
 
-from astropy.utils.exceptions import AstropyWarning
 from .. import bib
 from ..calib import Sun
 from ..spectroscopy import BlackbodySource
 from .. import data as sbd
+from .. import exceptions as sbe
 from ..spectroscopy.sources import SinglePointSpectrumError
 from .core import Aperture, rho_as_length
 
@@ -162,7 +162,7 @@ def phase_HalleyMarcus(phase):
     if scipy:
         Phi = splev(_phase, splrep(th, ph))
     else:
-        warn(AstropyWarning(
+        warn(sbe.OptionalPackageUnavailable(
             'scipy is not present, using linear interpolation.'))
         Phi = np.interp(_phase, th, ph)
 
