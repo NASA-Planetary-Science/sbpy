@@ -16,7 +16,6 @@ Classes
 -------
 Afrho     - Coma dust quantity for scattered light.
 Efrho     - Coma dust quantity for thermal emission.
-Syndynes  - Dust dynamical model for zero-ejection velocities.
 
 
 """
@@ -24,8 +23,7 @@ Syndynes  - Dust dynamical model for zero-ejection velocities.
 __all__ = [
     'phase_HalleyMarcus',
     'Afrho',
-    'Efrho',
-    'Syndynes'
+    'Efrho'
 ]
 
 
@@ -44,6 +42,11 @@ from ..spectroscopy.sources import SinglePointSpectrumError
 from .core import Aperture, rho_as_length
 
 
+@bib.cite({
+    'Halley-Marcus phase function': '2011AJ....141..177S',
+    'Halley phase function': '1998Icar..132..397S',
+    'Marcus phase function': '2007ICQ....29...39M'
+})
 def phase_HalleyMarcus(phase):
     """Halley-Marcus composite dust phase function.
 
@@ -104,15 +107,6 @@ def phase_HalleyMarcus(phase):
         from scipy.interpolate import splrep, splev
     except ImportError:
         scipy = None
-
-    bib.register(
-        'activity.dust.phase_HalleyMarcus',
-        {
-            'Halley-Marcus phase function': '2011AJ....141..177S',
-            'Halley phase function': '1998Icar..132..397S',
-            'Marcus phase function': '2007ICQ....29...39M'
-        }
-    )
 
     th = np.arange(181)
     ph = np.array(
@@ -441,11 +435,9 @@ class Afrho(DustComaQuantity):
 
         """
 
+    @bib.cite({'model': '1984AJ.....89..579A'})
     def _source_fluxd(self, wfb, eph, unit=None, phasecor=False,
                       Phi=None, **kwargs):
-        bib.register('activity.dust.Afrho', {
-                     'model': '1984AJ.....89..579A'})
-
         # get solar flux density
         sun = Sun.from_default()
         try:
@@ -615,10 +607,8 @@ class Efrho(DustComaQuantity):
 
     """
 
+    @bib.cite({'model': '2013Icar..225..475K'})
     def _source_fluxd(self, wfb, eph, unit=None, Tscale=1.1, T=None, B=None):
-        bib.register('activity.dust.Efrho',
-                     {'model': '2013Icar..225..475K'})
-
         if T is None:
             T = Tscale * 278 / np.sqrt(eph['rh'].to('au').value)
 
