@@ -3,6 +3,7 @@ Design Principles
 
 All sbpy code must be written according to the following design principles.
 
+
 Physical parameters are quantities
 ----------------------------------
 
@@ -48,10 +49,20 @@ Use sbpy ``DataClass`` objects
      def H11(eph: Ephem):
          ...
 
-* Exceptions are allowed when only one parameter is needed, e.g., ``phase_func(phase)``.  But instead consider using the relevant ``DataClass`` object, and decorating the function with `~sbpy.data.quantity_to_dataclass`
+* Exceptions are allowed when only one parameter is needed, e.g., ``phase_func(phase)``.  But instead consider using the relevant ``DataClass`` object, and decorating the function with `~sbpy.data.quantity_to_dataclass`:
 
   .. code-block:: python
 
+     @quantity_to_dataclass(eph=(Ephem, 'phase'))
+     def phase_func(eph):
+         ...
+
+  The decorator may be stacked with ``dataclass_input`` for maximum
+  flexibility:
+
+  .. code-block:: python
+
+     @dataclass_input
      @quantity_to_dataclass(eph=(Ephem, 'phase'))
      def phase_func(eph):
          ...
@@ -68,7 +79,7 @@ Append fields to ``DataClass`` at the user's request
 Cite relevant works
 -------------------
 
-* All important citations for methods, data sources, constants, software, etc., must be cited.
+* All important references for methods, data sources, constants, software, etc., must be cited.
 
 * Citations may be executed internally with :func:`sbpy.bib.register`, or via the `~sbpy.bib.cite` decorator:
 
