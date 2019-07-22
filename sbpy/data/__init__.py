@@ -306,7 +306,8 @@ class Conf():
 
 conf = Conf()
 
-from .core import DataClass, DataClassError, quantity_to_dataclass
+from .core import DataClass, DataClassError
+from .decorators import *
 from .ephem import Ephem
 from .orbit import Orbit
 from .phys import Phys
