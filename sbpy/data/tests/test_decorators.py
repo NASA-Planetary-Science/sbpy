@@ -66,3 +66,12 @@ def test_dataclass_input_annotation():
     eph = {'rh': 1 * u.au}
     orb = Table([[2] * u.au], names=['a'])
     assert np.isclose(func(eph, orb).value, 0.5)
+
+
+def test_dataclass_input_after_quantity_to_dataclass():
+    @dataclass_input
+    @quantity_to_dataclass(eph=('rh', sbd.Ephem))
+    def func(eph: sbd.Ephem):
+        return eph['rh']
+
+    assert func(1 * u.au) == (1 * u.au)

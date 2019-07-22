@@ -31,7 +31,7 @@ def quantity_to_dataclass(**kwargs):
 
     >>> import astropy.units as u
     >>> import sbpy.data as sbd
-    >>> 
+    >>>
     >>> @sbd.quantity_to_dataclass(eph=(sbd.Ephem, 'rh'))
     ... def temperature(eph):
     ...     return 278 * u.K / (eph['rh'] / u.au)**0.5
