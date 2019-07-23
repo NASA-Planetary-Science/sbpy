@@ -35,8 +35,8 @@ def register(task, citations):
 
     Parameters
     ----------
-    task : string
-        The name of the source module requesting a citation.
+    task : string or function
+        The source requesting a citation.
 
     citations : dict
         A dictionary of NASA Astrophysics Data System (ADS) bibcodes,
@@ -61,10 +61,16 @@ def register(task, citations):
     """
 
     global _bibliography, _track
+
+    if isinstance(task, str):
+        source = task
+    else:
+        source = '.'.join((task.__module__, task.__qualname__))
+
     if _track:
         for key, citation in citations.items():
             c = [citation] if isinstance(citation, str) else list(citation)
-            _bibliography[task][key].update(c)
+            _bibliography[source][key].update(c)
 
 
 def _bibliography_task_generator():
@@ -159,10 +165,7 @@ def cite(citations):
         def wrapper(*args, **kwargs):
             # only cite after successful call
             result = f(*args, **kwargs)
-
-            task = '.'.join((f.__module__, f.__qualname__))
-            register(task, citations)
-
+            register(f, citations)
             return result
         return wrapper
     return decorator
