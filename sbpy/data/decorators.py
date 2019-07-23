@@ -62,6 +62,19 @@ def quantity_to_dataclass(**kwargs):
                     # no
                     continue
 
+                # bind relied on a default value
+                if (param.name not in bound_args.arguments and
+                        param.default is not param.empty):
+                    bound_args.arguments[param.name] = param.default
+
+                # check passed argument, update as needed
+                arg = bound_args.arguments[param.name]
+
+                # argument value is None, and the default value is
+                # None, pass through the None
+                if arg is None and param.default is None:
+                    continue
+
                 # get requested DataClass and field name
                 dataclass, field = None, None
                 for v in decorator_kwargs[param.name]:
@@ -75,8 +88,6 @@ def quantity_to_dataclass(**kwargs):
                         'quantity_to_dataclass decorator requires a '
                         'DataClass object and a field name as a string.')
 
-                # check passed argument, update as needed
-                arg = bound_args.arguments[param.name]
                 if not isinstance(arg, dataclass):
                     # Argument is not a DataClass.  Make it so.
                     new_arg = dataclass.from_dict({field: arg})
@@ -159,6 +170,11 @@ class DataClassInput:
                 # not in decorator_kwargs and not annotated
                 if target is inspect.Parameter.empty:
                     continue
+
+                # bind relied on a default value
+                if (param.name not in bound_args.arguments and
+                        param.default is not param.empty):
+                    bound_args.arguments[param.name] = param.default
 
                 arg = bound_args.arguments[param.name]
 
