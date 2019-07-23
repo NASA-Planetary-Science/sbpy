@@ -19,62 +19,10 @@ from astropy.modeling import (Fittable1DModel, Parameter)
 from astropy.table import Column
 import astropy.units as u
 from astropy import log
-from ..data import DataClass, Phys, Obs
+from ..data import (DataClass, Phys, Obs, Ephem, dataclass_input,
+    quantity_to_dataclass)
 from ..bib import cite
 from ..exceptions import SbpyWarning
-
-
-def _process_ephem_input(eph, key=None):
-    """Pre-processing `~sbpy.data.Ephem` type input parameter
-
-    This function facilitates flexible input parameter type for those
-    functions that accepts both `~sbpy.data.Ephem` and other simpler data
-    types (such as numpy.ndarray, numbers, or `~astropy.units.Quantity).
-
-    Parameters
-    ----------
-    eph : `~sbpy.data.Ephem`, numbers, iterables of numbers, or
-            `~astropy.units.Quantity`
-        The input to be processed.
-    key : str
-        The name of column to be extracted from `~sbpy.data.Ephem`.
-
-    Returns
-    -------
-    eph : `~sbpy.data.Ephem`
-        If `~sbpy.data.Ephem`, then returns itself.  If not, then returns
-        `None`.
-    out : ndarray, numbers, `~astropy.units.Qauntity`
-        The colume extracted from input `eph` if it can be converted to
-        `~sbpy.data.Ephem`, or the original input `eph` if it cannot be
-        converted.
-    """
-    if eph is None:
-        return None, None
-    if not isinstance(eph, (DataClass, list, dict, tuple, np.ndarray, Number,
-                            u.Quantity)):
-        raise TypeError(
-            '`~sbpy.data.DataClass`, numbers, iterables of numbers, or'
-            ' `~astropy.units.Quantity` expected, {0} received'.format(
-                type(eph)))
-    if isinstance(eph, dict):
-        eph = Obs.from_dict(eph)
-    if isinstance(eph, DataClass):
-        if key is None:
-            out = None
-        else:
-            out = eph[key]
-            if not isinstance(out, u.Quantity):
-                # When a column doesn't have a unit, ``out`` is not a
-                # `Quantity` but rather a `astropy.table.column.Column` object.
-                # This step is to ensure out as an array or Quantity.
-                out = out.data
-    else:
-        out = np.asanyarray(eph)
-        if not np.issubdtype(out.dtype, np.number):
-            raise TypeError('numerical type expected in iterables.')
-        eph = None
-    return eph, out
 
 
 def ref2mag(ref, radius, M_sun=None):
@@ -167,6 +115,8 @@ def mag2ref(mag, radius, M_sun=None):
         Q = True
 
     ref = 10**((M_sun-mag)*0.4)/(np.pi*radius*radius*u.km.to('au')**2)
+    if hasattr(ref, '__iter__') and (len(ref) == 1):
+        ref = ref[0]
     if Q:
         return ref/u.sr
     else:
@@ -485,6 +435,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         return Phys.from_dict(cols)
 
     @classmethod
+    @dataclass_input(obs=Obs)
     def from_obs(cls, obs, fitter, fields='mag', init=None, **kwargs):
         """Instantiate a photometric model class object from data
 
@@ -527,7 +478,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         >>> hg = HG() # doctest: +SKIP
         >>> best_hg = hg.from_obs(obs, eph['mag'], fitter) # doctest: +SKIP
         """
-        obs, pha = _process_ephem_input(obs, 'alpha')
+        pha = obs['alpha']
 
         if isinstance(fields, (str, bytes)):
             n_models = 1
@@ -581,6 +532,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
             model.meta['fields'] = fields
             return model
 
+    @dataclass_input(eph=Ephem)
     def _distance_module(self, eph):
         """Return the correction magnitude or factor for heliocentric distance
         and observer distance
@@ -604,7 +556,6 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
             and observer distance of both 1 au.  The unit of correction
             (linear or magnitude) is determined by ``._unit``.
         """
-        eph, dummy = _process_ephem_input(eph)
         module = 1.
         try:
             rh = eph['r']
@@ -626,6 +577,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         else:
             return module
 
+    @quantity_to_dataclass(eph=(Ephem, 'alpha'))
     def to_mag(self, eph, append_results=False, **kwargs):
         """Calculate phase function in magnitude
 
@@ -674,7 +626,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         >>> mag2 = ceres_hg.to_mag(np.deg2rad(pha))
         """
         self._check_unit()
-        eph, pha = _process_ephem_input(eph, 'alpha')
+        pha = eph['alpha']
         out = self(pha, **kwargs)
         if self._unit != 'mag':
             if self.radius is None:
@@ -688,19 +640,17 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
                 dist_corr = dist_corr*u.mag
             out = out - dist_corr
         if append_results:
-            if eph is None:
-                eph = Obs.from_dict({'alpha': pha, 'mag': out})
-            else:
-                name = 'mag'
-                i = 1
-                while name in eph.field_names:
-                    name = 'mag'+str(i)
-                    i += 1
-                eph.table.add_column(Column(out, name=name))
+            name = 'mag'
+            i = 1
+            while name in eph.field_names:
+                name = 'mag'+str(i)
+                i += 1
+            eph.table.add_column(Column(out, name=name))
             return eph
         else:
             return out
 
+    @quantity_to_dataclass(eph=(Ephem, 'alpha'))
     def to_ref(self, eph, normalized=None, append_results=False, **kwargs):
         """Calculate phase function in average bidirectional reflectance
 
@@ -752,7 +702,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         >>> ref2 = ceres_hg.to_ref(np.deg2rad(pha))
         """
         self._check_unit()
-        eph, pha = _process_ephem_input(eph, 'alpha')
+        pha = eph['alpha']
         out = self(pha, **kwargs)
         if normalized is not None:
             norm = self(normalized, **kwargs)
@@ -767,15 +717,12 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
             if normalized is not None:
                 out /= mag2ref(norm, self.radius, M_sun=self.M_sun)
         if append_results:
-            if eph is None:
-                eph = Obs.from_dict({'alpha': pha, 'ref': out})
-            else:
-                name = 'ref'
-                i = 1
-                while name in eph.field_names:
-                    name = 'ref'+str(i)
-                    i += 1
-                eph.table.add_column(Column(out, name=name))
+            name = 'ref'
+            i = 1
+            while name in eph.field_names:
+                name = 'ref'+str(i)
+                i += 1
+            eph.table.add_column(Column(out, name=name))
             return eph
         else:
             return out
