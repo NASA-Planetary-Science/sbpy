@@ -43,6 +43,19 @@ def test_quantity_to_dataclass_stacked():
     assert np.isclose(contrived(rh, a, R).value, 50)
 
 
+def test_quantity_to_dataclass_optional():
+    @quantity_to_dataclass(eph=('rh', sbd.Ephem))
+    def temperature(eph=None):
+        if eph is None:
+            rh = 1 * u.au
+        else:
+            rh = eph['rh']
+        return 278 / np.sqrt(rh / u.au)
+
+    assert temperature(1 * u.au) == temperature()
+    assert np.isclose(temperature(2 * u.au).value, 278 / np.sqrt(2))
+
+
 @pytest.mark.parametrize('eph, orb', (
     ({'rh': 1 * u.au},
      Table([[2] * u.au], names=['a'])),
@@ -66,6 +79,22 @@ def test_dataclass_input_annotation():
     eph = {'rh': 1 * u.au}
     orb = Table([[2] * u.au], names=['a'])
     assert np.isclose(func(eph, orb).value, 0.5)
+
+
+def test_quantity_input_optional():
+    @dataclass_input
+    def temperature(eph: sbd.Ephem=None):
+        if eph is None:
+            rh = 1 * u.au
+        else:
+            rh = eph['rh']
+        return 278 * u.K / np.sqrt(rh / u.au)
+
+    eph = sbd.Ephem.from_dict({'rh': 1 * u.au})
+    assert temperature(eph) == temperature()
+
+    eph = sbd.Ephem.from_dict({'rh': 2 * u.au})
+    assert np.isclose(temperature(eph).value, 278 / np.sqrt(2))
 
 
 def test_dataclass_input_after_quantity_to_dataclass():
