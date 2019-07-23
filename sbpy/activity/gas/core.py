@@ -17,7 +17,6 @@ Classes
 -------
 GasComa             - Abstract base class for gas coma models.
 Haser               - Haser coma model for gas (Haser 1957).
-Vectorial           - Vectorial coma model for gas (Festou 1981).
 
 
 """
@@ -27,8 +26,7 @@ __all__ = [
     'photo_timescale',
     'fluorescence_band_strength',
 
-    'Haser',
-    'Vectorial'
+    'Haser'
 ]
 
 from warnings import warn
@@ -47,6 +45,7 @@ except ImportError:
 from astropy.table import Table
 from astropy.utils.exceptions import AstropyWarning
 from ... import bib
+from ... import data as sbd
 from .. core import (Aperture, RectangularAperture, GaussianAperture,
                      AnnularAperture, CircularAperture)
 from .. core import rho_as_length
@@ -117,7 +116,7 @@ def photo_lengthscale(species, source=None):
             .format(source, species, ', '.join(gas.keys())))
 
     gamma, bibcode = gas[source.upper()]
-    bib.register('activity.gas.photo_lengthscale', bibcode)
+    bib.register(photo_lengthscale, bibcode)
 
     return gamma
 
@@ -256,7 +255,7 @@ def photo_timescale(species, source=None):
             .format(source, species, ', '.join(gas.keys())))
 
     tau, bibcode = gas[source.upper()]
-    bib.register('activity.gas.photo_timescale', bibcode)
+    bib.register(photo_timescale, bibcode)
 
     return tau
 
@@ -347,7 +346,7 @@ def fluorescence_band_strength(species, eph=None, source=None):
             .format(source, species, ', '.join(band.keys())))
 
     LN, bibcode = band[source.upper()]
-    bib.register('activity.gas.fluorescence_band_strength', bibcode)
+    bib.register(fluorescence_band_strength, bibcode)
 
     something_about_rdot_here
 
@@ -368,16 +367,12 @@ class GasComa(ABC):
 
     """
 
+    @u.quantity_input(Q=(u.s**-1, u.mol / u.s), v=u.m / u.s)
     def __init__(self, Q, v):
-        if not Q.unit.is_equivalent((u.s**-1, u.mol / u.s)):
-            raise ValueError('Q must have units equivalent to 1/s or mol/s')
         self.Q = Q
-
-        if not v.unit.is_equivalent(u.m / u.s):
-            raise ValueError('v must have units of length/time')
         self.v = v
 
-    @abstractmethod
+    @u.quantity_input(r=u.m)
     def volume_density(self, r):
         """Coma volume density.
 
@@ -390,12 +385,15 @@ class GasComa(ABC):
 
         Returns
         -------
-        n : float
+        n : `~astropy.units.Quantity`
+            Local number density.
 
         """
-        pass
 
-    @abstractmethod
+        return self._volume_density(r.to('m').value) / u.m**3
+
+    @sbd.dataclass_input(eph=sbd.Ephem)
+    @sbd.quantity_to_dataclass(eph=(sbd.Ephem, 'delta'))
     def column_density(self, rho, eph=None):
         """Coma column density at a projected distance from nucleus.
 
@@ -403,68 +401,27 @@ class GasComa(ABC):
         Parameters
         ----------
         rho : `~astropy.units.Quantity`
-            Projected distance of the region of interest on the plane
+            Projected distance to the region of interest on the plane
             of the sky in units of length or angle.
 
-        eph : dictionary-like, `~sbpy.data.Ephem`
-            Ephemerides at epoch; requires geocentric distance as
-            `delta` keyword if aperture has angular units.
+        eph : dictionary-like, `~sbpy.data.Ephem`, `~astropy.units.Quantity`
+            Target-observer distance, or ephemeris with `delta`.
+            Required if the aperture has angular units.
 
 
         Returns
         -------
-        sigma : float
-            Coma column density along the line of sight at a distance
-            rho.
-
-        """
-        pass
-
-    def _integrate_volume_density(self, rho, epsabs=1.49e-8):
-        """Integrate volume density along the line of sight.
-
-        Parameters
-        ----------
-        rho : `~astropy.units.Quantity`
-            Projected distance of the region of interest on the plane of
-            the sky in units of length.
-
-        epsabs : float, int, optional
-            Absolute and relative error tolerance for integrals.  See
-            `scipy.integrate.quad`.
-
-        Returns
-        -------
-        sigma : float
+        sigma : `~astropy.units.Quantity`
             Coma column density along the line of sight at a distance
             rho.
 
         """
 
-        if not scipy:
-            raise AstropyWarning(
-                'scipy is required for integrating volume density.')
+        rho_m = rho_as_length(rho, eph=eph).to('m').value
+        return self._column_density(rho_m) * u.m**2
 
-        if not rho.unit.is_equivalent(u.m):
-            raise ValueError('rho must have units of length.')
-
-        def f(s):
-            r = np.sqrt(rho.to(u.km).value**2 + s**2)
-            n = self.volume_density(r*u.km) * u.km
-            return n.decompose().value
-
-        # Using an upper limit of integration than 1e9 m makes the
-        # integral divergent
-        # sigma, err = quad(f, 0, np.inf, epsabs=epsabs)
-        sigma, err = quad(f, 0, np.max(
-            (1.e6, 10*rho.to(u.km).value)), epsabs=epsabs)
-
-        # spherically symmetric coma
-        sigma *= 2
-
-        return sigma
-
-    @abstractmethod
+    @sbd.dataclass_input(eph=sbd.Ephem)
+    @sbd.quantity_to_dataclass(eph=(sbd.Ephem, 'delta'))
     def total_number(self, aper, eph=None):
         """Total number of molecules in aperture.
 
@@ -475,9 +432,9 @@ class GasComa(ABC):
             Observation aperture.  May be a circular aperture radius
             with units of length or angle.
 
-        eph : dictionary-like, `~sbpy.data.Ephem`, optional
-            Ephemerides at epoch; requires geocentric distance as
-            `delta` keyword if aperture has angular units.
+        eph : dictionary-like, `~sbpy.data.Ephem`, `~astropy.units.Quantity`
+            Target-observer distance, or ephemeris with `delta`.
+            Required if the aperture has angular units.
 
 
         Returns
@@ -486,7 +443,92 @@ class GasComa(ABC):
             Total number of molecules within the aperture.
 
         """
+
+        return self._integrate_column_density(aper.as_length(eph))[0]
+
+    @abstractmethod
+    def _volume_density(self, r):
+        """Unitless volumne density function.
+
+
+        Parameters
+        ----------
+        r : float
+            Linear distance to the nucleus in meters.
+
+
+        Returns
+        -------
+        n : float
+            Local number density in inverse cubic-meters.
+
+        """
         pass
+
+    @abstractmethod
+    def _column_density(self, rho):
+        """Unitless column density function.
+
+
+        Parameters
+        ----------
+        rho : float
+            Projected distance of the region of interest on the plane
+            of the sky in units of meters.
+
+
+        Returns
+        -------
+        sigma : float
+            Coma column density along the line of sight at a distance
+            rho in units of inverse square-meters.
+
+        """
+        pass
+
+    def _integrate_volume_density(self, rho, epsabs=1.49e-8):
+        """Integrate volume density along the line of sight.
+
+
+        Parameters
+        ----------
+        rho : float
+            Projected distance of the region of interest on the plane of
+            the sky in units of meters
+
+        epsabs : float, int, optional
+            Absolute and relative error tolerance for integrals.  See
+            `scipy.integrate.quad`.
+
+
+        Returns
+        -------
+        sigma : float
+            Coma column density along ``rho`` in units of inverse
+            square-meters.
+
+        """
+
+        if not scipy:
+            raise AstropyWarning(
+                'scipy is required for integrating volume density.')
+
+        if not rho.unit.is_equivalent(u.m):
+            raise ValueError('rho must have units of length.')
+
+        def f(s, rho2):
+            r = np.sqrt(rho2 + s**2)
+            return self._volume_density(r)
+
+        # Without points, quad diverges.
+        points = rho * np.logspace(-4, 4)
+        sigma, err = quad(f, 0, np.inf, args=(rho**2,), points=points,
+                          epsabs=epsabs)
+
+        # spherical symmetry
+        sigma *= 2
+
+        return sigma
 
     def _integrate_column_density(self, aper, epsabs=1.49e-8):
         """Integrate column density over an aperture.
@@ -499,8 +541,17 @@ class GasComa(ABC):
 
         epsabs : float, int, optional
             Absolute and relative error tolerance for integrals.  See
-            `~scipy.integrate.quad` (circular, annular, Gaussian) and
+            `scipy.integrate.quad` (circular, annular, Gaussian) and
             `~scipy.integrate.dblquad` (rectangular) for details.
+
+
+        Returns
+        -------
+        N : float
+            Total number.
+
+        err : float
+            Estimated integration error.
 
         """
 
@@ -511,30 +562,26 @@ class GasComa(ABC):
         if not aper.dim.unit.is_equivalent(u.m):
             raise ValueError('aper must have units of length')
 
-        if isinstance(aper, CircularAperture):
+        if isinstance(aper, (CircularAperture, AnnularAperture)):
+            if isinstance(aper, CircularAperture):
+                limits = (0, aper.radius.to('m').value)
+            else:
+                limits = aper.shape.to('m').value
+
             # integrate in polar coordinates
             def f(rho):
-                x = rho * self.column_density(rho * u.km) * u.km**2
-                return x.decompose().value
+                # rho in m, column_density in m**-2
+                return rho * self._column_density(rho)
 
-            N, err = quad(f, 0, aper.radius.to(u.km).value, epsabs=epsabs)
+            N, err = quad(f, *limits, epsabs=epsabs)
             N *= 2 * np.pi
-        elif isinstance(aper, AnnularAperture):
-            # integrate in polar coordinates
-            def f(rho):
-                x = rho * self.column_density(rho * u.km) * u.km**2
-                return x.decompose().value
-
-            N, err = quad(f, aper.shape[0].to(u.km).value,
-                          aper.shape[1].to(u.km).value, epsabs=epsabs)
-            N *= 2 * np.pi
+            err *= 2 * np.pi
         elif isinstance(aper, RectangularAperture):
+            shape = aper.shape.to('m').value
+
             # integrate in polar coordinates
             def f(rho, th):
-                x = rho * self.column_density(rho * u.km) * u.km**2
-                return x.decompose().value
-
-            shape = aper.shape.to(u.km).value
+                return rho * self._column_density(rho)
 
             # first "octant"; g and h are the limits of the
             # integration of rho
@@ -559,15 +606,19 @@ class GasComa(ABC):
 
             # N1 + N2 constitute 1/4th of the rectangle
             N = 4 * (N1 + N2)
+            err = 4 * (err1 + err2)
         elif isinstance(aper, GaussianAperture):
             # integrate in polar coordinates
-            def f(rho):
-                return (rho * aper(rho * u.km).value
-                        * self.column_density(rho * u.km).to(u.km**-2).value)
-            N, err = quad(f, 0, np.inf, epsabs=epsabs)
-            N *= 2 * np.pi
+            def f(rho, sigma):
+                return (rho * np.exp(-rho**2 / sigma**2 / 2)
+                        * self._column_density(rho))
 
-        return N
+            sigma = aper.sigma.to('m').value
+            N, err = quad(f, 0, np.inf, args=(sigma,), epsabs=epsabs)
+            N *= 2 * np.pi
+            err *= 2 * np.pi
+
+        return N, err
 
 
 class Haser(GasComa):
@@ -601,34 +652,24 @@ class Haser(GasComa):
     """
 
     @bib.cite({'model': '1957BSRSL..43..740H'})
+    @u.quantity_input(parent=u.m, daughter=u.m)
     def __init__(self, Q, v, parent, daughter=None):
         super().__init__(Q, v)
-
-        if not parent.unit.is_equivalent(u.m):
-            raise ValueError('parent must have units of length')
         self.parent = parent
+        self.daughter = daughter
 
-        if daughter is None:
-            self.daughter = None
-        else:
-            if not daughter.unit.is_equivalent(u.m):
-                raise ValueError('daugher must have units of length')
-            self.daughter = daughter
-
-    def volume_density(self, r):
-        if not r.unit.is_equivalent(u.m):
-            raise ValueError('r must have units of length')
-
-        n = self.Q / 4 / np.pi / r**2 / self.v
+    def _volume_density(self, r):
+        n = (self.Q / self.v).to('1/m').value / r**2 / 4 / np.pi
+        parent = self.parent.to('m').value
         if self.daughter is None or self.daughter == 0:
             # parent only
-            n *= np.exp(-r / self.parent)
+            n *= np.exp(-r / parent)
         else:
-            n *= (self.daughter / (self.parent - self.daughter)
-                  * (np.exp(-r / self.parent) - np.exp(-r / self.daughter)))
+            daughter = self.daughter.to('m').value
+            n *= (daughter / (parent - daughter)
+                  * (np.exp(-r / parent) - np.exp(-r / daughter)))
 
-        return n.decompose()
-    volume_density.__doc__ = GasComa.volume_density.__doc__
+        return n
 
     def _iK0(self, x):
         """Integral of the modified Bessel function of 2nd kind, 0th order."""
@@ -643,77 +684,48 @@ class Haser(GasComa):
         return special.k1(x.decompose().value)
 
     @bib.cite({'model': '1978Icar...35..360N'})
-    def column_density(self, rho, eph=None):
-        r = rho_as_length(rho, eph=eph)
-        x = 0 if self.parent is None else (r / self.parent).decompose()
-        y = 0 if self.daughter is None else (r / self.daughter).decompose()
-        sigma = self.Q / 2 / np.pi / r / self.v
+    def _column_density(self, rho):
+        sigma = (self.Q / self.v).to('1/m').value / r / 2 / np.pi
+        parent = self.parent.to('m').value
         if self.daughter is None or self.daughter == 0:
-            sigma *= np.pi / 2 - self._iK0(x)
-        elif self.parent is None or self.parent == 0:
-            sigma *= np.pi / 2 - self._iK0(y)
+            sigma *= np.pi / 2 - self._iK0(r / parent)
         else:
-            sigma *= (self.daughter / (self.parent - self.daughter)
-                      * (self._iK0(y) - self._iK0(x)))
+            daughter = self.daughter.to('m').value
+            sigma *= (daughter / (parent - daughter)
+                      * (self._iK0(r / daughter) - self._iK0(r / parent)))
+        return sigma
 
-        return sigma.decompose()
-    column_density.__doc__ = GasComa.column_density.__doc__
-
-    @bib.cite({'model': '1978Icar...35..360N'})
+    @sbd.dataclass_input(eph=sbd.Ephem)
+    @sbd.quantity_to_dataclass(eph=(sbd.Ephem, 'delta'))
     def total_number(self, aper, eph=None):
+        if isinstance(aper, u.Quantity):
+            aper = CircularAperture(aper)
+
+        aper = aper.as_length(eph)
+
         # Inspect aper and handle as appropriate
-        if isinstance(aper, Aperture):
-            aper = aper.as_length(eph)
-            if isinstance(aper, (RectangularAperture, GaussianAperture)):
-                return self._integrate_column_density(aper)
-            elif isinstance(aper, AnnularAperture):
-                N0 = self.total_number(aper.shape[0])
-                N1 = self.total_number(aper.shape[1])
-                return N1 - N0
-            elif isinstance(aper, CircularAperture):
-                rho = aper.radius
-            else:
-                raise NotImplemented(
-                    "Integration of {} apertures is not implemented."
-                    .format(type(aper)))
-        else:
-            rho = rho_as_length(aper, eph)
+        if isinstance(aper, (RectangularAperture, GaussianAperture)):
+            return super().total_number(aper)
+        elif isinstance(aper, AnnularAperture):
+            N0 = self.total_number(aper.shape[0])
+            N1 = self.total_number(aper.shape[1])
+            return N1 - N0
 
         # Solution for the circular aperture of radius rho:
-        x = 0 if self.parent is None else (rho / self.parent).decompose()
-        y = 0 if self.daughter is None else (rho / self.daughter).decompose()
+        bib.register(self.total_number, {'model': '1978Icar...35..360N'})
 
-        N = self.Q * rho / self.v
+        rho = aper.radius
+        parent = self.parent.to(rho.unit)
+        N = (self.Q * rho / self.v).to('dimensionless_unscaled').value
         if self.daughter is None or self.daughter == 0:
+            x = rho / parent
             N *= 1 / x - self._K1(x) + np.pi / 2 - self._iK0(x)
-        elif self.parent is None or self.parent == 0:
-            N *= 1 / y - self._K1(y) + np.pi / 2 - self._iK0(y)
         else:
-            N *= (self.daughter / (self.parent - self.daughter)
+            daughter = self.daughter.to(rho.unit)
+            y = rho / daughter
+            N *= (daughter / (parent - daughter)
                   * (self._iK0(y) - self._iK0(x) + x**-1 - y**-1
                      + self._K1(y) - self._K1(x)))
 
-        return N.decompose().value
+        return N
     total_number.__doc__ = GasComa.total_number.__doc__
-
-
-class Vectorial(GasComa):
-    """Vectorial model for cometary gas.
-
-    Not yet implemented.
-
-
-    Parameters
-    ----------
-    Q : `~astropy.units.Quanitity`
-        Gas production rate with units equivalent to 1/s or mol/s.
-
-
-    Examples
-    --------
-    TBD
-
-    """
-
-    def __init__(self, Q, species):
-        raise NotImplemented
