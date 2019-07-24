@@ -64,7 +64,7 @@ class TestHaser:
         parent = 1000 * u.km
         coma = Haser(Q, v, parent)
         N_avg = coma.column_density(rho)
-        integral = coma._integrate_volume_density(rho)
+        integral = coma._integrate_volume_density(rho.to('m').value)[0]
         assert np.isclose(N_avg.decompose().value, integral, rtol=1e-4)
 
     def test_total_number_large_aperture(self):
@@ -173,7 +173,7 @@ class TestHaser:
 
         coma = Haser(Q, v, parent)
         N1 = coma.total_number(aper)
-        N2 = coma._integrate_column_density(aper)
+        N2 = coma._integrate_column_density(aper)[0]
         assert np.isclose(N1, N2)
 
     def test_circular_integration_1step(self):
@@ -194,7 +194,7 @@ class TestHaser:
 
         coma = Haser(Q, v, parent, daughter)
         N1 = coma.total_number(aper)
-        N2 = coma._integrate_column_density(aper)
+        N2 = coma._integrate_column_density(aper)[0]
         assert np.isclose(N1, N2)
 
     def test_total_number_rectangular_ap(self):

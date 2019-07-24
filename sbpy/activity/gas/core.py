@@ -507,28 +507,31 @@ class GasComa(ABC):
             Coma column density along ``rho`` in units of inverse
             square-meters.
 
+        err : float
+            Estimated integration error.
+
         """
 
         if not scipy:
             raise AstropyWarning(
                 'scipy is required for integrating volume density.')
 
-        if not rho.unit.is_equivalent(u.m):
-            raise ValueError('rho must have units of length.')
-
         def f(s, rho2):
             r = np.sqrt(rho2 + s**2)
             return self._volume_density(r)
 
-        # Without points, quad diverges.
-        points = rho * np.logspace(-4, 4)
-        sigma, err = quad(f, 0, np.inf, args=(rho**2,), points=points,
-                          epsabs=epsabs)
+        # quad diverges integrating to infinity, but 1e6 × rho is good
+        # enough
+        limit = 30
+        points = rho * np.logspace(-4, 4, limit / 2)
+        sigma, err = quad(f, 0, 1e6 * rho, args=(rho**2,),
+                          limit=limit, points=points, epsabs=epsabs)
 
         # spherical symmetry
         sigma *= 2
+        err *= 2
 
-        return sigma
+        return sigma, err
 
     def _integrate_column_density(self, aper, epsabs=1.49e-8):
         """Integrate column density over an aperture.
@@ -675,24 +678,24 @@ class Haser(GasComa):
         """Integral of the modified Bessel function of 2nd kind, 0th order."""
         if not scipy:
             raise AstropyWarning('scipy is not present, cannot continue.')
-        return special.iti0k0(x.decompose().value)[1]
+        return special.iti0k0(x)[1]
 
     def _K1(self, x):
         """Modified Bessel function of 2nd kind, 1st order."""
         if not scipy:
             raise AstropyWarning('scipy is not present, cannot continue.')
-        return special.k1(x.decompose().value)
+        return special.k1(x)
 
     @bib.cite({'model': '1978Icar...35..360N'})
     def _column_density(self, rho):
-        sigma = (self.Q / self.v).to('1/m').value / r / 2 / np.pi
+        sigma = (self.Q / self.v).to('1/m').value / rho / 2 / np.pi
         parent = self.parent.to('m').value
         if self.daughter is None or self.daughter == 0:
-            sigma *= np.pi / 2 - self._iK0(r / parent)
+            sigma *= np.pi / 2 - self._iK0(rho / parent)
         else:
             daughter = self.daughter.to('m').value
             sigma *= (daughter / (parent - daughter)
-                      * (self._iK0(r / daughter) - self._iK0(r / parent)))
+                      * (self._iK0(rho / daughter) - self._iK0(rho / parent)))
         return sigma
 
     @sbd.dataclass_input(eph=sbd.Ephem)
@@ -716,13 +719,13 @@ class Haser(GasComa):
 
         rho = aper.radius
         parent = self.parent.to(rho.unit)
-        N = (self.Q * rho / self.v).to('dimensionless_unscaled').value
+        x = (rho / parent).to('').value
+        N = (self.Q * rho / self.v).to(u.dimensionless_unscaled).value
         if self.daughter is None or self.daughter == 0:
-            x = rho / parent
             N *= 1 / x - self._K1(x) + np.pi / 2 - self._iK0(x)
         else:
             daughter = self.daughter.to(rho.unit)
-            y = rho / daughter
+            y = (rho / daughter).to('').value
             N *= (daughter / (parent - daughter)
                   * (self._iK0(y) - self._iK0(x) + x**-1 - y**-1
                      + self._K1(y) - self._K1(x)))
