@@ -103,10 +103,10 @@ class OHFluorescenceSA88:
     Examples
     --------
 
-    >>> from sbpy.activity.gas.data import OHFluorescenceSchleicher88
-    >>> LN = OHFluorescenceSchleicher88('0-0')
+    >>> from sbpy.activity.gas.data import OHFluorescenceSA88
+    >>> LN = OHFluorescenceSA88('0-0')
     >>> print(LN(-1 * u.km / u.s))    # doctest: +FLOAT_CMP
-    1.54e-15 erg / s
+    [1.54e-15] erg / s
 
     """
 

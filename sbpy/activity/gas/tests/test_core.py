@@ -3,7 +3,9 @@
 import pytest
 import numpy as np
 import astropy.units as u
+from .. import core
 from .. import *
+from .... import exceptions as sbe
 
 
 def test_photo_lengthscale():
@@ -11,9 +13,25 @@ def test_photo_lengthscale():
     assert gamma == 1.6e5 * u.km
 
 
+def test_photo_lengthscale_error():
+    with pytest.raises(ValueError):
+        photo_lengthscale('asdf')
+
+    with pytest.raises(ValueError):
+        photo_lengthscale('OH', source='asdf')
+
+
 def test_photo_timescale():
     tau = photo_timescale('CO2', 'CE83')
     assert tau == 5.0e5 * u.s
+
+
+def test_photo_timescale_error():
+    with pytest.raises(ValueError):
+        photo_timescale('asdf')
+
+    with pytest.raises(ValueError):
+        photo_timescale('OH', source='asdf')
 
 
 @pytest.mark.parametrize('band, test', (
@@ -35,6 +53,25 @@ def test_fluorescence_band_strength_OH_SA88(band, test):
     }
     LN = fluorescence_band_strength(band, eph, 'SA88').to(test.unit)
     assert np.allclose(LN.value, test.value / np.r_[1, 2]**2)
+
+
+def test_fluorescence_band_strength_error():
+    with pytest.raises(ValueError):
+        fluorescence_band_strength('asdf')
+
+    with pytest.raises(ValueError):
+        fluorescence_band_strength('OH 0-0', source='asdf')
+
+
+def test_gascoma_scipy_error(monkeypatch):
+    monkeypatch.setattr(core, 'scipy', None)
+    test = Haser(1 / u.s, 1 * u.km / u.s, 1e6 * u.km)
+    with pytest.raises(sbe.RequiredPackageUnavailable):
+        test._integrate_volume_density(1e5)
+
+    with pytest.raises(sbe.RequiredPackageUnavailable):
+        aper = core.CircularAperture(1000 * u.km)
+        test._integrate_column_density(aper)
 
 
 class TestHaser:
@@ -219,6 +256,22 @@ class TestHaser:
         N2 = coma._integrate_column_density(aper)[0]
         assert np.isclose(N1, N2)
 
+    def test_total_number_annulus(self):
+        """Test column density for annular aperture."""
+
+        from ..core import CircularAperture, AnnularAperture
+
+        Q = 1 / u.s
+        v = 1 * u.km / u.s
+        aper = AnnularAperture((1000, 2000) * u.km)
+        parent = 10 * u.km
+        N = Haser(Q, v, parent).total_number(aper)
+
+        N1 = Haser(Q, v, parent).total_number(CircularAperture(aper.dim[0]))
+        N2 = Haser(Q, v, parent).total_number(CircularAperture(aper.dim[1]))
+
+        assert np.isclose(N, N2 - N1)
+
     def test_total_number_rectangular_ap(self):
         """
 
@@ -237,8 +290,6 @@ class TestHaser:
         sigma = coma.column_density(r)
         print((sigma * 1 * u.km**2).decompose().sum())
         --> <Quantity 3.449607967230623e+26>
-
-        This differs from the test value below by XXX
 
         """
 
@@ -286,4 +337,12 @@ class TestHaser:
         coma = Haser(Q, 1 * u.km / u.s, parent)
         N = coma.total_number(aper)
 
-        assert np.isclose(N, 5.17022685108891e+27)
+        assert np.isclose(N, 5.146824269306973e+27, rtol=0.005)
+
+    def test_missing_scipy(self, monkeypatch):
+        monkeypatch.setattr(core, 'scipy', None)
+        test = Haser(1 / u.s, 1 * u.km / u.s, 1e6 * u.km)
+        with pytest.raises(sbe.RequiredPackageUnavailable):
+            test._iK0(1)
+        with pytest.raises(sbe.RequiredPackageUnavailable):
+            test._K1(1)

@@ -49,7 +49,7 @@ def rho_as_angle(rho, eph):
     elif rho.unit.is_equivalent(u.rad):
         rho_a = rho
     else:
-        raise ValueError('rho must have units of length or angle')
+        raise u.UnitConversionError('rho must have units of length or angle')
 
     return rho_a
 
@@ -78,7 +78,7 @@ def rho_as_length(rho, eph):
     elif rho.unit.is_equivalent(u.m):
         rho_l = rho
     else:
-        raise ValueError('rho must have units of length or angle.')
+        raise u.UnitConversionError('rho must have units of length or angle.')
 
     return rho_l
 
@@ -96,14 +96,14 @@ class Aperture(ABC):
 
     def __init__(self, dim):
         if not dim.unit.is_equivalent((u.radian, u.meter)):
-            raise ValueError(
+            raise u.UnitTypeError(
                 'aperture must be defined with angles or lengths.')
 
         self.dim = dim
 
     @abstractmethod
     def __str__(self):
-        return "Abstract aperture of size {}".format(self.dim)
+        "Description of the aperture."
 
     def as_angle(self, eph):
         """This aperture in units of angle.
@@ -169,8 +169,6 @@ class Aperture(ABC):
         rap : `~astropy.units.Quantity`
 
         """
-
-        pass
 
 
 class CircularAperture(Aperture):
@@ -317,7 +315,7 @@ class GaussianAperture(Aperture):
 
     def __init__(self, sigma=None, fwhm=None):
         if (sigma is None) and (fwhm is None):
-            raise TypeError('One of `sigma` or `fwhm` must be defined')
+            raise ValueError('One of `sigma` or `fwhm` must be defined')
 
         if sigma is not None:
             super().__init__(sigma)

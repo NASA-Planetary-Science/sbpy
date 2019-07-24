@@ -91,20 +91,20 @@ def photo_lengthscale(species, source=None):
         'OH': 'CS93',
     }
 
-    if species.upper() not in data:
+    if species not in data:
         raise ValueError(
-            'No timescale available for {}.  Choose from: {}'
+            'No lengthscale available for {}.  Choose from: {}'
             .format(species, ', '.join(data.keys())))
 
-    gas = data[species.upper()]
-    source = default_sources[species.upper()] if source is None else source
+    gas = data[species]
+    source = default_sources[species] if source is None else source
 
-    if source.upper() not in gas:
+    if source not in gas:
         raise ValueError(
             'Source key {} not available for {}.  Choose from: {}'
             .format(source, species, ', '.join(gas.keys())))
 
-    gamma, bibcode = gas[source.upper()]
+    gamma, bibcode = gas[source]
     bib.register(photo_lengthscale, bibcode)
 
     return gamma
@@ -116,13 +116,11 @@ def photo_timescale(species, source=None):
 
     Parameters
     ----------
-    species : string, ``None``
-      The species to look up, or ``None`` to summarize available
-      species.
+    species : string
+        Species to look up.
 
     source : string, optional
-      Retrieve values from this source (case insensitive).  See
-      references for keys.
+        Retrieve values from this source.  See references for keys.
 
 
     Returns
@@ -164,45 +162,20 @@ def photo_timescale(species, source=None):
         'CN': 'H92'
     }
 
-    if species is None:
-        tab = Table(
-            names=('Species', 'Source', 'Default', 'Lifetime_1 (s)',
-                   'Lifetime_2 (s)', 'Bibcode'),
-            dtype=('S6', 'S6', bool, float, float, 'S128'),
-            masked=True)
-        tab['Lifetime_2 (s)'].masked = True
-
-        for species, sources in data.items():
-            for source, (tau, bibcode) in sources.items():
-                if np.size(tau) == 2:
-                    tau1, tau2 = tau
-                    mask = None
-                else:
-                    tau1 = tau
-                    tau2 = 0
-                    mask = [False, False, False, False, True, False]
-
-                default = default_sources[species] == source
-                tab.add_row((species, source, default, tau1, tau2, bibcode),
-                            mask=mask)
-
-        tab.pprint(max_lines=-1, max_width=-1)
-        return
-
-    if species.upper() not in data:
+    if species not in data:
         raise ValueError(
             "No timescale available for {}.  Choose from: {}"
             .format(species, ', '.join(data.keys())))
 
-    gas = data[species.upper()]
-    source = default_sources[species.upper()] if source is None else source
+    gas = data[species]
+    source = default_sources[species] if source is None else source
 
-    if source.upper() not in gas:
+    if source not in gas:
         raise ValueError(
             'Source key {} not available for {}.  Choose from: {}'
             .format(source, species, ', '.join(gas.keys())))
 
-    tau, bibcode = gas[source.upper()]
+    tau, bibcode = gas[source]
     bib.register(photo_timescale, bibcode)
 
     return tau
@@ -218,7 +191,7 @@ def fluorescence_band_strength(species, eph=None, source=None):
     species : string
         Species to look up.
 
-    eph : `~astropy.units.Quantity`, `~sbpy.data.Ephem`, optional
+    eph : `~astropy.units.Quantity`, `~sbpy.data.Ephem` or `dict` optional
         The target ephemeris.  The strength is scaled to the given
         heliocentric distance, if present.  Some species require
         heliocentric radial velocity ('rdot').
@@ -237,13 +210,12 @@ def fluorescence_band_strength(species, eph=None, source=None):
     Examples
     --------
     >>> import astropy.units as u
-    >>> from sbpy.data import Ephem
     >>> from sbpy.activity import fluorescence_band_strength
     >>>
-    >>> eph = Ephem({'rh': 1 * au, 'rdot': -1 * u.km / u.s})
-    >>> LN = fluorescence_band_strength('OH 0-0', eph)
+    >>> eph = {'rh': 1 * u.au, 'rdot': -1 * u.km / u.s}
+    >>> LN = fluorescence_band_strength('OH 0-0', eph, 'SA88')
     >>> print(LN)    # doctest: +FLOAT_CMP
-    1.54e-15 erg / s
+    [1.54e-15] erg / s
 
     """
 
@@ -389,7 +361,6 @@ class GasComa(ABC):
             Local number density in inverse cubic-meters.
 
         """
-        pass
 
     @abstractmethod
     def _column_density(self, rho):
@@ -410,7 +381,6 @@ class GasComa(ABC):
             rho in units of inverse square-meters.
 
         """
-        pass
 
     def _integrate_volume_density(self, rho, epsabs=1.49e-8):
         """Integrate volume density along the line of sight.
@@ -485,9 +455,6 @@ class GasComa(ABC):
 
         if not scipy:
             raise RequiredPackageUnavailable('scipy')
-
-        if not aper.dim.unit.is_equivalent(u.m):
-            raise ValueError('aper must have units of length')
 
         if isinstance(aper, (CircularAperture, AnnularAperture)):
             if isinstance(aper, CircularAperture):
