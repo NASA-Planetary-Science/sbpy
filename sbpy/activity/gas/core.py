@@ -43,9 +43,9 @@ except ImportError:
     scipy = None
 
 from astropy.table import Table
-from astropy.utils.exceptions import AstropyWarning
 from ... import bib
 from ... import data as sbd
+from ...exceptions import RequiredPackageUnavailable
 from .. core import (Aperture, RectangularAperture, GaussianAperture,
                      AnnularAperture, CircularAperture)
 from .. core import rho_as_length
@@ -513,8 +513,7 @@ class GasComa(ABC):
         """
 
         if not scipy:
-            raise AstropyWarning(
-                'scipy is required for integrating volume density.')
+            raise RequiredPackageUnavailable('scipy')
 
         def f(s, rho2):
             r = np.sqrt(rho2 + s**2)
@@ -559,8 +558,7 @@ class GasComa(ABC):
         """
 
         if not scipy:
-            raise AstropyWarning(
-                'scipy is required for integrating column density')
+            raise RequiredPackageUnavailable('scipy')
 
         if not aper.dim.unit.is_equivalent(u.m):
             raise ValueError('aper must have units of length')
@@ -573,7 +571,11 @@ class GasComa(ABC):
 
             # integrate in polar coordinates
             def f(rho):
-                # rho in m, column_density in m**-2
+                """Column density integration in polar coordinates.
+
+                rho in m, column_density in m**-2
+
+                """
                 return rho * self._column_density(rho)
 
             N, err = quad(f, *limits, epsabs=epsabs)
@@ -582,30 +584,36 @@ class GasComa(ABC):
         elif isinstance(aper, RectangularAperture):
             shape = aper.shape.to('m').value
 
-            # integrate in polar coordinates
             def f(rho, th):
+                """Column density integration in polar coordinates.
+
+                rho in m, column_density in m**-2
+
+                th is ignored (azimuthal symmetry)
+
+                """
                 return rho * self._column_density(rho)
 
-            # first "octant"; g and h are the limits of the
-            # integration of rho
-            def g(th):
+            # first "octant"; rho1 and rho2 are the limits of the
+            # integration
+            def rho1(th):
+                "Lower limit"
                 return 0
 
-            def h(th):
+            def rho2(th):
+                "Upper limit (a line)"
                 return shape[0] / 2 / np.cos(th)
 
             th = np.arctan(shape[1] / shape[0])
-            N1, err1 = dblquad(f, 0, th, g, h, epsabs=epsabs)
+            N1, err1 = dblquad(f, 0, th, rho1, rho2, epsabs=epsabs)
 
             # second "octant"
-            def g(th):
-                return 0
-
-            def h(th):
+            def rho2(th):
+                "Upper limit (a line)"
                 return shape[1] / 2 / np.cos(th)
 
             th = np.arctan(shape[0] / shape[1])
-            N2, err2 = dblquad(f, 0, th, g, h, epsabs=epsabs)
+            N2, err2 = dblquad(f, 0, th, rho1, rho2, epsabs=epsabs)
 
             # N1 + N2 constitute 1/4th of the rectangle
             N = 4 * (N1 + N2)
@@ -613,6 +621,11 @@ class GasComa(ABC):
         elif isinstance(aper, GaussianAperture):
             # integrate in polar coordinates
             def f(rho, sigma):
+                """Column density integration in polar coordinates.
+
+                rho and sigma in m, column_density in m**-2
+
+                """
                 return (rho * np.exp(-rho**2 / sigma**2 / 2)
                         * self._column_density(rho))
 
@@ -677,13 +690,13 @@ class Haser(GasComa):
     def _iK0(self, x):
         """Integral of the modified Bessel function of 2nd kind, 0th order."""
         if not scipy:
-            raise AstropyWarning('scipy is not present, cannot continue.')
+            raise RequiredPackageUnavailable('scipy')
         return special.iti0k0(x)[1]
 
     def _K1(self, x):
         """Modified Bessel function of 2nd kind, 1st order."""
         if not scipy:
-            raise AstropyWarning('scipy is not present, cannot continue.')
+            raise RequiredPackageUnavailable('scipy')
         return special.k1(x)
 
     @bib.cite({'model': '1978Icar...35..360N'})

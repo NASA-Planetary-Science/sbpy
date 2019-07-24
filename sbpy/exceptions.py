@@ -9,12 +9,16 @@ respective sub-module.
 
 
 class SbpyException(Exception):
-    """Exception base class for all sbpy exceptions."""
+    "Exception base class for all sbpy exceptions."
+
+
+class RequiredPackageUnavailable(SbpyException):
+    "Required package is not available."
 
 
 class SbpyWarning(Warning):
-    """Warning base class for all sbpy warnings."""
+    "Warning base class for all sbpy warnings."
 
 
 class OptionalPackageUnavailable(SbpyWarning):
-    pass
+    "Optional package is not avilable."
