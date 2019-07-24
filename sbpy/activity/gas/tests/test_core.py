@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import pytest
 import numpy as np
 import astropy.units as u
 from .. import *
@@ -13,6 +14,27 @@ def test_photo_lengthscale():
 def test_photo_timescale():
     tau = photo_timescale('CO2', 'CE83')
     assert tau == 5.0e5 * u.s
+
+
+@pytest.mark.parametrize('band, test', (
+    ('OH 0-0', 1.54e-15 * u.erg / u.s),
+    ('OH 1-0', 1.79e-16 * u.erg / u.s),
+    ('OH 1-1', 2.83e-16 * u.erg / u.s),
+    ('OH 2-2', 1.46e-18 * u.erg / u.s),
+    ('OH 0-1', 0.00356 * 1.54e-15 * u.erg / u.s),
+    ('OH 0-2', 0.00021 * 1.54e-15 * u.erg / u.s),
+    ('OH 1-2', 0.00610 * 2.83e-16 * u.erg / u.s),
+    ('OH 2-0', 0.274 * 1.46e-18 * u.erg / u.s),
+    ('OH 2-1', 1.921 * 1.46e-18 * u.erg / u.s),
+))
+def test_fluorescence_band_strength_OH_SA88(band, test):
+    "Tests values for -1 km/s at 1 au"
+    eph = {
+        'rh': [1, 2] * u.au,
+        'rdot': [-1, -1] * u.km / u.s
+    }
+    LN = fluorescence_band_strength(band, eph, 'SA88').to(test.unit)
+    assert np.allclose(LN.value, test.value / np.r_[1, 2]**2)
 
 
 class TestHaser:

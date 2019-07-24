@@ -208,6 +208,7 @@ def photo_timescale(species, source=None):
     return tau
 
 
+@sbd.dataclass_input(eph=sbd.Ephem)
 def fluorescence_band_strength(species, eph=None, source=None):
     """Fluorescence band strength.
 
@@ -215,14 +216,12 @@ def fluorescence_band_strength(species, eph=None, source=None):
     Parameters
     ----------
     species : string
-        The species to look up.
+        Species to look up.
 
-    rdot : `~astropy.units.Quantity`, optional
-        Heliocentric radial speed, required for some species.
-
-    eph : `~sbpy.data.Ephem`, optional
-        The target ephemeris for species that require heliocentric
-        radial velocity ('rdot').
+    eph : `~astropy.units.Quantity`, `~sbpy.data.Ephem`, optional
+        The target ephemeris.  The strength is scaled to the given
+        heliocentric distance, if present.  Some species require
+        heliocentric radial velocity ('rdot').
 
     source : string, optional
         Retrieve values from this source (case insensitive).  See
@@ -231,23 +230,22 @@ def fluorescence_band_strength(species, eph=None, source=None):
 
     Returns
     -------
-    tau : `~astropy.units.Quantity`
-        The timescale, scaled to `rh` or `eph['rh']`.
+    LN : `~astropy.units.Quantity`
+        Luminosity per molecule, scaled to rh, if provided.
 
 
     Examples
     --------
+    >>> import astropy.units as u
+    >>> from sbpy.data import Ephem
     >>> from sbpy.activity import fluorescence_band_strength
-    >>> LN = fluorescence_band_strength('OH')  # doctest: +SKIP
-
-    References
-    ----------
-    [SA88] OH from Schleicher & A'Hearn 1988, ApJ 331, 1058-1077.
-    Requires `rdot`.
+    >>>
+    >>> eph = Ephem({'rh': 1 * au, 'rdot': -1 * u.km / u.s})
+    >>> LN = fluorescence_band_strength('OH 0-0', eph)
+    >>> print(LN)    # doctest: +FLOAT_CMP
+    1.54e-15 erg / s
 
     """
-
-    raise NotImplemented
 
     from .data import fluorescence_band_strength as data
 
@@ -256,26 +254,29 @@ def fluorescence_band_strength(species, eph=None, source=None):
         'OH 1-0': 'SA88',
         'OH 1-1': 'SA88',
         'OH 2-2': 'SA88',
+        'OH 0-1': 'SA88',
+        'OH 0-2': 'SA88',
+        'OH 2-0': 'SA88',
+        'OH 2-1': 'SA88',
     }
 
-    if species.upper() not in data:
+    if species not in data:
         raise ValueError(
             'No data available for {}.  Choose one of: {}'
             .format(species, ', '.join(data.keys())))
 
-    band = data[species.upper()]
+    band = data[species]
 
-    if source.upper() not in band:
+    if source not in band:
         raise ValueError(
             'No source {} for {}.  Choose one of: {}'
             .format(source, species, ', '.join(band.keys())))
 
-    LN, bibcode = band[source.upper()]
-    bib.register(fluorescence_band_strength, bibcode)
+    LN, note, bibcode = band[source]
+    if bibcode is not None:
+        bib.register(fluorescence_band_strength, bibcode)
 
-    something_about_rdot_here
-
-    return LN
+    return LN(eph)
 
 
 class GasComa(ABC):
