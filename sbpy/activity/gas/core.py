@@ -1,23 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-"""
-==================
-SBPy Activity: Gas
-==================
-
-
-Functions
----------
-photo_lengthscale          - Photodissociation lengthscale.
-photo_timescale            - Photodissociation timescale.
-fluorescence_band_strength - Fluorescence band efficiency of a specific
-                             species and transition.
-
-
-Classes
--------
-GasComa             - Abstract base class for gas coma models.
-Haser               - Haser coma model for gas (Haser 1957).
-
+"""activity.gas core
 
 """
 
@@ -92,9 +74,13 @@ def photo_lengthscale(species, source=None):
     }
 
     if species not in data:
+        summary = ''
+        for k, v in data.items():
+            summary += '\n{} [{}]'.format(k, ', '.join(v.keys()))
+
         raise ValueError(
-            'No lengthscale available for {}.  Choose from: {}'
-            .format(species, ', '.join(data.keys())))
+            'Invalid species {}.  Choose from:{}'
+            .format(species, summary))
 
     gas = data[species]
     source = default_sources[species] if source is None else source
@@ -163,9 +149,13 @@ def photo_timescale(species, source=None):
     }
 
     if species not in data:
+        summary = ''
+        for k, v in data.items():
+            summary += '\n{} [{}]'.format(k, ', '.join(v.keys()))
+
         raise ValueError(
-            "No timescale available for {}.  Choose from: {}"
-            .format(species, ', '.join(data.keys())))
+            "Invalid species {}.  Choose from:{}"
+            .format(species, summary))
 
     gas = data[species]
     source = default_sources[species] if source is None else source
@@ -238,6 +228,7 @@ def fluorescence_band_strength(species, eph=None, source=None):
             .format(species, ', '.join(data.keys())))
 
     band = data[species]
+    source = default_sources[species] if source is None else source
 
     if source not in band:
         raise ValueError(
@@ -316,7 +307,7 @@ class GasComa(ABC):
         """
 
         rho_m = rho_as_length(rho, eph=eph).to('m').value
-        return self._column_density(rho_m) * u.m**2
+        return self._column_density(rho_m) / u.m**2
 
     @sbd.dataclass_input(eph=sbd.Ephem)
     @sbd.quantity_to_dataclass(eph=(sbd.Ephem, 'delta'))

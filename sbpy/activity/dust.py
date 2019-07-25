@@ -1,21 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-===================
-SBPy Activity: Dust
+sbpy Activity: Dust
 ===================
 
 All things dust coma related.
-
-
-Functions
----------
-phase_HalleyMarcus - Halley-Marcus composite dust phase function.
-
-
-Classes
--------
-Afrho     - Coma dust quantity for scattered light.
-Efrho     - Coma dust quantity for thermal emission.
 
 
 """

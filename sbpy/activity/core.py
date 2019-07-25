@@ -12,6 +12,7 @@ created on June 23, 2017
 __all__ = [
     'rho_as_angle',
     'rho_as_length',
+    'Aperture',
     'CircularAperture',
     'AnnularAperture',
     'RectangularAperture',
@@ -120,7 +121,7 @@ class Aperture(ABC):
 
         Parameters
         ----------
-        eph : dictionary-like, `~sbpy.data.Ephem`, or ~`astropy.units.Quantity`
+        eph : dictionary-like, `~sbpy.data.Ephem`, or `~astropy.units.Quantity`
             The observer-target distance (``delta``).
 
 
@@ -141,7 +142,7 @@ class Aperture(ABC):
 
         Parameters
         ----------
-        eph : dictionary-like, `~sbpy.data.Ephem`, or ~`astropy.units.Quantity`
+        eph : dictionary-like, `~sbpy.data.Ephem`, or `~astropy.units.Quantity`
             The observer-target distance (``delta``).
 
 
