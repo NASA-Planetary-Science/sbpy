@@ -32,12 +32,12 @@ Use :func:`~sbpy.activity.gas.photo_timescale` to retrieve photolysis timescales
   H2O [CS93]
   HCN [C94]
   OH [CS93]
-  >>> gas.photo_timescale('H2O')
+  >>> gas.photo_timescale('H2O')  # doctest: +FLOAT_CMP
   <Quantity 52000. s>
 
 Some sources provide values for the quiet and active Sun (Huebner et al. 1992):
 
-  >>> gas.photo_timescale('CN', source='H92')
+  >>> gas.photo_timescale('CN', source='H92')  # doctest: +FLOAT_CMP
   <Quantity [315000., 135000.] s>
 
 
