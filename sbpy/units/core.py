@@ -22,16 +22,19 @@ __all__ = [
     'VEGAmag',
     'JM',
     'JMmag',
-    'reflectance'
+    'reflectance',
+    'projected_size',
 ]
 
 from warnings import warn
+import numpy as np
 import astropy.units as u
 import astropy.constants as const
 from ..exceptions import SbpyWarning
 from ..calib import (
     Vega, Sun, vega_fluxd, FilterLookupError, UndefinedSourceError
 )
+from .. import data as sbd
 from ..spectroscopy.sources import SinglePointSpectrumError, SynphotRequired
 from ..exceptions import OptionalPackageUnavailable, SbpyWarning
 
@@ -91,7 +94,7 @@ def spectral_density_vega(wfb):
 
     Returns
     -------
-    eqv : list
+    equiv : list
         List of equivalencies.
 
 
@@ -195,7 +198,7 @@ def reflectance(wfb, cross_section=None, reflectance=None, **kwargs):
 
     Returns
     -------
-    eqv : list
+    equiv : list
         List of equivalencies
 
 
@@ -266,4 +269,50 @@ def reflectance(wfb, cross_section=None, reflectance=None, **kwargs):
                 lambda xsec, fluxd0=fluxd0.value: (
                     fluxd0 * ref * xsec / au2km)
             ))
+    return equiv
+
+
+@sbd.dataclass_input
+@sbd.quantity_to_dataclass(eph=(sbd.Ephem, 'delta'))
+def projected_size(eph: sbd.Ephem):
+    """Angular size and projected linear size equivalency.
+
+    Based on the tangent formula:
+
+        length = delta * tan(angle)
+
+
+    Parameters
+    ----------
+    eph : `~astropy.units.Quantity`, dict-like, `sbpy.data.Ephem`
+        Distance to the object as a quantity or the field `'delta'`.
+
+
+    Returns
+    -------
+    eqiv : list
+        List of equivalencies
+
+
+    Examples
+    --------
+    >>> import astropy.units as u
+    >>> import sbpy.units as sbu
+    >>> (1 * u.arcsec).to('km', sbu.projected_size(1 * u.delta))
+    ... # doctest: +FLOAT_CMP
+    [725.27] km
+    >>> (725.27 * u.km).to('arcsec', sbu.projected_size(1 * u.delta))
+    ... # doctest: +FLOAT_CMP
+    [1.00] arcsec
+
+    """
+
+    delta = eph['delta'].to('m').value
+
+    equiv = [(
+        u.rad, u.m,
+        lambda angle, delta=delta: delta * np.tan(angle),
+        lambda length, delta=delta: np.arctan(length / delta)
+    )]
+
     return equiv

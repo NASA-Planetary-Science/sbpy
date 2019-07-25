@@ -204,3 +204,13 @@ def test_reflectance_spec():
     for ref in (ref1, ref2, ref3):
         assert ref.unit == '1/sr'
         assert np.allclose(ref.value, t1['ref'])
+
+
+@pytest.mark.parametrize('value, delta, test', (
+    (1 * u.arcsec, 1 * u.au, np.tan(1 * u.arcsec) * u.au),
+    (725.27 * u.km, 1 * u.au, np.tan(1 * u.arcsec) * u.rad),
+))
+def test_projected_size(value, delta, test):
+    test = test.decompose()
+    result = value.to(test.unit, projected_size(delta))
+    assert np.isclose(result.value, test.value)
