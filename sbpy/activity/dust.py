@@ -26,8 +26,9 @@ from ..calib import Sun
 from ..spectroscopy import BlackbodySource
 from .. import data as sbd
 from .. import exceptions as sbe
+from .. import units as sbu
 from ..spectroscopy.sources import SinglePointSpectrumError
-from .core import Aperture, rho_as_length
+from .core import Aperture
 
 
 @bib.cite({
@@ -254,7 +255,7 @@ class DustComaQuantity(u.SpecificTypeQuantity, abc.ABC,
         else:
             rho = aper
             ndim = np.ndim(rho)
-        rho = rho_as_length(rho, eph)
+        rho = rho.to('km', sbu.projected_size(eph))
 
         ndim = max(ndim, np.ndim(self))
 

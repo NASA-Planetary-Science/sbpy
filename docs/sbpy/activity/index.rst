@@ -40,7 +40,7 @@ Apertures may be converted between linear and angular units using :func:`~sbpy.a
 
   >>> ap = sba.CircularAperture(1 * u.arcsec)
   >>> ap.as_length(1 * u.au)  # doctest: +FLOAT_CMP
-  <CircularAperture: radius [725270.94380784] m>
+  <CircularAperture: radius [725.27094381] km>
 
 Ideal comae (constant production rate, free-expansion, infinite lifetime) have *1/ρ* surface brightness distributions.  With :func:`~sbpy.activity.Aperture.coma_equivalent_radius`, we may convert the aperture into a circular aperture that would contain the same total flux at the telescope:
 
