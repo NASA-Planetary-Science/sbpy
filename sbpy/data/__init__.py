@@ -21,7 +21,7 @@ class Conf():
          'fieldnames': ['epoch', 'datetime',
                         'Date', 'date', 'Time', 'time'],
          'provenance': ['orbit', 'ephem', 'obs'],
-         'dimension': '`~astropy.time.Time`(time)'},
+         'dimension': '`~astropy.time.Time`'},
 
         # Orbital Elements
         {'description': 'Semi-Major Axis',
@@ -316,7 +316,7 @@ class Conf():
 
 conf = Conf()
 
-from .core import DataClass, DataClassError
+from .core import DataClass, DataClassError, QueryError, TimeScaleWarning
 from .decorators import *
 from .ephem import Ephem
 from .orbit import Orbit
@@ -325,4 +325,5 @@ from .obs import Obs
 from .names import Names, natural_sort_key
 
 __all__ = ['DataClass', 'Ephem', 'Obs', 'Orbit', 'Phys', 'Names',
-           'conf', 'Conf', 'DataClassError', 'quantity_to_dataclass']
+           'conf', 'Conf', 'DataClassError', 'quantity_to_dataclass',
+           'QueryError', 'TimeScaleWarning']

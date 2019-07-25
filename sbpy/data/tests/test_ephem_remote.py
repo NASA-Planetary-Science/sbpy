@@ -3,6 +3,7 @@
 import pytest
 from copy import deepcopy
 from numpy import abs
+import warnings
 
 from numpy.testing import assert_allclose
 import astropy.units as u
@@ -10,7 +11,7 @@ from astropy.time import Time
 from astropy.coordinates import EarthLocation
 from astropy.tests.helper import assert_quantity_allclose
 
-from sbpy.data import Ephem, Orbit
+from sbpy.data import Ephem, Orbit, QueryError
 from sbpy import bib
 from ..core import conf
 
@@ -26,15 +27,15 @@ class TestEphemFromHorizons:
     def test_daterange_Time(self):
         epochs = {'start': Time('2018-01-02', format='iso'),
                   'stop': Time('2018-01-05', format='iso'),
-                  'step': '6h'}
+                  'step': 6*u.hour}
         data = Ephem.from_horizons('Ceres', epochs=epochs)
         assert len(data.table) == 13
 
     def test_daterange_strings(self):
         # (this is not really supported by sbpy)
-        epochs = {'start': '2018-01-02',
-                  'stop': '2018-01-05',
-                  'step': '6h'}
+        epochs = {'start': Time('2018-01-02'),
+                  'stop': Time('2018-01-05'),
+                  'step': 6*u.hour}
         data = Ephem.from_horizons('Ceres', epochs=epochs)
         assert len(data.table) == 13
 
@@ -66,6 +67,22 @@ class TestEphemFromHorizons:
         data = Ephem.from_horizons(['Ceres', 'Pallas'])
         assert 'sbpy.data.Ephem' in bib.to_text()
 
+    def test_timescale(self):
+        # test same timescale
+        time = Time('2020-01-01 00:00', format='iso', scale='utc')
+        a = Ephem.from_horizons(1, epochs=time)
+        assert a['epoch'].scale == 'utc'
+        assert a['epoch'].utc.jd == 2458849.5
+
+        # test different timescale (and check for warning)
+        time = Time('2020-01-01 00:00', format='iso', scale='tdb')
+        with warnings.catch_warnings(record=True) as w:
+            a = Ephem.from_horizons(1, epochs=time)
+            assert any(["astroquery.jplhorizons" in str(w[i].message)
+                        for i in range(len(w))])
+        assert a['epoch'].scale == 'utc'
+        assert_allclose(a['epoch'][0].utc.jd, 2458849.49919926)
+
 
 @pytest.mark.remote_data
 class TestEphemFromMPC:
@@ -74,53 +91,55 @@ class TestEphemFromMPC:
         assert len(eph.table) == 1
 
     def test_single_epoch(self):
-        eph = Ephem.from_mpc('Ceres', epochs='2018-10-01')
+        eph = Ephem.from_mpc('Ceres', epochs=Time('2018-10-01'))
         assert len(eph.table) == 1
 
     def test_multiple_epochs(self):
-        eph = Ephem.from_mpc('Ceres', epochs=['2018-10-01', '2019-10-01'])
+        eph = Ephem.from_mpc('Ceres', epochs=Time(['2018-10-01',
+                                                   '2019-10-01']))
         assert len(eph.table) == 2
 
     def test_start_stop_step(self):
-        epochs = dict(start='2018-10-01', stop='2018-10-31', step='1d')
+        epochs = dict(start=Time('2018-10-01'), stop=Time('2018-10-31'),
+                      step=1*u.d)
         eph = Ephem.from_mpc('Ceres', epochs=epochs)
         assert len(eph.table) == 31
 
     def test_minute_steps_pr88(self):
         """https://github.com/NASA-Planetary-Science/sbpy/pull/88"""
-        epochs = dict(start='2018-10-01', step='1min', number=10)
+        epochs = dict(start=Time('2018-10-01'), step=1*u.min, number=10)
         eph = Ephem.from_mpc('Ceres', epochs=epochs)
         assert len(eph.table) == 10
 
     def test_start_stop_no_step(self):
-        with pytest.raises(ValueError):
-            eph = Ephem.from_mpc('Ceres', epochs={'start': '2018-10-01',
-                                                  'stop': '2018-10-31'})
+        with pytest.raises(QueryError):
+            eph = Ephem.from_mpc('Ceres', epochs={
+                'start': Time('2018-10-01'),
+                'stop': Time('2018-10-31')})
 
     def test_start_step_number(self):
-        epochs = dict(start='2018-10-01', step='1d', number=31)
+        epochs = dict(start=Time('2018-10-01'), step=1*u.d, number=31)
         eph = Ephem.from_mpc('Ceres', epochs=epochs)
         assert len(eph.table) == 31
         assert eph['Date'][-1] == '2018-10-31 00:00:00.000'
 
     def test_start_stop_jd(self):
-        epochs = {'start': 2458396.5, 'stop': 2458397.5, 'step': '1d'}
+        epochs = {'start': Time(2458396.5, format='jd'),
+                  'stop': Time(2458397.5, format='jd'),
+                  'step': 1*u.d}
         eph = Ephem.from_mpc('Ceres', epochs=epochs)
         assert eph['Date'][0] == '2018-10-05 00:00:00.000'
         assert eph['Date'][1] == '2018-10-06 00:00:00.000'
 
-    def test_epochs_jd(self):
-        epochs = ['2018-10-05', 2458397.5]
-        eph = Ephem.from_mpc('Ceres', epochs=epochs)
-        assert eph['Date'][1] == '2018-10-06 00:00:00.000'
-
     def test_step_unit(self):
         with pytest.raises(ValueError):
-            eph = Ephem.from_mpc('Ceres', epochs={'start': '2018-10-01',
-                                                  'step': '1yr'})
+            eph = Ephem.from_mpc('Ceres', epochs={
+                'start': Time('2018-10-01'),
+                'step': 1*u.year})
 
     def test_ra_dec_format(self):
-        epochs = dict(start='2018-10-01', step='1d', number=31)
+        epochs = dict(start=Time('2018-10-01'),
+                      step=1*u.d, number=31)
         ra_format = {'sep': ':', 'unit': 'hourangle', 'precision': 1}
         dec_format = {'sep': ':', 'precision': 1}
         eph = Ephem.from_mpc('Ceres', epochs=epochs, ra_format=ra_format,
@@ -165,7 +184,7 @@ class TestEphemFromMiriade:
         eph = Ephem.from_miriade(["Ceres", 'Pallas'],
                                  epochs={'start': Time('2018-10-01'),
                                          'stop': Time('2018-10-10'),
-                                         'step': '0.5d'})
+                                         'step': 0.5*u.d})
         assert len(eph.table) == 38
 
     def test_iaulocation(self):

@@ -10,6 +10,7 @@ created on June 04, 2017
 """
 import os
 from copy import deepcopy
+from warnings import warn
 
 from numpy import ndarray, array, hstack, iterable
 from astropy.time import Time
@@ -20,15 +21,11 @@ from astroquery.mpc import MPC
 from astroquery.imcce import Miriade
 from astropy.coordinates import EarthLocation
 
-from ..exceptions import SbpyException
+
 from .. import bib
-from .core import DataClass, conf
+from .core import DataClass, conf, QueryError, TimeScaleWarning
 
 __all__ = ['Ephem']
-
-
-class QueryError(SbpyException):
-    pass
 
 
 class Ephem(DataClass):
@@ -55,23 +52,23 @@ class Ephem(DataClass):
             Default: ``'smallbody'``
         epochs : `~astropy.time.Time` object, or dictionary, optional
             Epochs of elements to be queried; `~astropy.time.Time` objects
-            support iterables within the object so an `~astropy.time.Time`
-            object should still be used for a number of discrete epochs;
+            support single and multiple epochs;
             a dictionary including keywords ``start`` and ``stop``, as well
             as either ``step`` or ``number``, can be used to generate a range
             of epochs. ``start`` and ``stop`` have to be
-            `~astropy.time.Time` objects. If ``step`` is provided as a string,
-            the interval
-            defined by ``start``
-            and ``stop`` is split into time steps defined by ``step`` (see
-            `~astroquery.jplhorizons.HorizonsClass.Horizons.ephemerides`
-            for details). If ``number`` is provided as an integer, the
+            `~astropy.time.Time` objects. If ``step`` is provided, a range
+            of epochs will be queries starting at ``start`` and ending at
+            ``stop`` in steps of ``step``; ``step`` hss to be provided as
+            a `~astropy.units.Quantity` object with integer value and a
+            unit of either minutes, hours, days, or years. If
+            ``number`` is provided as an integer, the
             interval defined by
             ``start`` and ``stop`` is split into ``number`` equidistant
-            intervals by calculating ``step`` from the interval and ``number``
-            in units of full minutes. If ``None`` is
+            intervals. If ``None`` is
             provided, current date and time are
-            used. Default: ``None``
+            used. All epochs should be provided in UTC; if not, they will be
+            converted to UTC and a `~sbpy.data.TimeScaleWarning` will be
+            raised.  Default: ``None``
         location : str or `~astropy.coordinates.EarthLocation`, optional
             Location of the observer using IAU observatory codes
             (see `IAU observatory codes
@@ -95,6 +92,11 @@ class Ephem(DataClass):
         Returns
         -------
         `~Ephem` object
+            The resulting object will be populated with columns as
+            defined in
+            `~astroquery.jplhorizons.HorizonsClass.ephemerides`; refer
+            to that document on information on how to modify the list
+            of queried parameters.
 
         Examples
         --------
@@ -102,35 +104,34 @@ class Ephem(DataClass):
         >>> from astropy.time import Time
         >>> epoch = Time('2018-05-14', scale='utc')
         >>> eph = Ephem.from_horizons('ceres', epochs=epoch) # doctest: +SKIP
+
         """
 
         # modify epoch input to make it work with astroquery.jplhorizons
         # maybe this stuff should really go into that module....
         if epochs is None:
-            epochs = [Time.now().jd]
+            epochs = [Time.now().utc.jd]
         elif isinstance(epochs, Time):
-            epochs = epochs.jd
-            if isinstance(epochs, float):
-                epochs = [epochs]
-            new_epochs = [None] * len(epochs)
-            for i in range(len(epochs)):
-                new_epochs[i] = epochs[i]
-            epochs = new_epochs
+            if epochs.scale is not 'utc':
+                warn(('converting {} epochs to utc for use in '
+                      'astroquery.jplhorizons').format(epochs.scale),
+                     TimeScaleWarning)
+            epochs = epochs.utc.jd
         elif isinstance(epochs, dict):
             if 'start' in epochs and 'stop' in epochs and 'number' in epochs:
-                # turn interval/number into step size based on full minutes
-                epochs['step'] = '{:d}m'.format(
-                    int((epochs['stop']-epochs['start']).jd*1440 /
-                        (epochs['number']-1)))
-            if 'start' in epochs and 'stop' in epochs and 'step' in epochs:
-                # default format used in astroquery.jplhorizons
-                for key, val in epochs.items():
-                    if isinstance(val, Time):
-                        val.format = 'iso'
-                        val.out_subfmt = 'date_hms'
-                        epochs[key] = val.value
-                    else:
-                        epochs[key] = epochs[key]
+                epochs['step'] = epochs['number']*u.dimensionless_unscaled
+            # convert to utc and iso for astroquery.jplhorizons
+            epochs['start'] = epochs['start'].utc.iso
+            epochs['stop'] = epochs['stop'].utc.iso
+            if 'step' in epochs:
+                if epochs['step'].unit is not u.dimensionless_unscaled:
+                    epochs['step'] = '{:d}{:s}'.format(
+                        int(epochs['step'].value),
+                        {u.minute: 'm', u.hour: 'h', u.d: 'd',
+                         u.year: 'y'}[epochs['step'].unit])
+                else:
+                    epochs['step'] = '{:d}'.format(
+                        int(epochs['step'].value-1))
 
         # if targetids is a list, run separate Horizons queries and append
         if not isinstance(targetids, (list, ndarray, tuple)):
@@ -208,28 +209,29 @@ class Ephem(DataClass):
             (1), 3200, Ceres, and packed designations, for one or more
             targets.
 
-        epochs : various, optional
+        epochs : `~astropy.time.Time` object, or dictionary, optional
             Request ephemerides at these epochs.  May be a single
-            epoch as a string or `~astropy.time.Time`, an array of
-            epochs, or a dictionary describing a linearly-spaced array
-            of epochs.  If ``None`` (default), the current date and
+            epoch or multiple epochs as `~astropy.time.Time` or a
+            dictionary describing a linearly-spaced array
+            of epochs. All epochs should be provided in UTC; if not,
+            they will be converted to UTC and a
+            `~sbpy.data.TimeScaleWarning` will be raised.
+            If ``None`` (default), the current date and
             time will be used.
 
             For the dictionary format, the keys ``start`` (start
             epoch), ``step`` (step size), ``stop`` (end epoch), and/or
             ``number`` (number of epochs total) are used.  Only one of
             ``stop`` and ``number`` may be specified at a time.
-            ``step``, ``stop``, and ``number`` are optional.  See
-            `~astroquery.mpc.MPC.get_ephemeris` for defaults.
+            ``step``, ``stop``, and ``number`` are optional. The values of
+            of ``start`` and ``stop`` must be `~astropy.time.Time` objects.
+            ``number`` should be an integer value; ``step`` should be a
+            `~astropy.units.Quantity` with an integer value and units of
+            seconds, minutes, hours, or days.
 
-            Epochs, including ``start`` and ``stop``, are
-            `~astropy.time.Time` objects, anything that can initialize
-            a ``Time`` object, or a float indicating a Julian date.
-            Unless otherwise specified, the UTC scale is assumed.
-
-            ``step`` should be an integer in units of seconds,
-            minutes, hours, or days.  Anything that can initialize an
-            `~astropy.units.Quantity` object is allowed.
+            All epochs should be provided in UTC; if not, they will be
+            converted to UTC and a `~sbpy.data.TimeScaleWarning` will be
+            raised.
 
         location : various, optional
             Location of the observer as an IAU observatory code
@@ -252,6 +254,11 @@ class Ephem(DataClass):
         Returns
         -------
         `~Ephem` object
+            The resulting object will be populated with columns as
+            defined in
+            `~astroquery.mpc.get_ephemerides`; refer
+            to that document on information on how to modify the list
+            of queried parameters.
 
 
         Examples
@@ -265,7 +272,8 @@ class Ephem(DataClass):
 
         Query a range of ephemerides of comet 2P/Encke as observed from
         Maunakea:
-        >>> epochs = {'start': '2019-01-01', 'step': '1d', 'number': 365}
+        >>> epochs = {'start': Time('2019-01-01'),
+        ...           'step': 1*u.d, 'number': 365}
         >>> eph = Ephem.from_mpc('2P', epochs, 568) # doctest: +REMOTE_DATA
 
         Notes
@@ -292,46 +300,64 @@ class Ephem(DataClass):
         if not isinstance(targetids, (list, ndarray, tuple)):
             targetids = [targetids]
 
-        if isinstance(epochs, dict):
+        # if isinstance(epochs, dict):
+        #     if 'start' in epochs and 'stop' in epochs and 'number' in epochs:
+        #         # turn interval/number into step size based on full minutes
+        #         epochs['step'] = '{:d}m'.format(
+        #             int((epochs['stop']-epochs['start']).jd*1440 /
+        #                 (epochs['number']-1)))
+        #     # convert to utc and iso for astroquery.mpc
+        #     epochs['start'] = epochs['start'].utc.iso
+        #     epochs['stop'] = epochs['stop'].utc.iso
+
+        if isinstance(epochs, Time):
+            if epochs.scale is not 'utc':
+                warn(('converting {} epochs to utc for use in '
+                      'astroquery.mpc').format(epochs.scale),
+                     TimeScaleWarning)
+                epochs = epochs.utc
+            start = None
+        elif isinstance(epochs, dict):
             start = epochs['start']  # required
+            if start.scale is not 'utc':
+                warn(('converting {} start epoch to utc for use in '
+                      'astroquery.mpc').format(start.scale),
+                     TimeScaleWarning)
+                start = start.utc
             step = epochs.get('step')
             stop = epochs.get('stop')
+            if stop is not None and stop.scale is not 'utc':
+                warn(('converting {} stop epoch to utc for use in '
+                      'astroquery.mpc').format(stop.scale),
+                     TimeScaleWarning)
+                stop = stop.utc
             number = epochs.get('number')
 
-            if isinstance(start, (float, int)):
-                start = Time(start, format='jd', scale='utc')
-
-            if isinstance(stop, (float, int)):
-                stop = Time(stop, format='jd', scale='utc')
-
-            if step is not None:
+            if step is not None and stop is None:
                 step = u.Quantity(step)
                 if step.unit not in (u.d, u.h, u.min, u.s):
                     raise ValueError(
                         'step must have units of days, hours, minutes,'
                         ' or seconds')
-
             if stop is not None:
-                if step is None:
-                    raise ValueError(
-                        'step is required when start and stop are provided')
-
-                # start and stop both defined, estimate number of steps
-                dt = (Time(stop).jd - Time(start).jd) * u.d
-                number = int((dt / step).decompose()) + 1
+                if step is not None and number is None:
+                    # start and stop both defined, estimate number of steps
+                    dt = (Time(stop).jd - Time(start).jd) * u.d
+                    number = int((dt / step).decompose()) + 1
+                elif step is None and number is not None:
+                    step = int((stop-start).jd*1440/(number-1))*u.minutes
+                else:
+                    raise QueryError(
+                        ('epoch definition unclear; step xor number '
+                         'must be provided with start and stop'))
         else:
             start = None
 
-            if epochs is None:
-                epochs = Time.now()
+        if epochs is None:
+            epochs = Time.now()
 
-            if not iterable(epochs) or isinstance(epochs, str):
-                epochs = [epochs]
-
-            # check for Julian dates
-            for i in range(len(epochs)):
-                if isinstance(epochs[i], (float, int)):
-                    epochs[i] = Time(epochs[i], format='jd', scale='utc')
+        if not iterable(epochs):
+            epochs = [epochs]
 
         # append ephemerides table for each targetid
         all_eph = None
@@ -390,21 +416,24 @@ class Ephem(DataClass):
             ``'planet'``, or ``'satellite'``. Default: ``'asteroid'``
         epochs : `~astropy.time.Time` object, or dictionary, optional
             Epochs of elements to be queried; `~astropy.time.Time` objects
-            only support single epochs;
+            support single and multiple epochs;
             a dictionary including keywords ``start`` and ``stop``, as well
             as either ``step`` or ``number``, can be used to generate a range
             of epochs. ``start`` and ``stop`` have to be
-            `~astropy.time.Time` objects or strings in ISO format
-            (``'YYYY-MM-DD HH:MM:SS'``). If ``step`` is provided as a
-            string, the interval
-            defined by ``start``
-            and ``stop`` is split into time steps defined by ``step``. If
+            `~astropy.time.Time` objects.
+            If ``step`` is provided, a range
+            of epochs will be queries starting at ``start`` and ending at
+            ``stop`` in steps of ``step``; ``step`` hss to be provided as
+            a `~astropy.units.Quantity` object with integer value and a
+            unit of either seconds, minutes, hours, or days. If
             ``number`` is provided as an integer, the
             interval defined by
             ``start`` and ``stop`` is split into ``number`` equidistant
             intervals. If ``None`` is
             provided, current date and time are
-            used. Default: ``None``
+            used. All epochs should be provided in UTC; if not, they will be
+            converted to UTC and a `~sbpy.data.TimeScaleWarning` will be
+            raised. Default: ``None``
         location : str or `~astropy.coordinates.EarthLocation`, optional
             Location of the observer using IAU observatory codes
             (see `IAU observatory codes
@@ -429,6 +458,11 @@ class Ephem(DataClass):
         Returns
         -------
         `~Ephem` object
+            The resulting object will be populated with columns as
+            defined in
+            `~astroquery.imcce.MiriadeClass.get_ephemerides`; refer
+            to that document on information on how to modify the list
+            of queried parameters.
 
         Examples
         --------
@@ -440,23 +474,24 @@ class Ephem(DataClass):
 
         # modify epoch input to make it work with astroquery.imcce.Miriade
         if epochs is None:
-            epochs = {'start': Time.now().jd}
+            epochs = {'start': Time.now().utc.jd}
         elif isinstance(epochs, Time):
             epochs = {'start': epochs}
         elif isinstance(epochs, dict):
             if 'number' in epochs:
                 # turn interval/number into step size based on full minutes
-                epochs['step'] = '{:d}m'.format(
-                    int((Time(epochs['stop'])-Time(epochs['start'])).jd *
-                        1440 / (epochs['number']-1)))
+                epochs['step'] = int((Time(epochs['stop']) -
+                                      Time(epochs['start'])).jd *
+                                     86400/(epochs['number']-1))*u.s
             elif 'step' in epochs:
-                # parse 'step'
-                stepsize_s = (float(epochs['step'][:-1]) *
-                              {'s': 1, 'm': 60, 'h': 3600, 'd': 86400}[
-                                  epochs['step'][-1]])
                 epochs['number'] = ((Time(epochs['stop']) -
                                      Time(epochs['start'])).jd *
-                                    86400/stepsize_s)+1
+                                    86400/epochs['step'].to('s').value)+1
+            if 'step' in epochs:
+                epochs['step'] = '{:f}{:s}'.format(
+                    epochs['step'].value,
+                    {u.s: 's', u.minute: 'm', u.hour: 'h',
+                     u.day: 'd'}[epochs['step'].unit])
 
         # if targetids is a list, run separate Horizons queries and append
         if not isinstance(targetids, (list, ndarray, tuple)):
@@ -476,23 +511,29 @@ class Ephem(DataClass):
         for targetid in targetids:
             query = Miriade()
             if 'step' not in epochs and 'number' not in epochs:
-                # single epoch
-                try:
-                    # load ephemerides using astroquery.imcce
+                if not iterable(epochs['start']):
+                    # single epoch
                     eph = query.get_ephemerides(targetname=targetid,
                                                 objtype=objtype,
                                                 location=location,
                                                 epoch=epochs['start'],
                                                 **kwargs)
-                except ValueError as e:
-                    raise RuntimeError(
-                        ('Error raised by astroquery.imcce: {:s}\n'
-                         'The following query was attempted: {:s}').format(
-                             str(e), query.uri))
+                else:
+                    # multiple epochs
+                    eph = []
+                    for i in range(len(epochs['start'])):
+                        e = query.get_ephemerides(targetname=targetid,
+                                                  objtype=objtype,
+                                                  location=location,
+                                                  epoch=epochs['start'][i],
+                                                  **kwargs)
+                        e['Date'] = e['Date'].iso  # for vstack to work
+                        eph.append(e)
+                    eph = vstack(eph)
+                    eph['Date'] = Time(eph['Date'], scale='utc')
             else:
-                # range of epochs
+                # dictionary
                 try:
-                    # load ephemerides using astroquery.imcce
                     eph = query.get_ephemerides(
                         targetname=targetid, objtype=objtype,
                         location=location, epoch=epochs['start'],
