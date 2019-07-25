@@ -45,9 +45,10 @@ def test_from_horizons():
     assert len(data.table) == 2
 
     # test bib service
-    bib.track()
-    data = Ephem.from_horizons(['Ceres', 'Pallas'])
-    assert 'sbpy.data.Ephem' in bib.to_text()
+    with bib.Tracking():
+        data = Ephem.from_horizons(['Ceres', 'Pallas'])
+        assert 'sbpy.data.Ephem' in bib.to_text()
+    bib.reset()
 
 
 @pytest.mark.remote_data

@@ -50,9 +50,10 @@ def test_from_horizons():
     assert len(data.table) == 2
 
     # test bib service
-    bib.track()
-    data = Orbit.from_horizons(['Ceres', 'Pallas'])
-    assert 'sbpy.data.Orbit' in bib.to_text()
+    with bib.Tracking():
+        data = Orbit.from_horizons(['Ceres', 'Pallas'])
+        assert 'sbpy.data.Orbit' in bib.to_text()
+    bib.reset()
 
 
 @pytest.mark.remote_data
