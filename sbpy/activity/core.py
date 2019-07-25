@@ -24,6 +24,8 @@ from abc import ABC, abstractmethod
 import numpy as np
 import astropy.units as u
 
+from .. import data as sbd
+
 
 def rho_as_angle(rho, eph):
     """Projected linear distance to angular distance.
@@ -101,20 +103,25 @@ class Aperture(ABC):
 
         self.dim = dim
 
-    @abstractmethod
     def __str__(self):
-        "Description of the aperture."
+        """Description of the aperture."""
+        # assumes preferred format for __repr__
+        return repr(self)[1:-1].replace('Aperture:', ' aperture,')
 
+    @abstractmethod
+    def __repr__(self):
+        """Preferred format <ShapedAperture: size>"""
+
+    @sbd.dataclass_input(eph=sbd.Ephem)
+    @sbd.quantity_to_dataclass(eph=(sbd.Ephem, 'delta'))
     def as_angle(self, eph):
         """This aperture in units of angle.
 
 
         Parameters
         ----------
-        eph : dictionary-like, `~sbpy.data.Ephem`, optional
-            Ephemerides at epoch; requires geocentric distance as
-            `delta` keyword.  Ignored if the aperture is already in
-            units of angle.
+        eph : dictionary-like, `~sbpy.data.Ephem`, or ~`astropy.units.Quantity`
+            The observer-target distance (``delta``).
 
 
         Returns
@@ -126,16 +133,16 @@ class Aperture(ABC):
         dim = rho_as_angle(self.dim, eph)
         return type(self)(dim)
 
+    @sbd.dataclass_input(eph=sbd.Ephem)
+    @sbd.quantity_to_dataclass(eph=(sbd.Ephem, 'delta'))
     def as_length(self, eph):
         """This aperture in units of length.
 
 
         Parameters
         ----------
-        eph : dictionary-like, `~sbpy.data.Ephem`, optional
-            Ephemerides at epoch; requires geocentric distance as
-            `delta` keyword.  Ignored if the aperture is already in
-            units of length.
+        eph : dictionary-like, `~sbpy.data.Ephem`, or ~`astropy.units.Quantity`
+            The observer-target distance (``delta``).
 
 
         Returns
@@ -185,8 +192,8 @@ class CircularAperture(Aperture):
     def __init__(self, radius):
         super().__init__(radius)
 
-    def __str__(self):
-        return "Circular aperture, radius {}".format(self.dim)
+    def __repr__(self):
+        return '<CircularAperture: radius {}>'.format(self.dim)
 
     @property
     def radius(self):
@@ -216,8 +223,8 @@ class AnnularAperture(Aperture):
             raise ValueError('shape must be 2-elements')
         super().__init__(shape)
 
-    def __str__(self):
-        return ("Annular aperture, radii {0[0].value:}–{0[1]:}"
+    def __repr__(self):
+        return ('<AnnularAperture: radii {0[0].value:}–{0[1]:}>'
                 .format(self.dim))
 
     @property
@@ -247,8 +254,8 @@ class RectangularAperture(Aperture):
             raise ValueError('shape must be 2-elements')
         super().__init__(shape)
 
-    def __str__(self):
-        return ("Rectangular aperture, dimensions {0[0].value:}×{0[1]:}"
+    def __repr__(self):
+        return ("<RectangularAperture: dimensions {0[0].value:}×{0[1]:}>"
                 .format(self.dim))
 
     @property
@@ -322,8 +329,8 @@ class GaussianAperture(Aperture):
         else:
             super().__init__(fwhm / 2.3548200450309493)
 
-    def __str__(self):
-        return "Gaussian aperture, 1-σ width {}".format(self.dim)
+    def __repr__(self):
+        return "<GaussianAperture: 1-σ width {}>".format(self.dim)
 
     @property
     def sigma(self):
