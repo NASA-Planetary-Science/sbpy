@@ -24,14 +24,14 @@ Use :func:`~sbpy.activity.gas.photo_timescale` to retrieve photolysis timescales
   Traceback (most recent call last):
       ...
   ValueError: Invalid species None.  Choose from:
-  H2O [CS93]
-  OH [CS93]
-  HCN [C94]
   CH3OH [C94]
-  H2CO [C94]
+  CN [H92]
   CO [CE83]
   CO2 [CE83]
-  CN [H92]
+  H2CO [C94]
+  H2O [CS93]
+  HCN [C94]
+  OH [CS93]
   >>> gas.photo_timescale('H2O')
   <Quantity 52000. s>
 

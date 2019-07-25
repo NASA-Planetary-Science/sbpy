@@ -31,22 +31,22 @@ Each object is initialized with the dimensions of the aperture, which may be in 
   >>> import sbpy.activity as sba
   >>> 
   >>> sba.CircularAperture(10 * u.arcsec)
-  CircularAperture: radius 10.0 arcsec
+  <CircularAperture: radius 10.0 arcsec>
   >>>
   >>> sba.RectangularAperture((2000, 5000) * u.km)
-  RectangularAperture: dimensions 2000.0×5000.0 km
+  <RectangularAperture: dimensions 2000.0×5000.0 km>
 
 Apertures may be converted between linear and angular units using :func:`~sbpy.activity.Aperture.as_angle` and :func:`~sbpy.activity.Aperture.as_length`.  The conversion requires the observer-target distance (``'delta'``) as a `~astropy.units.Quantity` or `~sbpy.data.Ephem`.
 
   >>> ap = sba.CircularAperture(1 * u.arcsec)
   >>> ap.as_length(1 * u.au)  # doctest: +FLOAT_CMP
-  <Circular aperture, radius [725270.94380784] m>
+  <CircularAperture: radius [725270.94380784] m>
 
 Ideal comae (constant production rate, free-expansion, infinite lifetime) have *1/ρ* surface brightness distributions.  With :func:`~sbpy.activity.Aperture.coma_equivalent_radius`, we may convert the aperture into a circular aperture that would contain the same total flux at the telescope:
 
   >>> ap = sba.RectangularAperture((2000, 5000) * u.km)
   >>> sba.CircularAperture(ap.coma_equivalent_radius())  # doctest: +FLOAT_CMP
-  Circular aperture, radius 1669.4204086589311 km
+  <CircularAperture: radius 1669.4204086589311 km>
 
 
 Reference/API

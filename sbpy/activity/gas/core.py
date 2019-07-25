@@ -75,7 +75,7 @@ def photo_lengthscale(species, source=None):
 
     if species not in data:
         summary = ''
-        for k, v in data.items():
+        for k, v in sorted(data.items()):
             summary += '\n{} [{}]'.format(k, ', '.join(v.keys()))
 
         raise ValueError(
@@ -150,7 +150,7 @@ def photo_timescale(species, source=None):
 
     if species not in data:
         summary = ''
-        for k, v in data.items():
+        for k, v in sorted(data.items()):
             summary += '\n{} [{}]'.format(k, ', '.join(v.keys()))
 
         raise ValueError(
