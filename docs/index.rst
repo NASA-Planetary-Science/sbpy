@@ -86,7 +86,7 @@ Activity
 --------
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
    sbpy/activity/index.rst
 
