@@ -44,13 +44,13 @@ Some sources provide values for the quiet and active Sun (Huebner et al. 1992):
 With the :doc:`../bib`, the citation may be discovered:
 
   >>> from sbpy import bib
+  >>> bib.reset()             # clear any old citations
   >>> with bib.Tracking():
   ...    tau = gas.photo_timescale('H2O')
   >>> print(bib.to_text())    # doctest: +REMOTE_DATA
   sbpy.activity.gas.core.photo_timescale:
     H2O photodissociation timescale:
         Cochran & Schleicher 1993, Icarus, Vol 105, 1, 235
-
 
 Fluorescence
 ------------

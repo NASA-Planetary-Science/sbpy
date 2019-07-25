@@ -56,6 +56,10 @@ To disable tracking, use `~sbpy.bib.stop()`:
 
     >>> bib.stop()
 
+To clear any previous citations:
+
+    >>> bib.reset()
+
 Bibliography tracking can also be used in a context manager:
 
     >>> from sbpy import bib, data
