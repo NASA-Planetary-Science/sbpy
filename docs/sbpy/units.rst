@@ -4,9 +4,7 @@ Units Module (`sbpy.units`)
 Introduction
 ------------
 
-`~sbpy.units` provides common planetary astronomy units and Vega-based
-magnitude conversions.  ``sbpy`` units may be added to the top-level
-``astropy.units`` namespace via:
+`~sbpy.units` provides common planetary astronomy units and unit conversions, including Vega-based magnitudes.  ``sbpy`` units may be added to the top-level ``astropy.units`` namespace via:
 
   >>> import sbpy.units
   >>> sbpy.units.enable()    # doctest: +IGNORE_OUTPUT
@@ -122,6 +120,21 @@ phase angle can be calculated:
   >>> ref = flux.to('1/sr', reflectance(wave, cross_section=xsec))
   >>> print(ref)  # doctest: +FLOAT_CMP
   [0.0021763  0.00201223 0.0022041  0.00269637 0.00292785] 1 / sr
+
+
+Projected Sizes
+---------------
+
+With the `~sbpy.units.projected_size` equivalencies, one may convert between angles and lengths, for a given distance:
+
+  >>> import astropy.units as u
+  >>> import sbpy.units as sbu
+  >>> (1 * u.arcsec).to('km', sbu.projected_size(1 * u.delta))
+  ... # doctest: +FLOAT_CMP
+  [725.27] km
+  >>> (725.27 * u.km).to('arcsec', sbu.projected_size(1 * u.delta))
+  ... # doctest: +FLOAT_CMP
+  [1.00] arcsec
 
 
 Reference/API
