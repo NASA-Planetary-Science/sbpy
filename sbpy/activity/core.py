@@ -10,8 +10,6 @@ created on June 23, 2017
 
 
 __all__ = [
-    'rho_as_angle',
-    'rho_as_length',
     'Aperture',
     'CircularAperture',
     'AnnularAperture',
@@ -26,64 +24,7 @@ import numpy as np
 import astropy.units as u
 
 from .. import data as sbd
-
-
-def rho_as_angle(rho, eph):
-    """Projected linear distance to angular distance.
-
-
-    Parameters
-    ----------
-    rho : `~astropy.units.Quantity`
-        Projected distance in units of length.
-
-    eph : dictionary-like, `~sbpy.data.Ephem`
-        Ephemerides; requires geocentric distance as `delta`.
-
-
-    Returns
-    -------
-    rho_l : `~astropy.units.Quantity`
-
-    """
-
-    if rho.unit.is_equivalent(u.m):
-        rho_a = np.arctan(rho / eph['delta'].to(u.m))
-    elif rho.unit.is_equivalent(u.rad):
-        rho_a = rho
-    else:
-        raise u.UnitConversionError('rho must have units of length or angle')
-
-    return rho_a
-
-
-def rho_as_length(rho, eph):
-    """Angular distance to projected linear distance.
-
-
-    Parameters
-    ----------
-    rho : `~astropy.units.Quantity`
-        Projected distance in units of angle.
-
-    eph : dictionary-like, `~sbpy.data.Ephem`
-        Ephemerides; requires geocentric distance as `delta`.
-
-
-    Returns
-    -------
-    rho_l : `~astropy.units.Quantity`
-
-    """
-
-    if rho.unit.is_equivalent(u.rad):
-        rho_l = eph['delta'].to(u.m) * np.tan(rho)
-    elif rho.unit.is_equivalent(u.m):
-        rho_l = rho
-    else:
-        raise u.UnitConversionError('rho must have units of length or angle.')
-
-    return rho_l
+from .. import units as sbu
 
 
 class Aperture(ABC):
@@ -131,7 +72,7 @@ class Aperture(ABC):
 
         """
 
-        dim = rho_as_angle(self.dim, eph)
+        dim = self.dim.to('arcsec', sbu.projected_size(eph))
         return type(self)(dim)
 
     @sbd.dataclass_input(eph=sbd.Ephem)
@@ -152,20 +93,8 @@ class Aperture(ABC):
 
         """
 
-        dim = rho_as_length(self.dim, eph)
+        dim = self.dim.to('km', sbu.projected_size(eph))
         return type(self)(dim)
-
-    def _convert_unit(self, rho, eph):
-        """Make units match those of self."""
-        if not self.dim.unit.is_equivalent(rho.unit):
-            if rho.unit.is_equivalent(u.m):
-                x = rho_as_angle(rho, eph)
-            else:
-                x = rho_as_length(rho, eph)
-        else:
-            x = rho
-
-        return x
 
     @abstractmethod
     def coma_equivalent_radius(self):
@@ -303,6 +232,7 @@ class RectangularAperture(Aperture):
 class GaussianAperture(Aperture):
     """Gaussian-shaped aperture, e.g., for radio observations.
 
+    The aperture is normalized to 1.0 at the center.
 
     Parameters
     ----------
@@ -343,22 +273,28 @@ class GaussianAperture(Aperture):
         """Beam full-width at half-maximum."""
         return self.dim * 2.3548200450309493
 
-    def __call__(self, rho, eph=None):
+    @sbd.dataclass_input
+    @sbd.quantity_to_dataclass(eph=(sbd.Ephem, 'delta'))
+    def __call__(self, rho, eph: sbd.Ephem=None):
         """Evaluate the aperture.
+
 
         Parameters
         ----------
         rho : `~astropy.units.Quantity`
             Position to evaluate, in units of length or angle.
 
-        eph : dictionary-like, `~sbpy.data.Ephem`, optional
-            Ephemerides at epoch; requires geocentric distance as
-            `delta` keyword if the aperture's units and `rho`'s units
-            do not match.
+        eph : dictionary-like, `~sbpy.data.Ephem`, or `~astropy.units.Quantity`, optional
+            The observer-target distance (``delta``).  Use ``eph`` to
+            convert between angles and lengths, as needed.
 
         """
 
-        x = self._convert_unit(rho, eph)
+        if eph is not None:
+            equiv = sbu.projected_size(eph)
+        else:
+            equiv = []
+        x = rho.to(self.dim.unit, equiv)
 
         # normalize to 1.0 at the center
         return np.exp(-x**2 / self.sigma**2 / 2)

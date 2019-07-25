@@ -298,12 +298,12 @@ def projected_size(eph: sbd.Ephem):
     --------
     >>> import astropy.units as u
     >>> import sbpy.units as sbu
-    >>> (1 * u.arcsec).to('km', sbu.projected_size(1 * u.delta))
+    >>> (1 * u.arcsec).to('km', sbu.projected_size(1 * u.au))
     ... # doctest: +FLOAT_CMP
-    [725.27] km
-    >>> (725.27 * u.km).to('arcsec', sbu.projected_size(1 * u.delta))
+    <Quantity [725.27094381] km>
+    >>> (725.27 * u.km).to('arcsec', sbu.projected_size(1 * u.au))
     ... # doctest: +FLOAT_CMP
-    [1.00] arcsec
+    <Quantity [1.00] arcsec>
 
     """
 

@@ -30,7 +30,6 @@ from ... import data as sbd
 from ...exceptions import RequiredPackageUnavailable
 from .. core import (Aperture, RectangularAperture, GaussianAperture,
                      AnnularAperture, CircularAperture)
-from .. core import rho_as_length
 
 
 def photo_lengthscale(species, source=None):
@@ -293,9 +292,9 @@ class GasComa(ABC):
             Projected distance to the region of interest on the plane
             of the sky in units of length or angle.
 
-        eph : dictionary-like, `~sbpy.data.Ephem`, `~astropy.units.Quantity`
-            Target-observer distance, or ephemeris with `delta`.
-            Required if the aperture has angular units.
+        eph : dictionary-like, `~sbpy.data.Ephem`, `~astropy.units.Quantity`. optional
+            Target-observer distance, or ephemeris with ``'delta'``
+            field.  Required to convert rho to a projected size.
 
 
         Returns
@@ -306,8 +305,12 @@ class GasComa(ABC):
 
         """
 
-        rho_m = rho_as_length(rho, eph=eph).to('m').value
-        return self._column_density(rho_m) / u.m**2
+        equiv = []
+        if eph is not None:
+            equiv = sbu.projected_size(eph)
+
+        rho = rho.to('m', equiv).value
+        return self._column_density(rho) / u.m**2
 
     @sbd.dataclass_input(eph=sbd.Ephem)
     @sbd.quantity_to_dataclass(eph=(sbd.Ephem, 'delta'))
@@ -333,7 +336,9 @@ class GasComa(ABC):
 
         """
 
-        return self._integrate_column_density(aper.as_length(eph))[0]
+        if eph is not None:
+            aper = aper.as_length(eph)
+        return self._integrate_column_density(aper)[0]
 
     @abstractmethod
     def _volume_density(self, r):
@@ -601,7 +606,8 @@ class Haser(GasComa):
         if isinstance(aper, u.Quantity):
             aper = CircularAperture(aper)
 
-        aper = aper.as_length(eph)
+        if eph is not None:
+            aper = aper.as_length(eph)
 
         # Inspect aper and handle as appropriate
         if isinstance(aper, (RectangularAperture, GaussianAperture)):
