@@ -9,7 +9,7 @@ created on June 22, 2017
 
 from copy import deepcopy
 from collections import OrderedDict
-from numpy import ndarray, array, hstack
+from numpy import ndarray, array, hstack, iterable
 from astropy.table import QTable, Column, vstack
 from astropy.time import Time
 import astropy.units as u
@@ -212,19 +212,16 @@ class DataClass():
         for key, val in data.items():
             if isinstance(val, (str, bytes)):
                 data[key] = [val]
-            else:
-                try:
-                    val[0]
-                except (IndexError, TypeError):
-                    if isinstance(val, u.Quantity):
-                        data[key] = [val.value]*val.unit
-                    elif isinstance(val, Time):
-                        # workaround for scalar Time objects
-                        data[key] = Time([val.value],
-                                         format=val.format,
-                                         scale=val.scale)
-                    else:
-                        data[key] = [val]
+            elif not iterable(val):
+                if isinstance(val, u.Quantity):
+                    data[key] = [val.value]*val.unit
+                elif isinstance(val, Time):
+                    # workaround for scalar Time objects
+                    data[key] = Time([val.value],
+                                     format=val.format,
+                                     scale=val.scale)
+                else:
+                    data[key] = [val]
 
         self = cls()
         self._table = QTable(data, meta=meta, **kwargs)
@@ -329,12 +326,9 @@ class DataClass():
             names = [names]
 
         # turn single column to a list
-        try:
-            iter(columns[0])
-            # workaround for strings and bytes
-            if isinstance(columns[0], (str, bytes)):
-                columns = [columns]
-        except TypeError:
+        if not iterable(columns[0]):
+            columns = [columns]
+        elif isinstance(columns[0], (str, bytes)):
             columns = [columns]
 
         if units is not None:
@@ -430,13 +424,9 @@ class DataClass():
                                  'and units.')
 
         # reorganize rows, if necessary
-        try:
-            iter(rows[0])
-            # workaround for strings and bytes
-            if isinstance(rows[0], (str, bytes)):
-                rows = [rows]
-        except TypeError:
-            # convert rows to list of list
+        if not iterable(rows[0]):
+            rows = [rows]
+        elif isinstance(rows[0], (str, bytes)):
             rows = [rows]
 
         if units is None:
