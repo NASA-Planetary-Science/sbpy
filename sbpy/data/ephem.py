@@ -23,7 +23,7 @@ from astroquery.exceptions import InvalidQueryError
 from astropy.coordinates import EarthLocation
 
 
-from .. import bib
+from ..bib import cite
 from .core import DataClass, conf, QueryError, TimeScaleWarning
 
 __all__ = ['Ephem']
@@ -33,6 +33,7 @@ class Ephem(DataClass):
     """Class for querying, manipulating, and calculating ephemerides"""
 
     @classmethod
+    @cite({'data source': '1996DPS....28.2504G'})
     def from_horizons(cls, targetids, id_type='smallbody',
                       epochs=None, location='500', **kwargs):
         """Load target ephemerides from
@@ -192,13 +193,11 @@ class Ephem(DataClass):
                                 scale='utc')
         all_eph.remove_column('datetime_jd')
 
-        if bib.status() is None or bib.status():
-            bib.register('sbpy.data.Ephem.from_horizons',
-                         {'data service': '1996DPS....28.2504G'})
-
         return cls.from_table(all_eph)
 
     @classmethod
+    @cite({'data source':
+           'https://minorplanetcenter.net/iau/MPEph/MPEph.html'})
     def from_mpc(cls, targetids, epochs=None, location='500', **kwargs):
         """Load ephemerides from the
         `Minor Planet Center <http://minorplanetcenter.net>`_.
@@ -396,6 +395,7 @@ class Ephem(DataClass):
         return cls.from_table(all_eph)
 
     @classmethod
+    @cite({'data source': 'http://vo.imcce.fr/webservices/miriade/'})
     def from_miriade(cls, targetids, objtype='asteroid',
                      epochs=None, location='500', **kwargs):
         """Load target ephemerides from
@@ -571,14 +571,11 @@ class Ephem(DataClass):
         self.table['epoch'] = Time(self.table['epoch'],
                                    format='jd', scale='utc')
 
-        if bib.status() is None or bib.status():
-            bib.register('sbpy.data.Ephem.from_miriade',
-                         {'data service':
-                          'http://vo.imcce.fr/webservices/miriade/'})
-
         return self
 
     @classmethod
+    @cite({'method': '2009M&PS...44.1853G',
+           'software': 'https://github.com/oorb/oorb'})
     def from_oo(self, orbit, epochs=None, location='500', scope='full',
                 dynmodel='N', ephfile='de430'):
         """Uses pyoorb to derive ephemerides from an `~Orbit` object. For a
@@ -753,11 +750,18 @@ class Ephem(DataClass):
         oo_eph_col = hstack([oo_eph.transpose()[:, :, i]
                              for i in range(oo_eph.shape[0])]).tolist()
         oo_eph_col_u = []
-        for i, col in enumerate(oo_eph_col):
-            oo_eph_col_u.append(Ephem._unit_apply(col,
-                                                  conf.oorb_ephem_units[i]))
-        ephem = self.from_columns(oo_eph_col_u,
-                                  names=conf.oorb_ephem_fields)
+        if scope == 'full':
+            for i, col in enumerate(oo_eph_col):
+                oo_eph_col_u.append(Ephem._unit_apply(
+                    col, conf.oorb_ephem_full_units[i]))
+            ephem = self.from_columns(oo_eph_col_u,
+                                      names=conf.oorb_ephem_full_fields)
+        elif scope == 'basic':
+            for i, col in enumerate(oo_eph_col):
+                oo_eph_col_u.append(Ephem._unit_apply(
+                    col, conf.oorb_ephem_basic_units[i]))
+            ephem = self.from_columns(oo_eph_col_u,
+                                      names=conf.oorb_ephem_basic_fields)
 
         # add targetname column
         ephem.table.add_column(Column(data=sum([[orb['targetname'][i]] *
@@ -768,13 +772,8 @@ class Ephem(DataClass):
                                index=0)
 
         # convert MJD to astropy.time.TimeJulian Date
-        ephem.table['ephem'] = Time(ephem['MJD'], format='mjd',
+        ephem.table['epoch'] = Time(ephem['MJD'], format='mjd',
                                     scale=timescale.lower())
         ephem.table.remove_column('MJD')
-
-        if bib.status() is None or bib.status():
-            bib.register('sbpy.data.Ephem.from_oo',
-                         {'method': '2009M&PS...44.1853G',
-                          'implementation': 'https://github.com/oorb/oorb'})
 
         return ephem

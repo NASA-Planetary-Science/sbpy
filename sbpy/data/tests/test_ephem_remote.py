@@ -65,7 +65,7 @@ class TestEphemFromHorizons:
     def test_bib(self):
         bib.track()
         data = Ephem.from_horizons(['Ceres', 'Pallas'])
-        assert 'sbpy.data.Ephem' in bib.to_text()
+        assert 'sbpy.data.ephem.from_horizons' in bib.to_text()
 
     def test_timescale(self):
         # test same timescale
@@ -213,6 +213,11 @@ class TestEphemFromMPC:
         with pytest.raises(QueryError):
             Ephem.from_mpc('target does not exist')
 
+    def test_bib(self):
+        bib.track()
+        data = Ephem.from_mpc(['Ceres', 'Pallas'])
+        assert 'sbpy.data.ephem.from_mpc' in bib.to_text()
+
 
 @pytest.mark.remote_data
 class TestEphemFromMiriade:
@@ -293,6 +298,11 @@ class TestEphemFromMiriade:
         with pytest.raises(QueryError):
             Ephem.from_miriade('target does not exist')
 
+    def test_bib(self):
+        bib.track()
+        data = Ephem.from_miriade(['Ceres', 'Pallas'])
+        assert 'sbpy.data.ephem.from_miriade' in bib.to_text()
+
 
 @pytest.mark.remote_data
 class test_oorb:
@@ -350,13 +360,17 @@ class test_oorb:
         u.isclose(horizons_ephem['EL'][0], oo_ephem['EL'][0])
 
     def test_basic(self):
-
-        try:
-            import pyoorb
-        except ImportError:
-            return None
-
         orbit = Orbit.from_horizons('Ceres')
         oo_ephem = Ephem.from_oo(orbit, scope='basic')
-
         assert 'dec_rate' not in oo_ephem.field_names
+
+    def test_timescale(self):
+        orbit = Orbit.from_horizons('Ceres')
+        oo_ephem = Ephem.from_oo(orbit, scope='basic')
+        assert oo_ephem['epoch'].scale == 'tai'
+
+    def test_bib(self):
+        bib.track()
+        orbit = Orbit.from_horizons('Ceres')
+        oo_ephem = Ephem.from_oo(orbit, scope='basic')
+        assert 'sbpy.data.ephem.from_oo' in bib.to_text()

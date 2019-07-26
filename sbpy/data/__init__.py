@@ -297,21 +297,32 @@ class Conf():
                         'CART': [None, 'au', 'au', 'au', 'au/d', 'au/d',
                                  'au/d', None, 'd', None, 'mag', None]}
 
-    oorb_ephem_fields = ['MJD', 'RA', 'DEC', 'RA*cos(Dec)_rate', 'DEC_rate',
-                         'alpha', 'elong', 'r', 'Delta', 'V', 'pa', 'TopEclLon',
-                         'TopEclLat', 'OppTopEclLon', 'OppTopEclLat',
-                         'HelEclLon', 'HelEclLat', 'OppHelEclLon',
-                         'OppHelEclLat', 'EL', 'ELsun', 'ELmoon',
-                         'lunarphase', 'lunarelong', 'x', 'y', 'z',
-                         'vx', 'vy', 'vz', 'obsx', 'obsy', 'obsz',
-                         'trueanom']
-    oorb_ephem_units = ['d', 'deg', 'deg', 'deg/d', 'deg/d', 'deg',
-                        'deg', 'au', 'au', 'mag', 'deg', 'deg',
-                        'deg', 'deg', 'deg',
-                        'deg', 'deg', 'deg',
-                        'deg', 'deg', 'deg', 'deg',
-                        None, 'deg', 'au', 'au', 'au',
-                        'au/d', 'au/d', 'au/d', 'au', 'au', 'au', 'deg']
+    oorb_ephem_full_fields = [
+        'MJD', 'RA', 'DEC', 'RA*cos(Dec)_rate', 'DEC_rate',
+        'alpha', 'elong', 'r', 'Delta', 'V', 'pa', 'TopEclLon',
+        'TopEclLat', 'OppTopEclLon', 'OppTopEclLat',
+        'HelEclLon', 'HelEclLat', 'OppHelEclLon',
+        'OppHelEclLat', 'EL', 'ELsun', 'ELmoon',
+        'lunarphase', 'lunarelong', 'x', 'y', 'z',
+        'vx', 'vy', 'vz', 'obsx', 'obsy', 'obsz',
+        'trueanom']
+
+    oorb_ephem_full_units = [
+        'd', 'deg', 'deg', 'deg/d', 'deg/d', 'deg',
+        'deg', 'au', 'au', 'mag', 'deg', 'deg',
+        'deg', 'deg', 'deg',
+        'deg', 'deg', 'deg',
+        'deg', 'deg', 'deg', 'deg',
+        None, 'deg', 'au', 'au', 'au',
+        'au/d', 'au/d', 'au/d', 'au', 'au', 'au', 'deg']
+
+    oorb_ephem_basic_fields = [
+        'MJD', 'RA', 'DEC', 'RA*cos(Dec)_rate', 'DEC_rate',
+        'alpha', 'elong', 'r', 'Delta', 'V', 'trueanom']
+
+    oorb_ephem_basic_units = [
+        'd', 'deg', 'deg', 'deg/d', 'deg/d', 'deg',
+        'deg', 'au', 'au', 'mag', 'deg']
 
 
 conf = Conf()
