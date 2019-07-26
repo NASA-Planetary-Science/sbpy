@@ -24,17 +24,9 @@ class TestEphemFromHorizons:
         data = Ephem.from_horizons('Ceres')
         assert_allclose(data['epoch'].jd, now.jd)
 
-    def test_daterange_Time(self):
+    def test_daterange_step(self):
         epochs = {'start': Time('2018-01-02', format='iso'),
                   'stop': Time('2018-01-05', format='iso'),
-                  'step': 6*u.hour}
-        data = Ephem.from_horizons('Ceres', epochs=epochs)
-        assert len(data.table) == 13
-
-    def test_daterange_strings(self):
-        # (this is not really supported by sbpy)
-        epochs = {'start': Time('2018-01-02'),
-                  'stop': Time('2018-01-05'),
                   'step': 6*u.hour}
         data = Ephem.from_horizons('Ceres', epochs=epochs)
         assert len(data.table) == 13
@@ -64,7 +56,7 @@ class TestEphemFromHorizons:
 
     def test_bib(self):
         bib.track()
-        data = Ephem.from_horizons(['Ceres', 'Pallas'])
+        Ephem.from_horizons(['Ceres', 'Pallas'])
         assert 'sbpy.data.ephem.from_horizons' in bib.to_text()
 
     def test_timescale(self):

@@ -60,7 +60,7 @@ class Ephem(DataClass):
             of epochs. ``start`` and ``stop`` have to be
             `~astropy.time.Time` objects. If ``step`` is provided, a range
             of epochs will be queries starting at ``start`` and ending at
-            ``stop`` in steps of ``step``; ``step`` hss to be provided as
+            ``stop`` in steps of ``step``; ``step`` has to be provided as
             a `~astropy.units.Quantity` object with integer value and a
             unit of either minutes, hours, days, or years. If
             ``number`` is provided as an integer, the

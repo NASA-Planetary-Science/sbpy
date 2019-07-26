@@ -16,14 +16,15 @@ from astroquery.jplhorizons import Horizons
 import astropy.units as u
 from warnings import warn
 
-from .. import bib
+from ..bib import cite
 from ..exceptions import SbpyException, SbpyWarning
-from . import conf, DataClass
+from . import conf, DataClass, QueryError, TimeScaleWarning
 
 __all__ = ['Orbit']
 
 
-class OrbitTimeError(SbpyException):
+class OrbitError(SbpyException):
+    """Generic Error used in sbpy.data.orbit"""
     pass
 
 
@@ -32,6 +33,7 @@ class Orbit(DataClass):
     elements"""
 
     @classmethod
+    @cite({'data source': '1996DPS....28.2504G'})
     def from_horizons(cls, targetids, id_type='smallbody',
                       epochs=None, center='500@10',
                       **kwargs):
@@ -51,16 +53,25 @@ class Orbit(DataClass):
             ``'name'`` (asteroid or comet name), ``'asteroid_name'``,
             ``'comet_name'``, ``'id'`` (Horizons id).
             Default: ``'smallbody'``
-        epochs : `~astropy.time.Time` object or iterable thereof, or dict, optional
-            Epochs of elements to be queried; a list, tuple or
-            `~numpy.ndarray` of `~astropy.time.Time` objects or Julian
-            Dates as floats should be used for a number of discrete
-            epochs; a dictionary including keywords ``start``,
-            ``step``, and ``stop`` can be used to generate a range of
-            epochs (see
-            `~astroquery.jplhorizons.HorizonsClass.Horizons.elements`
-            for details); if ``None`` is provided, current date and
-            time are used. Default: ``None``
+        epochs : `~astropy.time.Time` or dict, optional
+            Epochs of elements to be queried; requires a
+            `~astropy.time.Time` object with a single or multiple epochs. A
+            dictionary including keywords ``start`` and ``stop``, as well
+            as either ``step`` or ``number``, can be used to generate a range
+            of epochs. ``start`` and ``stop`` have to be
+            `~astropy.time.Time` objects. If ``step`` is provided, a range
+            of epochs will be queries starting at ``start`` and ending at
+            ``stop`` in steps of ``step``; ``step`` has to be provided as
+            a `~astropy.units.Quantity` object with integer value and a
+            unit of either minutes, hours, days, or years. If
+            ``number`` is provided as an integer, the
+            interval defined by
+            ``start`` and ``stop`` is split into ``number`` equidistant
+            intervals. If ``None`` is
+            provided, current date and time are
+            used. All epochs should be provided in TDB; if not, they will be
+            converted to TDB and a `~sbpy.data.TimeScaleWarning` will be
+            raised.  Default: ``None``
         center : str, optional, default ``'500@10'`` (center of the Sun)
             Elements will be provided relative to this position.
         **kwargs : optional
@@ -86,33 +97,35 @@ class Orbit(DataClass):
         --------
         >>> from sbpy.data import Orbit
         >>> from astropy.time import Time
-        >>> epoch = Time('2018-05-14', scale='utc')
-        >>> eph = Orbit.from_horizons('Ceres', epochs=epoch)
-        ... # doctest: +REMOTE_DATA
+        >>> epoch = Time('2018-05-14', scale='tdb')
+        >>> eph = Orbit.from_horizons('Ceres', epochs=epoch) # doctest: +REMOTE_DATA
         """
 
         # modify epoch input to make it work with astroquery.jplhorizons
         # maybe this stuff should really go into that module....
         if epochs is None:
-            epochs = [Time.now().jd]
+            epochs = [Time.now().tdb.jd]
         elif isinstance(epochs, Time):
-            epochs = [Time(epochs).jd]
+            if epochs.scale is not 'tdb':
+                warn(('converting {} epochs to tdb for use in '
+                      'astroquery.jplhorizons').format(epochs.scale),
+                     TimeScaleWarning)
+            epochs = epochs.tdb.jd
         elif isinstance(epochs, dict):
-            for key, val in epochs.items():
-                if isinstance(val, Time):
-                    val.format = 'iso'
-                    val.out_subfmt = 'date_hm'
-                    epochs[key] = "'"+val.value+"'"
+            if 'start' in epochs and 'stop' in epochs and 'number' in epochs:
+                epochs['step'] = epochs['number']*u.dimensionless_unscaled
+            # convert to tdb and iso for astroquery.jplhorizons
+            epochs['start'] = epochs['start'].tdb.iso
+            epochs['stop'] = epochs['stop'].tdb.iso
+            if 'step' in epochs:
+                if epochs['step'].unit is not u.dimensionless_unscaled:
+                    epochs['step'] = '{:d}{:s}'.format(
+                        int(epochs['step'].value),
+                        {u.minute: 'm', u.hour: 'h', u.d: 'd',
+                         u.year: 'y'}[epochs['step'].unit])
                 else:
-                    epochs[key] = "'"+epochs[key]+"'"
-        elif isinstance(epochs, (list, tuple, ndarray)):
-            new_epochs = [None] * len(epochs)
-            for i in range(len(epochs)):
-                if isinstance(epochs[i], Time):
-                    new_epochs[i] = epochs[i].jd
-                else:
-                    new_epochs[i] = epochs[i]
-            epochs = new_epochs
+                    epochs['step'] = '{:d}'.format(
+                        int(epochs['step'].value-1))
 
         # if targetids is a list, run separate Horizons queries and append
         if not isinstance(targetids, (list, ndarray, tuple)):
@@ -125,8 +138,13 @@ class Orbit(DataClass):
             # load elements using astroquery.jplhorizons
             obj = Horizons(id=targetid, id_type=id_type,
                            location=center, epochs=epochs)
-
-            elem = obj.elements(**kwargs)
+            try:
+                elem = obj.elements(**kwargs)
+            except ValueError as e:
+                raise QueryError(
+                    ('Error raised by astroquery.jplhorizons: {:s}\n'
+                     'The following query was attempted: {:s}').format(
+                         str(e), obj.uri))
 
             # workaround for current version of astroquery to make
             # column units compatible with astropy.table.QTable
@@ -147,10 +165,6 @@ class Orbit(DataClass):
                                  scale='tdb')
         all_elem.remove_column('datetime_jd')
 
-        if bib.status() is None or bib.status():
-            bib.register('sbpy.data.Orbit.from_horizons',
-                         {'data service': '1996DPS....28.2504G'})
-
         return cls.from_table(all_elem)
 
     # functions using pyoorb
@@ -162,7 +176,8 @@ class Orbit(DataClass):
         -----
         * Epochs must be provided as `~astropy.time.Time` objects with
           time scales that are compatible with `pyoorb`. If epochs are
-          not provided appropriately, a `OrbitTimeError` will be raised.
+          not provided appropriately, they will be adjusted and a
+          `TimeScaleWarning` will be raised.
         """
 
         # identify orbit type based on available table columns
@@ -181,7 +196,7 @@ class Orbit(DataClass):
                     pass
 
         if orbittype is None:
-            raise ValueError(
+            raise OrbitError(
                 'orbit type cannot be determined from elements')
 
         # implant ``targetname`` field information, if not available
@@ -191,15 +206,15 @@ class Orbit(DataClass):
 
         # check that epochs are astropy.time.Time
         if not isinstance(self['epoch'][0], Time):
-            raise OrbitTimeError(
+            raise OrbitError(
                 'epochs have to be provided as astropy.time.Time objects')
 
         # check that pyoorb can deal with time scale
         if self['epoch'][0].scale.upper() not in ('UTC', 'UT1', 'TT', 'TAI'):
-            raise OrbitTimeError(
-                'epochs time scale is {} but must be either of '
-                'UTC, UT1, TT, TAI for use in pyoorb'.format(
-                    self['epoch'][0].scale.upper()))
+            warn(('epochs time scale is {} which is incompatible with '
+                  'pyoorb; converting time scale to TT.').format(
+                self['epoch'][0].scale.upper()))
+            self['epoch'] = self['epoch'].tt
 
         # assemble orbit array for oorb_ephemeris
         if orbittype == 'COM':
@@ -260,6 +275,8 @@ class Orbit(DataClass):
 
         return orbits
 
+    @cite({'method': '2009M&PS...44.1853G',
+           'software': 'https://github.com/oorb/oorb'})
     def oo_transform(self, orbittype, ephfile='de430'):
         """Uses pyoorb to transform this orbit object to a different
         orbit type definition. Required fields are:
@@ -285,7 +302,7 @@ class Orbit(DataClass):
           perihelion epoch (``'Tp_jd'``, for cometary orbits) in JD or
           z-component of velocity vector (``'vz'``, for cartesian orbit)
           in au/day
-        * epoch (``'epoch'``) in JD
+        * epoch (``'epoch'``) as `~astropy.time.Time` object
         * absolute magnitude (``'H'``) in mag
         * photometric phase slope (``'G'``)
 
@@ -384,14 +401,11 @@ class Orbit(DataClass):
         orbits.table.replace_column('orbtype',
                                     [orbittype] * len(orbits.table))
 
-        if bib.status() is None or bib.status():
-            bib.register('sbpy.data.Ephem.from_oo',
-                         {'method': '2009M&PS...44.1853G',
-                          'implementation': 'https://github.com/oorb/oorb'})
-
         return orbits
 
-    def oo_propagate(self, epoch, dynmodel='N', ephfile='de430'):
+    @cite({'method': '2009M&PS...44.1853G',
+           'software': 'https://github.com/oorb/oorb'})
+    def oo_propagate(self, epochs, dynmodel='N', ephfile='de430'):
         """Uses pyoorb to propagate this `~Orbit` object. Required fields are:
 
         * target identifier (``'targetname'``)
@@ -415,14 +429,17 @@ class Orbit(DataClass):
           perihelion epoch (``'Tp_jd'``, for cometary orbits) in JD or
           z-component of velocity vector (``'vz'``, for cartesian orbit)
           in au/day
-        * epoch (``'epoch'``) in JD
+        * epoch (``'epoch'``) as `~astropy.time.Time` object
         * absolute magnitude (``'H'``) in mag
         * photometric phase slope (``'G'``)
 
         Parameters
         ----------
-        epoch : `~astropy.time.Time` object
-            Epoch to which the orbit will be propagated to.
+        epochs : `~astropy.time.Time` object
+            Epoch to which the orbit will be propagated to. Must be a
+            `~astropy.time.Time` object holding a single epoch or
+            multiple epochs. The resulting `~sbpy.data.Orbit` object will
+            have the same time scale as ``epochs``.
         dynmodel : str, optional
             The dynamical model to be used in the propagation: ``'N'``
             for n-body simulation or ``'2'`` for a 2-body
@@ -441,7 +458,7 @@ class Orbit(DataClass):
 
         >>> from sbpy.data import Orbit
         >>> from astropy.time import Time
-        >>> epoch = Time.now().jd + 100
+        >>> epoch = Time(Time.now().jd + 100, format='jd')
         >>> ceres = Orbit.from_horizons('Ceres')      # doctest: +REMOTE_DATA
         >>> future_ceres = ceres.oo_propagate(epoch)  # doctest: +SKIP
         >>> print(future_ceres)  # doctest: +SKIP
@@ -463,7 +480,7 @@ class Orbit(DataClass):
             pyoorb.pyoorb.oorb_init(ephfile)
 
         # extract time scale
-        timescale = self.table['epoch'][0].scale.upper()
+        timescale = epochs.scale.upper()
 
         # identify orbit type based on available table columns
         orbittype = None
@@ -494,7 +511,7 @@ class Orbit(DataClass):
                                (u.Quantity, u.CompositeUnit))):
                 self[colname].unit = default_units[colname]
 
-        ooepoch = [epoch.tt.mjd, conf.oorb_timeScales['TT']]
+        ooepoch = [epochs.tt.mjd, conf.oorb_timeScales['TT']]
 
         # convert epochs to TT and MJD
         in_orbits = Orbit.from_table(self.table)
@@ -536,10 +553,5 @@ class Orbit(DataClass):
         # identify time scales returned by Horizons query
         timescales = [timescale] * len(orbits.table)
         orbits.table['timescale'] = timescales
-
-        if bib.status() is None or bib.status():
-            bib.register('sbpy.data.Ephem.from_oo',
-                         {'method': '2009M&PS...44.1853G',
-                          'implementation': 'https://github.com/oorb/oorb'})
 
         return orbits
