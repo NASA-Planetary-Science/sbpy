@@ -68,17 +68,17 @@ photo_timescale = {   # (value, {key feature: ADS bibcode})
     'CO': {
         'CE83': (1.5e6 * u.s,
                  {'CO photodissociation timescale':
-                  '1983A%26A...126..170C'})
+                  '1983A&A...126..170C'})
     },
     'CO2': {
         'CE83': (5.0e5 * u.s,
                  {'CO2 photodissociation timescale':
-                  '1983A%26A...126..170C'})
+                  '1983A&A...126..170C'})
     },
     'CN': {
         'H92': ([3.15e5, 1.35e5] * u.s,
                 {'CN photodissociation timescale':
-                 '1992Ap%26SS.195....1H'})
+                 '1992Ap&SS.195....1H'})
     },
 }
 
