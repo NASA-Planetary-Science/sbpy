@@ -61,3 +61,19 @@ comparisons are made whenever possible:
     >>> from sbpy.data import natural_sort_key
     >>> sorted(comets, key=natural_sort_key)
     ['2P/Encke', '9P/Tempel 1', '10P/Tempel 2', '101P/Chernykh']
+
+Packed Numbers and Designations
+-------------------------------
+
+`~sbpy.data.Names.from_packed` and `~sbpy.data.Names.to_packed`
+provide functionality to convert between packed designations and
+numbers and unpacked ones:
+
+    >>> Names.from_packed('J95A01A')
+    '1995 AA1'
+    >>> Names.from_packed('G3693')
+    163693
+    >>> Names.from_packed('1995 AA1')
+    'J95A01A'
+    >>> Names.from_packed('163693')
+    'G3693'
