@@ -10,6 +10,7 @@ created on August 28, 2017
 
 """
 
+from ..exceptions import SbpyException
 from .core import DataClass
 from numpy import ndarray
 
@@ -55,7 +56,7 @@ def natural_sort_key(s):
     return keys
 
 
-class TargetNameParseError(Exception):
+class TargetNameParseError(SbpyException):
     pass
 
 
@@ -487,8 +488,7 @@ class Names():
         Returns
         -------
         target_type : str
-           The target identification: ``'comet'``, ``'asteroid'``, or
-           ``None``.
+           The target identification: ``'comet'`` or ``'asteroid'``.
 
         Notes
         -----
@@ -496,8 +496,9 @@ class Names():
         `~sbpy.data.Names.parse_asteroid` and
         `~sbpy.data.Names.parse_comet`. Hence, it is affected by
         ambiguities in the name/number/designation identification. If
-        the name is ambiguous, ``None`` will be
-        returned. ``'asteroid'`` will be returned if the number of
+        the name is ambiguous, a `~sbpy.data.names.TargetNameParseError`
+        will be
+        raised. ``'asteroid'`` will be returned if the number of
         found asteroid identifier elements is larger than the number
         of found comet identifier elements and vice versa. Note that
         for any identifier that does not contain a comet type (P, D, C
@@ -546,4 +547,4 @@ class Names():
               ('desig' in ast or 'number' in ast)):
             return 'asteroid'
         else:
-            return None
+            raise TargetNameParseError('ambiguous target name.')

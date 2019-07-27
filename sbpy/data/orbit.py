@@ -11,8 +11,9 @@ created on June 04, 2017
 import os
 from numpy import array, ndarray, double, arange, rad2deg
 from astropy.time import Time
-from astropy.table import vstack, Column
+from astropy.table import vstack, QTable
 from astroquery.jplhorizons import Horizons
+from astroquery.mpc import MPC
 import astropy.units as u
 from warnings import warn
 
@@ -98,7 +99,7 @@ class Orbit(DataClass):
         >>> from sbpy.data import Orbit
         >>> from astropy.time import Time
         >>> epoch = Time('2018-05-14', scale='tdb')
-        >>> eph = Orbit.from_horizons('Ceres', epochs=epoch) # doctest: +REMOTE_DATA
+        >>> eph = Orbit.from_horizons('Ceres', epochs=epoch)  # doctest: +REMOTE_DATA
         """
 
         # modify epoch input to make it work with astroquery.jplhorizons
@@ -164,6 +165,127 @@ class Orbit(DataClass):
         all_elem['epoch'] = Time(all_elem['datetime_jd'], format='jd',
                                  scale='tdb')
         all_elem.remove_column('datetime_jd')
+
+        return cls.from_table(all_elem)
+
+    @classmethod
+    @cite({'data source':
+           'https://minorplanetcenter.net/iau/MPEph/MPEph.html'})
+    def from_mpc(cls, targetids, id_type=None, target_type=None, **kwargs):
+        """Load latest orbital elements from the
+        `Minor Planet Center <http://minorplanetcenter.net>`_.
+
+        Parameters
+        ----------
+        targetids : str or iterable of str
+            Target identifier, resolvable by the Minor Planet
+            Ephemeris Service. If multiple targetids are provided in a list,
+            the same format (number, name, or designation) must be used.
+
+        id_type : str, optional
+            ``'name'``, ``'number'``, ``'designation'``, or ``None`` to
+            indicate
+            type of identifiers provided in ``targetids``. If ``None``,
+            automatic identification is attempted using
+            `~sbpy.data.names`. Default: ``None``
+
+        target_type : str, optional
+            ``'asteroid'``, ``'comet'``, or ``None`` to indicate
+            target type. If ``None``, automatic identification is
+            attempted using
+            `~sbpy.data.names`. Default: ``None``
+
+        **kwargs : optional
+            Additional keyword arguments are passed to
+            `~astroquery.mpc.MPC.query_object`
+
+        Returns
+        -------
+        `~Orbit` object
+            The resulting object will be populated with most columns as
+            defined in
+            `~astroquery.mpc.query_object`; refer
+            to that document on information on how to modify the list
+            of queried parameters.
+
+
+        Examples
+        --------
+        >>> from sbpy.data import Orbit
+        >>> orb = Orbit.from_mpc('Ceres') # doctest: +REMOTE_DATA
+        >>> orb  # doctest: +SKIP
+        <QTable length=1>
+         absmag    Q      arc      w     ...     a        Tj   moid_uranus moid_venus
+          mag      AU      d      deg    ...     AU                 AU         AU
+        float64 float64 float64 float64  ...  float64  float64   float64    float64
+        ------- ------- ------- -------- ... --------- ------- ----------- ----------
+           3.34    2.98 79653.0 73.59764 ... 2.7691652     3.3     15.6642    1.84632
+        """
+
+        from ..data import Names
+
+        # if targetids is a list, run separate Horizons queries and append
+        if not isinstance(targetids, (list, ndarray, tuple)):
+            targetids = [targetids]
+
+        for targetid in targetids:
+            if target_type is None:
+                target_type = Names.asteroid_or_comet(targetid)
+            if id_type is None:
+                if target_type == 'asteroid':
+                    ident = Names.parse_asteroid(targetid)
+                elif target_type == 'comet':
+                    ident = Names.parse_comet(targetid)
+                if 'name' in ident:
+                    id_type = 'name'
+                elif 'desig' in ident:
+                    id_type = 'designation'
+                elif 'number' in ident:
+                    id_type = 'number'
+
+        # append ephemerides table for each targetid
+        all_elem = None
+        for targetid in targetids:
+
+            # get elements
+            kwargs[id_type] = targetid
+            e = MPC.query_object(target_type, **kwargs)
+
+            # parse results from MPC.query_object
+            results = {}
+            for key, val in e[0].items():
+                # skip if key not in conf.mpc_orbit_fields
+                if key not in conf.mpc_orbit_fields:
+                    continue
+
+                fieldname, fieldunit = conf.mpc_orbit_fields[key]
+                # try to convert to float
+                try:
+                    val = float(val)
+                except (ValueError, TypeError):
+                    pass
+
+                if fieldname == 'mpc_orbit_type':
+                    results[fieldname] = [{
+                        0: 'Unclassified', 1: 'Atira',
+                        2: 'Aten', 3: 'Apollo', 4: 'Amor',
+                        5: 'Mars Crosser', 6: 'Hungaria',
+                        7: 'Phocaeas', 8: 'Hilda', 9: 'Jupiter Trojan',
+                        10: 'Distant Object'}[int(val)]]
+                elif fieldunit is None:
+                    results[fieldname] = [val]
+                elif fieldunit == 'time_jd_utc':
+                    results[fieldname] = Time([val],
+                                              scale='utc', format='jd')
+                else:
+                    if val is None:
+                        continue
+                    results[fieldname] = [val]*u.Unit(fieldunit)
+
+            if all_elem is None:
+                all_elem = QTable(results)
+            else:
+                all_elem = vstack([all_elem, QTable(results)])
 
         return cls.from_table(all_elem)
 

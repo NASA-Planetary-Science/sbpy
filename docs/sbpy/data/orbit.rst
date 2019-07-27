@@ -2,6 +2,9 @@
  Using Orbit
 =============
 
+Orbit Queries
+=============
+
 `~sbpy.data.Orbit.from_horizons` enables the query of Solar System
 body osculating elements from the `JPL Horizons service
 <https://ssd.jpl.nasa.gov/horizons.cgi>`_:
@@ -40,6 +43,22 @@ orbital elements for a number of targets:
     3749 Balam (1982 BG1) 2458334.097222222 ... 1221.865723414031        TT
        312497 (2009 BR60) 2458334.097222222 ... 1221.776912893334        TT
 
+       Alternatively, orbital elements can also be queried from the `Minor Planet Center <https://minorplanetcenter.net/iau/MPEph/MPEph.html>`_, although in this case only the most recent elements are accessible:
+
+    >>> elem = Orbit.from_mpc(['3552', '12893'])
+    >>> elem # doctest: +SKIP
+    <QTable length=2>
+     absmag    Q      arc       w     ...     a        Tj   moid_uranus moid_venus
+      mag      AU      d       deg    ...     AU                 AU         AU
+    float64 float64 float64  float64  ...  float64  float64   float64    float64
+    ------- ------- ------- --------- ... --------- ------- ----------- ----------
+       12.9   7.278 12955.0 316.44802 ... 4.2589272     2.3     11.7518    0.56105
+       13.9   3.028 12990.0 184.31369 ... 2.8281991     3.3     15.1738    1.90535
+
+
+Orbit Transformations
+=====================
+       
 An existing `~Orbit` instance can be transformed to a different
 orbital element definition system (e.g., Keplerian, cometary,
 cartesian) using `~sbpy.data.Orbit.oo_transform` or it can be
@@ -67,6 +86,9 @@ cartesian coordinates, one could use the following code:
 Orbits can currently be transformed to the following definitions:
 cartesian (``'CART'``), Keplerian (``'KEP'``), and cometary
 (``'COM'``).
+
+Orbit Propagations
+==================
 
 Orbit propagation requires the epoch to which the orbit should be
 propagated to either as `~astropy.time.Time` object, or as float in

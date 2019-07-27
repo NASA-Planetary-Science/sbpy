@@ -7,8 +7,9 @@ import astropy.units as u
 from astropy.time import Time
 import warnings
 
-from sbpy.data import Orbit, QueryError
-from sbpy import bib
+from ..orbit import Orbit, QueryError
+from ..names import TargetNameParseError
+from ... import bib
 
 
 @pytest.mark.remote_data
@@ -88,6 +89,22 @@ class TestOrbitFromHorizons:
             assert any(["astroquery.jplhorizons" in str(w[i].message)
                         for i in range(len(w))])
         assert a['epoch'].scale == 'tdb'
+
+
+@pytest.mark.remote_data
+class TestOrbitFromMPC:
+
+    def test_single(self):
+        a = Orbit.from_mpc('Ceres')
+        assert len(a) == 1
+
+    def test_multiple(self):
+        a = Orbit.from_mpc(['1P', '2P', '3P'])
+        assert len(a) == 3
+
+    def test_break(self):
+        with pytest.raises(TargetNameParseError):
+            a = Orbit.from_mpc('does not exist')
 
 
 @pytest.mark.remote_data
