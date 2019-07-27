@@ -18,7 +18,7 @@ The *εfρ* parameter is the thermal emission counterpart to *Afρ*, replacing a
 
   .. math::
 
-     εfρ = \frac{F_c}{π ρ B(T_c)}
+     εfρ = \frac{F_c Δ^2}{π ρ B(T_c)}
 
 where :math:`T_c` is the spectral temperature of the continuum (Kelley et al. 2013).
 
