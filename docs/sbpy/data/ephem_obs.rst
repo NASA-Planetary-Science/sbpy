@@ -217,3 +217,36 @@ are defined in the `pyoorb documentation
 `~sbpy.data.Obs` works exactly like `~sbpy.data.Ephem`, but this class
 will feature in the future some convenience functions to be able to
 better deal with observational data.
+
+
+Obs Functionality
+=================
+
+`~sbpy.data.Obs` objects have the same functionality as
+`~sbpy.data.Ephem` as well as some unique functions.
+
+For instance, the class allows you to query observations reported to
+the Minor Planet Center for a given target:
+
+    >>> from sbpy.data import Obs
+    >>> data = Obs.from_mpc('2019 AA', id_type='asteroid designation') # doctest: +REMOTE_DATA
+    >>> data
+    <QTable masked=True length=33>
+    number  desig  discovery note1 ...        DEC           mag   band observatory
+				   ...        deg           mag
+    int64    str7     str1    str1 ...      float64       float64 str1     str3
+    ------ ------- --------- ----- ... ------------------ ------- ---- -----------
+	-- 2019 AA        --    -- ...  42.32416944444445    20.2    G         F51
+	-- 2019 AA        --    -- ...  42.32879722222223    20.3    G         F51
+	-- 2019 AA        --    -- ... 42.333225000000006    20.3    G         F51
+	-- 2019 AA         *    -- ...  46.52321666666666    20.0    w         F51
+	-- 2019 AA        --    -- ...  46.52748611111111    20.0    w         F51
+	-- 2019 AA        --    -- ... 46.531755555555556    20.0    w         F51
+       ...     ...       ...   ... ...                ...     ...  ...         ...
+	-- 2019 AA        --    -- ... 46.706500000000005    20.2    V         033
+	-- 2019 AA        --    -- ...  46.70652777777778    20.2    V         033
+	-- 2019 AA        --    -- ...  49.73566111111111    20.1    i         F52
+	-- 2019 AA        --    -- ...  49.73788888888889    20.1    i         F52
+	-- 2019 AA        --    -- ...  49.74008611111111    20.1    i         F52
+	-- 2019 AA        --    -- ... 49.742266666666666    20.2    i         F52
+
