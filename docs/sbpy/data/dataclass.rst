@@ -513,7 +513,7 @@ straightforward. The following example builds a simple
     >>> from sbpy.data import Obs
     >>> times = ['2018-10-01', '2018-11-01', '2018-12-01']
     >>> obs = Obs.from_dict({'epoch': Time(times), 'mag': [10, 12, 14]*u.mag})
-    >>> obs
+    >>> obs # doctest: +SKIP
     <QTable length=3>
 	     epoch            mag  
 			      mag  
@@ -527,7 +527,7 @@ The ``'epoch'`` column in ``obs`` can be used like any other field or
 `~astropy.time.Time` object. The following example converts the epoch
 to TAI and Julian Date:
 
-    >>> obs['epoch'].tai.jd
+    >>> obs['epoch'].tai.jd  # doctest: +SKIP
     array([2458392.50042824, 2458423.50042824, 2458453.50042824])
 
 
