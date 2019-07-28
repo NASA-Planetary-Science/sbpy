@@ -73,7 +73,7 @@ numbers and unpacked ones:
     '1995 AA1'
     >>> Names.from_packed('G3693')
     163693
-    >>> Names.from_packed('1995 AA1')
+    >>> Names.to_packed('1995 AA1')
     'J95A01A'
-    >>> Names.from_packed('163693')
+    >>> Names.tp_packed('163693')
     'G3693'
