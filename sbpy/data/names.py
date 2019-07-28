@@ -275,8 +275,8 @@ class Names():
         import re
 
         # define comet matching pattern
-        pat = ('^(([1-9][0-9]*[PDCXAI]'
-               '(-[A-Z]{1,2})?)|[PDCXAI]/)'  # type/number/fragm [0,1,2]
+        pat = ('^(([1-9][0-9]*[PDCX]'
+               '(-[A-Z]{1,2})?)|[PDCX]/)'  # type/number/fragm [0,1,2]
                '|([-]?[0-9]{3,4}[ _][A-Z]{1,2}[0-9]{0,3}(-[1-9A-Z]{0,2})?)'
                # designation [3,4]
                '|(([dvA-Z][a-z\']? ?[A-Z]*[a-z]*[ -]?[A-Z]?[1-9]*[a-z]*)'
@@ -434,8 +434,10 @@ class Names():
                "|['`]?[A-Z][A-Z]*['`]?[a-z][a-z]*['`]?[^0-9]*"
                "[ -]?[A-Z]?[a-z]*[^0-9]*)"
                # name [6]
-               '|([1-9][0-9]*(\b|$| |_))'
+               '|((^|\b)[1-9][0-9]*(\b|$| |_))'
                # number [7,8]
+               '|^(([1-9][0-9]*A)|(A[1-9][0-9]*))'
+               # 1A, A1 [10,11,12]
                )
 
         # regex patterns that will be rejected
@@ -446,7 +448,6 @@ class Names():
                    '|([PDCXAI]/)'
                    # comet type
                    '|([1-2][0-9]{0,3}[ _][a-z]{2}[0-9]{0,3})'
-                   # small-caps desig
                    )
 
         raw = s.translate(str.maketrans('()_', '   ')).strip()
@@ -482,12 +483,12 @@ class Names():
                 # number
                 elif len(el[7]) > 0:
                     r['number'] = int(float(el[7]))
-                # elif len(el[8]) > 0:
-                #    r['number'] = int(float(el[8]))
-                # name (strip here)
+                # name
                 elif len(el[6]) > 0:
                     if len(el[6].strip()) > 1:
                         r['name'] = el[6].strip()
+                elif len(el[10]) > 0:
+                    r['name'] = el[10].strip()
 
         if len(r) == 0:
             raise TargetNameParseError(('{} does not appear to be an '
@@ -518,11 +519,9 @@ class Names():
         ambiguities in the name/number/designation identification. If
         the name is ambiguous, a `~sbpy.data.names.TargetNameParseError`
         will be
-        raised. ``'asteroid'`` will be returned if the number of
-        found asteroid identifier elements is larger than the number
-        of found comet identifier elements and vice versa. Note that
+        raised. Note that
         for any identifier that does not contain a comet type (P, D, C
-        etc.), it is highly likely that the object gets identified as an
+        etc.), it is likely that the object gets identified as an
         asteroid.
 
         Examples
@@ -552,19 +551,9 @@ class Names():
         except TargetNameParseError:
             pass
 
-        if len(ast) > len(com):
+        if len(ast) > 0 and len(com) == 0:
             return 'asteroid'
-        elif len(com) > len(ast):
+        elif len(com) > 0 and len(ast) == 0:
             return 'comet'
-        elif ('desig' in ast and 'desig' in com and
-              (ast['desig'] == com['desig'] or ast['name'] == com['name'])):
-            # in this case, it's most likely to be an asteroid
-            return 'asteroid'
-        elif (('desig' in ast or 'number' in ast) and not
-              ('desig' in com or 'number' in com)):
-            return 'asteroid'
-        elif (('desig' in com or 'number' in com) and not
-              ('desig' in ast or 'number' in ast)):
-            return 'asteroid'
         else:
-            raise TargetNameParseError('ambiguous target name.')
+            raise TargetNameParseError('Target nature unclear.')

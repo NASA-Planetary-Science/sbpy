@@ -140,6 +140,9 @@ def test_parse_asteroid():
     with pytest.raises(TargetNameParseError):
         Names.parse_asteroid('2001 at1')
 
+    with pytest.raises(TargetNameParseError):
+        Names.parse_asteroid('J1')
+
 
 def test_break_packed():
     with pytest.raises(TargetNameParseError):
