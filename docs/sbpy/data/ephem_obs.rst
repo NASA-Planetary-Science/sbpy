@@ -230,7 +230,7 @@ the Minor Planet Center for a given target:
 
     >>> from sbpy.data import Obs
     >>> data = Obs.from_mpc('2019 AA', id_type='asteroid designation') # doctest: +REMOTE_DATA
-    >>> data
+    >>> data # doctest: +REMOTE_DATA
     <QTable masked=True length=33>
     number  desig  discovery note1 ...        DEC           mag   band observatory
 				   ...        deg           mag
@@ -258,9 +258,9 @@ function makes use of the query functions that are part of
 `~sbpy.data.Ephem` and allows you to pick a service from which you
 would like to obtain the data.
 
-    >>> data.field_names
+    >>> data.field_names # doctest: +REMOTE_DATA
     <TableColumns names=('number','desig','discovery','note1','note2','epoch','RA','DEC','mag','band','observatory')>
-    >>> data_sup = data.supplement()
+    >>> data_sup = data.supplement() # doctest: +REMOTE_DATA
     <TableColumns names=('number','desig','discovery','note1','note2','epoch','RA_obs','DEC_obs','mag','band','observatory','targetname','datetime_str','H','G','solar_presence','flags','RA','DEC','RA_app','DEC_app','RA*cos(Dec)_rate','DEC_rate','AZ','EL','AZ_rate','EL_rate','sat_X','sat_Y','sat_PANG','siderealtime','airmass','magextinct','V','illumination','illum_defect','sat_sep','sat_vis','ang_width','PDObsLon','PDObsLat','PDSunLon','PDSunLat','SubSol_ang','SubSol_dist','NPole_ang','NPole_dist','EclLon','EclLat','r','r_rate','delta','delta_rate','lighttime','vel_sun','vel_obs','elong','elongFlag','alpha','lunar_elong','lunar_illum','sat_alpha','sunTargetPA','velocityPA','OrbPlaneAng','constellation','TDB-UT','ObsEclLon','ObsEclLat','NPole_RA','NPole_DEC','GlxLon','GlxLat','solartime','earth_lighttime','RA_3sigma','DEC_3sigma','SMAA_3sigma','SMIA_3sigma','Theta_3sigma','Area_3sigma','RSS_3sigma','r_3sigma','r_rate_3sigma','SBand_3sigma','XBand_3sigma','DoppDelay_3sigma','true_anom','hour_angle','alpha_true','PABLon','PABLat')>
     >>> data_sup['r']  # doctest: +SKIP
     [1.87637455 1.87638696 1.87639935 1.8891401  1.88915504 1.88916999

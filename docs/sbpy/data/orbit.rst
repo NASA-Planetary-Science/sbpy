@@ -45,7 +45,7 @@ orbital elements for a number of targets:
 
        Alternatively, orbital elements can also be queried from the `Minor Planet Center <https://minorplanetcenter.net/iau/MPEph/MPEph.html>`_, although in this case only the most recent elements are accessible:
 
-    >>> elem = Orbit.from_mpc(['3552', '12893'])
+    >>> elem = Orbit.from_mpc(['3552', '12893']) # doctest: +SKIP
     >>> elem # doctest: +SKIP
     <QTable length=2>
      absmag    Q      arc       w     ...     a        Tj   moid_uranus moid_venus
