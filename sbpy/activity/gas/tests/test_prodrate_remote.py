@@ -10,8 +10,8 @@ from astroquery.lamda import Lamda
 from astroquery.jplspec import JPLSpec
 from .. import Haser, photo_timescale
 from ....data import Ephem, Phys
-from .. import (LTE, einstein_coeff, intensity_conversion, beta_factor,
-                total_number_nocd, cdensity_Bockelee)
+from .. import (LTE, NonLTE, einstein_coeff, intensity_conversion, beta_factor,
+                total_number, from_Haser)
 
 
 def data_path(filename):
@@ -158,6 +158,7 @@ def test_Haser_prodrate():
 
     co = Table.read(data_path('CO.csv'), format="ascii.csv")
 
+    lte = LTE()
     Q_estimate = 2.8*10**(28) / u.s
     transition_freq = (230.53799 * u.GHz).to('MHz')
     aper = 10 * u.m
@@ -174,7 +175,7 @@ def test_Haser_prodrate():
     mol_data.apply([au.value] * au.unit, name='eincoeff')
     mol_data.apply([1.] * u.AU * u.AU * u.s, name='beta')
     mol_data.apply([1.] / (u.m * u.m), name='cdensity')
-    mol_data.apply([1.], name='total_number_nocd')
+    mol_data.apply([1.], name='total_number')
 
     q_found = []
 
@@ -188,14 +189,12 @@ def test_Haser_prodrate():
         ephemobj = Ephem.from_horizons(target, epochs=time.jd)
         beta = beta_factor(mol_data, ephemobj)
         mol_data['beta'] = beta
-        cdensity = cdensity_Bockelee(integrated_flux, mol_data)
+        cdensity = lte.cdensity_Bockelee(integrated_flux, mol_data)
         mol_data['cdensity'] = cdensity
-        tnum = total_number_nocd(mol_data, aper, b)
-        mol_data['total_number_nocd'] = tnum
+        tnum = total_number(mol_data, aper, b)
+        mol_data['total_number'] = tnum
 
-        lte = LTE()
-
-        Q = lte.from_Haser(coma, mol_data, aper=aper)
+        Q = from_Haser(coma, mol_data, aper=aper)
 
         q_found.append(np.log10(Q.value)[0])
 
@@ -204,3 +203,57 @@ def test_Haser_prodrate():
     err = abs((np.array(q_pred) - np.array(q_found)) / np.array(q_pred) * 100)
 
     assert np.all(err < 2.5)
+
+@remote_data
+def test_Haser_pyradex():
+
+    co = Table.read(data_path('CO.csv'), format="ascii.csv")
+
+    nonlte = NonLTE()
+    lte = LTE()
+    Q_estimate = 2.8*10**(28) / u.s
+    transition_freq = (230.53799 * u.GHz).to('MHz')
+    aper = 10 * u.m
+    mol_tag = 28001
+    temp_estimate = 25. * u.K
+    vgas = 0.5 * u.km / u.s
+    target = 'C/2016 R2'
+    b = 0.74
+    mol_data = Phys.from_jplspec(temp_estimate, transition_freq, mol_tag)
+    intl = intensity_conversion(mol_data)
+    mol_data.apply([intl.value] * intl.unit,
+                        name='intl')
+    au = einstein_coeff(mol_data)
+    mol_data.apply([au.value] * au.unit, name='eincoeff')
+    mol_data.apply([1.] * u.AU * u.AU * u.s, name='beta')
+    mol_data.apply([1.] / (u.m * u.m), name='cdensity')
+    mol_data.apply([1.], name='total_number')
+
+    q_found = []
+
+    parent = photo_timescale('CO') * vgas
+    coma = Haser(Q_estimate, vgas, parent)
+
+    for i in range(0, 5):
+
+        time = Time(co['Time'][i], format='iso')
+        integrated_flux = co['T_B'][i] * u.K * u.km / u.s
+        ephemobj = Ephem.from_horizons(target, epochs=time.jd)
+        beta = beta_factor(mol_data, ephemobj)
+        mol_data['beta'] = beta
+        cdensity_bockelee = lte.cdensity_Bockelee(integrated_flux, mol_data)
+        mol_data['cdensity'] = cdensity_bockelee
+        cdensity = nonlte.from_pyradex(integrated_flux, mol_data)
+        mol_data['cdensity'] = cdensity
+        tnum = total_number(mol_data, aper, b)
+        mol_data['total_number'] = tnum
+
+        Q = from_Haser(coma, mol_data, aper=aper)
+
+        q_found.append(np.log10(Q.value)[0])
+
+    q_pred = list(co['log(Q)'])
+
+    err = abs((np.array(q_pred) - np.array(q_found)) / np.array(q_pred) * 100)
+
+    assert np.all(err < 1.2)

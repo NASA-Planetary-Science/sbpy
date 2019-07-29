@@ -246,7 +246,7 @@ class Conf():
          'provenance': ['phys'],
          'dimension': 'time * length^2'},
         {'description': 'Total Number',
-         'fieldnames': ['totnum', 'total_number_nocd'],
+         'fieldnames': ['totnum', 'total_number_nocd' 'total_number'],
          'provenance': ['phys'],
          'dimension': None},
         {'description': 'Column Density from Bockelee Morvan et al. 2004',
