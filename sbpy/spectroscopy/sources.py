@@ -342,11 +342,12 @@ class SpectralSource(ABC):
         """Observe source as through a spectrometer.
 
         .. Important:: This method works best when the requested
-        spectral resolution is lower than the spectral resolution of
-        the internal data.  If the requested wavelengths/frequencies
-        are exactly the same as the internal spectrum, then the
-        internal spectrum will be returned without binning.  This
-        special case does not work for subsets of the wavelengths.
+           spectral resolution is lower than the spectral resolution
+           of the internal data.  If the requested
+           wavelengths/frequencies are exactly the same as the
+           internal spectrum, then the internal spectrum will be
+           returned without binning.  This special case does not work
+           for subsets of the wavelengths.
 
 
         Parameters

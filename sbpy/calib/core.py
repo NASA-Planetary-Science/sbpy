@@ -5,6 +5,7 @@ __all__ = [
     'vega_spectrum',
     'solar_fluxd',
     'vega_fluxd',
+    'SpectralStandard',
     'Sun',
     'Vega',
     'FilterLookupError',
@@ -84,10 +85,6 @@ class SpectralStandard(SpectralSource, ABC):
     fluxd       - Source spectrum.
     description - Brief description of the source spectrum.
     meta        - Meta data from `source`, if any.
-
-
-    Notes
-    -----
 
     """
 
@@ -192,7 +189,7 @@ class SpectralStandard(SpectralSource, ABC):
         wfb : `~astropy.units.Quantity`, `~synphot.SpectralElement`, string
             Wavelengths, frequencies, or bandpasses.  Bandpasses may
             be a filter name (string).  May also be a list of
-            ``SpectralElement``s or strings.
+            ``SpectralElement`` or strings.
 
         unit : string, `~astropy.units.Unit`, optional
             Units of the output (spectral flux density).

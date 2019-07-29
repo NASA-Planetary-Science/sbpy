@@ -229,7 +229,7 @@ classes.
                 MSK
             </td>
             <td>
-                Halley-Marcus phase function implemented; Afρ and εfρ classes implemented; Syndynes and synchrones tbd.
+                Halley-Marcus phase function implemented; *Afρ* and *εfρ* classes fully implemented; Syndynes and synchrones tbd.
             </td>
         </tr>
         <tr>
@@ -240,10 +240,10 @@ classes.
                 <span class="dev"></span>
             </td>
             <td align='center'>
-                MSK
+                MSK / MdVB
             </td>
              <td>
-                Haser model implemented, final tests tbd.; Vectorial model TBD (use source code from M. Festou?)
+                Haser model implemented; Vectorial model TBD;
             </td>
         </tr>
         <tr>
@@ -261,6 +261,43 @@ classes.
             </td>
         </tr>
     </table>
+
+    
+`sbpy.calib`
+--------------
+
+.. raw:: html
+
+    <table border="1" class="docutils stability" align='center'>
+        <tr>
+            <th class="head">
+                Sub-Packages and Classes
+            </th>
+            <th class="head">
+                &nbsp;
+            </th>
+            <th class="head">
+                Dev
+            </th>
+            <th class="head">
+                Comments
+            </th>
+        </tr>
+        <tr>
+            <td>
+                <em>sbpy.calib</em>
+            </td>
+            <td align='center'>
+                <span class="stable"></span>
+            </td>
+            <td align='center'>
+                MSK
+            </td>
+            <td>
+                Sun and Vega spectra built in; Calibration system (photometric and spectrosopic) fully implemented.
+            </td>
+        </tr>
+   </table>
 
     
 `sbpy.photometry`
@@ -415,16 +452,16 @@ classes.
         </tr>
         <tr>
             <td>
-                <em>sbpy.spectroscopy.hapke</em>
+                <em>sbpy.spectroscopy.sources</em>
             </td>
             <td align='center'>
                 <span class="planned"></span>
             </td>
             <td align='center'>
-                JYL
+                MM
             </td>
-             <td>
-                Hapke light scattering functions tbd.
+            <td>
+                `synphot` integration complete, basic quantities (bandpass filtering, color index) complete.
             </td>
         </tr>
     </table>

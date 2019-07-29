@@ -19,8 +19,8 @@ of with installation using pip:
 * `astropy <https://www.astropy.org/>`__
 * `astroquery <https://astroquery.readthedocs.io/en/latest/>`__ 0.3.9.dev5089 or later: For retrieval of online data, e.g., ephemerides and orbits.
 * `scipy <https://scipy.org/>`__: For numerical integrations in `sbpy.activity.gas` and `sbpy.photometry`, among others.
-* `synphot <https://github.com/spacetelescope/synphot_refactor>`__ 0.1.3 or later: For calibration to Sun and Vega.
-* `ginga <https://ejeschke.github.io/ginga/>`__ and `photutils <https://photutils.readthedocs.io/en/stable/>`__: For use with `sbpy.imageanalysis`
+* `synphot <https://github.com/spacetelescope/synphot_refactor>`__ 0.1.3 or later: For calibration with respect to the Sun and Vega, filtering spectra through bandpasses.
+* `ginga <https://ejeschke.github.io/ginga/>`__ and `photutils <https://photutils.readthedocs.io/en/stable/>`__: To interactively enhance images of comets with the `~sbpy.imageanalysis.CometaryEnhancement` Ginga plugin.
 
 The following packages will have to be installed manually, if the user
 wants to use them:
