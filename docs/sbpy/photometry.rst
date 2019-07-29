@@ -52,7 +52,7 @@ by supplying the model parameters as either dimensionless numbers or
 
 Calculate geometric albedo, Bond albedo, and phase integral:
 
-  >>> print(m.geoalb)  # doctest: +FLOAT_CMP
+  >>> print(m.geomalb)  # doctest: +FLOAT_CMP
   0.09825058857735823
   >>> print(m.bondalb)  # doctest: +FLOAT_CMP
   0.035797658494252343
@@ -69,7 +69,7 @@ model parameters:
 
   >>> from sbpy.data import Phys
   >>> phys = Phys.from_sbdb('Ceres')    # doctest: +REMOTE_DATA
-  >>> m = HG(data=phys)                 # doctest: +REMOTE_DATA
+  >>> m = HG.from_phys(phys)            # doctest: +REMOTE_DATA
   INFO: Model initialized for 1 Ceres. [sbpy.photometry.core]
   >>> print(m)                          # doctest: +REMOTE_DATA
   Model: HG
@@ -81,7 +81,7 @@ model parameters:
       ---- ----
       3.34 0.12
 
-Note that  model set is not supported.  Only one model can be initialized with
+Note that model set is not supported.  Only one model can be initialized with
 the first set of valid parameters in the input `~sbpy.data.DataClass`.
 
 To fit a photometric model, one may follow the standard procedure defined in
@@ -99,48 +99,30 @@ submodule, such as `~astropy.modeling.fitting.LevMarLSQFitter`.
   >>> fitter = LevMarLSQFitter()
   >>> model2 = HG()
   >>> model2 = fitter(model2, alpha, mag)
-  >>> print(model2)  # doctest: +SKIP
-  Model: HG
-  Inputs: ('x',)
-  Outputs: ('y',)
-  Model set size: 1
-  Parameters:
-              H                  G
 
-      ----------------- -------------------
-      3.305001580933622 0.08532754955207918
+Alternatively, one may use the class method
+`~sbpy.photometry.DiskIntegratedPhaseFunc.from_obs` to
+initialize a model directly from an `~sbpy.data.Obs` object by fitting the
+data contained therein.
 
-Alternatively, one may use the wrapper method
-`~sbpy.photometry.DiskIntegratedPhaseFunc.fit` pre-defined in the photometric
-model classes to fit magnitude data and return a model class object, or use
-class method `~sbpy.photometry.DiskIntegratedPhaseFunc.from_data` to
-initialize a model directly from data by fitting.
+  >>> # use class method .from_obs
+  >>> from astropy.modeling.fitting import LevMarLSQFitter
+  >>> fitter = LevMarLSQFitter()
+  >>> from sbpy.data import Obs
+  >>> obs = Obs.from_dict({'alpha': alpha, 'mag': mag})
+  >>> model3 = HG12.from_obs(obs, fitter, 'mag')
 
-  >>> # use .fit method
-  >>> model3 = HG1G2().fit(alpha, mag)
-  >>> print(model3)  # doctest: +SKIP
-  Model: HG1G2
-  Inputs: ('x',)
-  Outputs: ('y',)
-  Model set size: 1
-  Parameters:
-              H                  G1                  G2
+One can also initialize a model set from multiple columns in the input
+`~sbpy.data.Obs` object if it contains more than one columns of brightness
+measurements.  The columns to be fitted are specified by a keyward argument
+``fields``.  By default, the column ``'mag'`` will be fitted.
 
-      ------------------ ------------------ -------------------
-      3.3391210178858013 0.6551118013498317 0.09728839079940735
-
-  >>> # use class method .from_data
-  >>> model4 = HG12.from_data(alpha, mag)
-  >>> print(model4)  # doctest: +SKIP
-  Model: HG12
-  Inputs: ('x',)
-  Outputs: ('y',)
-  Model set size: 1
-  Parameters:
-              H                G12
-
-      ----------------- ------------------
-      3.424576008941485 0.8052670564595159
+  >>> # Initialize model set
+  >>> model4 = HG(5.2, 0.18)
+  >>> mag4 = model4(alpha) + np.random.rand(20)*0.2-0.1
+  >>> fitter = LevMarLSQFitter()
+  >>> obs = Obs.from_dict({'alpha': alpha, 'mag': mag, 'mag1': mag4})
+  >>> model5 = HG.from_obs(obs, fitter, fields=['mag', 'mag1'])
 
 
 Filter Bandpasses

@@ -6,71 +6,23 @@ created on June 23, 2017
 
 """
 
-__all__ = ['ref2mag', 'mag2ref',
-           'DiskIntegratedPhaseFunc', 'LinearPhaseFunc', 'HG',
-           'HG12', 'HG1G2', 'HG12_Pen16', 'DiskFunctionModel', 'LommelSeeliger',
-           'Lambert', 'LunarLambert', 'PhaseFunctionModel', 'ROLOPhase',
-           'ResolvedPhotometricModelClass', 'ROLO']
+__all__ = ['ref2mag', 'mag2ref', 'DiskIntegratedPhaseFunc', 'LinearPhaseFunc',
+           'HG', 'HG12BaseClass', 'HG12', 'HG1G2', 'HG12_Pen16',
+           'NonmonotonicPhaseFunctionWarning']
 
 from collections import OrderedDict
 import warnings
 import numpy as np
 from numbers import Number
 from scipy.integrate import quad
-from astropy.modeling import (FittableModel, Fittable1DModel,
-                              Fittable2DModel, Parameter)
+from astropy.modeling import (Fittable1DModel, Parameter)
 from astropy.table import Column
 import astropy.units as u
 from astropy import log
-from ..data import DataClass, Ephem
-
-
-def _process_ephem_input(eph, key=None):
-    """Pre-processing `~sbpy.data.Ephem` type input parameter
-
-    This function facilitates flexible input parameter type for those
-    functions that accepts both `~sbpy.data.Ephem` and other simpler data
-    types (such as numpy.ndarray, numbers, or `~astropy.units.Quantity).
-
-    Parameters
-    ----------
-    eph : `~sbpy.data.Ephem`, numbers, iterables of numbers, or
-            `~astropy.units.Quantity`
-        The input to be processed.
-    key : str
-        The name of column to be extracted from `~sbpy.data.Ephem`.
-
-    Returns
-    -------
-    eph : `~sbpy.data.Ephem`
-        If `~sbpy.data.Ephem`, then returns itself.  If not, then returns
-        `None`.
-    out : ndarray, numbers, `~astropy.units.Qauntity`
-        The colume extracted from input `eph` if it can be converted to
-        `~sbpy.data.Ephem`, or the original input `eph` if it cannot be converted.
-    """
-    if eph is None:
-        return None, None
-    if not isinstance(eph, (Ephem, list, tuple, np.ndarray, Number,
-                            u.Quantity)):
-        raise TypeError(
-            '`~sbpy.data.Ephem`, numbers, iterables of numbers, or `~astropy.units.Quantity` expected, {0} received'.format(type(eph)))
-    if isinstance(eph, Ephem):
-        if key is None:
-            out = None
-        else:
-            out = eph[key]
-            if not isinstance(out, u.Quantity):
-                # When a column doesn't have a unit, ``out`` is not a
-                # `Quantity` but rather a `astropy.table.column.Column` object.
-                # This step is to ensure out as an array or Quantity.
-                out = out.data
-    else:
-        out = np.asanyarray(eph)
-        if not np.issubdtype(out.dtype, np.number):
-            raise TypeError('numerical type expected in iterables.')
-        eph = None
-    return eph, out
+from ..data import (DataClass, Phys, Obs, Ephem, dataclass_input,
+    quantity_to_dataclass)
+from ..bib import cite
+from ..exceptions import SbpyWarning
 
 
 def ref2mag(ref, radius, M_sun=None):
@@ -163,6 +115,8 @@ def mag2ref(mag, radius, M_sun=None):
         Q = True
 
     ref = 10**((M_sun-mag)*0.4)/(np.pi*radius*radius*u.km.to('au')**2)
+    if hasattr(ref, '__iter__') and (len(ref) == 1):
+        ref = ref[0]
     if Q:
         return ref/u.sr
     else:
@@ -238,6 +192,10 @@ class _spline(object):
         return out
 
 
+class NonmonotonicPhaseFunctionWarning(SbpyWarning):
+    pass
+
+
 class DiskIntegratedPhaseFunc(Fittable1DModel):
     """Base class for disk-integrated phase function model
 
@@ -263,72 +221,17 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
     ...
     >>> linear_phasefunc = LinearPhaseFunc(5, 2.29, radius=300)
     >>> pha = np.linspace(0, 180, 200)
-    >>> mag = linear_phasefunc.mag(np.deg2rad(pha))
-    >>> ref = linear_phasefunc.ref(np.deg2rad(pha))
-    >>> geoalb = linear_phasefunc.geoalb
+    >>> mag = linear_phasefunc.to_mag(np.deg2rad(pha))
+    >>> ref = linear_phasefunc.to_ref(np.deg2rad(pha))
+    >>> geomalb = linear_phasefunc.geomalb
     >>> phaseint = linear_phasefunc.phaseint
     >>> bondalb = linear_phasefunc.bondalb
-    >>> print('Geometric albedo is {0:.3}'.format(geoalb))
+    >>> print('Geometric albedo is {0:.3}'.format(geomalb))
     Geometric albedo is 0.0501
     >>> print('Bond albedo is {0:.3}'.format(bondalb))
     Bond albedo is 0.0184
     >>> print('Phase integral is {0:.3}'.format(phaseint))
     Phase integral is 0.368
-
-    Initialization with subclass of `~sbpy.data.DataClass`:
-
-    The subclassed models can either be initialized by model parameters, or by
-    subclass of `~sbpy.data.DataClass`.  Below example uses the `HG` model
-    class.
-
-    >>> from sbpy.photometry import HG
-    >>> from sbpy.data import Phys, Orbit, Ephem
-    >>>
-    >>> # Initialize from physical parameters pulled from JPL SBDB
-    >>> phys = Phys.from_sbdb('Ceres')       # doctest: +REMOTE_DATA
-    >>> print(phys['targetname','H','G'])    # doctest: +REMOTE_DATA
-    <QTable length=1>
-    targetname    H       G
-       str7    float64 float64
-    ---------- ------- -------
-       1 Ceres    3.34    0.12
-    >>> m = HG(data = phys)                  # doctest: +REMOTE_DATA
-    INFO: Model initialized for 1 Ceres. [sbpy.photometry.core]
-    >>> print(m)                             # doctest: +REMOTE_DATA
-    Model: HG
-    Inputs: ('x',)
-    Outputs: ('y',)
-    Model set size: 1
-    Parameters:
-         H    G
-        ---- ----
-        3.34 0.12
-    >>> print(m.meta['targetname'])          # doctest: +REMOTE_DATA
-    1 Ceres
-    >>> print(m.radius)                      # doctest: +REMOTE_DATA
-    469.7 km
-    >>>
-    >>> # Initialize from orbital elements pulled from JPL Horizons that also
-    >>> # contain the H and G parameters
-    >>> elem = Orbit.from_horizons('Ceres')  # doctest: +REMOTE_DATA
-    >>> print(elem['targetname','H','G'])    # doctest: +REMOTE_DATA
-    <QTable masked=True length=1>
-    targetname    H       G
-                 mag
-       str7    float64 float64
-    ---------- ------- -------
-       1 Ceres    3.34    0.12
-    >>> m = HG(data=elem)                    # doctest: +REMOTE_DATA
-    INFO: Model initialized for 1 Ceres. [sbpy.photometry.core]
-    >>>
-    >>> # Failed initialization due to the lack of field 'G'
-    >>> phys = Phys.from_sbdb('12893')       # doctest: +REMOTE_DATA
-    >>> print('G' in phys.field_names)      # doctest: +REMOTE_DATA
-    False
-    >>> m = HG(data=phys)                    # doctest: +REMOTE_DATA
-    Traceback (most recent call last):
-      File "<stdin>", line 1, in <module>
-    KeyError: 'field G not available.'
     """
 
     # Some phase function models are defined in magnitude space, such as the
@@ -343,53 +246,19 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
     # Whether or not the model input is allowed to be dimensionless
     input_units_allow_dimensionless = {'x': True}
 
-    def __init__(self, *args, radius=None, M_sun=None, data=None, **kwargs):
+    def __init__(self, *args, radius=None, M_sun=None, **kwargs):
         """Initialize DiskIntegratedPhaseFunc
 
         Parameters
         ----------
-        radius : float or astropy.units.Quantity
+        radius : astropy.units.Quantity, optional
             Radius of object, in km if a float.  Needed for magnitude and
             reflectance conversion
-        M_sun : float or astropy.units.Quantity
+        M_sun : float or astropy.units.Quantity, optional
             Solar magnitude.  Needed for magnitude and reflectance conversion.
             If not supplied, the V-band solar magnitude assumed.  See
             `~ref2mag` and `~mag2ref`
-        data : `astropy.data.DataClass`
-            If present, the model class will be initialized by a
-            `astropy.data.DataClass` object.  This parameter overrides all
-            other relevant parameters, including model parameters and
-            `n_models`.
         """
-        if isinstance(data, DataClass):
-            par = {}
-            valid = np.ones(len(data), dtype=bool)
-            for p in self.param_names:
-                par[p] = data[p]
-                valid = valid & np.isfinite(par[p])
-            if valid.any():
-                valid = list(valid).index(True)
-                for p in self.param_names:
-                    par[p] = par[p][valid]
-                meta = kwargs.pop('meta', OrderedDict())
-                if 'targetname' in data.field_names:
-                    meta.update({'targetname': data['targetname'][valid]})
-                kwargs['meta'] = meta
-                for p in self.param_names:
-                    val = kwargs.pop(p, None)
-                kwargs.update(par)
-                try:
-                    radius = data['diameter'][valid]/2
-                except KeyError:
-                    pass
-                if 'targetname' in meta.keys():
-                    log.info("Model initialized for {}.".format(
-                        meta['targetname']))
-                else:
-                    log.info("Model initialized.")
-            else:
-                raise ValueError(
-                    'no valid model parameters found in `data` keyword')
         super().__init__(*args, **kwargs)
         self.radius = radius
         self.M_sun = M_sun
@@ -399,9 +268,9 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
             raise ValueError('the unit of phase function is unknown')
 
     @property
-    def geoalb(self):
+    def geomalb(self):
         """Geometric albedo"""
-        alb = np.pi*self.ref(0)
+        alb = np.pi*self.to_ref(0)
         if hasattr(alb, 'unit'):
             alb = alb*u.sr
         return alb
@@ -409,39 +278,187 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
     @property
     def bondalb(self):
         """Bond albedo"""
-        return self.geoalb*self.phaseint
+        return self.geomalb*self.phaseint
 
     @property
     def phaseint(self):
         """Phase integral"""
         return self._phase_integral()
 
-    def fit(self, eph, mag, fitter=None, return_fitter=False, **kwargs):
-        """Fit disk-integrated phase function model to magnitude data and the
-        corresponding ephemerides data.
-
-        This is a wrapper that provides a consistent interface that is
-        compatible with the `sbpy` guideline.
+    @classmethod
+    def from_phys(cls, phys, M_sun=None, **kwargs):
+        """Initialize an object from `~sbpy.data.Phys` object
 
         Parameters
         ----------
-        eph : `~sbpy.data.Ephem`, dict_like, or array_like of float
-            If `~sbpy.data.Ephem` or dict_like, must contain 'phaseangle' or
-            the equivalent (see `~sbpy.data.DataClass`).  If array_like, then
-            it is the phase angles of object.  If any distance (heliocentric
-            and geocentric) is provided, then they will be used to correct
-            magnitude to 1 au before fitting.  If no unit is provided via type
-            `~astropy.units.Quantity`, then radians is assumed for phase
-            angle, and au is assumed for distances.
-        mag : array_like, `~astropy.units.Quantity`
-            Magnitude data to be fitted
-        fitter : `~astropy.modeling.fitting.Fitter` class, optional
-            The fitter class to be used for fitting.  Default:
-            `~astropy.modeling.fitting.LevMarLSQFitter`
-        return_fitter : bool, optional
-            If `True`, then the fitter class is returned in a tuple.
-            Default: `False`
-        **kwargs : Keyword parameters accepted by `fitter.__call__()`.
+        phys : `~sbpy.data.Phys`
+            Contains the parameters needed to initialize the model class
+            object.  If the required field is not found, then an `KeyError`
+            exception will be thrown.
+        M_sun : float or astropy.units.Quantity, optional
+            Solar magnitude.  Needed for magnitude and reflectance conversion.
+            If not supplied, the V-band solar magnitude assumed.  See
+            `~ref2mag` and `~mag2ref`
+
+        Returns
+        ------
+        Object of `DiskIntegratedPhaseFunc` subclass
+            The phase function model object
+
+        Examples
+        --------
+        Initialization with `~sbpy.data.Phys`.  This example uses the `HG`
+        model class.
+
+        >>> from sbpy.photometry import HG
+        >>> from sbpy.data import Phys
+        >>>
+        >>> # Initialize from physical parameters pulled from JPL SBDB
+        >>> phys = Phys.from_sbdb('Ceres')      # doctest: +REMOTE_DATA
+        >>> print(phys['targetname','H','G'])   # doctest: +REMOTE_DATA
+        <QTable length=1>
+        targetname    H       G
+           str7    float64 float64
+        ---------- ------- -------
+           1 Ceres    3.34    0.12
+        >>> m = HG.from_phys(phys)              # doctest: +REMOTE_DATA
+        INFO: Model initialized for 1 Ceres. [sbpy.photometry.core]
+        >>> print(m)                            # doctest: +REMOTE_DATA
+        Model: HG
+        Inputs: ('x',)
+        Outputs: ('y',)
+        Model set size: 1
+        Parameters:
+             H    G
+            ---- ----
+            3.34 0.12
+        >>> print(m.meta['targetname'])         # doctest: +REMOTE_DATA
+        1 Ceres
+        >>> print(m.radius)                     # doctest: +REMOTE_DATA
+        469.7 km
+        >>>
+        >>> # Failed initialization due to the lack of field 'G'
+        >>> phys = Phys.from_sbdb('12893')      # doctest: +REMOTE_DATA
+        >>> print('G' in phys.field_names)      # doctest: +REMOTE_DATA
+        False
+        >>> m = HG.from_phys(phys)              # doctest: +REMOTE_DATA
+        Traceback (most recent call last):
+          File "<stdin>", line 1, in <module>
+        KeyError: 'field G not available.'
+        """
+
+        par = {}
+        valid = np.ones(len(phys), dtype=bool)
+        for p in cls.param_names:
+            par[p] = phys[p]
+            valid = valid & np.isfinite(par[p])
+        if valid.any():
+            valid = list(valid).index(True)
+            for p in cls.param_names:
+                par[p] = par[p][valid]
+            meta = kwargs.pop('meta', OrderedDict())
+            if 'targetname' in phys.field_names:
+                meta.update({'targetname': phys['targetname'][valid]})
+            kwargs['meta'] = meta
+            for p in cls.param_names:
+                val = kwargs.pop(p, None)
+            try:
+                par['radius'] = phys['diameter'][valid]/2
+            except KeyError:
+                pass
+            if 'targetname' in meta.keys():
+                log.info("Model initialized for {}.".format(
+                    meta['targetname']))
+            else:
+                log.info("Model initialized.")
+            kwargs.update(par)
+        else:
+            raise ValueError(
+                'no valid model parameters found in `data` keyword')
+        out = cls(**kwargs)
+        out.M_sun = M_sun
+        return out
+
+    def to_phys(self):
+        """Wrap the model into a `sbpy.data.Phys` object
+
+        Returns
+        -------
+        `~sbpy.data.Phys` object
+
+        Examples
+        --------
+        >>> from sbpy.photometry import HG
+        >>> from sbpy.data import Phys
+        >>>
+        >>> # Initialize from physical parameters pulled from JPL SBDB
+        >>> phys = Phys.from_sbdb('Ceres')    # doctest: +REMOTE_DATA
+        >>> print(phys['targetname','radius','H','G']) # doctest: +REMOTE_DATA
+        <QTable length=1>
+        targetname  radius    H       G
+                      km
+           str7    float64 float64 float64
+        ---------- ------- ------- -------
+           1 Ceres   469.7    3.34    0.12
+        >>> m = HG.from_phys(phys)  # doctest: +REMOTE_DATA
+        INFO: Model initialized for 1 Ceres. [sbpy.photometry.core]
+        >>> p = m.to_phys()  # doctest: +REMOTE_DATA
+        >>> print(type(p))  # doctest: +REMOTE_DATA
+        <class 'sbpy.data.phys.Phys'>
+        >>> print(p)  # doctest: +REMOTE_DATA
+        <QTable length=1>
+        targetname diameter    H       G             pv                  A
+                      km
+           str7    float64  float64 float64       float64             float64
+        ---------- -------- ------- ------- ------------------- -------------------
+           1 Ceres    939.4    3.34    0.12 0.09423445077857852 0.03433437637586201
+        """
+        cols = {}
+        if (self.meta is not None) and ('targetname' in self.meta.keys()):
+            val = self.meta['targetname']
+            if isinstance(val, str):
+                val = [val]
+            cols['targetname'] = val
+        if self.radius is not None:
+            cols['diameter'] = self.radius * 2
+        for p in self.param_names:
+            val = getattr(self, p)
+            if val.quantity is None:
+                cols[p] = val.value
+            else:
+                cols[p] = val.quantity
+        try:
+            cols['pv'] = self.geomalb
+            cols['A'] = self.bondalb
+        except ValueError:
+            pass
+        return Phys.from_dict(cols)
+
+    @classmethod
+    @dataclass_input(obs=Obs)
+    def from_obs(cls, obs, fitter, fields='mag', init=None, **kwargs):
+        """Instantiate a photometric model class object from data
+
+        Parameters
+        ----------
+        obs : `~sbpy.data.DataClass`, dict_like
+            If `~sbpy.data.DataClass` or dict_like, must contain
+            ``'phaseangle'`` or the equivalent names (see
+            `~sbpy.data.DataClass`).  If any distance (heliocentric and
+            geocentric) is provided, then they will be used to correct
+            magnitude to 1 au before fitting.
+        fitter : `~astropy.modeling.fitting.Fitter`
+            The fitter to be used for fitting.
+        fields : str or array_like of str
+            The field name or names in ``obs`` to be fitted.  If an array_like
+            str, then multiple fields will be fitted one by one and a model
+            set will be returned.  In this case, ``.meta['fields']`` of the
+            returned object contains the names of fields fitted.
+        init : numpy array, `~astropy.units.Quantity`, optional
+            The initial parameters for model fitting.  Its first dimension has
+            the length of the model parameters, and its second dimension has
+            the length of ``n_model`` if multiple models are fitted.
+        **kwargs : Keyword parameters accepted by `fitter()`.
             Note that the magnitude uncertainty can also be supplied to the fit
             via `weights` keyword for all fitters provided by
             `~astropy.modeling.fitting`.
@@ -455,29 +472,67 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         --------
         >>> from sbpy.photometry import HG # doctest: +SKIP
         >>> from sbpy.data import Misc # doctest: +SKIP
-        >>> eph = Misc.mpc_observations('Bennu') # doctest: +SKIP
+        >>> from astropy.modeling.fitting import LevMarLSQFitter
+        >>> fitter = LevMarLSQFitter()
+        >>> obs = Misc.mpc_observations('Bennu') # doctest: +SKIP
         >>> hg = HG() # doctest: +SKIP
-        >>> best_hg = hg.fit(eph, eph['mag']) # doctest: +SKIP
+        >>> best_hg = hg.from_obs(obs, eph['mag'], fitter) # doctest: +SKIP
         """
-        eph, pha = _process_ephem_input(eph, 'alpha')
+        pha = obs['alpha']
 
-        mag = np.asanyarray(mag)
-        dist_corr = self._distance_module(eph)
-        if isinstance(mag, u.Quantity):
-            dist_corr = dist_corr * u.mag
-        mag0 = mag + dist_corr
-
-        if fitter is None:
-            from astropy.modeling.fitting import LevMarLSQFitter, SLSQPLSQFitter
-            fitter = LevMarLSQFitter
-        fit = fitter()
-
-        model = fit(self, pha, mag0, **kwargs)
-        if return_fitter:
-            return model, fit
+        if isinstance(fields, (str, bytes)):
+            n_models = 1
         else:
+            n_models = len(fields)
+        if init is not None:
+            init = np.asanyarray(init)
+
+        dist_corr = cls()._distance_module(obs)
+        if n_models == 1:
+            mag = obs[fields]
+            if isinstance(mag, u.Quantity):
+                dist_corr = dist_corr * u.mag
+            mag0 = mag + dist_corr
+            if init is None:
+                m0 = cls()
+            else:
+                m0 = cls(*init)
+            return fitter(m0, pha, mag0, **kwargs)
+        else:
+            if init is not None:
+                sz1 = init.shape
+                sz2 = len(cls.param_names), n_models
+                if sz1 != sz2:
+                    raise ValueError('`init` must have a shape of ({}, {}),'
+                        ' shape {} is given.'.format(sz2[0], sz2[1], sz1))
+            par = np.zeros((len(cls.param_names), n_models))
+            for i in range(n_models):
+                mag = obs[fields[i]]
+                if isinstance(mag, u.Quantity):
+                    dist_corr1 = dist_corr * u.mag
+                else:
+                    dist_corr1 = dist_corr
+                mag0 = mag + dist_corr1
+                if init is None:
+                    m0 = cls()
+                else:
+                    m0 = cls(*init[:, i])
+                m = fitter(m0, pha, mag0, **kwargs)
+                par[:, i] = m.parameters
+            pars_list = []
+            for i, p_name in enumerate(cls.param_names):
+                p = getattr(m, p_name)
+                if p.unit is None:
+                    pars_list.append(par[i])
+                else:
+                    pars_list.append(par[i]*p.unit)
+            model = cls(*pars_list, n_models=n_models)
+            if not isinstance(model.meta, dict):
+                model.meta = OrderedDict()
+            model.meta['fields'] = fields
             return model
 
+    @dataclass_input(eph=Ephem)
     def _distance_module(self, eph):
         """Return the correction magnitude or factor for heliocentric distance
         and observer distance
@@ -497,12 +552,10 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         Returns
         -------
         float or numpy array
-            Magnitude correction to be added or scaling factor to be
-            multiplied to the apparent magnitude or flux, respectively, in
-            order to correct to heliocentric distance and observer distance of
-            both 1 au.
+            Factors to be applied to flux to correct to heliocentric distance
+            and observer distance of both 1 au.  The unit of correction
+            (linear or magnitude) is determined by ``._unit``.
         """
-        eph, dummy = _process_ephem_input(eph)
         module = 1.
         try:
             rh = eph['r']
@@ -524,44 +577,8 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         else:
             return module
 
-    @classmethod
-    def from_data(cls, eph, mag, init=None, fitter=None, **kwargs):
-        """Instantiate a photometric model class object from data
-
-        Parameters
-        ----------
-        eph : `~sbpy.data.Ephem`, dict_like, or array_like of float
-            Ephemerides of data.  See `.fit()` for more details.
-        mag : array_like, `~astropy.units.Quantity`
-            Magnitude data to be fitted
-        init : array_like, `~astropy.units.Quantity`
-            The intial guess parameters
-        fitter : `~astropy.modeling.fitting.Fitter` class, optional
-            The fitter class to be used for fitting.  See `.fit()` for
-            details.
-        **kwargs : Keyword parameters accepted by `fitter.__call__()`.
-            Note that the magnitude uncertainty can also be supplied to the fit
-            via `weights` keyword for all fitters provided by
-            `~astropy.modeling.fitting`.
-
-        Returns
-        -------
-        `~DiskIntegratedPhaseFunc` class object
-
-        Examples
-        --------
-        >>> from sbpy.photometry import HG # doctest: +SKIP
-        >>> from sbpy.data import Misc # doctest: +SKIP
-        >>> eph = Misc.mpc_observations('Bennu') # doctest: +SKIP
-        >>> hg = HG.from_data(eph, eph['mag']) # doctest: +SKIP
-        """
-        if init is None:
-            m0 = cls()
-        else:
-            m0 = cls(*init)
-        return m0.fit(eph, mag, fitter=fitter, **kwargs)
-
-    def mag(self, eph, append_results=False, **kwargs):
+    @quantity_to_dataclass(eph=(Ephem, 'alpha'))
+    def to_mag(self, eph, append_results=False, **kwargs):
         """Calculate phase function in magnitude
 
         Parameters
@@ -603,18 +620,19 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         >>> eph = Ephem.from_dict({'alpha': np.linspace(0,np.pi*0.9,200),
         ...              'r': np.repeat(2.7*u.au, 200),
         ...              'delta': np.repeat(1.8*u.au, 200)})
-        >>> mag1 = ceres_hg.mag(eph)
+        >>> mag1 = ceres_hg.to_mag(eph)
         >>> # parameter `eph` as numpy array
         >>> pha = np.linspace(0, 180, 200)
-        >>> mag2 = ceres_hg.mag(np.deg2rad(pha))
+        >>> mag2 = ceres_hg.to_mag(np.deg2rad(pha))
         """
         self._check_unit()
-        eph, pha = _process_ephem_input(eph, 'alpha')
+        pha = eph['alpha']
         out = self(pha, **kwargs)
         if self._unit != 'mag':
             if self.radius is None:
                 raise ValueError(
-                    'cannot calculate phase funciton in magnitude because the size of object is unknown')
+                    'Cannot calculate phase funciton in magnitude because the'
+                    ' size of object is unknown')
             out = ref2mag(out, self.radius, M_sun=self.M_sun)
         else:
             dist_corr = self._distance_module(eph)
@@ -622,20 +640,18 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
                 dist_corr = dist_corr*u.mag
             out = out - dist_corr
         if append_results:
-            if eph is None:
-                eph = Ephem.from_dict({'alpha': pha, 'mag': out})
-            else:
-                name = 'mag'
-                i = 1
-                while name in eph.field_names:
-                    name = 'mag'+str(i)
-                    i += 1
-                eph.table.add_column(Column(out, name=name))
+            name = 'mag'
+            i = 1
+            while name in eph.field_names:
+                name = 'mag'+str(i)
+                i += 1
+            eph.table.add_column(Column(out, name=name))
             return eph
         else:
             return out
 
-    def ref(self, eph, normalized=None, append_results=False, **kwargs):
+    @quantity_to_dataclass(eph=(Ephem, 'alpha'))
+    def to_ref(self, eph, normalized=None, append_results=False, **kwargs):
         """Calculate phase function in average bidirectional reflectance
 
         Parameters
@@ -680,13 +696,13 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         >>> eph = Ephem.from_dict({'alpha': np.linspace(0,np.pi*0.9,200),
         ...              'r': np.repeat(2.7*u.au, 200),
         ...              'delta': np.repeat(1.8*u.au, 200)})
-        >>> ref1 = ceres_hg.ref(eph)
+        >>> ref1 = ceres_hg.to_ref(eph)
         >>> # parameter `eph` as numpy array
         >>> pha = np.linspace(0, 180, 200)
-        >>> ref2 = ceres_hg.mag(np.deg2rad(pha))
+        >>> ref2 = ceres_hg.to_ref(np.deg2rad(pha))
         """
         self._check_unit()
-        eph, pha = _process_ephem_input(eph, 'alpha')
+        pha = eph['alpha']
         out = self(pha, **kwargs)
         if normalized is not None:
             norm = self(normalized, **kwargs)
@@ -701,15 +717,12 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
             if normalized is not None:
                 out /= mag2ref(norm, self.radius, M_sun=self.M_sun)
         if append_results:
-            if eph is None:
-                eph = Ephem.from_dict({'alpha': pha, 'ref': out})
-            else:
-                name = 'ref'
-                i = 1
-                while name in eph.field_names:
-                    name = 'ref'+str(i)
-                    i += 1
-                eph.table.add_column(Column(out, name=name))
+            name = 'ref'
+            i = 1
+            while name in eph.field_names:
+                name = 'ref'+str(i)
+                i += 1
+            eph.table.add_column(Column(out, name=name))
             return eph
         else:
             return out
@@ -737,7 +750,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         0.364
 
         """
-        def integrand(x): return 2*self.ref(x, normalized=0.)*np.sin(x)
+        def integrand(x): return 2*self.to_ref(x, normalized=0.)*np.sin(x)
         return integrator(integrand, 0, np.pi)[0]
 
 
@@ -752,12 +765,12 @@ class LinearPhaseFunc(DiskIntegratedPhaseFunc):
     >>>
     >>> linear_phasefunc = LinearPhaseFunc(5, 2.29, radius=300)
     >>> pha = np.linspace(0, 180, 200)
-    >>> mag = linear_phasefunc.mag(np.deg2rad(pha))
-    >>> ref = linear_phasefunc.ref(np.deg2rad(pha))
-    >>> geoalb = linear_phasefunc.geoalb
+    >>> mag = linear_phasefunc.to_mag(np.deg2rad(pha))
+    >>> ref = linear_phasefunc.to_ref(np.deg2rad(pha))
+    >>> geomalb = linear_phasefunc.geomalb
     >>> phaseint = linear_phasefunc.phaseint
     >>> bondalb = linear_phasefunc.bondalb
-    >>> print('Geometric albedo is {0:.3}'.format(geoalb))
+    >>> print('Geometric albedo is {0:.3}'.format(geomalb))
     Geometric albedo is 0.0501
     >>> print('Bond albedo is {0:.3}'.format(bondalb))
     Bond albedo is 0.0184
@@ -798,7 +811,7 @@ class HG(DiskIntegratedPhaseFunc):
     >>> # Define the phase function for Ceres with H = 3.34, G = 0.12
     >>> from sbpy.photometry import HG
     >>> ceres = HG(3.34, 0.12, radius=480)
-    >>> print('{0:.4f}'.format(ceres.geoalb))
+    >>> print('{0:.4f}'.format(ceres.geomalb))
     0.0902
     >>> print('{0:.4f}'.format(ceres.phaseint))
     0.3644
@@ -809,6 +822,10 @@ class HG(DiskIntegratedPhaseFunc):
     H = Parameter(description='H parameter', default=8)
     G = Parameter(description='G parameter', default=0.4)
 
+    @cite({'definition': '1989aste.conf..524B'})
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
     @G.validator
     def G(self, value):
         """Validate parameter G to avoid non-monotonic phase function
@@ -818,7 +835,7 @@ class HG(DiskIntegratedPhaseFunc):
         """
         if np.any(value > 1.194):
             warnings.warn(
-                'G parameter could result in a non-monotonic phase function', RuntimeWarning)
+                'G parameter could result in a non-monotonic phase function', NonmonotonicPhaseFunctionWarning)
 
     @staticmethod
     def _hgphi(pha, i):
@@ -883,6 +900,10 @@ class HG12BaseClass(DiskIntegratedPhaseFunc):
     """Base class for IAU HG1G2 model and HG12 model"""
 
     _unit = 'mag'
+
+    @cite({'definition': '2010Icar..209..542M'})
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     @property
     def _G1(self):
@@ -956,7 +977,7 @@ class HG1G2(HG12BaseClass):
     >>>
     >>> from sbpy.photometry import HG1G2
     >>> themis = HG1G2(7.063,0.62,0.14,radius=100)
-    >>> print('{0:.4f}'.format(themis.geoalb))
+    >>> print('{0:.4f}'.format(themis.geomalb))
     0.0674
     >>> print('{0:.4f}'.format(themis.phaseint))
     0.3742
@@ -976,7 +997,7 @@ class HG1G2(HG12BaseClass):
         """
         if np.any(value < 0) or np.any(value + self.G2 > 1):
             warnings.warn(
-                'G1, G2 parameter combination might result in a non-monotonic phase function', RuntimeWarning)
+                'G1, G2 parameter combination might result in a non-monotonic phase function', NonmonotonicPhaseFunctionWarning)
 
     @G2.validator
     def G2(self, value):
@@ -987,7 +1008,7 @@ class HG1G2(HG12BaseClass):
         """
         if np.any(value < 0) or np.any(value + self.G1 > 1):
             warnings.warn(
-                'G1, G2 parameter combination might result in a non-monotonic phase function', RuntimeWarning)
+                'G1, G2 parameter combination might result in a non-monotonic phase function', NonmonotonicPhaseFunctionWarning)
 
     @property
     def _G1(self):
@@ -1045,7 +1066,7 @@ class HG12(HG12BaseClass):
     >>>
     >>> from sbpy.photometry import HG12
     >>> themis = HG12(7.121, 0.68, radius=100)
-    >>> print('{0:.4f}'.format(themis.geoalb))
+    >>> print('{0:.4f}'.format(themis.geomalb))
     0.0639
     >>> print('{0:.4f}'.format(themis.phaseint))
     0.3949
@@ -1064,7 +1085,7 @@ class HG12(HG12BaseClass):
         """
         if np.any(value < -0.70) or np.any(value > 1.30):
             warnings.warn(
-                'G12 parameter could result in a non-monotonic phase function', RuntimeWarning)
+                'G12 parameter could result in a non-monotonic phase function', NonmonotonicPhaseFunctionWarning)
 
     @property
     def _G1(self):
@@ -1138,12 +1159,16 @@ class HG12_Pen16(HG12):
     >>>
     >>> from sbpy.photometry import HG12
     >>> themis = HG12_Pen16(7.121, 0.68, radius=100)
-    >>> print('{0:.4f}'.format(themis.geoalb))
+    >>> print('{0:.4f}'.format(themis.geomalb))
     0.0639
     >>> print('{0:.4f}'.format(themis.phaseint))
     0.3804
 
     """
+
+    @cite({'definition': '2016P&SS..123..117P'})
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     @staticmethod
     def _G12_to_G1(g12):
@@ -1171,87 +1196,3 @@ class HG12_Pen16(HG12):
         p2 = -0.53513350
         ddg = 1.085736205*((phi3-phi1)*p1+(phi3-phi2)*p2)/dom
         return [ddh, ddg]
-
-
-class DiskFunctionModel(FittableModel):
-    """Base class for disk-function model"""
-    pass
-
-
-class LommelSeeliger(DiskFunctionModel):
-    """Lommel-Seeliger model class"""
-
-    inputs = ('i', 'e')
-    outputs = ('d',)
-
-    @staticmethod
-    def evaluate(i, e):
-        mu0 = np.cos(i)
-        mu = np.cos(e)
-        return mu0/(mu0+mu)
-
-
-class Lambert(DiskFunctionModel):
-    """Lambert model class"""
-
-    inputs = ('i',)
-    outputs = ('d',)
-
-    @staticmethod
-    def evaluate(i):
-        return np.cos(i)
-
-
-class LunarLambert(DiskFunctionModel):
-    """Lunar-Lambert model, or McEwen model class"""
-    inputs = ('i', 'e')
-    outputs = ('d',)
-
-    L = Parameter(default=0.1, description='Partition parameter')
-
-    @staticmethod
-    def evaluate(i, e, L):
-        return (1-L) * LommelSeeliger.evaluate(i, e) + L * Lambert.evaluate(i)
-
-
-class PhaseFunctionModel(FittableModel):
-    """Base class for phase function model"""
-    inputs = ('a',)
-    outputs = ('f',)
-
-
-class ROLOPhase(PhaseFunctionModel):
-    """ROLO phase function model class"""
-    A0 = Parameter(default=0.1, min=0., description='ROLO A0 parameter')
-    A1 = Parameter(default=0.1, min=0., description='ROLO A1 parameter')
-    C0 = Parameter(default=0.1, min=0., description='ROLO C0 parameter')
-    C1 = Parameter(default=0.1, description='ROLO C1 parameter')
-    C2 = Parameter(default=0.1, description='ROLO C2 parameter')
-    C3 = Parameter(default=0.1, description='ROLO C3 parameter')
-    C4 = Parameter(default=0.1, description='ROLO C4 parameter')
-
-    @staticmethod
-    def evaluate(pha, c0, c1, a0, a1, a2, a3, a4):
-        pha2 = pha*pha
-        return c0*np.exp(-c1*pha)+a0+a1*pha+a2*pha2+a3*pha*pha2+a4*pha2*pha2
-
-    @staticmethod
-    def fit_deriv(pha, c0, c1, a0, a1, a2, a3, a4):
-        pha2 = pha*pha
-        dc0 = np.exp(-c1*pha)
-        if hasattr(pha, '__iter__'):
-            dda = np.ones(len(pha))
-        else:
-            dda = 1.
-        return [dc0, -c0*c1*dc0, dda, pha, pha2, pha*pha2, pha2*pha2]
-
-
-class ResolvedPhotometricModelClass(object):
-    """Base class for disk-resolved photometric model"""
-    # composite model as the product of a disk function and a phase function
-    pass
-
-
-class ROLO(ResolvedPhotometricModelClass):
-    """ROLO disk-resolved photometric model"""
-    pass
