@@ -5,8 +5,8 @@ sbpy Production Rate Module
 created on June 26, 2019
 """
 
-import numpy as np
 import tempfile
+import numpy as np
 import astropy.constants as con
 import astropy.units as u
 from astropy.time import Time
@@ -629,7 +629,7 @@ class NonLTE():
         In the future a function will be provided by sbpy to build your own
         molecular data file from JPLSpec for use in this function.
         Collider is assumed to be H2O since we are only considering comet
-        prodcution rates.
+        production rates.
 
         Parameters
         ----------
@@ -714,7 +714,7 @@ class NonLTE():
 
         register('Production Rates', {'Radex': '2007A&A...468..627V'})
 
-        # convert mol_tag JPLSpec identifier to verbose name if neeeded
+        # convert mol_tag JPLSpec identifier to verbose name if needed
         if mol_data['lamda_name']:
             name = mol_data['lamda_name'][0]
             name = name.lower()
@@ -733,7 +733,7 @@ class NonLTE():
         except KeyError:
             try_name = "{}@xpol".format(name)
             try:
-                Lamda.molecule_dict[name]
+                Lamda.molecule_dict[try_name]
                 name = try_name
             except KeyError:
                 print('Molecule name {} not found in LAMDA, module tried {} and also\
