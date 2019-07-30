@@ -151,13 +151,13 @@ class DataClass():
         The following example creates a single-row `~sbpy.data.Orbit`
         object(the other `~DataClass` objects work the exact same way).
 
-        >> > import astropy.units as u
-        >> > from sbpy.data import Orbit
-        >> > orb = Orbit.from_dict({'a': 2.7674*u.au,
+        >>> import astropy.units as u
+        >>> from sbpy.data import Orbit
+        >>> orb = Orbit.from_dict({'a': 2.7674*u.au,
         ...                        'e': 0.0756,
         ...                        'i': 10.59321*u.deg})
         >> > orb  # doctest: +SKIP
-        <QTable length = 1 >
+        <QTable length=1>
            a       e       i
            AU             deg
         float64 float64 float64
@@ -167,11 +167,11 @@ class DataClass():
         A double-row
         `~sbpy.data.Orbit` example would look like this:
 
-        >> > orb = Orbit.from_dict({'a': [2.7674, 3.123]*u.au,
+        >>> orb = Orbit.from_dict({'a': [2.7674, 3.123]*u.au,
         ...                        'e': [0.0756, 0.021],
         ...                        'i': [10.59321, 3.21]*u.deg})
-        >> > orb  # doctest: +SKIP
-        <QTable length = 2 >
+        >>> orb  # doctest: +SKIP
+        <QTable length=2>
            a       e       i
            AU             deg
         float64 float64 float64
@@ -190,13 +190,13 @@ class DataClass():
         requires a specific order, use ``OrderedDict``. This example
         also shows the use of meta data.
 
-        >> > from collections import OrderedDict
-        >> > orb = Orbit.from_dict(OrderedDict([('a', [2.7674, 3.123]*u.au),
+        >>> from collections import OrderedDict
+        >>> orb = Orbit.from_dict(OrderedDict([('a', [2.7674, 3.123]*u.au),
         ...                                    ('e', [0.0756, 0.021]),
         ...                                    ('i', [10.59, 3.21]*u.deg)]),
         ...                                   meta={'targetname': 'asteroid'})
-        >> > orb  # doctest: +SKIP
-        <QTable length = 2 >
+        >>> orb  # doctest: +SKIP
+        <QTable length=2>
            a       e       i
            AU             deg
         float64 float64 float64
@@ -268,12 +268,12 @@ class DataClass():
         The following example creates a single-column `~sbpy.data.Ephem`
         object.
 
-        >> > from sbpy.data import Ephem
-        >> > import astropy.units as u
-        >> > eph = Ephem.from_columns([1, 2, 3, 4]*u.au,
+        >>> from sbpy.data import Ephem
+        >>> import astropy.units as u
+        >>> eph = Ephem.from_columns([1, 2, 3, 4]*u.au,
         ...                          names='a')
-        >> > eph
-        <QTable length = 4 >
+        >>> eph
+        <QTable length=4>
            a
            AU
         float64
@@ -286,12 +286,12 @@ class DataClass():
         This example creates a two-column `~sbpy.data.Ephem` object in which
         units are assigned using the optional ``units`` keyword argument.
 
-        >> > eph = Ephem.from_columns([[1, 2, 3, 4],
+        >>> eph = Ephem.from_columns([[1, 2, 3, 4],
         ...                           [90, 50, 30, 10]],
         ...                          names=['r', 'alpha'],
         ...                          units=['au', 'deg'])
-        >> > eph
-        <QTable length = 4 >
+        >>> eph
+        <QTable length=4>
            r     alpha
            AU     deg
         float64 float64
@@ -305,12 +305,12 @@ class DataClass():
         ``columns`` will be transformed into those units in ``units`` on a
         per-column basis.
 
-        >> > eph = Ephem.from_columns([[1, 2, 3, 4]*u.au,
+        >>> eph = Ephem.from_columns([[1, 2, 3, 4]*u.au,
         ...                           [90, 50, 30, 10]*u.deg],
         ...                           names=['r', 'alpha'],
         ...                           units=['km', 'rad'])
-        >> > eph
-        <QTable length = 4 >
+        >>> eph
+        <QTable length=4>
                 r                 alpha
                 km                 rad
              float64             float64
@@ -752,8 +752,8 @@ class DataClass():
         -------
         None
 
-        Note
-        ----
+        Notes
+        -----
         As a result of this method, the length of the underlying data table
         will be the same as the length of the flattened `data` parameter.
 
