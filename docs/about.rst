@@ -292,6 +292,116 @@ cited based on sbpy functionality that was used at any time as clear
 text or in the LATeX BibTex format.
 
 
+Design Principles - The Zen of sbpy
+-----------------------------------
+
+In the design of `sbpy`, a few decisions have been made to provide a
+highly flexible but still easy-to-use API. These decisions are
+summarized in the :ref:`design principles`, or, the *Zen of sbpy*.
+
+Some of these decisions affect the user directly and might be
+considered unnecessarily complicated by some. Here, we review and
+discuss some of these principles for the interested user.
+
+
+Physical parameters are quantities
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+`sbpy` requires every parameter with a physical dimension (e.g.,
+length, mass, velocity, etc.) to be a `astropy.units.Quantity`
+object. Only dimensionless parameters (eccentricity, infrared beaming
+parameter, etc.) are allowed to be floats.
+
+The reason for this decision is simple: every `astropy.units.Quantity`
+object comes with a physical unit. Consider the following example: we
+define a `~sbpy.data.Phys` object with a diameter for asteroid Ceres:
+
+    >>> from sbpy.data import Phys
+    >>> ceres = Phys.from_dict({'targetname': 'Ceres',
+    ...                         'diameter': 945})
+
+Of course, Ceres' diameter is 945~km. But this is not clear from this
+definition:
+
+    >>> ceres['diameter']
+    <QTable length=1>
+    targetname diameter
+       str5     int64  
+    ---------- --------
+	 Ceres      945   
+
+Any functionality in `sbpy` thus has to presume that diameters are
+always given in km. This makes sense for large objects - but what
+about meter-sized objects like Near-Earth asteroids? Following the
+`Zen of Python <https://www.python.org/dev/peps/pep-0020/>`_ (explicit
+is better than implicit), we require that units are explicitly
+defined:
+
+    >>> import astropy.units as u
+    >>> ceres = Phys.from_dict({'targetname': 'Ceres',
+    ...                         'diameter': 945*u.km})
+    >>> ceres
+    <QTable length=1>
+    targetname diameter
+		  km   
+       str5    float64 
+    ---------- --------
+	 Ceres    945.0
+
+This way, units and dimensions are always available where they make
+sense and we can easily convert between different units:
+
+    >>> ceres['diameter'].to('m') # doctest: +SKIP
+    [945000.] m
+
+    
+	 
+Epochs must be Time objects
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Following the same reasoning as above, we require that epochs and
+points in time are defined as `~astropy.time.Time` objects:
+
+    >>> from sbpy.data import Obs
+    >>> from astropy.time import Time
+    >>> obs = Obs.from_dict({'epoch': Time(['2018-01-12', '2018-01-13']),
+    ...                      'mag': [12.3, 12.6]*u.mag})
+    >>> obs['epoch']
+
+`~astropy.time.Time` objects can be readily converted into other formats:
+
+    >>> obs['epoch'].jd
+    [2458130.5 2458131.5]
+    >>> obs['epoch'].mjd
+    [58130. 58131.]
+    >>> obs['epoch'].decimalyear
+    [2018.03013699 2018.03287671]
+    >>> obs['epoch'].iso
+    ['2018-01-12 00:00:00.000' '2018-01-13 00:00:00.000']
+
+... as well as other time scales:
+
+    >>> obs['epoch'].utc.iso
+    ['2018-01-12 00:00:00.000' '2018-01-13 00:00:00.000']
+    >>> obs['epoch'].tdb.iso
+    ['2018-01-12 00:01:09.184' '2018-01-13 00:01:09.184']
+    >>> obs['epoch'].tai.iso
+    ['2018-01-12 00:00:37.000' '2018-01-13 00:00:37.000']
+
+    
+Use sbpy ``DataClass`` objects
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Finally, we require that topically similar parametes are bundled in
+`~sbpy.data.DataClass` objects, which serve as data containers (see
+:ref:`this page <data containers>` for an introduction).
+
+This containerization makes it possible to keep data nearly formatted
+and to minimize the number of input parameters for functions and
+method.
+
+
+
 .. _JPL Horizons: http://ssd.jpl.nasa.gov/horizons.cgi
 .. _Minor Planet Center: http://minorplanetcenter.net/
 .. _IMCCE: http://vo.imcce.fr/webservices/miriade

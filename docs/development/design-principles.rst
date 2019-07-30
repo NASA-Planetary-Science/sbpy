@@ -1,3 +1,5 @@
+.. _design principles:
+
 Design Principles
 =================
 
