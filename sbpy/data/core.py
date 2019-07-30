@@ -156,7 +156,7 @@ class DataClass():
         >>> orb = Orbit.from_dict({'a': 2.7674*u.au,
         ...                        'e': 0.0756,
         ...                        'i': 10.59321*u.deg})
-        >> > orb  # doctest: +SKIP
+        >>> orb  # doctest: +SKIP
         <QTable length=1>
            a       e       i
            AU             deg
