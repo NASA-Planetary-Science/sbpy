@@ -163,8 +163,8 @@ class Phys(DataClass):
 
     @classmethod
     def from_jplspec(cls, temp_estimate, transition_freq, mol_tag):
-        """
-        Returns relevant constants from JPLSpec catalog and energy calculations
+        """Returns relevant constants from JPLSpec catalog and energy
+        calculations
 
         Parameters
         ----------
@@ -177,18 +177,18 @@ class Phys(DataClass):
         mol_tag : int or str
             Molecule identifier. Make sure it is an exclusive identifier,
             although this function can take a regex as your molecule tag,
-            it will return an error if there is ambiguity on what the molecule
-            of interest is. The function
+            it will return an error if there is ambiguity on what the
+            molecule of interest is. The function
             `~astroquery.jplspec.JPLSpec.query_lines_async`
             with the option `parse_name_locally=True` can be used to parse
-            for the exclusive identifier of a molecule you might be interested
-            in. For more information, visit `astroquery.jplspec` documentation.
+            for the exclusive identifier of a molecule you might be
+            interested in. For more information, visit
+            `astroquery.jplspec` documentation.
 
         Returns
         -------
         Molecular data : `~sbpy.data.Phys` instance
-            Quantities in the following order from JPL Spectral Molecular
-            Catalog:
+            Quantities in the following order from JPL Spectral Molecular Catalog:
                 | Transition frequency
                 | Temperature
                 | Integrated line intensity at 300 K
@@ -204,8 +204,7 @@ class Phys(DataClass):
         if isinstance(mol_tag, str):
             query = JPLSpec.query_lines_async(
                 min_frequency=(transition_freq - (1 * u.GHz)),
-                max_frequency=(
-                    transition_freq + (1 * u.GHz)),
+                max_frequency=(transition_freq + (1 * u.GHz)),
                 molecule=mol_tag,
                 parse_name_locally=True,
                 get_query_payload=True)
@@ -233,17 +232,16 @@ class Phys(DataClass):
 
         query = JPLSpec.query_lines(
             min_frequency=(transition_freq - (1 * u.GHz)),
-            max_frequency=(
-                transition_freq + (1 * u.GHz)),
+            max_frequency=(transition_freq + (1 * u.GHz)),
             molecule=mol_tag)
 
         freq_list = query['FREQ']
 
         if freq_list[0] == 'Zero lines we':
-            raise JPLSpecQueryFailed("Zero lines were found by JPLSpec in \
-                                       a +/- 1 GHz range from your provided \
-                                       transition frequency for molecule tag \
-                                       {}.".format(mol_tag))
+            raise JPLSpecQueryFailed(
+                ("Zero lines were found by JPLSpec in a +/- 1 GHz "
+                 "range from your provided transition frequency for "
+                 "molecule tag {}.").format(mol_tag))
 
         t_freq = min(list(freq_list.quantity),
                      key=lambda x: abs(x-transition_freq))
