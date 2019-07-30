@@ -34,8 +34,7 @@ def test_remote_prodrate_simple_hcn():
     q_found = []
     mol_data = Phys.from_jplspec(temp_estimate, transition_freq, mol_tag)
     intl = intensity_conversion(mol_data)
-    mol_data.apply([intl.value] * intl.unit,
-                        name='intl')
+    mol_data.apply([intl.value] * intl.unit, name='intl')
     au = einstein_coeff(mol_data)
     mol_data.apply([au.value] * au.unit, name='eincoeff')
 
@@ -76,8 +75,7 @@ def test_remote_prodrate_simple_ch3oh():
     q_found = []
     mol_data = Phys.from_jplspec(temp_estimate, transition_freq, mol_tag)
     intl = intensity_conversion(mol_data)
-    mol_data.apply([intl.value] * intl.unit,
-                        name='intl')
+    mol_data.apply([intl.value] * intl.unit, name='intl')
     au = einstein_coeff(mol_data)
     mol_data.apply([au.value] * au.unit, name='eincoeff')
 
@@ -122,8 +120,7 @@ def test_einstein():
 
         mol_data = Phys.from_jplspec(temp_estimate, transition_freq, mol_tag)
         intl = intensity_conversion(mol_data)
-        mol_data.apply([intl.value] * intl.unit,
-                                name='intl')
+        mol_data.apply([intl.value] * intl.unit, name='intl')
 
         au = einstein_coeff(mol_data)
 
@@ -169,8 +166,7 @@ def test_Haser_prodrate():
     b = 0.74
     mol_data = Phys.from_jplspec(temp_estimate, transition_freq, mol_tag)
     intl = intensity_conversion(mol_data)
-    mol_data.apply([intl.value] * intl.unit,
-                        name='intl')
+    mol_data.apply([intl.value] * intl.unit, name='intl')
     au = einstein_coeff(mol_data)
     mol_data.apply([au.value] * au.unit, name='eincoeff')
     mol_data.apply([1.] * u.AU * u.AU * u.s, name='beta')
@@ -204,6 +200,7 @@ def test_Haser_prodrate():
 
     assert np.all(err < 2.5)
 
+
 @remote_data
 def test_Haser_pyradex():
 
@@ -221,8 +218,7 @@ def test_Haser_pyradex():
     b = 0.74
     mol_data = Phys.from_jplspec(temp_estimate, transition_freq, mol_tag)
     intl = intensity_conversion(mol_data)
-    mol_data.apply([intl.value] * intl.unit,
-                        name='intl')
+    mol_data.apply([intl.value] * intl.unit, name='intl')
     au = einstein_coeff(mol_data)
     mol_data.apply([au.value] * au.unit, name='eincoeff')
     mol_data.apply([1.] * u.AU * u.AU * u.s, name='beta')
@@ -256,4 +252,4 @@ def test_Haser_pyradex():
 
     err = abs((np.array(q_pred) - np.array(q_found)) / np.array(q_pred) * 100)
 
-    assert np.all(err < 1.2)
+    assert np.all(err < 0.7)

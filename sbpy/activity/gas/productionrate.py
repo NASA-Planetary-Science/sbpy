@@ -484,11 +484,10 @@ class LTE():
         register('Spectroscopy', {'Total Number (eq. 10)': '2004come.book..391B'})
 
         cdensity = (8*np.pi*con.k_B*mol_data['t_freq'][0]**2 /
-                     (con.h*con.c**3 * mol_data['eincoeff'][0])).decompose()
+                    (con.h*con.c**3 * mol_data['eincoeff'][0])).decompose()
         cdensity *= integrated_flux
 
         return cdensity
-
 
     def from_Drahus(self, integrated_flux, mol_data, ephemobj, vgas=1 * u.km/u.s,
                     aper=25 * u.m, b=1.2):
@@ -629,14 +628,15 @@ class NonLTE():
     """
 
     def from_pyradex(self, integrated_flux, mol_data, line_width=1.0 * u.km / u.s,
-                     escapeProbGeom='lvg', iter=100):
+                     escapeProbGeom='lvg', iter=100,
+                     collider_density={'H2': 900*8.934}):
         """
         Calculate production rate from the Non-LTE iterative code pyradex
         Presently, only the LAMDA catalog is supported by this function.
         In the future a function will be provided by sbpy to build your own
         molecular data file from JPLSpec for use in this function.
-        Collider is assumed to be H2O since we are only considering comet
-        production rates.
+        Collider is assumed to be H2O for the default setting since we are only
+        considering comet production rates.
 
         Parameters
         ----------
@@ -675,10 +675,23 @@ class NonLTE():
             for the start and end values of the loop, respectively. i.e.
             a guess of 1e15 will create a range between 1e14 and 1e16
 
+        collider_density : dict
+            Dictionary of colliders and their densities in cm^-3. Allowed
+            entries are any of the following : h2,oh2,ph2,e,He,H,H+
+            See `~Pyradex` documentation for more information.
+            Default dictionary is {'H2' : 900*8.934} where 900 is the
+            collider density of H2 and 8.934 is the value for the
+            ratio of molecular mass for H2O/H2 in order to scale the
+            collisional excitation to H2O as the main collisional partner.
+            (de val Borro, et al. 2017 & Schoier, et al. 2004)
+
         Returns
         -------
-        Q : `~astropy.units.Quantity`
-            production rate
+        column density : `~astropy.units.Quantity`
+            column density to use for the Haser model ratio calculation
+            Note: it is normal for pyradex/RADEX to output warnings depending
+            on the setup the user gives it (such as not having found a
+            molecular data file so it searches for it on LAMDA catalog)
 
         Examples
         --------
@@ -697,20 +710,29 @@ class NonLTE():
         >>> mol_data.apply(['HCO+@xpol'], name='lamda_name') # doctest: +SKIP
 
         >>> nonLTE = NonLTE() # doctest: +SKIP
-        >>> cdensity = nonLTE.from_pyradex(1.234 * u.K * u.km / u.s, mol_data, iter=500) # doctest: +SKIP
-            Closest Integrated Flux:[1.2352747] K km / s # doctest: +SKIP
+        >>> cdensity = nonLTE.from_pyradex(1.234 * u.K * u.km / u.s, # doctest: +SKIP
+                                           mol_data, iter=600, # doctest: +SKIP
+                                           collider_density={'H2': 900}) # doctest: +SKIP
+            Closest Integrated Flux:[1.24925956] K km / s # doctest: +SKIP
             Given Integrated Flux: 1.234 K km / s # doctest: +SKIP
         >>> print(cdensity) # doctest: +SKIP
-            [1.05143086e+14] 1 / cm2
+            [1.06363773e+14] 1 / cm2
 
         References
         ----------
         Haser 1957, Bulletin de la Societe Royale des Sciences de Liege
         43, 740.
 
-        van der Tak et al., A computer program for fast non-LTE analysis of
+        van der Tak, et al., A computer program for fast non-LTE analysis of
         interstellar line spectra. With diagnostic plots to interpret observed
         line intensity ratios. A&A, February 12 2013.
+
+        de Val Borro, et al., Measuring molecular abundances in comet C/2014 Q2
+        (Lovejoy) using the APEX telescope. Monthly Notices of the Royal
+        Astronomical Society, October 27 2017.
+
+        Schoier, et al., An atomic and molecular database for analysis of
+        submillimetre line observations. A&A, November 4 2004.
 
         """
 
@@ -778,7 +800,7 @@ class NonLTE():
                 R = pyradex.Radex(column=i, deltav=line_width, tbackground=tbackground,
                                   species=name, temperature=temp,
                                   datapath=datapath, escapeProbGeom=escapeProbGeom,
-                                  collider_densities={'H2': 900})
+                                  collider_densities=collider_density)
 
                 table = R()
 
