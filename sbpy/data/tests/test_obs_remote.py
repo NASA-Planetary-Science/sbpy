@@ -47,7 +47,7 @@ class TestObsfromMPC:
     def test_bib(self):
         bib.track()
         Obs.from_mpc('235P')
-        assert 'sbpy.data.obs.from_mpc' in bib.to_text()
+        assert 'sbpy.data.obs.Obs.from_mpc' in bib.to_text()
 
 
 @pytest.mark.remote_data
@@ -66,7 +66,7 @@ class TestSupplement:
         assert len(data.field_names) > len(obs.field_names)
         assert 'targetname_eph' in data.field_names
 
-        assert 'sbpy.data.ephem.from_horizons' in bib.to_text()
+        assert 'sbpy.data.ephem.Ephem.from_horizons' in bib.to_text()
 
     def test_mpc(self):
         bib.track()
@@ -76,7 +76,7 @@ class TestSupplement:
         data = obs.supplement(service='mpc')
         assert len(data.field_names) > len(obs.field_names)
 
-        assert 'sbpy.data.ephem.from_mpc' in bib.to_text()
+        assert 'sbpy.data.ephem.Ephem.from_mpc' in bib.to_text()
 
     def test_miriade(self):
         bib.track()
@@ -86,7 +86,7 @@ class TestSupplement:
         data = obs.supplement(service='miriade')
         assert len(data.field_names) > len(obs.field_names)
 
-        assert 'sbpy.data.ephem.from_miriade' in bib.to_text()
+        assert 'sbpy.data.ephem.Ephem.from_miriade' in bib.to_text()
 
     def test_breaks(self):
         obs = Obs.from_dict({'epoch': Time([2451200, 2451201], format='jd'),

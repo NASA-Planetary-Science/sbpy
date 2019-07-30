@@ -192,6 +192,7 @@ class Ephem(DataClass):
         all_eph['epoch'] = Time(all_eph['datetime_jd'], format='jd',
                                 scale='utc')
         all_eph.remove_column('datetime_jd')
+        all_eph.remove_column('datetime_str')
 
         return cls.from_table(all_eph)
 
@@ -772,8 +773,9 @@ class Ephem(DataClass):
                                index=0)
 
         # convert MJD to astropy.time.TimeJulian Date
-        ephem.table['epoch'] = Time(ephem['MJD'], format='mjd',
-                                    scale=timescale.lower())
+        ephem.table['epoch'] = Time(Time(ephem['MJD'], format='mjd',
+                                         scale=timescale.lower()),
+                                    format='jd')
         ephem.table.remove_column('MJD')
 
         return ephem

@@ -20,7 +20,7 @@ from astropy.table import Column
 import astropy.units as u
 from astropy import log
 from ..data import (DataClass, Phys, Obs, Ephem, dataclass_input,
-    quantity_to_dataclass)
+                    quantity_to_dataclass)
 from ..bib import cite
 from ..exceptions import SbpyWarning
 
@@ -232,6 +232,61 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
     Bond albedo is 0.0184
     >>> print('Phase integral is {0:.3}'.format(phaseint))
     Phase integral is 0.368
+
+    Initialization with subclass of `~sbpy.data.DataClass`:
+
+    The subclassed models can either be initialized by model parameters, or by
+    subclass of `~sbpy.data.DataClass`.  Below example uses the `HG` model
+    class.
+
+    >>> from sbpy.photometry import HG
+    >>> from sbpy.data import Phys, Orbit, Ephem
+    >>>
+    >>> # Initialize from physical parameters pulled from JPL SBDB
+    >>> phys = Phys.from_sbdb('Ceres')       # doctest: +REMOTE_DATA
+    >>> print(phys['targetname','H','G'])    # doctest: +REMOTE_DATA
+    <QTable length=1>
+    targetname    H       G
+       str7    float64 float64
+    ---------- ------- -------
+       1 Ceres    3.34    0.12
+    >>> m = HG(data = phys)                  # doctest: +REMOTE_DATA
+    INFO: Model initialized for 1 Ceres. [sbpy.photometry.core]
+    >>> print(m)                             # doctest: +REMOTE_DATA
+    Model: HG
+    Inputs: ('x',)
+    Outputs: ('y',)
+    Model set size: 1
+    Parameters:
+         H    G
+        ---- ----
+        3.34 0.12
+    >>> print(m.meta['targetname'])          # doctest: +REMOTE_DATA
+    1 Ceres
+    >>> print(m.radius)                      # doctest: +REMOTE_DATA
+    469.7 km
+    >>>
+    >>> # Initialize from orbital elements pulled from JPL Horizons that also
+    >>> # contain the H and G parameters
+    >>> elem = Orbit.from_horizons('Ceres')  # doctest: +REMOTE_DATA
+    >>> print(elem['targetname','H','G'])    # doctest: +REMOTE_DATA
+    <QTable masked=True length=1>
+    targetname    H       G
+                 mag
+       str7    float64 float64
+    ---------- ------- -------
+       1 Ceres    3.34    0.12
+    >>> m = HG(data=elem)                    # doctest: +REMOTE_DATA
+    INFO: Model initialized for 1 Ceres. [sbpy.photometry.core]
+    >>>
+    >>> # Failed initialization due to the lack of field 'G'
+    >>> phys = Phys.from_sbdb('12893')       # doctest: +REMOTE_DATA
+    >>> print('G' in phys.field_names)      # doctest: +REMOTE_DATA
+    False
+    >>> m = HG(data=phys)                    # doctest: +SKIP
+    Traceback (most recent call last):
+      File "<stdin>", line 1, in <module>
+    KeyError: 'field G not available.'
     """
 
     # Some phase function models are defined in magnitude space, such as the
@@ -504,7 +559,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
                 sz2 = len(cls.param_names), n_models
                 if sz1 != sz2:
                     raise ValueError('`init` must have a shape of ({}, {}),'
-                        ' shape {} is given.'.format(sz2[0], sz2[1], sz1))
+                                     ' shape {} is given.'.format(sz2[0], sz2[1], sz1))
             par = np.zeros((len(cls.param_names), n_models))
             for i in range(n_models):
                 mag = obs[fields[i]]

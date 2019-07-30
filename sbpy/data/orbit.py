@@ -18,7 +18,7 @@ import astropy.units as u
 from warnings import warn
 
 from ..bib import cite
-from ..exceptions import SbpyException, SbpyWarning
+from ..exceptions import SbpyException
 from . import conf, DataClass, QueryError, TimeScaleWarning
 
 __all__ = ['Orbit']
@@ -165,6 +165,7 @@ class Orbit(DataClass):
         all_elem['epoch'] = Time(all_elem['datetime_jd'], format='jd',
                                  scale='tdb')
         all_elem.remove_column('datetime_jd')
+        all_elem.remove_column('datetime_str')
 
         return cls.from_table(all_elem)
 
@@ -668,12 +669,9 @@ class Orbit(DataClass):
         orbits.table.remove_column('epoch_scale'),
 
         # adjust epochs to standard jd
-        orbits.table['epoch'] = Time(orbits.table['epoch'], format='mjd',
-                                     scale='tt').__getattr__(
-                                         timescale.lower())
-
-        # identify time scales returned by Horizons query
-        timescales = [timescale] * len(orbits.table)
-        orbits.table['timescale'] = timescales
+        orbits.table['epoch'] = Time(
+            Time(orbits.table['epoch'], format='mjd',
+                 scale='tt').__getattr__(timescale.lower()),
+            format='jd')
 
         return orbits

@@ -52,7 +52,7 @@ class TestOrbitFromHorizons:
         # test bib service
         bib.track()
         Orbit.from_horizons(['Ceres', 'Pallas'])
-        assert 'sbpy.data.orbit.from_horizons' in bib.to_text()
+        assert 'sbpy.data.orbit.Orbit.from_horizons' in bib.to_text()
 
     def test_queryfail(self):
         with pytest.raises(QueryError):

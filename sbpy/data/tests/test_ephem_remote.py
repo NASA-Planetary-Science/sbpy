@@ -57,7 +57,7 @@ class TestEphemFromHorizons:
     def test_bib(self):
         bib.track()
         Ephem.from_horizons(['Ceres', 'Pallas'])
-        assert 'sbpy.data.ephem.from_horizons' in bib.to_text()
+        assert 'sbpy.data.ephem.Ephem.from_horizons' in bib.to_text()
 
     def test_timescale(self):
         # test same timescale
@@ -208,7 +208,7 @@ class TestEphemFromMPC:
     def test_bib(self):
         bib.track()
         data = Ephem.from_mpc(['Ceres', 'Pallas'])
-        assert 'sbpy.data.ephem.from_mpc' in bib.to_text()
+        assert 'sbpy.data.ephem.Ephem.from_mpc' in bib.to_text()
 
 
 @pytest.mark.remote_data
@@ -293,7 +293,7 @@ class TestEphemFromMiriade:
     def test_bib(self):
         bib.track()
         data = Ephem.from_miriade(['Ceres', 'Pallas'])
-        assert 'sbpy.data.ephem.from_miriade' in bib.to_text()
+        assert 'sbpy.data.ephem.Ephem.from_miriade' in bib.to_text()
 
 
 @pytest.mark.remote_data
@@ -365,4 +365,4 @@ class test_oorb:
         bib.track()
         orbit = Orbit.from_horizons('Ceres')
         oo_ephem = Ephem.from_oo(orbit, scope='basic')
-        assert 'sbpy.data.ephem.from_oo' in bib.to_text()
+        assert 'sbpy.data.ephem.Ephem.from_oo' in bib.to_text()
