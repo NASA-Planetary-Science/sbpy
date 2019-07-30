@@ -129,7 +129,7 @@ for `~sbpy.activity.intensity_conversion` under Reference/API section.
 
     >>> from sbpy.activity import intensity_conversion
     >>> intl = intensity_conversion(mol_data)
-    >>> mol_data.add_column([intl.value] * intl.unit, name='intl')
+    >>> mol_data.apply([intl.value] * intl.unit, name='intl')
      11
     >>> intl
      <Quantity 0.00280051 MHz nm2>
@@ -156,7 +156,7 @@ under Reference/API section.
 
     >>> from sbpy.activity import einstein_coeff
     >>> au = einstein_coeff(mol_data)
-    >>> mol_data.add_column([au.value] * au.unit, name = 'Einstein Coefficient')
+    >>> mol_data.apply([au.value] * au.unit, name = 'Einstein Coefficient')
      12
     >>> au
       <Quantity 7.03946054e-07 1 / s>
@@ -187,7 +187,7 @@ the needed parameters for this function follow the link for
     >>> time = Time('2017-12-22 05:24:20', format = 'iso')
     >>> ephemobj = Ephem.from_horizons(target, epochs=time.jd)
     >>> beta = beta_factor(mol_data, ephemobj)
-    >>> mol_data.add_column([beta.value] * beta.unit, name='beta')
+    >>> mol_data.apply([beta.value] * beta.unit, name='beta')
      13
     >>> beta
      <Quantity [13333365.25745597] AU2 s>
@@ -234,7 +234,7 @@ for column density explained in the next section.
 .. doctest-skip::
 
     >>> cdensity = lte.cdensity_Bockelee(integrated_flux, mol_data)
-    >>> mol_data.add_column([cdensity.value] * cdensity.unit, name='cdensity')
+    >>> mol_data.apply([cdensity.value] * cdensity.unit, name='cdensity')
 
 
 Non-LTE Column Density Calculation
@@ -257,7 +257,7 @@ input parameters and defaults, search for `from_pyradex` in
     >>> from sbpy.activty import NonLTE
     >>> nonlte = NonLTE()
     >>> cdensity = nonlte.from_pyradex(integrated_flux,  mol_data, iter=500)
-    >>> mol_data.add_column([cdensity.value] * cdensity.unit, name='cdensity')
+    >>> mol_data.apply([cdensity.value] * cdensity.unit, name='cdensity')
 
 
 Total Number
@@ -283,7 +283,7 @@ under Reference/API section.
     >>> b = 0.74
     >>> aper = 10 * u.m
     >>> tnum = total_number(integrated_flux, mol_data, aper, b)
-    >>> mol_data.add_column([tnum], name='total_number')
+    >>> mol_data.apply([tnum], name='total_number')
      14
     >>> tnum
      <Quantity [2.93988826e+26]>

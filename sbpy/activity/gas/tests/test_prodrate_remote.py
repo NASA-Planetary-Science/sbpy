@@ -201,6 +201,14 @@ def test_Haser_prodrate():
     assert np.all(err < 2.5)
 
 
+'''
+Last test run: 07/30/2019 03:12:00 , sbpy version: v0.2dev259, python 3.6.8
+Author: Giannina Guzman
+Tester: Giannina Guzman
+Tested: locally, needs pyradex to be installed
+Status: Passed
+See https://github.com/keflavich/pyradex for installment
+
 @remote_data
 def test_Haser_pyradex():
 
@@ -253,3 +261,4 @@ def test_Haser_pyradex():
     err = abs((np.array(q_pred) - np.array(q_found)) / np.array(q_pred) * 100)
 
     assert np.all(err < 0.7)
+'''
