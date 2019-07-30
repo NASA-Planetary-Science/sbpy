@@ -323,7 +323,7 @@ define a `~sbpy.data.Phys` object with a diameter for asteroid Ceres:
 Of course, Ceres' diameter is 945~km. But this is not clear from this
 definition:
 
-    >>> ceres['diameter']
+    >>> ceres['diameter'] # doctest: +SKIP
     <QTable length=1>
     targetname diameter
        str5     int64  
@@ -340,7 +340,7 @@ defined:
     >>> import astropy.units as u
     >>> ceres = Phys.from_dict({'targetname': 'Ceres',
     ...                         'diameter': 945*u.km})
-    >>> ceres
+    >>> ceres # doctest: +SKIP
     <QTable length=1>
     targetname diameter
 		  km   
@@ -366,26 +366,27 @@ points in time are defined as `~astropy.time.Time` objects:
     >>> from astropy.time import Time
     >>> obs = Obs.from_dict({'epoch': Time(['2018-01-12', '2018-01-13']),
     ...                      'mag': [12.3, 12.6]*u.mag})
-    >>> obs['epoch']
-
+    >>> obs['epoch'] # doctest: +SKIP
+    ['2018-01-12 00:00:00.000' '2018-01-13 00:00:00.000']
+    
 `~astropy.time.Time` objects can be readily converted into other formats:
 
-    >>> obs['epoch'].jd
+    >>> obs['epoch'].jd # doctest: +SKIP
     [2458130.5 2458131.5]
-    >>> obs['epoch'].mjd
+    >>> obs['epoch'].mjd # doctest: +SKIP
     [58130. 58131.]
-    >>> obs['epoch'].decimalyear
+    >>> obs['epoch'].decimalyear # doctest: +SKIP
     [2018.03013699 2018.03287671]
-    >>> obs['epoch'].iso
+    >>> obs['epoch'].iso # doctest: +SKIP
     ['2018-01-12 00:00:00.000' '2018-01-13 00:00:00.000']
 
 ... as well as other time scales:
 
-    >>> obs['epoch'].utc.iso
+    >>> obs['epoch'].utc.iso # doctest: +SKIP
     ['2018-01-12 00:00:00.000' '2018-01-13 00:00:00.000']
-    >>> obs['epoch'].tdb.iso
+    >>> obs['epoch'].tdb.iso # doctest: +SKIP
     ['2018-01-12 00:01:09.184' '2018-01-13 00:01:09.184']
-    >>> obs['epoch'].tai.iso
+    >>> obs['epoch'].tai.iso # doctest: +SKIP
     ['2018-01-12 00:00:37.000' '2018-01-13 00:00:37.000']
 
     

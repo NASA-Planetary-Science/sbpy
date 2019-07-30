@@ -9,13 +9,10 @@ Class for storing and querying physical properties
 created on June 04, 2017
 """
 
-import warnings
-
 from collections import OrderedDict
 
 from numpy import ndarray, array, isnan, nan, interp, log, exp
 import astropy.units as u
-import astropy.constants as con
 from astroquery.jplsbdb import SBDB
 from astroquery.jplspec import JPLSpec
 
@@ -190,7 +187,8 @@ class Phys(DataClass):
         Returns
         -------
         Molecular data : `~sbpy.data.Phys` instance
-            Quantities in the following order from JPL Spectral Molecular Catalog:
+            Quantities in the following order from JPL Spectral Molecular
+            Catalog:
                 | Transition frequency
                 | Temperature
                 | Integrated line intensity at 300 K
@@ -204,35 +202,40 @@ class Phys(DataClass):
         """
 
         if isinstance(mol_tag, str):
-            query = JPLSpec.query_lines_async(min_frequency=(transition_freq - (1 * u.GHz)),
-                                              max_frequency=(
-                                                  transition_freq + (1 * u.GHz)),
-                                              molecule=mol_tag,
-                                              parse_name_locally=True,
-                                              get_query_payload=True)
+            query = JPLSpec.query_lines_async(
+                min_frequency=(transition_freq - (1 * u.GHz)),
+                max_frequency=(
+                    transition_freq + (1 * u.GHz)),
+                molecule=mol_tag,
+                parse_name_locally=True,
+                get_query_payload=True)
 
             res = dict(query)
-            # python request payloads aren't stable (could be dictionary or list)
-            # depending on the version, so make sure to check back from time to time
+            # python request payloads aren't stable (could be
+            # dictionary or list)
+            # depending on the version, so make
+            # sure to check back from time to time
             if len(res['Mol']) > 1:
-                raise JPLSpecQueryFailed(("Ambiguious choice for molecule,\
-                                         more than one molecule was found for \
-                                         the given mol_tag. Please refine \
-                                         your search to one of the following tags\
-                                         {} by using JPLSpec.get_species_table()\
-                                         (as shown in JPLSpec documentation)\
-                                         to parse their names and choose your \
-                                         molecule of interest, or refine your\
-                                         regex to be more specific (hint '^name$'\
-                                         will match 'name' exactly with no\
-                                         ambiguity).").format(res['Mol']))
+                raise JPLSpecQueryFailed(
+                    ("Ambiguious choice for molecule,\
+                    more than one molecule was found for \
+                    the given mol_tag. Please refine \
+                    your search to one of the following tags\
+                    {} by using JPLSpec.get_species_table()\
+                    (as shown in JPLSpec documentation)\
+                    to parse their names and choose your \
+                    molecule of interest, or refine your\
+                    regex to be more specific (hint '^name$'\
+                    will match 'name' exactly with no\
+                    ambiguity).").format(res['Mol']))
             else:
                 mol_tag = res['Mol'][0]
 
-        query = JPLSpec.query_lines(min_frequency=(transition_freq - (1 * u.GHz)),
-                                    max_frequency=(
-                                        transition_freq + (1 * u.GHz)),
-                                    molecule=mol_tag)
+        query = JPLSpec.query_lines(
+            min_frequency=(transition_freq - (1 * u.GHz)),
+            max_frequency=(
+                transition_freq + (1 * u.GHz)),
+            molecule=mol_tag)
 
         freq_list = query['FREQ']
 

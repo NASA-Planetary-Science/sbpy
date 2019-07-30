@@ -8,9 +8,8 @@ created on June 22, 2017
 """
 
 from copy import deepcopy
-from collections import OrderedDict
 from numpy import ndarray, array, hstack, iterable
-from astropy.table import QTable, Column, vstack
+from astropy.table import QTable, Column
 from astropy.time import Time
 import astropy.units as u
 
@@ -149,7 +148,7 @@ class DataClass():
         Examples
         --------
         The following example creates a single-row `~sbpy.data.Orbit`
-        object(the other `~DataClass` objects work the exact same way).
+        object (the other `~DataClass` objects work the exact same way).
 
         >>> import astropy.units as u
         >>> from sbpy.data import Orbit
@@ -244,11 +243,11 @@ class DataClass():
         names: str or list-like
             Field names, must have the same number of names as data columns.
         units: str or list-like, optional
-            Unit labels(as provided by `~astropy.units.Unit`) in which
+            Unit labels (as provided by `~astropy.units.Unit`) in which
             the data provided in ``columns`` will be stored in the underlying
             table. If None, the units as provided by ``columns``
             are used. If the units provided in ``units`` differ from those
-            used in ``colums``, ``columns`` will be transformed to the units
+            used in ``columns``, ``columns`` will be transformed to the units
             provided in ``units``. Must have the same length as ``names``
             and the individual data columns in ``columns``. Default: None
         meta: dictionary, optional

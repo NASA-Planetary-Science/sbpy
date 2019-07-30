@@ -9,10 +9,9 @@ Class for storing and querying ephemerides
 created on June 04, 2017
 """
 import os
-from copy import deepcopy
 from warnings import warn
 
-from numpy import ndarray, array, hstack, iterable
+from numpy import ndarray, hstack, iterable
 from astropy.time import Time
 from astropy.table import vstack, Column
 import astropy.units as u
@@ -420,8 +419,8 @@ class Ephem(DataClass):
             of epochs. ``start`` and ``stop`` have to be
             `~astropy.time.Time` objects.
             If ``step`` is provided, a range
-            of epochs will be queries starting at ``start`` and ending at
-            ``stop`` in steps of ``step``; ``step`` hss to be provided as
+            of epochs will be queried starting at ``start`` and ending at
+            ``stop`` in steps of ``step``; ``step`` has to be provided as
             a `~astropy.units.Quantity` object with integer value and a
             unit of either seconds, minutes, hours, or days. If
             ``number`` is provided as an integer, the

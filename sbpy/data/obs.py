@@ -14,7 +14,7 @@ from astroquery.mpc import MPC
 from astropy.table import vstack, hstack
 
 from .ephem import Ephem
-from .core import QueryError, conf
+from .core import QueryError
 from ..bib import cite
 
 __all__ = ['Obs']
