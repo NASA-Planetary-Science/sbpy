@@ -48,9 +48,6 @@ matrix:
     include:
 
         # Try other Astropy/Numpy versions.
-        - os: linux
-          stage: Tests with various Astropy/Numpy versions
-          env: PYTHON_VERSION=3.5 NUMPY_VERSION=1.12 ASTROPY_VERSION=2 PYTEST_VERSION='<3.7'
 
         - os: osx
           stage: Tests with various Astropy/Numpy versions
