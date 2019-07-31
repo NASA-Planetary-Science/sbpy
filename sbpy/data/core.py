@@ -520,13 +520,14 @@ class DataClass():
         Notes
         -----
         This function is merely a wrapper around
-        `~astropy.table.Table.read`. Please refer to the documentation of
-        that function for additional information on optional parameters
-        and data formats that are available. Furthermore, note that this
-        function may not able to identify units, depending on the
-        file format used. If you want to work with
-        `~astropy.units` you may have to assign them manually to the object
-        columns.
+        `~astropy.table.Table.read`. Please note that the file formats
+        available (see `here
+        <https://docs.astropy.org/en/stable/io/unified.html#built-in-readers-writers>`_
+        for a list of available formats) provide varying support for
+        units and meta data. For instance, ``basic``, ``csv``,
+        ``html``, and ``latex`` do not provide unit or meta data
+        information. However, ``fits``, ``cds``, ``daophot``,
+        ``ecsv``, and ``ipac`` do support units and meta data.
 
         Examples
         --------
@@ -534,6 +535,7 @@ class DataClass():
 
         >>> dat = DataClass.from_file('data.txt',
         ...                           format='ascii') # doctest: +SKIP
+
         """
 
         data = QTable.read(filename, **kwargs)
@@ -566,11 +568,14 @@ class DataClass():
         Notes
         -----
         This function is merely a wrapper around
-        `~astropy.table.Table.write`. Please refer to the
-        documentation of that function for additional information on
-        optional parameters and data formats that are
-        available. Furthermore, note that this function may not be able to
-        write unit information to the file, depending on the file format.
+        `~astropy.table.Table.write`. Please note that the file formats
+        available (see `here
+        <https://docs.astropy.org/en/stable/io/unified.html#built-in-readers-writers>`_
+        for a list of available formats) provide varying support for
+        units and meta data. For instance, ``basic``, ``csv``,
+        ``html``, and ``latex`` do not provide unit or meta data
+        information. However, ``fits``, ``cds``, ``daophot``,
+        ``ecsv``, and ``ipac`` do support units and meta data.
 
         Examples
         --------

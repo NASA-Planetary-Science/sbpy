@@ -231,20 +231,24 @@ Building a Data Container from a File
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 You can also read in the data from a file that should be properly
-formatted (e.g., it should have a headline with the same number of
-elements as there are columns) using
-`~sbpy.data.DataClass.from_file`. This function merely serves as a
-wrapper for `~astropy.table.Table.read` and uses the same parameters
-as the latter function. You can read in an ASCII file using the
-following lines:
+formatted using `~sbpy.data.DataClass.from_file`. This function merely
+serves as a wrapper for `~astropy.table.Table.read` and uses the same
+parameters as the latter function; please refer to `this document
+<https://docs.astropy.org/en/stable/table/io.html>`_ for a review.
+
+As an example, you can read in a properly formatted ASCII file using
+the following lines:
 
    >>> from sbpy.data import Ephem
    >>> data = Ephem.from_file('data.txt', format='ascii') # doctest: +SKIP
 
-Please note that some formats used by `~sbpy.data.DataClass.from_file`
-are not able to identify units automatically (see `here
+Please note that the file formats available (see `here
 <https://docs.astropy.org/en/stable/io/unified.html#built-in-readers-writers>`_
-for a list of available formats).
+for a list of available formats) provide varying support for units and
+meta data. For instance, ``basic``, ``csv``, ``html``, and ``latex``
+do not provide unit or meta data information. However, ``fits``,
+``cds``, ``daophot``, ``ecsv``, and ``ipac`` do support units and meta
+data.
 
 
 Building a Data Container from an Online Query
@@ -543,6 +547,9 @@ Writing object data to a file
     >>> obs.to_file('observations.dat')
 
 By default, the data are written in ASCII format, but other formats
-are available, too (cf. `~astropy.table.Table.write`). In order to
-preserve units and meta data, we suggest to use the ``'FITS'`` format.
-
+are available, too (`list of file formats
+<https://docs.astropy.org/en/stable/io/unified.html#built-in-readers-writers>`_). Please
+note that not all file formats support units and meta data. For
+instance, ``basic``, ``csv``, ``html``, and ``latex`` do not provide
+unit or meta data information. However, ``fits``, ``cds``,
+``daophot``, ``ecsv``, and ``ipac`` do support units and meta data.

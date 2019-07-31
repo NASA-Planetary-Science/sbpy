@@ -250,7 +250,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
        str7    float64 float64
     ---------- ------- -------
        1 Ceres    3.34    0.12
-    >>> m = HG(data = phys)                  # doctest: +REMOTE_DATA
+    >>> m = HG.from_phys(phys)                  # doctest: +REMOTE_DATA
     INFO: Model initialized for 1 Ceres. [sbpy.photometry.core]
     >>> print(m)                             # doctest: +REMOTE_DATA
     Model: HG
@@ -276,7 +276,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
        str7    float64 float64
     ---------- ------- -------
        1 Ceres    3.34    0.12
-    >>> m = HG(data=elem)                    # doctest: +REMOTE_DATA
+    >>> m = HG.from_phys(elem)                    # doctest: +REMOTE_DATA
     INFO: Model initialized for 1 Ceres. [sbpy.photometry.core]
     >>>
     >>> # Failed initialization due to the lack of field 'G'
@@ -396,7 +396,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         >>> phys = Phys.from_sbdb('12893')      # doctest: +REMOTE_DATA
         >>> print('G' in phys.field_names)      # doctest: +REMOTE_DATA
         False
-        >>> m = HG.from_phys(phys)              # doctest: +REMOTE_DATA
+        >>> m = HG.from_phys(phys)              # doctest: +REMOTE_DATA +SKIP
         Traceback (most recent call last):
           File "<stdin>", line 1, in <module>
         KeyError: 'field G not available.'
