@@ -629,7 +629,7 @@ class NonLTE():
 
     def from_pyradex(self, integrated_flux, mol_data, line_width=1.0 * u.km / u.s,
                      escapeProbGeom='lvg', iter=100,
-                     collider_density={'H2': 900*8.934}):
+                     collider_density={'H2': 900*2.2}):
         """
         Calculate production rate from the Non-LTE iterative code pyradex
         Presently, only the LAMDA catalog is supported by this function.
@@ -679,11 +679,14 @@ class NonLTE():
             Dictionary of colliders and their densities in cm^-3. Allowed
             entries are any of the following : h2,oh2,ph2,e,He,H,H+
             See `~Pyradex` documentation for more information.
-            Default dictionary is {'H2' : 900*8.934} where 900 is the
-            collider density of H2 and 8.934 is the value for the
-            ratio of molecular mass for H2O/H2 in order to scale the
-            collisional excitation to H2O as the main collisional partner.
-            (de val Borro, et al. 2017 & Schoier, et al. 2004)
+            Default dictionary is {'H2' : 900*2.2} where 900 is the
+            collider density of H2 and 2.2 is the value for the
+            square root of the ratio of reduced masses of H2O/H2
+            as follows:
+            (mu_H2O/mu_H2)**0.5 = ((18**2/18*2)/((18*2)/(18+2)))**0.5 = 2.2
+            in order to scale the collisional excitation to H2O as the main
+            collisional partner. (Walker, et al. 2014; de val Borro, et al. 2017;
+            & Schoier, et al. 2004)
 
         Returns
         -------
@@ -722,6 +725,9 @@ class NonLTE():
         ----------
         Haser 1957, Bulletin de la Societe Royale des Sciences de Liege
         43, 740.
+
+        Walker, et al., On the Validity of Collider-mass Scaling for Molecular
+        Rotational Excitation, APJ, August 2014.
 
         van der Tak, et al., A computer program for fast non-LTE analysis of
         interstellar line spectra. With diagnostic plots to interpret observed
