@@ -1,9 +1,9 @@
-.. _sbpy_calib:
+.. _sbpy-calib:
 
 Spectral Standards and Photometric Calibration (`sbpy.calib`)
 =============================================================
 
-sbpy's photometric calibration is based on spectra of the Sun and Vega.  There are built-in spectra for each, and users may provide their own.
+sbpy's photometric calibration is based on spectra of the Sun and Vega.  For example, they are used to convert between :ref:`reflectance, cross-section, and magnitude <reflectance-equivalencies>`, between :ref:`Afρ and spectral flux density <afrho-to-from-flux-density>`, and between :ref:`Vega-based and other magnitude systems <vega-magnitudes>`.   sbpy has built-in spectra for each, and users may provide their own.
 
 The spectrum of `Bohlin (2014) <https://dx.doi.org/10.1088/0004-6256/147/6/127>`_ is the default and only built-in spectrum for Vega.  It is distributed with sbpy.  Four solar spectra are built-in:
 
@@ -164,29 +164,39 @@ Get the default solar spectrum, observe it through the Johnson V-band filter (di
 Binning versus interpolation with ``observe()``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-If a user requests a series of wavelengths or frequencies with a `~astropy.units.Quantity` object, the default for :func:`~sbpy.calib.SpectralStandard.observe` is to rebin the source spectrum using the requested values as bin centers.  This behavior is appropriate when the source spectrum is at a higher spectral resolution than the requested wavelengths.  This is because `~synphot` assumes source spectra are continuous functions, rather observations through a spectrometer (binned data).
+If a user requests a series of wavelengths or frequencies with a `~astropy.units.Quantity` object, the default for :func:`~sbpy.calib.SpectralStandard.observe` is to rebin the source spectrum using the requested values as bin centers.  This behavior is appropriate when the source spectrum is at a higher spectral resolution than the requested wavelengths.  This is because `~synphot` assumes source spectra are continuous functions, rather than observations taken through a spectrometer (binned data).
 
 When the requested spectral resolution is comparable to the spectral resolution of the source, rebinning may result in errors at the percent-level or more.  Instead, use the ``interpolate=True`` parameter for ``observe``.
 
-Compare interpolation and rebinning for the E490 low-resolution solar spectrum, using the stored wavelengths of the spectrum:
+Compare interpolation and rebinning for the E490 low-resolution solar spectrum, using the stored wavelengths of the spectrum.  Initialize a `~sbpy.calib.Sun` object with the low-resolution spectrum.
 
   >>> import numpy as np
-  >>> import astropy.units as u
   >>> from sbpy.calib import Sun
-  >>> 
   >>> sun = Sun.from_builtin('E490_2014LR')
+
+Inspect a sub-set of the data for this example.
+
   >>> wave = sun.wave[430:435]
   >>> S = sun.fluxd[430:435]
   >>> print(wave)    # doctest: +FLOAT_CMP
   [5495. 5505. 5515. 5525. 5535.] Angstrom
   >>> print(S)       # doctest: +FLOAT_CMP
   [1895. 1862. 1871. 1846. 1882.] W / (m2 um)
+
+Interpolate with observe() and compare to the original values.
+
   >>> S_interp = sun.observe(wave, interpolate=True)
   >>> np.allclose(S.value, S_interp.value)
   True
+
+Re-bin with observe using the same wavelengths as band centers.
+
   >>> S_rebin = sun.observe(wave)
   >>> np.allclose(S.value, S_rebin.value)
   False
+
+Inspect the differences.
+
   >>> print((S_rebin - S) / (S_rebin + S) * 2)    # doctest: +FLOAT_CMP
   [-0.00429693  0.00281266 -0.00227604  0.00412338 -0.00132301]
 

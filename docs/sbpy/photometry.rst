@@ -124,6 +124,7 @@ measurements.  The columns to be fitted are specified by a keyward argument
   >>> obs = Obs.from_dict({'alpha': alpha, 'mag': mag, 'mag1': mag4})
   >>> model5 = HG.from_obs(obs, fitter, fields=['mag', 'mag1'])
 
+.. _filter-bandpasses:
 
 Filter Bandpasses
 -----------------

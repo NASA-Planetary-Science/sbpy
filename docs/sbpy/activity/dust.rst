@@ -43,6 +43,7 @@ They may be converted to other units of length just like any `Quantity`:
   >>> afrho.to('m')    # doctest: +FLOAT_CMP
   <Afrho 1. m>
 
+.. _afrho-to-from-flux-density:
 
 Convert to/from flux density
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -82,7 +83,7 @@ The `Afrho` class may be converted to a flux density, and the original value is 
   >>> print(np.log10(f.value))    # doctest: +FLOAT_CMP
   -13.99
 
-`Afrho` works seamlessly with `sbpy`'s spectral calibration framework (:ref:`sbpy_calib`) when the `astropy` affiliated package `synphot` is installed.  The solar flux density (via `~sbpy.calib.solar_fluxd`) is not required, but instead the spectral wavelengths or the system transmission of the instrument and filter:
+`Afrho` works seamlessly with `sbpy`'s spectral calibration framework (:ref:`sbpy-calib`) when the `astropy` affiliated package `synphot` is installed.  The solar flux density (via `~sbpy.calib.solar_fluxd`) is not required, but instead the spectral wavelengths or the system transmission of the instrument and filter:
 
 .. doctest-requires:: synphot
 
@@ -123,7 +124,7 @@ Compare to 397.0 cm and 424.6 cm listed in Kelley et al. (2013).
 To/from magnitudes
 ^^^^^^^^^^^^^^^^^^
 
-`Afrho` and `Efrho` work with `astropy`'s magnitude units.  If the conversion between Vega-based magnitudes is required, then `sbpy`'s calibration framework (:ref:`sbpy_calib`) will be used.
+`Afrho` and `Efrho` work with `astropy`'s magnitude units.  If the conversion between Vega-based magnitudes is required, then `sbpy`'s calibration framework (:ref:`sbpy-calib`) will be used.
 
 Estimate the *Afρ* of comet C/2012 S1 (ISON) based on Pan-STARRS 1 photometry in the *r* band (Meech et al. 2013)
 

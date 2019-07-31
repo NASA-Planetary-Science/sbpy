@@ -4,7 +4,7 @@ Units Module (`sbpy.units`)
 Introduction
 ------------
 
-`~sbpy.units` provides common planetary astronomy units and unit conversions, including Vega-based magnitudes.  ``sbpy`` units may be added to the top-level ``astropy.units`` namespace via:
+`~sbpy.units` provides common planetary astronomy units and unit conversions, including Vega-based magnitudes.  sbpy units may be added to the top-level `astropy.units` namespace via:
 
   >>> import sbpy.units
   >>> sbpy.units.enable()    # doctest: +IGNORE_OUTPUT
@@ -16,8 +16,7 @@ This will make them searchable via strings, such as
 Spectral Gradient Units
 -----------------------
 
-Spectral gradients are commonly expressed as % per 100 nm.  This is a
-subtle concept for ``astropy``'s `~astropy.units`:
+Spectral gradients are commonly expressed as % per 100 nm.  This is too subtle a concept for astropy's `~astropy.units`:
 
   >>> import astropy.units as u
   >>> print(u.percent / (100 * u.nm))
@@ -25,30 +24,22 @@ subtle concept for ``astropy``'s `~astropy.units`:
   >>> print(u.Unit('% / (100 nm)'))    # doctest: +SKIP
   ValueError: '% / (100 nm)' did not parse as unit: Syntax error parsing unit '% / 100 nm'
 
-As a convenience, ``sbpy`` defines a ``hundred_nm`` unit that has an
-appropriate string representation:
+As a convenience, sbpy defines the `~sbpy.units.hundred_nm` unit, which has an appropriate string representation:
 
   >>> from sbpy.units import hundred_nm
   >>> print(u.percent / hundred_nm)
   % / 100 nm
 
+.. _vega-magnitudes:
 
 Vega Magnitudes
 ---------------
 
-With the `~synphot` package, ``sbpy`` has the capability to convert
-between flux densities and Vega-based magnitude systems.
-The conversions require a spectrum of Vega.
-``sbpy`` includes the dust-free spectrum from `Bohlin 2014 <https://ui.adsabs.harvard.edu/#abs/2014AJ....147..127B/abstract>`_, but any user-provided spectrum may be used (`:ref:_sbpy_calib`).
+With the synphot package, sbpy has the capability to convert between flux densities and Vega-based magnitude systems.  The conversions require a spectrum of Vega, which is provided by sbpy's :ref:`calibration system <sbpy-calib>`.
 
-``sbpy`` defines two new units: ``VEGA`` and ``JM``.  ``VEGA`` represents the flux density of Vega.  ``JM`` represents the flux density zeropoint of the Johnson-Morgan system, assuming Vega has a magnitude of 0.03 at all wavelengths (`Johnson et al. 1966 <https://ui.adsabs.harvard.edu/#abs/1966CoLPL...4...99J/abstract>`_, `Bessell & Murphy 2012 <https://ui.adsabs.harvard.edu/#abs/2012PASP..124..140B/abstract>`_).  Two magnitude units are also defined: ``VEGAmag`` and ``JMmag``.
+sbpy defines two new spectral flux density units: ``VEGA`` and ``JM``.  ``VEGA`` represents the flux density of Vega.  ``JM`` represents the flux density zeropoint of the Johnson-Morgan system, assuming Vega has a magnitude of 0.03 at all wavelengths (`Johnson et al. 1966 <https://ui.adsabs.harvard.edu/#abs/1966CoLPL...4...99J/abstract>`_, `Bessell & Murphy 2012 <https://ui.adsabs.harvard.edu/#abs/2012PASP..124..140B/abstract>`_).  Two magnitude units are also defined: ``VEGAmag`` and ``JMmag``.
 
-Unit conversions between flux density and Vega-based magnitudes use the
-`~astropy.units` `equivalency system
-<http://docs.astropy.org/en/stable/units/equivalencies.html#unit-equivalencies>`_
-and ``sbpy``'s :func:`~sbpy.units.spectral_density_vega`.
-``spectral_density_vega`` requires a wavelength, frequency, or bandpass
-for the transformation:
+Unit conversions between flux density and Vega-based magnitudes use the `astropy.units equivalency system <http://docs.astropy.org/en/stable/units/equivalencies.html#unit-equivalencies>`_.  sbpy's :func:`~sbpy.units.spectral_density_vega` provides the equivalencies, which astropy would use to convert the units.  The function requires a wavelength, frequency, or bandpass:
 
   >>> import astropy.units as u
   >>> from sbpy.units import VEGAmag, spectral_density_vega
@@ -61,9 +52,7 @@ for the transformation:
   >>> m.value                                      # doctest: +FLOAT_CMP
   0.0
 
-To use a bandpass, pass the name as a string (see
-:func:`~synphot.spectrum.SpectralElement.from_filter`) or an instance
-of `~synphot.spectrum.SpectralElement`:
+To use a bandpass, define and pass a `synphot.spectrum.SpectralElement`.  A limited set of bandpasses are distributed with sbpy (see :ref:`filter-bandpasses`):
 
   >>> from sbpy.units import VEGAmag, spectral_density_vega
   >>> from sbpy.photometry import bandpass
@@ -73,6 +62,7 @@ of `~synphot.spectrum.SpectralElement`:
   >>> fluxd.value                   # doctest: +FLOAT_CMP
   3.588524658721229e-09
 
+.. _reflectance-equivalencies:
 
 Reflectance Units
 -----------------
@@ -101,7 +91,7 @@ phase angle can be calculated:
   >>> print('{0:.4f}'.format(ref))
   0.0287 1 / sr
 
-`~sbpy.units.reflectance` works with `sbpy`'s spectral calibration system (see :ref:`sbpy_calib`):
+`~sbpy.units.reflectance` works with `sbpy`'s spectral calibration system (see :ref:`sbpy-calib`):
 
   >>> from sbpy.photometry import bandpass
   >>> V = bandpass('Johnson V')
