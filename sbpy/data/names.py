@@ -412,6 +412,8 @@ class Names():
         +----------------------------------+----------+------+-----------------+
         |G3693                             |          |163693|                 |
         +----------------------------------+----------+------+-----------------+
+        |1A                                |1A        |      |                 |
+        +----------------------------------+----------+------+-----------------+
 
         """
 
@@ -436,8 +438,8 @@ class Names():
                # name [6]
                '|((^|\b)[1-9][0-9]*(\b|$| |_))'
                # number [7,8]
-               '|^(([1-9][0-9]*A)|(A[1-9][0-9]*))'
-               # 1A, A1 [10,11,12]
+               '|^(([1-9][0-9]*A))'
+               # comet-style designations: 1A [10]
                )
 
         # regex patterns that will be rejected
@@ -487,8 +489,9 @@ class Names():
                 elif len(el[6]) > 0:
                     if len(el[6].strip()) > 1:
                         r['name'] = el[6].strip()
+                # comet-style designation
                 elif len(el[10]) > 0:
-                    r['name'] = el[10].strip()
+                    r['desig'] = el[10].strip()
 
         if len(r) == 0:
             raise TargetNameParseError(('{} does not appear to be an '

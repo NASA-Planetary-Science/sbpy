@@ -57,7 +57,8 @@ class Ephem(DataClass):
             a dictionary including keywords ``start`` and ``stop``, as well
             as either ``step`` or ``number``, can be used to generate a range
             of epochs. ``start`` and ``stop`` have to be
-            `~astropy.time.Time` objects. If ``step`` is provided, a range
+            `~astropy.time.Time` objects (see :ref:`epochs`).
+            If ``step`` is provided, a range
             of epochs will be queries starting at ``start`` and ending at
             ``stop`` in steps of ``step``; ``step`` has to be provided as
             a `~astropy.units.Quantity` object with integer value and a
@@ -89,6 +90,7 @@ class Ephem(DataClass):
           system. Different settings can be chosen using
           additional keyword arguments as used by
           `astroquery.jplhorizons.HorizonsClass.ephemerides`.
+
 
         Returns
         -------
@@ -212,7 +214,8 @@ class Ephem(DataClass):
 
         epochs : `~astropy.time.Time` object, or dictionary, optional
             Request ephemerides at these epochs.  May be a single
-            epoch or multiple epochs as `~astropy.time.Time` or a
+            epoch or multiple epochs as `~astropy.time.Time`
+            (see :ref:`epochs`)or a
             dictionary describing a linearly-spaced array
             of epochs. All epochs should be provided in UTC; if not,
             they will be converted to UTC and a
@@ -417,7 +420,7 @@ class Ephem(DataClass):
             a dictionary including keywords ``start`` and ``stop``, as well
             as either ``step`` or ``number``, can be used to generate a range
             of epochs. ``start`` and ``stop`` have to be
-            `~astropy.time.Time` objects.
+            `~astropy.time.Time` objects (see :ref:`epochs`).
             If ``step`` is provided, a range
             of epochs will be queried starting at ``start`` and ending at
             ``stop`` in steps of ``step``; ``step`` has to be provided as
@@ -615,7 +618,8 @@ class Ephem(DataClass):
 
         epochs : `~astropy.time.Time` object, optional
             Epochs of elements to be queried; must be a
-            `~astropy.time.Time` object holding a single or multiple epochs.
+            `~astropy.time.Time` object holding a single or multiple epochs
+            (see :ref:`epochs`).
             If ``None`` is provided, current date and
             time are used. The same time scale that is used in ``epochs``
             will be applied to the results. Default: ``None``

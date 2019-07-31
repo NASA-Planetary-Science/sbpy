@@ -60,7 +60,8 @@ class Orbit(DataClass):
             dictionary including keywords ``start`` and ``stop``, as well
             as either ``step`` or ``number``, can be used to generate a range
             of epochs. ``start`` and ``stop`` have to be
-            `~astropy.time.Time` objects. If ``step`` is provided, a range
+            `~astropy.time.Time` objects (see :ref:`epochs`).
+            If ``step`` is provided, a range
             of epochs will be queries starting at ``start`` and ending at
             ``stop`` in steps of ``step``; ``step`` has to be provided as
             a `~astropy.units.Quantity` object with integer value and a
@@ -561,7 +562,8 @@ class Orbit(DataClass):
         epochs : `~astropy.time.Time` object
             Epoch to which the orbit will be propagated to. Must be a
             `~astropy.time.Time` object holding a single epoch or
-            multiple epochs. The resulting `~sbpy.data.Orbit` object will
+            multiple epochs (see :ref:`epochs`).
+            The resulting `~sbpy.data.Orbit` object will
             have the same time scale as ``epochs``.
         dynmodel : str, optional
             The dynamical model to be used in the propagation: ``'N'``

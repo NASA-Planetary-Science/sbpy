@@ -2,8 +2,7 @@
 Installation
 ------------
 
-`sbpy` requires Python 3.5 or later - compatibility with Python 2.x is not
-supported. We hence recommend that you install the latest version of
+We recommend that you install the latest version of
 `Anaconda Python 3.x <https://www.anaconda.com/download/>`__ on your
 system before installing `sbpy`. Make sure that Anaconda Python is
 your default Python (this will be asked during the installation process).
@@ -11,31 +10,25 @@ your default Python (this will be asked during the installation process).
 Requirements
 ^^^^^^^^^^^^
 
-`sbpy` has the following requirements (incomplete):
+`sbpy` has the following requirements that will be automatically taken
+of with installation using pip:
 
-* Python 3.5 or later
-* `numpy <https://www.numpy.org/>`__ 1.4.0 or later
+* Python 3.6 or later
+* `numpy <https://www.numpy.org/>`__ 1.13.0 or later
 * pytest 3.1 or later
 * `astropy <https://www.astropy.org/>`__
-
-`sbpy` also depends on the following packages for optional features (incomplete list):
-
 * `astroquery <https://astroquery.readthedocs.io/en/latest/>`__ 0.3.9.dev5089 or later: For retrieval of online data, e.g., ephemerides and orbits.
-* `scipy <https://scipy.org/>`__: For numerical integration of `activity.GasComa` distributions, e.g., in order to compute gas column density.
-* `synphot <https://github.com/spacetelescope/synphot_refactor>`__: For calibration to Sun and Vega.
-* `ginga <https://ejeschke.github.io/ginga/>`__: To use the ``CometaryEnhancements`` Ginga plug-in.
-* `photutils <https://photutils.readthedocs.io/en/stable/>`__: For centroiding within ``CometaryEnhancements``.
-* `oorb <https://github.com/oorb/oorb>`__: For orbit calculations that utilize ``pyoorb``.
+* `scipy <https://scipy.org/>`__: For numerical integrations in `sbpy.activity.gas` and `sbpy.photometry`, among others.
+* `synphot <https://github.com/spacetelescope/synphot_refactor>`__ 0.1.3 or later: For calibration to Sun and Vega.
+* `ginga <https://ejeschke.github.io/ginga/>`__ and `photutils <https://photutils.readthedocs.io/en/stable/>`__: For use with `sbpy.imageanalysis`
 
-Most requirements should be resolved during the installation process. However, we recommend to install the latest development version of `astroquery` using
+The following packages will have to be installed manually, if the user
+wants to use them:
 
-.. code-block:: bash
-
-    $ pip install --pre astroquery
-
-Also, if you want to use `pyoorb
-<https://github.com/oorb/oorb/tree/master/python>`__, you will have to
-install it using the instructions provided on that page.
+* `oorb <https://github.com/oorb/oorb/tree/master/python>`__: For
+  orbit transformations (`~sbpy.data.Orbit.oo_transform`) and
+  propagations (`~sbpy.data.Orbit.oo_propagate`), as well as
+  ephemerides calculations (`~sbpy.data.Ephem.from_oo`).
 
 
 Using pip

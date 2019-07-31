@@ -6,11 +6,7 @@ Status Page
 This page indicates the development status of `sbpy`. The development
 is expected to conclude in 2021.
 
-
-
-
-
-The current development version status is as follows:
+The current development version is **v0.2dev**; its status is as follows:
 
 .. image:: https://travis-ci.org/NASA-Planetary-Science/sbpy.svg?branch=master
     :target: https://travis-ci.org/NASA-Planetary-Science/sbpy
@@ -30,7 +26,9 @@ Current development status
 
 The current development status of `sbpy` sub-modules is indicated in
 the following tables.  The column `Dev` indicates the lead developer
-for the respective sub-packages and classes.
+(MM: Michael Mommert, MSK: Michael S. Kelley, MdVB: Miguel de
+Val-Borro, JYL: Jian-Yang Li) for the respective sub-packages and
+classes.
 
 .. raw:: html
 
@@ -157,6 +155,20 @@ for the respective sub-packages and classes.
         </tr>
         <tr>
             <td>
+                <em>sbpy.data.Obs</em>
+            </td>
+            <td align='center'>
+                <span class="stable"></span>
+            </td>
+            <td align='center'>
+                MM
+            </td>
+            <td>
+                from_mpc query and supplement method implemented
+            </td>
+        </tr>
+        <tr>
+            <td>
                 <em>sbpy.data.Orbit</em>
             </td>
             <td align='center'>
@@ -217,7 +229,7 @@ for the respective sub-packages and classes.
                 MSK
             </td>
             <td>
-                Halley-Marcus phase function implemented; Afρ class: conversion to/from flux density for a specific wavelength is implemented, using a filter bandpass and conversion to/from magnitudes is in development; εfρ class: conversion to/from flux density implemented for a specific wavelength, using a filter bandpass and conversion to/from magnitudes is in development; Syndynes and synchrones tbd.
+                Halley-Marcus phase function implemented; Afρ and εfρ classes implemented; Syndynes and synchrones tbd.
             </td>
         </tr>
         <tr>
@@ -232,6 +244,20 @@ for the respective sub-packages and classes.
             </td>
              <td>
                 Haser model implemented, final tests tbd.; Vectorial model TBD (use source code from M. Festou?)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <em>sbpy.activity.sublimation</em>
+            </td>
+            <td align='center'>
+                <span class="planned"></span>
+            </td>
+            <td align='center'>
+                MSK
+            </td>
+             <td>
+                tbd.
             </td>
         </tr>
     </table>
@@ -269,20 +295,6 @@ for the respective sub-packages and classes.
             </td>
             <td>
                 disk integrated phase functions implemented: HG, HG12, HG1G2, linear phasecurve; disk-resolved phase functions tbd.
-            </td>
-        </tr>
-        <tr>
-            <td>
-                <em>sbpy.photometry.hapke</em>
-            </td>
-            <td align='center'>
-                <span class="planned"></span>
-            </td>
-            <td align='center'>
-                JYL
-            </td>
-             <td>
-                Hapke light scattering functions tbd.
             </td>
         </tr>
     </table>
@@ -389,34 +401,6 @@ for the respective sub-packages and classes.
         </tr>
         <tr>
             <td>
-                <em>sbpy.spectroscopy.sun</em>
-            </td>
-            <td align='center'>
-                <span class="stable"></span>
-            </td>
-            <td align='center'>
-                MSK
-            </td>
-            <td>
-                <em>sbpy.spectroscopy.sun</em> spectral model implemented and fully tested.
-            </td>
-        </tr>
-        <tr>
-            <td>
-                <em>sbpy.spectroscopy.vega</em>
-            </td>
-            <td align='center'>
-                <span class="stable"></span>
-            </td>
-            <td align='center'>
-                MSK
-            </td>
-            <td>
-                <em>sbpy.spectroscopy.vega</em> spectral model implemented and fully tested.
-            </td>
-        </tr>
-        <tr>
-            <td>
                 <em>sbpy.spectroscopy.spectrophotometry</em>
             </td>
             <td align='center'>
@@ -427,6 +411,20 @@ for the respective sub-packages and classes.
             </td>
              <td>
                 spectrophotometry tools tbd.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <em>sbpy.spectroscopy.hapke</em>
+            </td>
+            <td align='center'>
+                <span class="planned"></span>
+            </td>
+            <td align='center'>
+                JYL
+            </td>
+             <td>
+                Hapke light scattering functions tbd.
             </td>
         </tr>
     </table>
@@ -581,13 +579,64 @@ for the respective sub-packages and classes.
                 <em>sbpy.bib</em>
             </td>
             <td align='center'>
-                <span class="stable"></span>
+                <span class="mature"></span>
             </td>
             <td align='center'>
                 MSK/MdVB/MM
             </td>
             <td>
-                reference tracking and handling implemented, formatted output for reference lists 
+                fully implemented 
             </td>
         </tr>
     </table>
+
+`sbpy.calib`
+------------
+
+.. raw:: html
+
+    <table border="1" class="docutils stability" align='center'>
+        <tr>
+            <th class="head">
+                Sub-Packages and Classes
+            </th>
+            <th class="head">
+                &nbsp;
+            </th>
+            <th class="head">
+                Dev
+            </th>
+            <th class="head">
+                Comments
+            </th>
+        </tr>
+        <tr>
+            <td>
+                <em>sbpy.calib.sun</em>
+            </td>
+            <td align='center'>
+                <span class="stable"></span>
+            </td>
+            <td align='center'>
+                MSK
+            </td>
+            <td>
+                <em>sbpy.calib.sun</em> implemented and fully tested.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <em>sbpy.calib.vega</em>
+            </td>
+            <td align='center'>
+                <span class="stable"></span>
+            </td>
+            <td align='center'>
+                MSK
+            </td>
+            <td>
+                <em>sbpy.calib.vega</em> implemented and fully tested.
+            </td>
+        </tr>
+    </table>
+    

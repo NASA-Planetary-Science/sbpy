@@ -133,6 +133,9 @@ class DataClass():
             the item value, which must be list-like or a
             `~astropy.units.Quantity` vector, will be used as data. All
             columns, i.e., all item values, must have the same length.
+            Please note that in order to make use of :ref:`fieldnames`
+            and to ensure compatibility with sbpy functionality, the
+            field names chosen must be in the list of :ref:`field name list`.
         meta: dictionary, optional
             Meta data that will be stored in the data table. Default:
             empty dictionary
@@ -242,6 +245,9 @@ class DataClass():
             columns, each of which must have the same length.
         names: str or list-like
             Field names, must have the same number of names as data columns.
+            Please note that in order to make use of :ref:`fieldnames`
+            and to ensure compatibility with sbpy functionality, the
+            field names chosen must be in the list of :ref:`field name list`.
         units: str or list-like, optional
             Unit labels (as provided by `~astropy.units.Unit`) in which
             the data provided in ``columns`` will be stored in the underlying
@@ -362,6 +368,9 @@ class DataClass():
         names : str or list
             Column names, must have the same number of names as data columns
             in each row.
+            Please note that in order to make use of :ref:`fieldnames`
+            and to ensure compatibility with sbpy functionality, the
+            field names chosen must be in the list of :ref:`field name list`.
         units : str or list-like, optional
             Unit labels (as provided by `~astropy.units.Unit`) in which
             the data provided in ``rows`` will be stored in the underlying
@@ -457,8 +466,12 @@ class DataClass():
         Parameters
         ----------
         table : `~astropy.table.Table` object
-             Data that will be ingested in `DataClass` object. Must be a
-             `~astropy.table.Table` or `~astropy.table.QTable` object.
+            Data that will be ingested in `DataClass` object. Must be a
+            `~astropy.table.Table` or `~astropy.table.QTable` object.
+            Please note that in order to make use of :ref:`fieldnames`
+            and to ensure compatibility with sbpy functionality, the
+            field names chosen must be in the list of :ref:`field name
+            list`.
         meta : dictionary, optional
             Meta data that will be stored in the data table. If ``table``
             already holds meta data, ``meta`` will be added. Default:

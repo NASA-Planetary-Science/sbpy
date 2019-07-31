@@ -1,5 +1,5 @@
 """
-SBPy Module for small body photometry
+sbpy Module for small body photometry
 """
 
 from .core import *

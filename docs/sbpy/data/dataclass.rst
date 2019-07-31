@@ -25,7 +25,9 @@ and **rows** - that have `~astropy.units` attached to them, allowing
 you to propagate these units through your programs. **We strongly urge
 the user to make use of** `~astropy.units` in the definition of data
 containers in order to minimize confusion and tap the full potential
-of `sbpy`.
+of `sbpy`. Finally, `~sbpy.data.DataClass` objects have a ``meta``
+attribute that enables the user to label these objects with
+unstructured meta data.
 
 The user is free to add any fields they want to a
 `~sbpy.data.DataClass` object. However, in order to enable the
@@ -73,8 +75,9 @@ Ephem
 
 `~sbpy.data.Ephem` currently provides convenience functions to query
 ephemerides from the JPL Horizons system
-(`~sbpy.data.Ephem.from_horizons`) and the Minor Planet Center
-(`~sbpy.data.Ephem.from_mpc`), as well as a convenience function to
+(`~sbpy.data.Ephem.from_horizons`) the Minor Planet Center
+(`~sbpy.data.Ephem.from_mpc`), IMCCE's Miriade system
+(`~sbpy.data.Ephem.from_miriade`) as well as a convenience function to
 derive ephemerides from an `~sbpy.data.Orbit` object using `pyoorb
 <https://github.com/oorb/oorb/tree/master/python>`_.
 
@@ -85,7 +88,10 @@ Obs
 magnitudes as a function of time. The `~sbpy.data.Obs` class is the
 only data container that is not directly derived from
 `~sbpy.data.DataClass`, but from `~sbpy.data.Ephem`, providing the
-same functionality as the latter.
+same functionality as the latter. `~sbpy.data.Obs.from_mpc` enables
+you to query observations reported to the MPC for a specific target
+and `~sbpy.data.Obs.supplement` queries one of the ephemerides service
+to supplement your observation data.
 
 
 Orbit
@@ -139,7 +145,7 @@ Building Data Containers
 ------------------------
 
 While `~sbpy.data.Ephem`, `~sbpy.data.Orbit`, `~sbpy.data.Obs`, and
-`~sbpy.data.Phys` provide a range of convience functions to build
+`~sbpy.data.Phys` provide a range of convenience functions to build
 objects containing data, for instance from online data archives, it is
 easily possible to build these objects from scratch. This can be done
 for input data stored in dictionaries
@@ -149,7 +155,7 @@ for input data stored in dictionaries
 (`~sbpy.data.DataClass.from_table`), or from data files
 (`~sbpy.data.DataClass.from_file`).
 
-Depending on how your input data are organized, you cean use different
+Depending on how your input data are organized, you can use different
 options in different cases:
 
 Building a Data Container from a Dictionary
@@ -181,7 +187,7 @@ always be located before ``'e'`` when reading out the dictionary item
 by item, which happens when the data table is built in the
 background. Hence, the order of the resulting data table columns has
 to be considered random. If you want to force a specific order on the
-columns in your data table, you can use and `~collections.OrderedDict`
+columns in your data table, you can use an `~collections.OrderedDict`
 instead of a simple dictionary. The order of elements in an
 `~collections.OrderedDict` will be the same as the order of the data
 table columns.
@@ -189,7 +195,8 @@ table columns.
 For details on how to build objects from dictionaries, see
 `~sbpy.data.DataClass.from_dict`.
 
-Building a Data Containers from Columns
+Building a Data Container from Columns
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Now assume that you want to build an `~sbpy.data.Obs` object holding
 RA, Dec, and observation midtime for some target that you observed. In
@@ -198,21 +205,26 @@ here:
 
     >>> from sbpy.data import Obs
     >>> import astropy.units as u
+    >>> from astropy.time import Time
     >>> from numpy import array
     >>> ra = [10.223423, 10.233453, 10.243452]*u.deg
     >>> dec = [-12.42123, -12.41562, -12.40435]*u.deg
-    >>> epoch = (2451523.5 + array([0.1234, 0.2345, 0.3525]))*u.d
+    >>> epoch = Time(2451523.5 + array([0.1234, 0.2345, 0.3525]), format='jd')
     >>> obs = Obs.from_columns([ra, dec, epoch], names=['ra', 'dec', 't'])
     >>> obs
     <QTable length=3>
-        ra       dec         t
-       deg       deg         d
-     float64   float64    float64
+	ra       dec         t      
+       deg       deg                
+     float64   float64     object   
     --------- --------- ------------
     10.223423 -12.42123 2451523.6234
     10.233453 -12.41562 2451523.7345
     10.243452 -12.40435 2451523.8525
 
+Note how ``epoch`` is handled differently: it is provided to
+``Obs.from_column`` as a `~astropy.time.Time` object (see
+:ref:`user_zen` for a discussion). 
+    
 For details on how to build objects from lists or arrays, see
 `~sbpy.data.DataClass.from_columns` and also
 `~sbpy.data.DataClass.from_rows`, depending on whether your data is
@@ -232,7 +244,7 @@ Building a Data Container from a File
 
 You can also read in the data from a file that should be properly
 formatted using `~sbpy.data.DataClass.from_file`. This function merely
-serves as a wrapper for `~astropy.table.Table.read` and uses the same
+serves as a wrapper for `astropy.table.Table.read` and uses the same
 parameters as the latter function; please refer to `this document
 <https://docs.astropy.org/en/stable/table/io.html>`_ for a review.
 
@@ -262,15 +274,15 @@ corresponding classes for information and examples for querying data.
 A Note on Field Names
 ---------------------
 
-In order for `sbpy` to properly identify the fields than might be
+In order for `sbpy` to properly identify the fields that might be
 necessary for calculations, default column names should be used to
 name these fields. For instance, a column of Right Ascensions should
 be named ``'RA'`` or ``'ra'``. For a list of acceptable field names,
 please refer to the list of :ref:`field name list`.
 
 Also note that `sbpy` is able to use :ref:`alternative field names
-<alternative field names>`, but only those that are listed in the
-list of :ref:`field name list`.
+<fieldnames>`, but only those that are listed in the list of
+:ref:`field name list`.
 
 
 Accessing data
@@ -328,7 +340,7 @@ for instance:
     10.233453 -12.41562 2451523.7345
 
 The results of these examples will be of the same data type as ``obs``
-(any type derived from `~sbpy.data.DataClass`, e.g.,
+(or really just any type derived from `~sbpy.data.DataClass`, e.g.,
 `~sbpy.data.Ephem`, `~sbpy.data.Orbit`, ...)  The latter example shown
 here uses a condition to filter data (only those observations with RA
 less than or equal to 10.233453 degrees; note that it is necessary
@@ -348,20 +360,16 @@ directly addressing them:
     >>> obs['ra'] # doctest: +SKIP
     [10.223423 10.233453 10.243452 10.25546  10.265425 10.25546  10.4545
      10.5656  ] deg
-    >>> obs['ra'][:] = obs['ra'] + 0.1*u.deg
+    >>> obs['ra'] = obs['ra'] + 0.1*u.deg
     >>> obs['ra'] # doctest: +SKIP
     [10.323423 10.333453 10.343452 10.35546  10.365425 10.35546  10.5545
      10.6656  ] deg
-
-Note the specific syntax in this case (``obs['ra'][:] = ...``) that
-is required by `~astropy.table.Table` if you want to replace
-an entire column.
 
 More complex data table modifications are possible by directly
 accessing the underlying `~astropy.table.QTable` object as shown below.
 
 `~sbpy.data.DataClass` provides a direct interface to the table
-modification functions provided by `astropy.table.Table`:
+modification functions provided by `~astropy.table.Table`:
 `~astropy.table.Table.add_row`, `~astropy.table.Table.add_column`,
 `~astropy.table.Table.add_columns`, etc. For instance, it is trivial to add
 additional rows and columns to these objects.
@@ -373,8 +381,8 @@ object:
     >>> obs
     <QTable length=4>
 	ra       dec          t      
-       deg       deg          d      
-     float64   float64     float64
+       deg       deg      
+     float64   float64      object
     --------- --------- -------------
     10.323423 -12.42123  2451523.6234
     10.333453 -12.41562  2451523.7345
@@ -429,7 +437,7 @@ for more information on how to modify `~astropy.table.QTable` objects.
 Additional Data Container Concepts
 ==================================
 
-.. _alternative field names:
+.. _fieldnames:
 
 Alternative field names
 -----------------------
@@ -451,6 +459,11 @@ alternatives are, and it will find that a field name ``'incl'`` exists
 in the object. The corresponding ``'incl'`` column is then
 returned. If you try to get a field name that is not connected to any
 existing field name, a ``KeyError`` will be raised.
+
+    >>> from sbpy.data import Orbit
+    >>> orb = Orbit.from_dict({'incl': [1, 2, 3]*u.deg})
+    >>> orb['i']) # doctest: +SKIP
+    [1. 2. 3.] deg
 
 The definition of alternative field names is done in the file
 ``sbpy/data/__init__.py``, using the list ``fieldnames``. This list is
@@ -514,7 +527,7 @@ Date and transforms it to TDB:
 
 Using `~astropy.time.Time` in `~sbpy.data.DataClass` objects is
 straightforward. The following example builds a simple
-`~sbpy.data.obs` object from a dictionary:
+`~sbpy.data.Obs` object from a dictionary:
 
     >>> from sbpy.data import Obs
     >>> times = ['2018-10-01', '2018-11-01', '2018-12-01']
@@ -536,6 +549,15 @@ to TAI and Julian Date:
     >>> obs['epoch'].tai.jd  # doctest: +SKIP
     array([2458392.50042824, 2458423.50042824, 2458453.50042824])
 
+Note that different functions in `sbpy` have different requirements on
+the time scale of `~astropy.time.Time` objects. Fortunately,
+`~astropy.time.Time` objects are able to convert most time scales
+seamlessly. However, that requires that some user-defined time scale
+might have to be converted to other time scale for compatibility
+reasons internally, which also means that outpu t epochs usually
+follow this forced time scale. In order to notify the user that the
+time scale has been changed, a `~sbpy.data.TimeScaleWarning` will be
+issued.
 
 
 Writing object data to a file

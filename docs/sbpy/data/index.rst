@@ -27,7 +27,8 @@ Content
    :maxdepth: 2
 
    dataclass.rst	     
-   ephem_obs.rst
+   ephem.rst
+   obs.rst
    orbit.rst
    phys.rst	      
    names.rst

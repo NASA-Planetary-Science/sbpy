@@ -59,10 +59,10 @@ contributing to `sbpy`, please have a look at the :ref:`contributing`.
 Module Structure
 ----------------
 
-`sbpy` consists of a number of modules, each of which is set up as a
-class structure to encapsulate functionality and allow the user to
-deal with a relatively small set of top-level functions. The general
-module design is shown in the following sketch.
+`sbpy` consists of a number of sub-modules, each of which provides
+functionality that is tailored to individual aspects asteroid and
+comet research. The general module design is shown in the following
+sketch.
 
 .. figure:: static/structure.png
    :alt: sbpy module structure	    
@@ -75,38 +75,35 @@ module design is shown in the following sketch.
    functionality. Colored symbols match the colors and symbols of
    classes and modules they are using.
 
-The expected functionality of the individual package modules is
-detailed below.
+The functionality of version 1.0, which will be finalized in 2021, is
+detailed below. Please refer to the :ref:`status page` to inquire the
+current status of each module.
 
    
 `sbpy.data`
 ~~~~~~~~~~~
 
 The `~sbpy.data` module provides data containers used throughout
-`sbpy` for orbital elements (`~sbpy.data.Orbit`), ephemerides and
-observations (`~sbpy.data.Ephem`), physical properties
-(`~sbpy.data.Phys`), and target names (`~sbpy.data.Names`). Instances
-of these classes are used as input to a wide range of top-level
-functions throughout `sbpy`, guaranteeing a consistent and
-user-friendly API. All classes in `~sbpy.data` provide query functions
-to obtain relevant information from web-based services such as `JPL
-Horizons`_, `Minor Planet Center`_ (MPC), `IMCCE`_, and `Lowell
-Observatory`_, providing orbital elements at different epochs,
-ephemerides, physical properties, (alternative) target identifiers
-etc. Please refer to the `github wiki`_ for examples.
+`sbpy` for orbital elements (`~sbpy.data.Orbit`), ephemerides
+(`~sbpy.data.Ephem`), observations (`~sbpy.data.Obs`), physical
+properties (`~sbpy.data.Phys`), and target names
+(`~sbpy.data.Names`). Instances of these classes are used as input to and
+output for a wide range of top-level functions throughout `sbpy`,
+guaranteeing a consistent and user-friendly API. All classes in
+`~sbpy.data` provide query functions to obtain relevant information
+from web-based services such as `JPL Horizons`_, `Minor Planet
+Center`_ (MPC), `IMCCE`_, and `Lowell Observatory`_, providing orbital
+elements at different epochs, ephemerides, physical properties,
+observations reported to the MPC, (alternative) target identifiers
+etc.
 
-Additional functionality of `~sbpy.data` includes: an interface for
-ephemerides calculations to `PyEphem`_; an interface to the `REBOUND`_
-(Rein and Liu 2012) package for orbital integration; a wrapper for the
-orbit fitting software `OpenOrb`_; an interface to SPICE for offline
+Additional functionality of `~sbpy.data` includes an interface to the
+orbit fitting software `OpenOrb`_ and an interface to SPICE for offline
 ephemerides calculations using `SpiceyPy`_, for which we will provide
-utilities tailored to the needs of the small body community;
-transformations between orbital elements, state vectors, physical
-properties, and naming conventions.
+utilities tailored to the needs of the small body community. Examples for how to use `sbpy` with ephemerides calculation package `PyEphem`_ and orbital integrator `REBOUND`_ (Rein and Liu 2012) will be provided as notebooks.
 
 `~sbpy.data` also provides a range of other useful module-level
-functions: `~sbpy.data.mpc_observations` enables the user to query all
-observations reported to the MPC for a given target. `~sbpy.data.image_search`
+functions: `~sbpy.data.image_search`
 queries the `Solar System Object Image Search function of the
 Canadian Astronomy Data Centre`_, providing a table of images that
 may contain the target based on its ephemerides. `~sbpy.data.sb_search` uses
@@ -125,16 +122,30 @@ comae, tails, and ice sublimation, and functions for working with
 cometary absolute magnitudes and photometry (e.g., the Afrho parameter
 of A'Hearn et al. 1984). We implement a gas coma class that will use
 Haser (`~sbpy.activity.Haser`, Haser 1957) and Vectorial
-(`~sbpy.activity.Vectorial`, Festou 1981) models for gas comae, including
-parameters for commonly observed molecules (e.g., H2O, CO2 , CO, OH,
-CN, C2 ; A'Hearn et al. 1995; Debout et al. 2016). Independent of the
-model, the gas coma class can be used to generate aperture photometry
-or a synthetic image of the comet. For dust, we integrate a
-syndyne/synchrone model (`~sbpy.activity.Syndynes`, Finson & Probstein 1968;
-Kelley et al. 2013), and write a visualization plugin for the `Ginga
-Image Viewer`_. The Cowan & A'Hearn (1979) ice sublimation model
-(`~sbpy.activity.sublimation`), used to describe comet activity, and common
-parameters will be incorporated, too.
+(`~sbpy.activity.Vectorial`, Festou 1981) models for gas comae,
+including parameters for commonly observed molecules (e.g., H2O, CO2 ,
+CO, OH, CN, C2 ; A'Hearn et al. 1995; Debout et al. 2016). Independent
+of the model, the gas coma class can be used to generate aperture
+photometry or a synthetic image of the comet. For dust, we integrate a
+syndyne/synchrone model (`~sbpy.activity.Syndynes`, Finson & Probstein
+1968; Kelley et al. 2013). A plugin for the `Ginga Image Viewer`_ will
+be available to visualize gas and dust production models. The Cowan &
+A'Hearn (1979) ice sublimation model (`~sbpy.activity.sublimation`),
+used to describe comet activity, and common parameters will be
+incorporated, too.
+
+The activity module includes LTE and non-LTE radiative transfer
+models used to determine production rates and excitation parameters,
+such as the temperature in the coma. In the inner regions of the coma
+collisions dominate molecular excitation and the resulting rotational
+level population is close to LTE. Beyond the LTE inner region, the
+level populations start to depart from the equilibrium distribution
+because the gas density is not high enough to reach thermodynamic
+equilibrium through collisions with neutrals. The inclusion of all
+relevant excitation processes in cometary atmospheres in a complex
+3-dimensional outgassing geometry represents a state-of-the-art coma
+model which will provide a baseline for interpretation of cometary
+spectroscopy observations. 
 
 
 `sbpy.photometry`
@@ -151,7 +162,7 @@ reflectance (I/F) models of particulate surfaces, and phase functions
 of dust grains in cometary comae. The disk-integrated phase function
 models of asteroids include the IAU adopted (H, G1 , G2) system
 (Muinonen et al. 2010), the simplified (H, G12) system (Muinonen et
-al. 2010), as well as the outdated IAU (H, G) system. The
+al. 2010), as well as the classic IAU (H, G) system. The
 disk-resolved bidirectional reflectance model includes a number of
 models that have been widely used in the small bodies community, such
 as the Lommel-Seeliger model, Lambert model, Lunar-Lambert model,
@@ -180,7 +191,7 @@ shape models for functions in `~sbpy.photometry`.
 In addition to the shape model methods, `~sbpy.shape` also provides
 methods for the analysis and simulation of simple lightcurve data. The
 `~sbpy.shape.Lightcurve` class provides routines to fit rotational period
-(based on Lomb-Scargle routines implemented in astropy.stats and other
+(based on Lomb-Scargle routines implemented in `~astropy.stats` and other
 frequency tools), Fourier coefficients, and spin pole axis
 orientation. The class will also be able to simulate a lightcurve at
 specified epochs with a shape model class and the associated
@@ -200,30 +211,16 @@ reflectance spectra of asteroid and comet surfaces. The module
 provides functions to fit and remove baselines or slopes, as well as
 to fit emission lines or reflectance spectra. 
 
-The spectroscopy module includes LTE and non-LTE radiative transfer
-models used to determine production rates and excitation parameters,
-such as the temperature in the coma. In the inner regions of the coma
-collisions dominate molecular excitation and the resulting rotational
-level population is close to LTE. Beyond the LTE inner region, the
-level populations start to depart from the equilibrium distribution
-because the gas density is not high enough to reach thermodynamic
-equilibrium through collisions with neutrals. The inclusion of all
-relevant excitation processes in cometary atmospheres in a complex
-3-dimensional outgassing geometry represents a state-of-the-art coma
-model which will provide a baseline for interpretation of cometary
-spectroscopy observations. Most of the codes required for the model
-have already been developed and will be included in a self-consistent
-model for this project.
-
 In addition to the aforementioned functionality, we provide a class
 `~sbpy.spectroscopy.Hapke` that implements Hapke spectral mixing
 functionality.
 
-This module also provides spectrophotometry methods as part of
-`~sbpy.spectroscopy.Spectrophotometry`. This functionality includes the
-convolution of common photometric filters with spectra generated by
-this module or literature spectra of small bodies or stars and the
-derivation of photometric colors from spectral slopes. 
+This module also provides methods for dealing with spectral gradients
+(~sbpy.spectroscopy.SpectralGradient`) and spectrophotometry
+(`~sbpy.spectroscopy.Spectrophotometry`). This functionality includes
+the convolution of common photometric filters with spectra generated
+by this module or literature spectra of small bodies or stars and the
+derivation of photometric colors from spectral slopes.
 
 
 `sbpy.thermal`
@@ -257,7 +254,7 @@ for the `Ginga Image Viewer`_.
 
 `~sbpy.imageanalysis` will also provide PSF subtraction functionality
 that is utilizing and extending the Astropy affiliated package
-`photutils`_; this class will provide wrap- pers for photutils to
+`photutils`_; this class will provide wrappers for photutils to
 simplify the application for moving object observations. Results of
 imageanalysis.PSFSubtraction routines can be directly used in
 imageanalysis.Cometary- Enhancements for further analysis.
@@ -291,6 +288,14 @@ background. The user can request a list of references that should be
 cited based on sbpy functionality that was used at any time as clear
 text or in the LATeX BibTex format.
 
+`sbpy.calib`
+~~~~~~~~~~~~
+
+`sbpy.calib` includes calibration methods, including the photometric
+calibration of various broad-band filters relative to the Sun's or
+Vega's spectrum.
+
+.. _user_zen:
 
 Design Principles - The Zen of sbpy
 -----------------------------------
@@ -389,6 +394,8 @@ points in time are defined as `~astropy.time.Time` objects:
     >>> obs['epoch'].tai.iso # doctest: +SKIP
     ['2018-01-12 00:00:37.000' '2018-01-13 00:00:37.000']
 
+See :ref:`epochs` for additional information.
+    
     
 Use sbpy ``DataClass`` objects
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
