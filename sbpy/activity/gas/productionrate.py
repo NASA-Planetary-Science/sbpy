@@ -837,6 +837,5 @@ class NonLTE():
         column_density = column_density[index_flux]
         print('Closest Integrated Flux:{}'.format(fluxes[index_flux] * u.K * u.km / u.s))
         print('Given Integrated Flux: {}'.format(integrated_flux))
-        print(column_density)
 
         return column_density

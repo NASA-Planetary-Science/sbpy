@@ -108,6 +108,13 @@ using JPLSpec:
     >>> integrated_flux = 0.26 * u.K * u.km / u.s
     >>> mol_tag = '^CO$'
     >>> mol_data = Phys.from_jplspec(temp_estimate, transition_freq, mol_tag)
+    >>> mol_data
+        <QTable length=1>
+     t_freq    temp         lgint300       ... degfreedom mol_tag
+      MHz       K           MHz nm2        ...
+    float64  float64        float64        ...   int64     int64
+    -------- ------- --------------------- ... ---------- -------
+    230538.0    47.0 7.591017628812526e-05 ...          2   28001
 
 
 Having this information, we can move forward towards the calculation of
@@ -138,6 +145,8 @@ for `~sbpy.activity.intensity_conversion` under Reference/API section.
 Einstein Coefficient Calculation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Einstein coefficients give us insight into the molecule's probability of spontaneous
+absorption, which is useful for production rate calculations.
 Unlike catalogs like LAMDA, JPLSpec does not offer the Eistein coefficient
 and it must be calculated using equations provided by the JPL Molecular
 Spectroscopy Catalog. These equations have been compared to established LAMDA
@@ -214,7 +223,7 @@ under Reference/API section.
 .. doctest-skip::
 
     >>> from sbpy.activity import LTE
-    >>> vgas = 0.5 * u.km / u.s
+    >>> vgas = 0.5 * u.km / u.s # gas velocity
     >>> lte = LTE()
     >>> q = lte.from_Drahus(integrated_flux, mol_data, ephemobj, vgas, aper, b=b)
     >>> q
@@ -326,6 +335,8 @@ under Reference/API section.
     >>> Q
      <Quantity [[9.35795579e+27]] 1 / s>
 
+For more involved examples and literature comparison for any of the production
+rate modules, please see notebook examples.
 
 Reference/API
 -------------
