@@ -1,6 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
+===========================
 sbpy Production Rate Module
+===========================
+
+:author: Giannina Guzman (gguzman2@villanova.edu)
 
 created on June 26, 2019
 """
@@ -637,7 +641,8 @@ class NonLTE():
         In the future a function will be provided by sbpy to build your own
         molecular data file from JPLSpec for use in this function.
         Collider is assumed to be H2O for the default setting since we are only
-        considering comet production rates.
+        considering comet production rates. See documentation for pyradex
+        installation tips
 
         Parameters
         ----------
