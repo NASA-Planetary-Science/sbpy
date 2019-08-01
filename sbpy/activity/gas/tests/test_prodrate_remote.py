@@ -202,13 +202,13 @@ def test_Haser_prodrate():
 
 
 '''
-Last test run: 07/31/2019 01:15:00 , sbpy version: v0.2dev259, python 3.6.8
+Last test run: 08/01/2019 11:15:00 , sbpy version: v0.2dev259, python 3.6.8
 Author: Giannina Guzman
 Tester: Giannina Guzman
 Tested: locally, needs pyradex to be installed
 Status: Passed
 See https://github.com/keflavich/pyradex for installment
-'''
+
 
 
 @remote_data
@@ -263,6 +263,7 @@ def test_Haser_pyradex():
     err = abs((np.array(q_pred) - np.array(q_found)) / np.array(q_pred) * 100)
 
     assert np.all(err < 0.35)
+'''
 
 
 @remote_data
@@ -318,6 +319,14 @@ def test_betafactor_case():
     assert np.isclose(beta.value[0], 354452.18195014383)
 
 
+'''
+Last test run: 08/01/2019 11:15:00 , sbpy version: v0.2dev259, python 3.6.8
+Author: Giannina Guzman
+Tester: Giannina Guzman
+Tested: locally, needs pyradex to be installed
+Status: Passed
+See https://github.com/keflavich/pyradex for installment
+
 @remote_data
 def test_pyradex_case():
     # test untested case for Pyradex
@@ -337,3 +346,4 @@ def test_pyradex_case():
                                    iter=100, collider_density={'H2': 900})
 
     assert np.isclose(cdensity.value[0], 94500000000000.0)
+'''
