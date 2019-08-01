@@ -17,11 +17,24 @@ class Conf():
          'fieldnames': ['targetname', 'id', 'Object'],
          'provenance': ['orbit', 'ephem', 'obs', 'phys'],
          'dimension': None},
+        {'description': 'Target Designation',
+         'fieldnames': ['desig', 'designation'],
+         'provenance': ['orbit', 'ephem', 'obs', 'phys'],
+         'dimension': None},
+        {'description': 'Target Number',
+         'fieldnames': ['number'],
+         'provenance': ['orbit', 'ephem', 'obs', 'phys'],
+         'dimension': None},
+        {'description': 'Target Name',
+         'fieldnames': ['name'],
+         'provenance': ['orbit', 'ephem', 'obs', 'phys'],
+         'dimension': None},
+
         {'description': 'Epoch',
-         'fieldnames': ['epoch', 'datetime_jd', 'JD',
+         'fieldnames': ['epoch', 'datetime',
                         'Date', 'date', 'Time', 'time'],
          'provenance': ['orbit', 'ephem', 'obs'],
-         'dimension': 'time'},
+         'dimension': '`~astropy.time.Time`'},
 
         # Orbital Elements
         {'description': 'Semi-Major Axis',
@@ -36,6 +49,14 @@ class Conf():
          'fieldnames': ['i', 'inc', 'incl'],
          'provenance': ['orbit'],
          'dimension': 'angle'},
+        {'description': 'Perihelion Distance',
+         'fieldnames': ['q', 'periheldist'],
+         'provenance': ['orbit'],
+         'dimension': 'length'},
+        {'description': 'Aphelion Distance',
+         'fieldnames': ['Q', 'apheldist'],
+         'provenance': ['orbit'],
+         'dimension': 'length'},
         {'description': 'Longitude of the Ascending Node',
          'fieldnames': ['Omega', 'longnode', 'node'],
          'provenance': ['orbit'],
@@ -52,6 +73,64 @@ class Conf():
          'fieldnames': ['v', 'true_anom'],
          'provenance': ['orbit', 'ephem', 'obs'],
          'dimension': 'angle'},
+        {'description': 'Arc Length',
+         'fieldnames': ['arc', 'arc_length'],
+         'provenance': ['orbit'],
+         'dimension': 'angle'},
+        {'description': 'Delta-v',
+         'fieldnames': ['delta_v', 'delta-v'],
+         'provenance': ['orbit', 'phys'],
+         'dimension': 'velocity'},
+        {'description': 'Minimum Orbit Intersection Distance wrt Mercury',
+         'fieldnames': ['moid_mercury'],
+         'provenance': ['orbit', 'phys'],
+         'dimension': 'length'},
+        {'description': 'Minimum Orbit Intersection Distance wrt Earth',
+         'fieldnames': ['moid_earth'],
+         'provenance': ['orbit', 'phys'],
+         'dimension': 'length'},
+        {'description': 'Minimum Orbit Intersection Distance wrt Venus',
+         'fieldnames': ['moid_venus'],
+         'provenance': ['orbit', 'phys'],
+         'dimension': 'length'},
+        {'description': 'Minimum Orbit Intersection Distance wrt Mars',
+         'fieldnames': ['moid_mars'],
+         'provenance': ['orbit', 'phys'],
+         'dimension': 'length'},
+        {'description': 'Minimum Orbit Intersection Distance wrt Jupiter',
+         'fieldnames': ['moid_jupiter'],
+         'provenance': ['orbit', 'phys'],
+         'dimension': 'length'},
+        {'description': 'Minimum Orbit Intersection Distance wrt Saturn',
+         'fieldnames': ['moid_saturn'],
+         'provenance': ['orbit', 'phys'],
+         'dimension': 'length'},
+        {'description': 'Minimum Orbit Intersection Distance wrt Uranus',
+         'fieldnames': ['moid_uranus'],
+         'provenance': ['orbit', 'phys'],
+         'dimension': 'length'},
+        {'description': 'Minimum Orbit Intersection Distance wrt Neptune',
+         'fieldnames': ['moid_neptune'],
+         'provenance': ['orbit', 'phys'],
+         'dimension': 'length'},
+        {'description': 'Tisserand Parameter wrt Jupiter',
+         'fieldnames': ['Tj', 'tj'],
+         'provenance': ['orbit', 'phys'],
+         'dimension': None},
+        {'description': 'MPC Orbit Type',
+         'fieldnames': ['mpc_orb_type'],
+         'provenance': ['orbit', 'phys'],
+         'dimension': None},
+        {'description': 'Epoch of Perihelion Passage',
+         'fieldnames': ['Tp'],
+         'provenance': ['orbit'],
+         'dimension': '`~astropy.time.Time`'},
+        {'description': 'Orbital Period',
+         'fieldnames': ['P', 'period'],
+         'provenance': ['orbit', 'phys'],
+         'dimension': 'time'},
+
+
 
         # Ephemerides properties
         {'description': 'Heliocentric Distance',
@@ -197,6 +276,14 @@ class Conf():
          'fieldnames': ['emissivity', 'Emissivity'],
          'provenance': ['phys'],
          'dimension': None},
+        {'description': 'Absolute Magnitude',
+         'fieldnames': ['absmag', 'H'],
+         'provenance': ['phys', 'ephem', 'orbit'],
+         'dimension': 'magnitude'},
+        {'description': 'Photometric Phase Slope Parameter',
+         'fieldnames': ['G', 'slope'],
+         'provenance': ['phys', 'ephem', 'orbit'],
+         'dimension': None},
         {'description': 'Molecule Identifier',
          'fieldnames': ['mol_tag', 'mol_name'],
          'provenance': ['phys'],
@@ -297,26 +384,68 @@ class Conf():
                         'CART': [None, 'au', 'au', 'au', 'au/d', 'au/d',
                                  'au/d', None, 'd', None, 'mag', None]}
 
-    oorb_ephem_fields = ['MJD', 'RA', 'DEC', 'RA*cos(Dec)_rate', 'DEC_rate',
-                         'alpha', 'elong', 'r', 'Delta', 'V', 'pa', 'TopEclLon',
-                         'TopEclLat', 'OppTopEclLon', 'OppTopEclLat',
-                         'HelEclLon', 'HelEclLat', 'OppHelEclLon',
-                         'OppHelEclLat', 'EL', 'ELsun', 'ELmoon',
-                         'lunarphase', 'lunarelong', 'x', 'y', 'z',
-                         'vx', 'vy', 'vz', 'obsx', 'obsy', 'obsz',
-                         'trueanom']
-    oorb_ephem_units = ['d', 'deg', 'deg', 'deg/d', 'deg/d', 'deg',
-                        'deg', 'au', 'au', 'mag', 'deg', 'deg',
-                        'deg', 'deg', 'deg',
-                        'deg', 'deg', 'deg',
-                        'deg', 'deg', 'deg', 'deg',
-                        None, 'deg', 'au', 'au', 'au',
-                        'au/d', 'au/d', 'au/d', 'au', 'au', 'au', 'deg']
+    oorb_ephem_full_fields = [
+        'MJD', 'RA', 'DEC', 'RA*cos(Dec)_rate', 'DEC_rate',
+        'alpha', 'elong', 'r', 'Delta', 'V', 'pa', 'TopEclLon',
+        'TopEclLat', 'OppTopEclLon', 'OppTopEclLat',
+        'HelEclLon', 'HelEclLat', 'OppHelEclLon',
+        'OppHelEclLat', 'EL', 'ELsun', 'ELmoon',
+        'lunarphase', 'lunarelong', 'x', 'y', 'z',
+        'vx', 'vy', 'vz', 'obsx', 'obsy', 'obsz',
+        'trueanom']
+
+    oorb_ephem_full_units = [
+        'd', 'deg', 'deg', 'deg/d', 'deg/d', 'deg',
+        'deg', 'au', 'au', 'mag', 'deg', 'deg',
+        'deg', 'deg', 'deg',
+        'deg', 'deg', 'deg',
+        'deg', 'deg', 'deg', 'deg',
+        None, 'deg', 'au', 'au', 'au',
+        'au/d', 'au/d', 'au/d', 'au', 'au', 'au', 'deg']
+
+    oorb_ephem_basic_fields = [
+        'MJD', 'RA', 'DEC', 'RA*cos(Dec)_rate', 'DEC_rate',
+        'alpha', 'elong', 'r', 'Delta', 'V', 'trueanom']
+
+    oorb_ephem_basic_units = [
+        'd', 'deg', 'deg', 'deg/d', 'deg/d', 'deg',
+        'deg', 'au', 'au', 'mag', 'deg']
+
+    # definitions for MPC orbits: MPC field name: [sbpy field name, unit]
+    mpc_orbit_fields = {
+        'absolute_magnitude': ['absmag', 'mag'],
+        'aphelion_distance': ['Q', 'au'],
+        'arc_length': ['arc', 'day'],
+        'argument_of_perihelion': ['w', 'deg'],
+        'ascending_node': ['Omega', 'deg'],
+        'delta_v': ['delta_v', 'km/s'],
+        'designation': ['desig', None],
+        'earth_moid': ['moid_earth', 'au'],
+        'eccentricity': ['e', None],
+        'epoch_jd': ['epoch', 'time_jd_utc'],
+        'inclination': ['i', 'deg'],
+        'jupiter_moid': ['moid_jupiter', 'au'],
+        'mars_moid': ['moid_mars', 'au'],
+        'mean_anomaly': ['M', None],
+        'mercury_moid': ['moid_mercury', None],
+        'name': ['name', None],
+        'number': ['number', None],
+        'orbit_type': ['mpc_orbit_type', None],
+        'perihelion_date_jd': ['Tp', 'time_jd_utc'],
+        'perihelion_distance': ['q', 'au'],
+        'period': ['P', 'year'],
+        'phase_slope': ['G', None],
+        'saturn_moid': ['moid_saturn', 'au'],
+        'semimajor_axis': ['a', 'au'],
+        'tisserand_jupiter': ['Tj', None],
+        'uranus_moid': ['moid_uranus', 'au'],
+        'venus_moid': ['moid_venus', 'au']
+    }
 
 
 conf = Conf()
 
-from .core import DataClass, DataClassError
+from .core import DataClass, DataClassError, QueryError, TimeScaleWarning
 from .decorators import *
 from .ephem import Ephem
 from .orbit import Orbit
@@ -325,4 +454,5 @@ from .obs import Obs
 from .names import Names, natural_sort_key
 
 __all__ = ['DataClass', 'Ephem', 'Obs', 'Orbit', 'Phys', 'Names',
-           'conf', 'Conf', 'DataClassError', 'quantity_to_dataclass']
+           'conf', 'Conf', 'DataClassError', 'quantity_to_dataclass',
+           'QueryError', 'TimeScaleWarning']

@@ -17,7 +17,10 @@ an overview on the implementation status of all modules and functions.
                Starting with v0.2, we expect most modules will have a
                stable API.
 
+The development of `sbpy` is expected to conclude with version 1.0
+in 2021.
 
+	       
 **************
 Current Status
 **************

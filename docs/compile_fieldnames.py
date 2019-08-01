@@ -56,6 +56,15 @@ alternative field name has to be **unique** and **unambiguous**. The
 source list is located as ``sbpy.data.conf.fieldnames`` in
 ``sbpy/data/__init__.py``.
 
+Special Case: Epoch
+-------------------
+
+Please note that epochs generally have to be provided as
+`~astropy.time.Time` objects. The advantage of using such objects is
+that they can be readily transformed into a wide range of formats
+(e.g., ISO, Julian Date, etc.) and time scales (e.g., UTC, TT, TDB,
+etc.) Hence, `sbpy` requires that all fields referring to a point in
+time be provided as `~astropy.time.Time` objects.
 
 Field Name List
 ---------------

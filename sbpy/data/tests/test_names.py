@@ -60,7 +60,8 @@ asteroids = {
                                    '`I`iwi', 'desig': '2006 SV395'},
     "374710 `O`o (2006 RJ110)": {'number': 374710, 'name':
                                  '`O`o', 'desig': '2006 RJ110'},
-    "(20123) A900 MA": {'number': 20123, 'desig': '1900 MA'}
+    "(20123) A900 MA": {'number': 20123, 'desig': '1900 MA'},
+    "1A": {'desig': '1A'},
 }
 
 
@@ -86,10 +87,17 @@ def test_packed():
     """Test packed numbers and designations"""
     assert Names.to_packed('1995 XA') == 'J95X00A'
     assert Names.to_packed('2007 TA418') == 'K07Tf8A'
-
     assert Names.to_packed('50000') == '50000'
     assert Names.to_packed('100345') == 'A0345'
     assert Names.to_packed('360017') == 'a0017'
+
+    assert Names.from_packed('J95X00A') == '1995 XA'
+    assert Names.from_packed('K07Tf8A') == '2007 TA418'
+    assert Names.from_packed('50000') == 50000
+    assert Names.from_packed('A0345') == 100345
+    assert Names.from_packed('a0017') == 360017
+    assert Names.from_packed('1989AB') == '1989 AB'
+    assert Names.from_packed('2000 AA') == '2000 AA'
 
 
 def test_parse_comet():
@@ -132,3 +140,17 @@ def test_parse_asteroid():
 
     with pytest.raises(TargetNameParseError):
         Names.parse_asteroid('2001 at1')
+
+    with pytest.raises(TargetNameParseError):
+        Names.parse_asteroid('J1')
+
+
+def test_break_packed():
+    with pytest.raises(TargetNameParseError):
+        Names.to_packed('620000')
+
+    with pytest.raises(TargetNameParseError):
+        Names.to_packed('2015 this will not work')
+
+    with pytest.raises(TargetNameParseError):
+        Names.to_packed('thiswillnotwork')

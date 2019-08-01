@@ -8,18 +8,31 @@ created on June 22, 2017
 """
 
 from copy import deepcopy
-from collections import OrderedDict
-from numpy import ndarray, array, hstack
-from astropy.table import QTable, Column, vstack
+from numpy import ndarray, array, hstack, iterable
+from astropy.table import QTable, Column
+from astropy.time import Time
 import astropy.units as u
 
 from . import conf
-from .. import exceptions
+from ..exceptions import SbpyException, SbpyWarning
 
-__all__ = ['DataClass', 'DataClassError']
+__all__ = ['DataClass', 'DataClassError', 'QueryError', 'TimeScaleWarning']
 
 
-class DataClassError(exceptions.SbpyException):
+class DataClassError(SbpyException):
+    """Will be raised in case of exceptions dealing with
+    `~sbpy.data.DataClass`."""
+    pass
+
+
+class QueryError(SbpyException):
+    """Will be raised in case of query errors."""
+    pass
+
+
+class TimeScaleWarning(SbpyWarning):
+    """Will be raised in case time scales on `~astropy.time.Time` objects
+    have to be converted to comply with query requirements."""
     pass
 
 
@@ -30,14 +43,14 @@ class DataClass():
     the following properties:
 
     The core of `~sbpy.data.DataClass` is an `~astropy.table.QTable`
-    object (referred to as the `data table` below) - a type of
+    object(referred to as the `data table` below) - a type of
     `~astropy.table.Table` object that supports the `~astropy.units`
     formalism on a per-column base - which already provides most of
     the required functionality. `~sbpy.data.DataClass` objects can be
     manually generated from dictionaries
     (`~sbpy.data.DataClass.from_dict`), list-like objects on a
-    per-column basis (`~sbpy.data.DataClass.from_columns`) or a
-    per-row basis (`~sbpy.data.DataClass.from_rows`), or directly from
+    per-column basis(`~sbpy.data.DataClass.from_columns`) or a
+    per-row basis(`~sbpy.data.DataClass.from_rows`), or directly from
     another `~astropy.table.QTable` object. It is possible to write
     `~sbpy.data.DataClass` objects to a file and from a file.
 
@@ -50,7 +63,7 @@ class DataClass():
 
     A few high-level functions for table data access or modification
     are provided; other, more complex modifications can be applied to
-    the underlying table object (`~sbpy.data.DataClass.table`) directly.
+    the underlying table object(`~sbpy.data.DataClass.table`) directly.
     """
 
     def __init__(self):
@@ -63,9 +76,9 @@ class DataClass():
 
         Parameters
         ----------
-        val : `~astropy.units.Quantity` or unit-less type
+        val: `~astropy.units.Quantity` or unit-less type
             Input value.
-        unit : str or None
+        unit: str or None
             Unit into which ``val`` will be converted. If None, ``val`` is
             considered not to be a `~astropy.units.Quantity`.
 
@@ -92,9 +105,9 @@ class DataClass():
 
         Parameters
         ----------
-        val : `~astropy.units.Quantity` or unit-less type
+        val: `~astropy.units.Quantity` or unit-less type
             Input value.
-        unit : str or None
+        unit: str or None
             Unit into which ``val`` will be converted. If None, ``val`` is
             considered not to be a `~astropy.units.Quantity`.
 
@@ -113,17 +126,20 @@ class DataClass():
 
         Parameters
         ----------
-        data : `~collections.OrderedDict` or dictionary
+        data: `~collections.OrderedDict` or dictionary
             Data that will be ingested in `~sbpy.data.DataClass`
             object. Each item in the dictionary will form a column in
             the data table. The item key will be used as column name,
             the item value, which must be list-like or a
             `~astropy.units.Quantity` vector, will be used as data. All
             columns, i.e., all item values, must have the same length.
-        meta : dictionary, optional
+            Please note that in order to make use of :ref:`fieldnames`
+            and to ensure compatibility with sbpy functionality, the
+            field names chosen must be in the list of :ref:`field name list`.
+        meta: dictionary, optional
             Meta data that will be stored in the data table. Default:
             empty dictionary
-        kwargs : additional keyword arguments, optional
+        kwargs: additional keyword arguments, optional
             Additional keyword arguments that will be passed on to
             `~astropy.table.QTable` in the creation of the underlying
             data table.
@@ -189,23 +205,25 @@ class DataClass():
         ------- ------- -------
          2.7674  0.0756   10.59
           3.123   0.021    3.21
-        >>> orb.meta
+        >> > orb.meta
         {'targetname': 'asteroid'}
-        >>> orb.meta['targetname']
+        >> > orb.meta['targetname']
         'asteroid'
         """
 
         for key, val in data.items():
             if isinstance(val, (str, bytes)):
                 data[key] = [val]
-            else:
-                try:
-                    val[0]
-                except (IndexError, TypeError):
-                    if isinstance(val, u.Quantity):
-                        data[key] = [val.value]*val.unit
-                    else:
-                        data[key] = [val]
+            elif not iterable(val):
+                if isinstance(val, u.Quantity):
+                    data[key] = [val.value]*val.unit
+                elif isinstance(val, Time):
+                    # workaround for scalar Time objects
+                    data[key] = Time([val.value],
+                                     format=val.format,
+                                     scale=val.scale)
+                else:
+                    data[key] = [val]
 
         self = cls()
         self._table = QTable(data, meta=meta, **kwargs)
@@ -220,25 +238,28 @@ class DataClass():
 
         Parameters
         ----------
-        columns : list, `~numpy.ndarray`, tuple, or `~astropy.units.Quantity`
+        columns: list, `~numpy.ndarray`, tuple, or `~astropy.units.Quantity`
             Data that will be ingested in `DataClass` object. A
             one-dimensional sequence is interpreted as a single column.
             A two-dimensional sequence is interpreted as a sequence of
             columns, each of which must have the same length.
-        names : str or list-like
+        names: str or list-like
             Field names, must have the same number of names as data columns.
-        units : str or list-like, optional
+            Please note that in order to make use of :ref:`fieldnames`
+            and to ensure compatibility with sbpy functionality, the
+            field names chosen must be in the list of :ref:`field name list`.
+        units: str or list-like, optional
             Unit labels (as provided by `~astropy.units.Unit`) in which
             the data provided in ``columns`` will be stored in the underlying
             table. If None, the units as provided by ``columns``
             are used. If the units provided in ``units`` differ from those
-            used in ``colums``, ``columns`` will be transformed to the units
+            used in ``columns``, ``columns`` will be transformed to the units
             provided in ``units``. Must have the same length as ``names``
             and the individual data columns in ``columns``. Default: None
-        meta : dictionary, optional
+        meta: dictionary, optional
             Meta data that will be stored in the data table. Default:
             empty dictionary
-        kwargs : additional keyword arguments, optional
+        kwargs: additional keyword arguments, optional
             Additional keyword arguments that will be passed on to
             `~astropy.table.QTable` in the creation of the underlying
             data table.
@@ -310,12 +331,9 @@ class DataClass():
             names = [names]
 
         # turn single column to a list
-        try:
-            iter(columns[0])
-            # workaround for strings and bytes
-            if isinstance(columns[0], (str, bytes)):
-                columns = [columns]
-        except TypeError:
+        if not iterable(columns[0]):
+            columns = [columns]
+        elif isinstance(columns[0], (str, bytes)):
             columns = [columns]
 
         if units is not None:
@@ -350,6 +368,9 @@ class DataClass():
         names : str or list
             Column names, must have the same number of names as data columns
             in each row.
+            Please note that in order to make use of :ref:`fieldnames`
+            and to ensure compatibility with sbpy functionality, the
+            field names chosen must be in the list of :ref:`field name list`.
         units : str or list-like, optional
             Unit labels (as provided by `~astropy.units.Unit`) in which
             the data provided in ``rows`` will be stored in the underlying
@@ -411,13 +432,9 @@ class DataClass():
                                  'and units.')
 
         # reorganize rows, if necessary
-        try:
-            iter(rows[0])
-            # workaround for strings and bytes
-            if isinstance(rows[0], (str, bytes)):
-                rows = [rows]
-        except TypeError:
-            # convert rows to list of list
+        if not iterable(rows[0]):
+            rows = [rows]
+        elif isinstance(rows[0], (str, bytes)):
             rows = [rows]
 
         if units is None:
@@ -449,8 +466,12 @@ class DataClass():
         Parameters
         ----------
         table : `~astropy.table.Table` object
-             Data that will be ingested in `DataClass` object. Must be a
-             `~astropy.table.Table` or `~astropy.table.QTable` object.
+            Data that will be ingested in `DataClass` object. Must be a
+            `~astropy.table.Table` or `~astropy.table.QTable` object.
+            Please note that in order to make use of :ref:`fieldnames`
+            and to ensure compatibility with sbpy functionality, the
+            field names chosen must be in the list of :ref:`field name
+            list`.
         meta : dictionary, optional
             Meta data that will be stored in the data table. If ``table``
             already holds meta data, ``meta`` will be added. Default:
@@ -512,13 +533,14 @@ class DataClass():
         Notes
         -----
         This function is merely a wrapper around
-        `~astropy.table.Table.read`. Please refer to the documentation of
-        that function for additional information on optional parameters
-        and data formats that are available. Furthermore, note that this
-        function may not able to identify units, depending on the
-        file format used. If you want to work with
-        `~astropy.units` you may have to assign them manually to the object
-        columns.
+        `~astropy.table.Table.read`. Please note that the file formats
+        available (see `here
+        <https://docs.astropy.org/en/stable/io/unified.html#built-in-readers-writers>`_
+        for a list of available formats) provide varying support for
+        units and meta data. For instance, ``basic``, ``csv``,
+        ``html``, and ``latex`` do not provide unit or meta data
+        information. However, ``fits``, ``cds``, ``daophot``,
+        ``ecsv``, and ``ipac`` do support units and meta data.
 
         Examples
         --------
@@ -526,6 +548,7 @@ class DataClass():
 
         >>> dat = DataClass.from_file('data.txt',
         ...                           format='ascii') # doctest: +SKIP
+
         """
 
         data = QTable.read(filename, **kwargs)
@@ -558,11 +581,14 @@ class DataClass():
         Notes
         -----
         This function is merely a wrapper around
-        `~astropy.table.Table.write`. Please refer to the
-        documentation of that function for additional information on
-        optional parameters and data formats that are
-        available. Furthermore, note that this function may not be able to
-        write unit information to the file, depending on the file format.
+        `~astropy.table.Table.write`. Please note that the file formats
+        available (see `here
+        <https://docs.astropy.org/en/stable/io/unified.html#built-in-readers-writers>`_
+        for a list of available formats) provide varying support for
+        units and meta data. For instance, ``basic``, ``csv``,
+        ``html``, and ``latex`` do not provide unit or meta data
+        information. However, ``fits``, ``cds``, ``daophot``,
+        ``ecsv``, and ``ipac`` do support units and meta data.
 
         Examples
         --------
@@ -743,8 +769,8 @@ class DataClass():
         -------
         None
 
-        Note
-        ----
+        Notes
+        -----
         As a result of this method, the length of the underlying data table
         will be the same as the length of the flattened `data` parameter.
 

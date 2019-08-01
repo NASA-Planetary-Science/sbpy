@@ -10,6 +10,7 @@ created on August 28, 2017
 
 """
 
+from ..exceptions import SbpyException
 from .core import DataClass
 from numpy import ndarray
 
@@ -55,7 +56,7 @@ def natural_sort_key(s):
     return keys
 
 
-class TargetNameParseError(Exception):
+class TargetNameParseError(SbpyException):
     pass
 
 
@@ -64,6 +65,10 @@ class Names():
     identify designation, name strings, and number for both comets and
     asteroids. It also includes functionality to distinguish between comet and
     asteroid identifiers."""
+
+    # packed numbers translation string
+    pkd = ('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+           'abcdefghifklmnopqrstuvwxyz')
 
     @staticmethod
     def to_packed(s):
@@ -86,50 +91,99 @@ class Names():
         'J95A01A'
         """
 
-        if isinstance(s, dict):
-            ident = s
-        else:
-            ident = Names.parse_asteroid(s)
-
-        # packed numbers translation string
-        pkd = ('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-               'abcdefghifklmnopqrstuvwxyz')
-
-        if 'number' in ident:
-            if ident['number'] < 100000:
-                return ('{:05d}'.format(ident['number']))
-            elif ident['number'] > 619999:
+        if s.isdigit() and not s.isalpha():
+            # number
+            s = int(s)
+            if s < 100000:
+                return ('{:05d}'.format(s))
+            elif s > 619999:
                 raise TargetNameParseError(
                     ('{} cannot be turned into a '
-                     'packed number').format(ident['number']))
+                     'packed number').format(s))
             else:
-                mod = (ident['number'] % 10000)
+                mod = (s % 10000)
                 return ('{}{:04d}'.format(
-                    pkd[int((ident['number']-mod)/10000)],
+                    Names.pkd[int((s-mod)/10000)],
                     mod))
-
-        elif 'desig' in ident:
-            yr = ident['desig'].strip()[:4]
-            yr = pkd[int(float(yr[:2]))]+yr[2:]
-            let = ident['desig'].strip()[4:7].strip()
-            num = ident['desig'].strip()[7:].strip()
+        elif s.isalnum and not s.isdigit() and not s.isalpha():
+            # designation
+            yr = s.strip()[:4]
+            yr = Names.pkd[int(float(yr[:2]))]+yr[2:]
+            let = s.strip()[4:7].strip()
+            num = s.strip()[7:].strip()
             if num == '':
                 num = '00'
             elif len(num) == 1:
                 num = '0' + num
             elif len(num) > 2:
                 try:
-                    num = pkd[int(float(num[:-1]))]+num[-1]
-                except IndexError:
+                    num = Names.pkd[int(float(num[:-1]))]+num[-1]
+                except (IndexError, ValueError):
                     raise TargetNameParseError(
                         ('{} cannot be turned into a '
-                         'packed designation').format(ident['desig']))
+                         'packed designation').format(s))
             return (yr + let[0] + num + let[1])
 
         else:
             raise TargetNameParseError(
                 ('{} cannot be turned into a '
                  'packed number or designation').format(s))
+
+    @staticmethod
+    def from_packed(p):
+        """Unpack asteroid designation/number.
+
+        Parameters
+        ----------
+        p : str
+           Packed target identifier.
+
+        Returns
+        -------
+        s : str
+           Unpacked designation/number.
+
+        Examples
+        --------
+        >>> from sbpy.data import Names
+        >>> Names.from_packed('J95A01A')
+        '1995 AA1'
+        """
+        # packed number
+        if p.isdigit():
+            return int(p)
+        elif p[0].isalpha() and p[1:].isdigit():
+            return int(str(Names.pkd.find(p[0])) + p[1:])
+
+        # old designation style, e.g.: 1989AB
+        if (len(p.strip()) < 7 and p[:4].isdigit() and
+                p[4:6].isalpha()):
+            return p[:4]+' '+p[4:6]
+        # Palomar Survey
+        elif p.find("PLS") == 0:
+            return p[3:] + " P-L"
+        # Trojan Surveys
+        elif p.find("T1S") == 0:
+            return p[3:] + " T-1"
+        elif p.find("T2S") == 0:
+            return p[3:] + " T-2"
+        elif p.find("T3S") == 0:
+            return p[3:] + " T-3"
+        # insert blank in designations
+        elif (p[0:4].isdigit() and p[4:6].isalpha() and
+              p[4] != ' '):
+            return p[:4]+" "+p[4:]
+        # MPC packed 7-digit designation
+        elif (p[0].isalpha() and p[1:3].isdigit() and
+              p[-1].isalpha() and p[-2].isdigit()):
+            yr = str(Names.pkd.find(p[0]))+p[1:3]
+            let = p[3]+p[-1]
+            num = str(Names.pkd.find(p[4]))+p[5]
+            num = num.lstrip("0")
+            return yr+' '+let+num
+        # nothing to do
+        else:
+            return p
 
     @staticmethod
     def parse_comet(s):
@@ -221,8 +275,8 @@ class Names():
         import re
 
         # define comet matching pattern
-        pat = ('^(([1-9][0-9]*[PDCXAI]'
-               '(-[A-Z]{1,2})?)|[PDCXAI]/)'  # type/number/fragm [0,1,2]
+        pat = ('^(([1-9][0-9]*[PDCX]'
+               '(-[A-Z]{1,2})?)|[PDCX]/)'  # type/number/fragm [0,1,2]
                '|([-]?[0-9]{3,4}[ _][A-Z]{1,2}[0-9]{0,3}(-[1-9A-Z]{0,2})?)'
                # designation [3,4]
                '|(([dvA-Z][a-z\']? ?[A-Z]*[a-z]*[ -]?[A-Z]?[1-9]*[a-z]*)'
@@ -358,14 +412,12 @@ class Names():
         +----------------------------------+----------+------+-----------------+
         |G3693                             |          |163693|                 |
         +----------------------------------+----------+------+-----------------+
+        |1A                                |1A        |      |                 |
+        +----------------------------------+----------+------+-----------------+
 
         """
 
         import re
-
-        # packed numbers translation string
-        pkd = ('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-               'abcdefghifklmnopqrstuvwxyz')
 
         pat = ('(([1A][8-9][0-9]{2}[ _][A-Z]{2}[0-9]{0,3}|'
                '20[0-9]{2}[ _][A-Z]{2}[0-9]{0,3})'
@@ -384,8 +436,10 @@ class Names():
                "|['`]?[A-Z][A-Z]*['`]?[a-z][a-z]*['`]?[^0-9]*"
                "[ -]?[A-Z]?[a-z]*[^0-9]*)"
                # name [6]
-               '|([1-9][0-9]*(\b|$| |_))'
+               '|((^|\b)[1-9][0-9]*(\b|$| |_))'
                # number [7,8]
+               '|^(([1-9][0-9]*A))'
+               # comet-style designations: 1A [10]
                )
 
         # regex patterns that will be rejected
@@ -396,7 +450,6 @@ class Names():
                    '|([PDCXAI]/)'
                    # comet type
                    '|([1-2][0-9]{0,3}[ _][a-z]{2}[0-9]{0,3})'
-                   # small-caps desig
                    )
 
         raw = s.translate(str.maketrans('()_', '   ')).strip()
@@ -421,52 +474,24 @@ class Names():
                         r['desig'] = '1'+el[0][1:]
                     else:
                         r['desig'] = el[0]
-                # packed designation (unpack here)
+                # packed designation
                 elif len(el[4]) > 0:
                     ident = el[4]
-                    # old designation style, e.g.: 1989AB
-                    if (len(ident.strip()) < 7 and ident[:4].isdigit() and
-                            ident[4:6].isalpha()):
-                        r['desig'] = ident[:4]+' '+ident[4:6]
-                    # Palomar Survey
-                    elif ident.find("PLS") == 0:
-                        r['desig'] = ident[3:] + " P-L"
-                    # Trojan Surveys
-                    elif ident.find("T1S") == 0:
-                        r['desig'] = ident[3:] + " T-1"
-                    elif ident.find("T2S") == 0:
-                        r['desig'] = ident[3:] + " T-2"
-                    elif ident.find("T3S") == 0:
-                        r['desig'] = ident[3:] + " T-3"
-                    # insert blank in designations
-                    elif (ident[0:4].isdigit() and ident[4:6].isalpha() and
-                          ident[4] != ' '):
-                        r['desig'] = ident[:4]+" "+ident[4:]
-                    # MPC packed 7-digit designation
-                    elif (ident[0].isalpha() and ident[1:3].isdigit() and
-                          ident[-1].isalpha() and ident[-2].isdigit()):
-                        yr = str(pkd.find(ident[0]))+ident[1:3]
-                        let = ident[3]+ident[-1]
-                        num = str(pkd.find(ident[4]))+ident[5]
-                        num = num.lstrip("0")
-                        r['desig'] = yr+' '+let+num
-                    # nothing to do
-                    else:
-                        r['desig'] = ident
-                # packed number (unpack here)
+                    r['desig'] = Names.from_packed(ident)
+                # packed number
                 elif len(el[5]) > 0:
                     ident = el[5]
-                    r['number'] = int(float(str(pkd.find(ident[0])) +
-                                            ident[1:]))
+                    r['number'] = Names.from_packed(ident)
                 # number
                 elif len(el[7]) > 0:
                     r['number'] = int(float(el[7]))
-                # elif len(el[8]) > 0:
-                #    r['number'] = int(float(el[8]))
-                # name (strip here)
+                # name
                 elif len(el[6]) > 0:
                     if len(el[6].strip()) > 1:
                         r['name'] = el[6].strip()
+                # comet-style designation
+                elif len(el[10]) > 0:
+                    r['desig'] = el[10].strip()
 
         if len(r) == 0:
             raise TargetNameParseError(('{} does not appear to be an '
@@ -487,8 +512,7 @@ class Names():
         Returns
         -------
         target_type : str
-           The target identification: ``'comet'``, ``'asteroid'``, or
-           ``None``.
+           The target identification: ``'comet'`` or ``'asteroid'``.
 
         Notes
         -----
@@ -496,12 +520,11 @@ class Names():
         `~sbpy.data.Names.parse_asteroid` and
         `~sbpy.data.Names.parse_comet`. Hence, it is affected by
         ambiguities in the name/number/designation identification. If
-        the name is ambiguous, ``None`` will be
-        returned. ``'asteroid'`` will be returned if the number of
-        found asteroid identifier elements is larger than the number
-        of found comet identifier elements and vice versa. Note that
+        the name is ambiguous, a `~sbpy.data.names.TargetNameParseError`
+        will be
+        raised. Note that
         for any identifier that does not contain a comet type (P, D, C
-        etc.), it is highly likely that the object gets identified as an
+        etc.), it is likely that the object gets identified as an
         asteroid.
 
         Examples
@@ -531,19 +554,9 @@ class Names():
         except TargetNameParseError:
             pass
 
-        if len(ast) > len(com):
+        if len(ast) > 0 and len(com) == 0:
             return 'asteroid'
-        elif len(com) > len(ast):
+        elif len(com) > 0 and len(ast) == 0:
             return 'comet'
-        elif ('desig' in ast and 'desig' in com and
-              (ast['desig'] == com['desig'] or ast['name'] == com['name'])):
-            # in this case, it's most likely to be an asteroid
-            return 'asteroid'
-        elif (('desig' in ast or 'number' in ast) and not
-              ('desig' in com or 'number' in com)):
-            return 'asteroid'
-        elif (('desig' in com or 'number' in com) and not
-              ('desig' in ast or 'number' in ast)):
-            return 'asteroid'
         else:
-            return None
+            raise TargetNameParseError('Target nature unclear.')

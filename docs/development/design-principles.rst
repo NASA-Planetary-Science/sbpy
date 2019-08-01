@@ -1,3 +1,5 @@
+.. _design principles:
+
 Design Principles
 =================
 
@@ -13,6 +15,11 @@ Physical parameters are quantities
 
 * Note magnitudes may also carry physical units.  Compare `astropy.units.mag` (unitless) to `astropy.units.ABmag` (flux density per unit frequency), and `sbpy.units.VEGAmag` (units of Vega spectral flux density).
 
+Epochs must be Time objects
+---------------------------
+
+* Any kind of epoch or point in time must be of type `~astropy.time.Time`; time scales must be properly set and propagated through all functions.
+  
 
 Use sbpy ``DataClass`` objects
 ------------------------------
