@@ -210,6 +210,7 @@ Status: Passed
 See https://github.com/keflavich/pyradex for installment
 '''
 
+
 @remote_data
 def test_Haser_pyradex():
 
@@ -262,3 +263,77 @@ def test_Haser_pyradex():
     err = abs((np.array(q_pred) - np.array(q_found)) / np.array(q_pred) * 100)
 
     assert np.all(err < 0.35)
+
+
+@remote_data
+def test_intensity_conversion():
+    # test untested case for intensity conversion function
+
+    temp_estimate = 47. * u.K
+    vgas = 0.8 * u.km / u.s
+    mol_tag = 27001
+    transition_freq = (265.886434 * u.GHz).to('MHz')
+    q_found = []
+    mol_data = Phys.from_jplspec(temp_estimate, transition_freq, mol_tag)
+    mol_data['eup_J'] = 3.52359898e-20 * u.J
+    mol_data['elo_J'] = 1.76181853e-20 * u.J
+    intl = intensity_conversion(mol_data)
+
+    assert np.isclose(intl.value, 6.186509000388917e-11)
+
+
+@remote_data
+def test_einsteincoeff_case():
+    # test untested case for einstein coefficient
+
+    temp_estimate = 47. * u.K
+    vgas = 0.8 * u.km / u.s
+    mol_tag = 27001
+    transition_freq = (265.886434 * u.GHz).to('MHz')
+    q_found = []
+    mol_data = Phys.from_jplspec(temp_estimate, transition_freq, mol_tag)
+    mol_data['t_freq'] = 2658864.34 * u.MHz
+    intl = intensity_conversion(mol_data)
+    mol_data.apply([intl.value] * intl.unit, name='intl')
+    au = einstein_coeff(mol_data)
+
+    assert np.isclose(round(au.value, 4), 0.0086)
+
+
+@remote_data
+def test_betafactor_case():
+    # test untested case for beta beta_factor
+
+    r = 1.06077567 * u.AU
+    delta = 0.14633757 * u.AU
+    quanteph = [r, delta]
+    nameseph = ['r', 'delta']
+    ephemobj = Ephem.from_dict(dict(zip(nameseph, quanteph)))
+    mol_name = 'CN'
+    namephys = ['mol_tag']
+    quantphys = [mol_name]
+    mol_data = Phys.from_dict(dict(zip(namephys, quantphys)))
+    beta = beta_factor(mol_data, ephemobj)
+
+    assert np.isclose(beta.value[0], 354452.18195014383)
+
+
+@remote_data
+def test_pyradex_case():
+    # test untested case for Pyradex
+
+    transition_freq = (177.196 * u.GHz).to(u.MHz)
+    mol_tag = 29002
+    cdensity_guess = (1.89*10.**(14) / (u.cm * u.cm))
+    temp_estimate = 20. * u.K
+    temp_back = 2.8 * u.K
+
+    mol_data = Phys.from_jplspec(temp_estimate, transition_freq, mol_tag)
+    mol_data.apply([cdensity_guess.value] * cdensity_guess.unit, name='cdensity')
+    mol_data.apply([temp_back.value] * temp_back.unit, name='temp_back')
+    mol_data.apply(['HCO+@xpol'], name='lamda_name')
+    nonLTE = NonLTE()
+    cdensity = nonLTE.from_pyradex(1.234 * u.K * u.km / u.s, mol_data,
+                                   iter=100, collider_density={'H2': 900})
+
+    assert np.isclose(cdensity.value[0], 94500000000000.0)

@@ -116,6 +116,7 @@ def einstein_coeff(mol_data):
             * Transition frequency in MHz
             * Temperature in Kelvins
             * Integrated line intensity at 300 K in MHz * nm**2
+            * Integrated line intensity at desired temperature
             * Partition function at 300 K (Dimensionless)
             * Partition function at designated temperature (Dimensionless)
             * Upper state degeneracy (Dimensionless)

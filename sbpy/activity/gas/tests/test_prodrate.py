@@ -1,12 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import pytest
 import numpy as np
 import astropy.units as u
 from astropy.time import Time
 from .. import Haser, photo_timescale
 from ....data import Ephem, Phys
-from .. import (LTE, NonLTE, einstein_coeff, intensity_conversion, beta_factor,
+from .. import (LTE, einstein_coeff, intensity_conversion, beta_factor,
                 total_number, from_Haser)
 
 '''
@@ -33,10 +32,8 @@ class MockResponseSpec(object):
 class TestProductionRate:
 
     def test_simple_prodrate(self):
-        """Test a set of dummy values."""
 
         temp_estimate = 47. * u.K
-        target = '103P'
         vgas = 0.8 * u.km / u.s
         aper = 30 * u.m
         b = 1.13
@@ -91,11 +88,9 @@ class TestProductionRate:
         """Test a set of dummy values."""
 
         temp_estimate = 47. * u.K
-        target = '103P'
         vgas = 0.8 * u.km / u.s
         aper = 30 * u.m
         b = 1.13
-        transition_freq = (265.886434 * u.GHz).to('MHz')
         mol_tag = 'CO'
         t_freq = (157.178987 * u.GHz).to('MHz')
         lgint300 = 7.4336139*10**(-5) * u.MHz * u.nm * u.nm
