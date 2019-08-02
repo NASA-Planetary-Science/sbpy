@@ -43,6 +43,7 @@ They may be converted to other units of length just like any `Quantity`:
   >>> afrho.to('m')    # doctest: +FLOAT_CMP
   <Afrho 1. m>
 
+.. _afrho-to-from-flux-density:
 
 Convert to/from flux density
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -82,7 +83,7 @@ The `Afrho` class may be converted to a flux density, and the original value is 
   >>> print(np.log10(f.value))    # doctest: +FLOAT_CMP
   -13.99
 
-`Afrho` works seamlessly with `sbpy`'s spectral calibration framework (:ref:`sbpy_calib`) when the `astropy` affiliated package `synphot` is installed.  The solar flux density (via `~sbpy.calib.solar_fluxd`) is not required, but instead the spectral wavelengths or the system transmission of the instrument and filter:
+`Afrho` works seamlessly with `sbpy`'s spectral calibration framework (:ref:`sbpy-calib`) when the `astropy` affiliated package `synphot` is installed.  The solar flux density (via `~sbpy.calib.solar_fluxd`) is not required, but instead the spectral wavelengths or the system transmission of the instrument and filter:
 
 .. doctest-requires:: synphot
 
@@ -123,7 +124,7 @@ Compare to 397.0 cm and 424.6 cm listed in Kelley et al. (2013).
 To/from magnitudes
 ^^^^^^^^^^^^^^^^^^
 
-`Afrho` and `Efrho` work with `astropy`'s magnitude units.  If the conversion between Vega-based magnitudes is required, then `sbpy`'s calibration framework (:ref:`sbpy_calib`) will be used.
+`Afrho` and `Efrho` work with `astropy`'s magnitude units.  If the conversion between Vega-based magnitudes is required, then `sbpy`'s calibration framework (:ref:`sbpy-calib`) will be used.
 
 Estimate the *Afρ* of comet C/2012 S1 (ISON) based on Pan-STARRS 1 photometry in the *r* band (Meech et al. 2013)
 
@@ -144,19 +145,19 @@ Estimate the *Afρ* of comet C/2012 S1 (ISON) based on Pan-STARRS 1 photometry i
 Phase angles and functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Phase angle was not used in the previous section.  The default behavior for `Afrho` is to compute *A(θ)fρ* (as opposed to *A(0°)fρ*).  Returning to the A'Hearn et al. data, we scale *Afρ* to 0° from 3.3° phase using the :func:`~sbpy.activity.Afrho.to_phase` method:
+Phase angle was not used in the previous section.  In the *Afρ* formalism, "albedo" includes the scattering phase function, and is more precisely written *A(θ)*, where *θ* is the phase angle.  The default behavior for `Afrho` is to compute *A(θ)fρ* as opposed to *A(0°)fρ*.  Returning to the A'Hearn et al. data, we scale *Afρ* to 0° from 3.3° phase using the :func:`~sbpy.activity.Afrho.to_phase` method:
 
   >>> afrho = Afrho(6029.9 * u.cm)
   >>> print(afrho.to_phase(0 * u.deg, 3.3 * u.deg))    # doctest: +FLOAT_CMP
   6886.825981017757 cm
 
-The default phase function is the Halley-Marcus composite phase function (:func:`~sbpy.activity.phase_HalleyMarcus`), but any callable that returns a scale factor from an angle may be used:
+The default phase function is the Halley-Marcus composite phase function (:func:`~sbpy.activity.phase_HalleyMarcus`).  Any function or callable object that accepts an angle as a `~astropy.units.Quantity` and returns a scalar value may be used:
 
   >>> Phi = lambda phase: 10**(-0.016 / u.deg * phase.to('deg'))
   >>> print(afrho.to_phase(0 * u.deg, 3.3 * u.deg, Phi=Phi))    # doctest: +FLOAT_CMP
   6809.419810008357 cm
 
-To make a phase function correction on an observed flux density, use the ``phasecor`` option of :func:`~sbpy.activity.Afrho.to_fluxd` and :func:`~sbpy.activity.Afrho.from_fluxd` methods:
+To correct an observed flux density for the phase function, use the ``phasecor`` option of :func:`~sbpy.activity.Afrho.to_fluxd` and :func:`~sbpy.activity.Afrho.from_fluxd` methods:
 
   >>> flam = 10**-13.99 * u.Unit('erg/(s cm2 AA)')
   >>> aper = 27200 * u.km
@@ -195,4 +196,4 @@ Other apertures may be used, as long as they can be converted into an equivalent
 Reference/API
 -------------
 .. automodapi:: sbpy.activity.dust
-    :no-heading:
+   :no-heading:

@@ -4,39 +4,27 @@ Bibliography Tracking Module (`sbpy.bib`)
 Introduction
 ------------
 
-`sbpy` classes and functions can automatically report citations to the
+sbpy classes and functions can automatically report citations to the
 user through a bibliography registry. The idea behind this service is
 to make it easier to properly acknowledge and reference those who
 designed methods and tools used.
 
-ADS Query Requirements for the `sbpy.bib` Module
-------------------------------------------------
+ADS query requirements
+----------------------
 
-In order to use the `~sbpy.bib` functionality and obtain author names
-from the bibcode provided by the user, the user has to have the `~ads`
-module installed. More information on this module is found in the `ads
-Docs <https://ads.readthedocs.io/en/latest/>`_. In order for the
-`~ads` queries, essential to `~sbpy.bib`, to work the user has to have
-the module installed, and their own personal developer key.  As stated
+The `ads <https://ads.readthedocs.io/en/latest/>`_ module is required for `~sbpy.bib` to transform bibcodes into readable citations.  As stated
 in the documentation:
 
-1. You'll need an API key from NASA ADS labs. Get `an ADS account
-<https://ui.adsabs.harvard.edu/user/account/register>`_, visit account
-settings and generate a new API token.
+  1. You'll need an API key from NASA ADS labs. Get `an ADS account <https://ui.adsabs.harvard.edu/user/account/register>`_, visit account settings and generate a new API token.
 
-2. When you get your API key, save it to a file called ``~/.ads/dev_key`` or
-save it as an environment variable named ``ADS_DEV_KEY``
+  2. When you get your API key, save it to a file called ``~/.ads/dev_key`` or save it as an environment variable named ``ADS_DEV_KEY``.
 
-3. Install the `ads` python module, e.g., if using pip: ``pip install ads``
+  3. Install the `ads` python module, e.g., if using pip: ``pip install ads``.
 
 How to use `~sbpy.bib`
 ----------------------
 
-Use `~sbpy.bib.track()` to enable citation tracking. Every method
-called after activating the tracking will register any relevant
-citations. Each citation is associated with a tag that enables the
-user to identify which aspect of the method the citation is relevant
-to:
+Use `~sbpy.bib.track()` to enable citation tracking. Every method called after activating the tracking will register any relevant citations. Each citation is associated with a tag that enables the user to identify which aspect of the method the citation is relevant to:
 
     >>> from sbpy import bib, data
     >>> bib.track()
@@ -46,11 +34,7 @@ to:
       data service:
           Giorgini, Yeomans, Chamberlin et al. 1996, AAS/Division for Planetary Sciences Meeting Abstracts #28, 25.04
 
-In this case, ``Giorgini et al. 1996, 1996DPS....28.2504G`` is
-relevant to the implementation of the JPL Horizons system that is
-queried by the `~sbpy.data.Ephem.from_horizons`
-function. `~sbpy.bib.to_text` outputs the current citation registry in
-simple text form.
+In this case, ``Giorgini et al. 1996, 1996DPS....28.2504G`` describes the JPL Horizons data service that is queried by :func:`~sbpy.data.Ephem.from_horizons`. `~sbpy.bib.to_text` outputs the current citation registry in simple text form.
 
 To disable tracking, use `~sbpy.bib.stop()`:
 
@@ -64,7 +48,7 @@ Bibliography tracking can also be used in a context manager:
 
     >>> from sbpy import bib, data
     >>> with bib.Tracking(bib.to_text):
-    ...     eph = data.Ephem.from_horizons('Ceres') # doctest: +SKIP
+    ...     eph = data.Ephem.from_horizons('Ceres')    # doctest: +SKIP
     sbpy.data.Ephem.from_horizons:
       data service:
           Giorgini, Yeomans, Chamberlin et al. 1996, AAS/Division for Planetary Sciences Meeting Abstracts #28, 25.04

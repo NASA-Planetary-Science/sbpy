@@ -117,35 +117,13 @@ existing information on a specific small body in the PDS.
 `sbpy.activity`
 ~~~~~~~~~~~~~~~
 
-The `~sbpy.activity` module provides classes for modeling cometary
-comae, tails, and ice sublimation, and functions for working with
-cometary absolute magnitudes and photometry (e.g., the Afrho parameter
-of A'Hearn et al. 1984). We implement a gas coma class that will use
-Haser (`~sbpy.activity.Haser`, Haser 1957) and Vectorial
-(`~sbpy.activity.Vectorial`, Festou 1981) models for gas comae,
-including parameters for commonly observed molecules (e.g., H2O, CO2 ,
-CO, OH, CN, C2 ; A'Hearn et al. 1995; Debout et al. 2016). Independent
-of the model, the gas coma class can be used to generate aperture
-photometry or a synthetic image of the comet. For dust, we integrate a
-syndyne/synchrone model (`~sbpy.activity.Syndynes`, Finson & Probstein
-1968; Kelley et al. 2013). A plugin for the `Ginga Image Viewer`_ will
-be available to visualize gas and dust production models. The Cowan &
-A'Hearn (1979) ice sublimation model (`~sbpy.activity.sublimation`),
-used to describe comet activity, and common parameters will be
-incorporated, too.
+The `~sbpy.activity` module provides classes for modeling cometary comae, tails, ice sublimation.  We have implemented the Haser gas coma model (`~sbpy.activity.Haser`, Haser 1957), and a Vectorial model is planned (`~sbpy.activity.Vectorial`, Festou 1981).  Some parameters for commonly observed molecules (e.g., H\ :sub:`2`\ O, CO\ :sub:`2`\ , CO, OH, CN, C\ :sub:`2`\ ), such as photo-dissociation timescale and fluorescence band strength, are included.  The gas coma classes can be used to generate aperture photometry or a synthetic image of the comet.
 
-The activity module includes LTE and non-LTE radiative transfer
-models used to determine production rates and excitation parameters,
-such as the temperature in the coma. In the inner regions of the coma
-collisions dominate molecular excitation and the resulting rotational
-level population is close to LTE. Beyond the LTE inner region, the
-level populations start to depart from the equilibrium distribution
-because the gas density is not high enough to reach thermodynamic
-equilibrium through collisions with neutrals. The inclusion of all
-relevant excitation processes in cometary atmospheres in a complex
-3-dimensional outgassing geometry represents a state-of-the-art coma
-model which will provide a baseline for interpretation of cometary
-spectroscopy observations. 
+For dust, we have simple photometric models based on the *Afρ* and *εfρ* quantities (A'Hearn et al. 1984; Kelley et al. 2013).  A syndyne/synchrone model (`~sbpy.activity.Syndynes`, Finson & Probstein 1968; Kelley et al. 2013) is planned.
+
+The activity module includes LTE and non-LTE radiative transfer models used to determine production rates and excitation parameters, such as the temperature in the coma. In the inner regions of the coma collisions dominate molecular excitation and the resulting rotational level population is close to LTE. Beyond the LTE inner region, the level populations start to depart from the equilibrium distribution because the gas density is not high enough to reach thermodynamic equilibrium through collisions with neutrals. The inclusion of all relevant excitation processes in cometary atmospheres in a complex 3-dimensional outgassing geometry represents a state-of-the-art coma model which will provide a baseline for interpretation of cometary spectroscopy observations. 
+
+The Cowan & A'Hearn (1979) ice sublimation model (`~sbpy.activity.sublimation`), used to describe comet activity, and common parameters will also be added.
 
 
 `sbpy.photometry`
@@ -215,12 +193,7 @@ In addition to the aforementioned functionality, we provide a class
 `~sbpy.spectroscopy.Hapke` that implements Hapke spectral mixing
 functionality.
 
-This module also provides methods for dealing with spectral gradients
-(~sbpy.spectroscopy.SpectralGradient`) and spectrophotometry
-(`~sbpy.spectroscopy.Spectrophotometry`). This functionality includes
-the convolution of common photometric filters with spectra generated
-by this module or literature spectra of small bodies or stars and the
-derivation of photometric colors from spectral slopes.
+This module also provides spectrophotometry methods as part of `~sbpy.spectroscopy.Spectrophotometry`. This functionality includes the transmission of spectra (empirical, generated, or from the literature) through common photometric filters, and the derivation of photometric colors from spectral slopes with `~sbpy.spectroscopy.SpectralGradient`.
 
 
 `sbpy.thermal`
@@ -280,7 +253,7 @@ calibration purposes, and other moving objects.
 `sbpy.bib`
 ~~~~~~~~~~
 
-`~sbpy.bib` provides a unique feature that simplifies the
+`~sbpy.bib` provides an innovative feature that simplifies the
 acknowledgment of methods and code utilized by the user. After
 activating the bibliography tracker in `~sbpy.bib`, references and
 citations of all functions used by the user are tracked in the

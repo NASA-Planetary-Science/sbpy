@@ -1,22 +1,20 @@
-.. _sbpy_calib:
+.. _sbpy-calib:
 
-sbpy Calibration (`sbpy.calib`)
-===============================
+Spectral Standards and Photometric Calibration (`sbpy.calib`)
+=============================================================
 
-Spectral standards and photometric calibration
-----------------------------------------------
-`sbpy`'s photometric calibration is based on spectra of the Sun and Vega.  There are built-in spectra for each, and users may provide their own.
+sbpy's photometric calibration is based on spectra of the Sun and Vega.  For example, they are used to convert between :ref:`reflectance, cross-section, and magnitude <reflectance-equivalencies>`, between :ref:`Afρ and spectral flux density <afrho-to-from-flux-density>`, and between :ref:`Vega-based and other magnitude systems <vega-magnitudes>`.   sbpy has built-in spectra for each, and users may provide their own.
 
-The spectrum of `Bohlin (2014) <https://dx.doi.org/10.1088/0004-6256/147/6/127>`_ is the default and only built-in spectrum for Vega.  It is distributed with `sbpy`.  Four solar spectra are built-in:
+The spectrum of `Bohlin (2014) <https://dx.doi.org/10.1088/0004-6256/147/6/127>`_ is the default and only built-in spectrum for Vega.  It is distributed with sbpy.  Four solar spectra are built-in:
 
   * Castelli1996 - Castelli model from Colina et al. (1996).
   * E490_2014 - E490 (2014) standard.
   * E490_2014LR - A low resolution version of the E490 standard.
   * Kurucz1993 - Kurucz (1993) model.
 
-The E490 spectra are included with `sbpy`, and the Kurucz and Castelli spectra are downloaded as needed from `STScI's reference data system <http://www.stsci.edu/hst/observatory/crds/astronomical_catalogs.html>`_.
+The E490 spectra are included with sbpy, and the Kurucz and Castelli spectra are downloaded as needed from `STScI's reference data system <http://www.stsci.edu/hst/observatory/crds/astronomical_catalogs.html>`_.
 
-Each star has a class for use within `sbpy`.  The classes can be initialized with the default spectrum using :func:`~sbpy.calib.Sun.from_default`:
+Each star has a class for use within sbpy.  The classes can be initialized with the default spectrum using :func:`~sbpy.calib.SpectralStandard.from_default`:
 
 .. doctest-requires:: synphot
 
@@ -25,7 +23,7 @@ Each star has a class for use within `sbpy`.  The classes can be initialized wit
   >>> print(sun)
   <Sun: E490-00a (2014) reference solar spectrum (Table 3)>
 
-The names of the built-in sources are stored as an internal array.  They can be discovered with :func:`~sbpy.calib.Sun.show_builtin`, and used to initialize an object with :func:`~sbpy.calib.Sun.from_builtin`:
+The names of the built-in sources are stored as an internal array.  They can be discovered with :func:`~sbpy.calib.SpectralStandard.show_builtin`, and used to initialize an object with :func:`~sbpy.calib.SpectralStandard.from_builtin`:
 
 .. doctest-requires:: synphot
 
@@ -42,9 +40,9 @@ The names of the built-in sources are stored as an internal array.  They can be 
   <Sun: E490-00a (2014) low resolution reference solar spectrum (Table 4)>
 
 Controlling the default spectra
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-------------------------------
 
-The Vega and solar spectra in current use are controlled with `~astropy.utils.state.ScienceState` objects named `~sbpy.calib.solar_spectrum`,  `~sbpy.calib.vega_spectrum`:
+The Vega and solar spectra in current use are respectively controlled with `~astropy.utils.state.ScienceState` objects named `~sbpy.calib.vega_spectrum` and `~sbpy.calib.solar_spectrum`:
 
 .. doctest-requires:: synphot
 
@@ -56,7 +54,7 @@ The Vega and solar spectra in current use are controlled with `~astropy.utils.st
   >>> print(sun)
   <Sun: E490-00a (2014) low resolution reference solar spectrum (Table 4)>
 
-`vega_spectrum` and `solar_spectrum` can also be used as a context manager to temporarily change the default spectrum:
+`~sbpy.calib.vega_spectrum` and `~sbpy.calib.solar_spectrum` can also be used as a context manager to temporarily change the default spectrum:
 
 .. doctest-requires:: synphot
 
@@ -71,7 +69,7 @@ The Vega and solar spectra in current use are controlled with `~astropy.utils.st
   >>> print(Sun.from_default())
   <Sun: E490-00a (2014) reference solar spectrum (Table 3)>
 
-Provide your own solar spectrum with the `Sun` class:
+Provide your own solar spectrum with the `~sbpy.calib.Sun` class:
 
 .. doctest-requires:: synphot
 
@@ -92,10 +90,10 @@ An example showing how to change the default Vega spectrum:
   ...   # vega.txt in effect
 
 
-Calibration without spectra or `synphot`
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Photometric calibration (without spectra or `synphot`)
+------------------------------------------------------
 
-The `~astropy.utils.state.ScienceState` objects `~sbpy.calib.solar_fluxd` and `sbpy.calib.vega_fluxd` control photometric calibration by filter name.  These are completely independent of the spectroscopic calibration.  Therefore, it can be used without the optional `synphot` package.  The apparent magnitude of the Sun in the AB-magnitude system and spectral flux densities (per wavelength) of Vega are provided (and loaded by default).  Values and filters are from Willmer (2018):
+The `~astropy.utils.state.ScienceState` objects `~sbpy.calib.solar_fluxd` and `~sbpy.calib.vega_fluxd` control photometric calibration by filter name.  These are completely independent of the spectroscopic calibration and can be used without the optional `synphot` package.  The spectral flux densities (per unit wavelength) of the Sun and Vega are provided and enabled by default.  Values and filters are from Willmer (2018):
 
   >>> from sbpy.calib import Sun, solar_fluxd, vega_fluxd
   >>> import sbpy.units as sbu
@@ -108,16 +106,16 @@ The `~astropy.utils.state.ScienceState` objects `~sbpy.calib.solar_fluxd` and `s
   >>> print(sun.observe('PS1 r', unit=sbu.VEGAmag))    # doctest: +FLOAT_CMP
   -27.05 mag(VEGA)
 
-Use `~sbpy.calib.solar_fluxd.get('Willmer2018')` to discover all built-in values.
+Use ``solar_fluxd.get('Willmer2018')`` to discover all built-in values.
 
-Users wanting to calibrate data with their own flux densities may do so.  For example, set the *V*-band apparent magnitude of the Sun to that in Colina et al. (1996).  Observations through the `'V'` filter will use the specified value:
+Users wanting to calibrate data with their own flux densities may do so.  For example, set the *V*-band apparent magnitude of the Sun to that in Colina et al. (1996).  Observations through the ``'V'`` filter will use the specified value:
 
   >>> solar_fluxd.set({'V': -26.75 * sbu.VEGAmag})  # doctest: +IGNORE_OUTPUT
   >>> sun = Sun.from_default()
   >>> print(sun.observe('V'))
   -26.75 mag(VEGA)
 
-Some `sbpy` calculations will require the effective wavelength or the pivot wavelength.  These are optional parameters that may be specified with `solar_fluxd` and `vega_fluxd`:
+Some sbpy calculations will require the effective wavelength or the pivot wavelength.  These are optional parameters that may be specified with `~sbpy.calib.solar_fluxd` and `~sbpy.calib.vega_fluxd`:
 
   >>> import astropy.units as u
   >>> from sbpy.calib import vega_fluxd, Vega
@@ -136,7 +134,6 @@ Some `sbpy` calculations will require the effective wavelength or the pivot wave
   Traceback (most recent call last):
   ...
   UnitConversionError: 'Jy' (spectral flux density) and 'erg / (Angstrom cm2 s)' (spectral flux density wav) are not convertible  Is "V(lambda pivot)" required and was it provided?
-  
   >>> vega_fluxd.set({
   ...     'V': 3674.73 * u.Jy,
   ...     'V(lambda eff)': 5476 * u.AA,
@@ -147,11 +144,11 @@ Some `sbpy` calculations will require the effective wavelength or the pivot wave
   3.62701e-9 erg / (Angstrom cm2 s)
 
 Observe the Sun
-^^^^^^^^^^^^^^^
+---------------
 
-`sbpy` can simulate observations of comets and asteroids through spectrometers and filter bandpasses.  To support this functionality, the `Sun` and `Vega` classes have the :func:`~sbpy.calib.SpectralStandard.observe` method that returns simulated flux densities.  Users may request observations through filter bandpasses, or at a set of wavelengths (the default is to rebin the source spectrum).
+sbpy can simulate observations of comets and asteroids through spectrometers and filter bandpasses.  To support this functionality, the `~sbpy.calib.Sun` and `~sbpy.calib.Vega` classes have the :func:`~sbpy.calib.SpectralStandard.observe` method that returns simulated flux densities.  Users may request observations through filter bandpasses, or at a set of wavelengths (the default is to rebin the source spectrum).
 
-Get the default solar spectrum, observe it through the Johnson V-band filter (distributed with `sbpy`), returning the result as a Vega-based magnitude in the Johnson-Morgan system:
+Get the default solar spectrum, observe it through the Johnson V-band filter (distributed with sbpy), returning the result as a Vega-based magnitude in the Johnson-Morgan system:
 
 .. doctest-requires:: synphot
 
@@ -169,29 +166,39 @@ Get the default solar spectrum, observe it through the Johnson V-band filter (di
 Binning versus interpolation with ``observe()``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-If a user requests a series of wavelengths or frequencies with a `~astropy.units.Quantity` object, the default for :func:`~sbpy.calib.SpectralStandard.observe` is to rebin the source spectrum using the requested values as bin centers.  This behavior is appropriate when the source spectrum is at a higher spectral resolution than the requested wavelengths.  This is because `~synphot` assumes source spectra are continuous functions, rather observations through a spectrometer (binned data).
+If a user requests a series of wavelengths or frequencies with a `~astropy.units.Quantity` object, the default for :func:`~sbpy.calib.SpectralStandard.observe` is to rebin the source spectrum using the requested values as bin centers.  This behavior is appropriate when the source spectrum is at a higher spectral resolution than the requested wavelengths.  This is because `~synphot` assumes source spectra are continuous functions, rather than observations taken through a spectrometer (binned data).
 
 When the requested spectral resolution is comparable to the spectral resolution of the source, rebinning may result in errors at the percent-level or more.  Instead, use the ``interpolate=True`` parameter for ``observe``.
 
-Compare interpolation and rebinning for the E490 low-resolution solar spectrum, using the stored wavelengths of the spectrum:
+Compare interpolation and rebinning for the E490 low-resolution solar spectrum, using the stored wavelengths of the spectrum.  Initialize a `~sbpy.calib.Sun` object with the low-resolution spectrum.
 
   >>> import numpy as np
-  >>> import astropy.units as u
   >>> from sbpy.calib import Sun
-  >>> 
   >>> sun = Sun.from_builtin('E490_2014LR')
+
+Inspect a sub-set of the data for this example.
+
   >>> wave = sun.wave[430:435]
   >>> S = sun.fluxd[430:435]
   >>> print(wave)    # doctest: +FLOAT_CMP
   [5495. 5505. 5515. 5525. 5535.] Angstrom
   >>> print(S)       # doctest: +FLOAT_CMP
   [1895. 1862. 1871. 1846. 1882.] W / (m2 um)
+
+Interpolate with observe() and compare to the original values.
+
   >>> S_interp = sun.observe(wave, interpolate=True)
   >>> np.allclose(S.value, S_interp.value)
   True
+
+Re-bin with observe using the same wavelengths as band centers.
+
   >>> S_rebin = sun.observe(wave)
   >>> np.allclose(S.value, S_rebin.value)
   False
+
+Inspect the differences.
+
   >>> print((S_rebin - S) / (S_rebin + S) * 2)    # doctest: +FLOAT_CMP
   [-0.00429693  0.00281266 -0.00227604  0.00412338 -0.00132301]
 
@@ -242,3 +249,10 @@ Solar spectra in Sun objects can be plotted at the native resolution of the data
   plt.setp(plt.gca(), xlim=wrange, xlabel='Wavelength (μm)', ylabel='Flux density (W/(m2 μm)')
   plt.legend()
   plt.tight_layout()
+
+
+Reference/API
+-------------
+.. automodapi:: sbpy.calib
+   :no-heading:
+   :inherited-members:
