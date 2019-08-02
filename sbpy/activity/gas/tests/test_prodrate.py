@@ -2,7 +2,6 @@
 
 import numpy as np
 import astropy.units as u
-from astropy.time import Time
 from .. import Haser, photo_timescale
 from ....data import Ephem, Phys
 from .. import (LTE, einstein_coeff, intensity_conversion, beta_factor,

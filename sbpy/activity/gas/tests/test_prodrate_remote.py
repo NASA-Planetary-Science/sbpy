@@ -1,3 +1,5 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 import os
 
 import copy
@@ -279,7 +281,6 @@ def test_intensity_conversion():
     vgas = 0.8 * u.km / u.s
     mol_tag = 27001
     transition_freq = (265.886434 * u.GHz).to('MHz')
-    q_found = []
     mol_data = Phys.from_jplspec(temp_estimate, transition_freq, mol_tag)
     mol_data['eup_J'] = 3.52359898e-20 * u.J
     mol_data['elo_J'] = 1.76181853e-20 * u.J
@@ -296,7 +297,6 @@ def test_einsteincoeff_case():
     vgas = 0.8 * u.km / u.s
     mol_tag = 27001
     transition_freq = (265.886434 * u.GHz).to('MHz')
-    q_found = []
     mol_data = Phys.from_jplspec(temp_estimate, transition_freq, mol_tag)
     mol_data['t_freq'] = 2658864.34 * u.MHz
     intl = intensity_conversion(mol_data)

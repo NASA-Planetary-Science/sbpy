@@ -20,8 +20,6 @@ from astroquery.lamda import Lamda
 from ...bib import register
 from ...data import Phys
 
-conf.horizons_server = 'https://ssd.jpl.nasa.gov/horizons_batch.cgi'
-
 __all__ = ['LTE', 'NonLTE', 'einstein_coeff',
            'intensity_conversion', 'beta_factor', 'total_number',
            'from_Haser']
