@@ -135,6 +135,8 @@ Some sbpy calculations will require the effective wavelength or the pivot wavele
   ...
   UnitConversionError: 'Jy' (spectral flux density) and 'erg / (Angstrom cm2 s)' (spectral flux density wav) are not convertible  Is "V(lambda pivot)" required and was it provided?
   >>> vega_fluxd.set({
+  ...     'V': 3674.73 * u.Jy,
+  ...     'V(lambda eff)': 5476 * u.AA,
   ...     'V(lambda pivot)': 5511 * u.AA
   ... })    # doctest: +IGNORE_OUTPUT
   <ScienceState vega_fluxd: {'V': <Quantity 3674.73 Jy>, 'V(lambda eff)': <Quantity 5476. Angstrom>, 'V(lambda pivot)': <Quantity 5511. Angstrom>}>
