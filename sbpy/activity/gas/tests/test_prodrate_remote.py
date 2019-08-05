@@ -1,3 +1,5 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 import os
 
 import copy
@@ -10,8 +12,8 @@ from astroquery.lamda import Lamda
 from astroquery.jplspec import JPLSpec
 from .. import Haser, photo_timescale
 from ....data import Ephem, Phys
-from .. import (LTE, einstein_coeff, intensity_conversion, beta_factor,
-                total_number_nocd, cdensity_Bockelee)
+from .. import (LTE, NonLTE, einstein_coeff, intensity_conversion, beta_factor,
+                total_number, from_Haser)
 
 
 def data_path(filename):
@@ -34,8 +36,7 @@ def test_remote_prodrate_simple_hcn():
     q_found = []
     mol_data = Phys.from_jplspec(temp_estimate, transition_freq, mol_tag)
     intl = intensity_conversion(mol_data)
-    mol_data.apply([intl.value] * intl.unit,
-                        name='intl')
+    mol_data.apply([intl.value] * intl.unit, name='intl')
     au = einstein_coeff(mol_data)
     mol_data.apply([au.value] * au.unit, name='eincoeff')
 
@@ -76,8 +77,7 @@ def test_remote_prodrate_simple_ch3oh():
     q_found = []
     mol_data = Phys.from_jplspec(temp_estimate, transition_freq, mol_tag)
     intl = intensity_conversion(mol_data)
-    mol_data.apply([intl.value] * intl.unit,
-                        name='intl')
+    mol_data.apply([intl.value] * intl.unit, name='intl')
     au = einstein_coeff(mol_data)
     mol_data.apply([au.value] * au.unit, name='eincoeff')
 
@@ -122,8 +122,7 @@ def test_einstein():
 
         mol_data = Phys.from_jplspec(temp_estimate, transition_freq, mol_tag)
         intl = intensity_conversion(mol_data)
-        mol_data.apply([intl.value] * intl.unit,
-                                name='intl')
+        mol_data.apply([intl.value] * intl.unit, name='intl')
 
         au = einstein_coeff(mol_data)
 
@@ -158,6 +157,7 @@ def test_Haser_prodrate():
 
     co = Table.read(data_path('CO.csv'), format="ascii.csv")
 
+    lte = LTE()
     Q_estimate = 2.8*10**(28) / u.s
     transition_freq = (230.53799 * u.GHz).to('MHz')
     aper = 10 * u.m
@@ -168,13 +168,12 @@ def test_Haser_prodrate():
     b = 0.74
     mol_data = Phys.from_jplspec(temp_estimate, transition_freq, mol_tag)
     intl = intensity_conversion(mol_data)
-    mol_data.apply([intl.value] * intl.unit,
-                        name='intl')
+    mol_data.apply([intl.value] * intl.unit, name='intl')
     au = einstein_coeff(mol_data)
     mol_data.apply([au.value] * au.unit, name='eincoeff')
     mol_data.apply([1.] * u.AU * u.AU * u.s, name='beta')
     mol_data.apply([1.] / (u.m * u.m), name='cdensity')
-    mol_data.apply([1.], name='total_number_nocd')
+    mol_data.apply([1.], name='total_number')
 
     q_found = []
 
@@ -188,14 +187,12 @@ def test_Haser_prodrate():
         ephemobj = Ephem.from_horizons(target, epochs=time.jd)
         beta = beta_factor(mol_data, ephemobj)
         mol_data['beta'] = beta
-        cdensity = cdensity_Bockelee(integrated_flux, mol_data)
+        cdensity = lte.cdensity_Bockelee(integrated_flux, mol_data)
         mol_data['cdensity'] = cdensity
-        tnum = total_number_nocd(mol_data, aper, b)
-        mol_data['total_number_nocd'] = tnum
+        tnum = total_number(mol_data, aper, b)
+        mol_data['total_number'] = tnum
 
-        lte = LTE()
-
-        Q = lte.from_Haser(coma, mol_data, aper=aper)
+        Q = from_Haser(coma, mol_data, aper=aper)
 
         q_found.append(np.log10(Q.value)[0])
 
@@ -204,3 +201,159 @@ def test_Haser_prodrate():
     err = abs((np.array(q_pred) - np.array(q_found)) / np.array(q_pred) * 100)
 
     assert np.all(err < 2.5)
+
+
+'''
+Last test run: 08/01/2019 11:15:00 , sbpy version: v0.2dev259, python 3.6.8
+Author: Giannina Guzman
+Tester: Giannina Guzman
+Tested: locally, needs pyradex to be installed
+Status: Passed
+See https://github.com/keflavich/pyradex for installment
+'''
+
+
+@remote_data
+def test_Haser_pyradex():
+
+    try:
+        import pyradex
+
+        co = Table.read(data_path('CO.csv'), format="ascii.csv")
+
+        nonlte = NonLTE()
+        lte = LTE()
+        Q_estimate = 2.8*10**(28) / u.s
+        transition_freq = (230.53799 * u.GHz).to('MHz')
+        aper = 10 * u.m
+        mol_tag = 28001
+        temp_estimate = 25. * u.K
+        vgas = 0.5 * u.km / u.s
+        target = 'C/2016 R2'
+        b = 0.74
+        mol_data = Phys.from_jplspec(temp_estimate, transition_freq, mol_tag)
+        intl = intensity_conversion(mol_data)
+        mol_data.apply([intl.value] * intl.unit, name='intl')
+        au = einstein_coeff(mol_data)
+        mol_data.apply([au.value] * au.unit, name='eincoeff')
+        mol_data.apply([1.] * u.AU * u.AU * u.s, name='beta')
+        mol_data.apply([1.] / (u.m * u.m), name='cdensity')
+        mol_data.apply([1.], name='total_number')
+
+        q_found = []
+
+        parent = photo_timescale('CO') * vgas
+        coma = Haser(Q_estimate, vgas, parent)
+
+        for i in range(0, 5):
+
+            time = Time(co['Time'][i], format='iso')
+            integrated_flux = co['T_B'][i] * u.K * u.km / u.s
+            ephemobj = Ephem.from_horizons(target, epochs=time.jd)
+            beta = beta_factor(mol_data, ephemobj)
+            mol_data['beta'] = beta
+            cdensity_bockelee = lte.cdensity_Bockelee(integrated_flux, mol_data)
+            mol_data['cdensity'] = cdensity_bockelee
+            cdensity = nonlte.from_pyradex(integrated_flux, mol_data)
+            mol_data['cdensity'] = cdensity
+            tnum = total_number(mol_data, aper, b)
+            mol_data['total_number'] = tnum
+
+            Q = from_Haser(coma, mol_data, aper=aper)
+
+            q_found.append(np.log10(Q.value)[0])
+
+        q_pred = list(co['log(Q)'])
+
+        err = abs((np.array(q_pred) - np.array(q_found)) / np.array(q_pred) * 100)
+
+        assert np.all(err < 0.35)
+
+    except ImportError:
+        pass
+
+
+@remote_data
+def test_intensity_conversion():
+    # test untested case for intensity conversion function
+
+    temp_estimate = 47. * u.K
+    vgas = 0.8 * u.km / u.s
+    mol_tag = 27001
+    transition_freq = (265.886434 * u.GHz).to('MHz')
+    mol_data = Phys.from_jplspec(temp_estimate, transition_freq, mol_tag)
+    mol_data['eup_J'] = 3.52359898e-20 * u.J
+    mol_data['elo_J'] = 1.76181853e-20 * u.J
+    intl = intensity_conversion(mol_data)
+
+    assert np.isclose(intl.value, 6.186509000388917e-11)
+
+
+@remote_data
+def test_einsteincoeff_case():
+    # test untested case for einstein coefficient
+
+    temp_estimate = 47. * u.K
+    vgas = 0.8 * u.km / u.s
+    mol_tag = 27001
+    transition_freq = (265.886434 * u.GHz).to('MHz')
+    mol_data = Phys.from_jplspec(temp_estimate, transition_freq, mol_tag)
+    mol_data['t_freq'] = 2658864.34 * u.MHz
+    intl = intensity_conversion(mol_data)
+    mol_data.apply([intl.value] * intl.unit, name='intl')
+    au = einstein_coeff(mol_data)
+
+    assert np.isclose(round(au.value, 4), 0.0086)
+
+
+@remote_data
+def test_betafactor_case():
+    # test untested case for beta beta_factor
+
+    r = 1.06077567 * u.AU
+    delta = 0.14633757 * u.AU
+    quanteph = [r, delta]
+    nameseph = ['r', 'delta']
+    ephemobj = Ephem.from_dict(dict(zip(nameseph, quanteph)))
+    mol_name = 'CN'
+    namephys = ['mol_tag']
+    quantphys = [mol_name]
+    mol_data = Phys.from_dict(dict(zip(namephys, quantphys)))
+    beta = beta_factor(mol_data, ephemobj)
+
+    assert np.isclose(beta.value[0], 354452.18195014383)
+
+
+'''
+Last test run: 08/02/2019 09:32:00 , sbpy version: v0.2dev259, python 3.6.8
+Author: Giannina Guzman
+Tester: Giannina Guzman
+Tested: locally, needs pyradex to be installed
+Status: Passed
+See https://github.com/keflavich/pyradex for installment
+'''
+
+
+@remote_data
+def test_pyradex_case():
+    # test untested case for Pyradex
+    try:
+        import pyradex
+        transition_freq = (177.196 * u.GHz).to(u.MHz)
+        mol_tag = 29002
+        cdensity_guess = (1.89*10.**(14) / (u.cm * u.cm))
+        temp_estimate = 20. * u.K
+        temp_back = 2.8 * u.K
+
+        mol_data = Phys.from_jplspec(temp_estimate, transition_freq, mol_tag)
+        mol_data.apply([cdensity_guess.value] * cdensity_guess.unit, name='cdensity')
+        mol_data.apply([temp_back.value] * temp_back.unit, name='temp_back')
+        mol_data.apply(['HCO+@xpol'], name='lamda_name')
+        nonLTE = NonLTE()
+        cdensity = nonLTE.from_pyradex(1.234 * u.K * u.km / u.s, mol_data,
+                                       iter=100, collider_density={'H2': 900})
+
+        assert np.isclose(cdensity.value[0], 94500000000000.0)
+
+    except ImportError:
+        pass

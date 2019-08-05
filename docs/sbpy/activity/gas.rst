@@ -60,7 +60,7 @@ Reference data for fluorescence band emission is available via :func:`~sbpy.acti
   >>> LN = gas.fluorescence_band_strength('OH 0-0', -1 * u.km / u.s)
   >>> print(LN)    # doctest: +FLOAT_CMP
   [1.54e-15] erg / s
-  
+
 
 Gas coma models
 ---------------
@@ -89,9 +89,12 @@ Production Rate calculations
 ----------------------------
 
 `~sbpy.activity.gas.productionrate` offers various functions that aid in the calculation
-of production rates. `~sbpy.data.phys` has a function called `~sbpy.data.Phys.from_jplspec` which takes care of querying the JPL Molecular Spectral Catalog through the use of `~astroquery.jplspec` and calculates all the necessary constants needed for
+of production rates. `~sbpy.data.phys` has a function called `~sbpy.data.Phys.from_jplspec`
+which takes care of querying the JPL Molecular Spectral Catalog through the use of
+`~astroquery.jplspec` and calculates all the necessary constants needed for
 production rate calculations in this module. Yet, the option for the user to
-provide their own molecular data is possible through the use of an `~sbpy.data.phys` object, as long as it has the required information. It is imperative to read
+provide their own molecular data is possible through the use of an `~sbpy.data.phys`
+object, as long as it has the required information. It is imperative to read
 the documentation of the functions in this section to understand what is needed
 for each. If the user does not have the necessary data, they can build an object
 using JPLSpec:
@@ -102,8 +105,17 @@ using JPLSpec:
     >>> import astropy.units as u
     >>> temp_estimate = 47. * u.K
     >>> transition_freq = (230.53799 * u.GHz).to('MHz')
+    >>> integrated_flux = 0.26 * u.K * u.km / u.s
     >>> mol_tag = '^CO$'
     >>> mol_data = Phys.from_jplspec(temp_estimate, transition_freq, mol_tag)
+    >>> mol_data
+        <QTable length=1>
+     t_freq    temp         lgint300       ... degfreedom mol_tag
+      MHz       K           MHz nm2        ...
+    float64  float64        float64        ...   int64     int64
+    -------- ------- --------------------- ... ---------- -------
+    230538.0    47.0 7.591017628812526e-05 ...          2   28001
+
 
 Having this information, we can move forward towards the calculation of
 production rate. The functions that sbpy currently provides to calculate
@@ -124,7 +136,7 @@ for `~sbpy.activity.intensity_conversion` under Reference/API section.
 
     >>> from sbpy.activity import intensity_conversion
     >>> intl = intensity_conversion(mol_data)
-    >>> mol_data.add_column([intl.value] * intl.unit, name='intl')
+    >>> mol_data.apply([intl.value] * intl.unit, name='intl')
      11
     >>> intl
      <Quantity 0.00280051 MHz nm2>
@@ -133,6 +145,8 @@ for `~sbpy.activity.intensity_conversion` under Reference/API section.
 Einstein Coefficient Calculation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Einstein coefficients give us insight into the molecule's probability of spontaneous
+absorption, which is useful for production rate calculations.
 Unlike catalogs like LAMDA, JPLSpec does not offer the Eistein coefficient
 and it must be calculated using equations provided by the JPL Molecular
 Spectroscopy Catalog. These equations have been compared to established LAMDA
@@ -151,7 +165,7 @@ under Reference/API section.
 
     >>> from sbpy.activity import einstein_coeff
     >>> au = einstein_coeff(mol_data)
-    >>> mol_data.add_column([au.value] * au.unit, name = 'Einstein Coefficient')
+    >>> mol_data.apply([au.value] * au.unit, name = 'Einstein Coefficient')
      12
     >>> au
       <Quantity 7.03946054e-07 1 / s>
@@ -182,41 +196,10 @@ the needed parameters for this function follow the link for
     >>> time = Time('2017-12-22 05:24:20', format = 'iso')
     >>> ephemobj = Ephem.from_horizons(target, epochs=time.jd)
     >>> beta = beta_factor(mol_data, ephemobj)
-    >>> mol_data.add_column([beta.value] * beta.unit, name='beta')
+    >>> mol_data.apply([beta.value] * beta.unit, name='beta')
      13
     >>> beta
      <Quantity [13333365.25745597] AU2 s>
-
-
-Total Number
-^^^^^^^^^^^^
-
-In order to obtain our total number of molecules from flux data,
-with no column density information, we can use equation 10 from `Bockelee-Morvan
-et al. 2004 <https://ui.adsabs.harvard.edu/#abs/2004come.book..391B>`_ and the
-millimeter/submillimeter spectroscopy beam factors explained and detailed
-in equation 1.3 from:
-
-    | Drahus, M. (2010). Microwave observations and modeling of the molecular
-    | coma in comets. PhD Thesis, Georg-August-Universität Göttingen.
-
-If the user prefers to give the total number, they may do so by appending
-to the mol_data `~sbpy.data.phys` object with the name `total_number_nocd` or
-any of its alternative names. For more information on the needed parameters
-for this function follow the link for `~sbpy.activity.total_number_nocd`
-under Reference/API section.
-
-.. doctest-skip::
-
-    >>> from sbpy.activity import total_number_nocd
-    >>> integrated_flux = 0.26 * u.K * u.km / u.s
-    >>> b = 0.74
-    >>> aper = 10 * u.m
-    >>> tnum = total_number_nocd(integrated_flux, mol_data, aper, b)
-    >>> mol_data.add_column([tnum], name='total_number_nocd')
-     14
-    >>> tnum
-     <Quantity [2.93988826e+26]>
 
 
 Simplified Model for Production Rate
@@ -240,11 +223,87 @@ under Reference/API section.
 .. doctest-skip::
 
     >>> from sbpy.activity import LTE
-    >>> vgas = 0.5 * u.km / u.s
+    >>> vgas = 0.5 * u.km / u.s # gas velocity
     >>> lte = LTE()
     >>> q = lte.from_Drahus(integrated_flux, mol_data, ephemobj, vgas, aper, b=b)
     >>> q
      <Quantity 3.59397119e+28 1 / s>
+
+
+LTE Column Density Calculation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+To calculate a column density with no previous column density information,
+we can use equation 10 from `Bockelee-Morvan et al. 2004
+<https://ui.adsabs.harvard.edu/#abs/2004come.book..391B>`. This function is
+very useful to obtain a column density with no previous guess for it,
+and also useful to provide a first guess for the more involved Non-LTE model
+for column density explained in the next section.
+
+.. doctest-skip::
+
+    >>> cdensity = lte.cdensity_Bockelee(integrated_flux, mol_data)
+    >>> mol_data.apply([cdensity.value] * cdensity.unit, name='cdensity')
+
+
+Non-LTE Column Density Calculation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Once the user has a guess for their column density, the user can then
+implement the `sbpy.activity` NonLTE function `from_pyradex`. This function
+calculates the best fitting column density for the integrated flux data using
+the python wrapper pyradex of the Non-LTE iterative code RADEX.
+The code utilizes the LAMDA catalog collection of molecular data files,
+presently this is the only functionality available, yet in the future a function
+will be provided by `sbpy` to build your own molecular data file from JPLSpec
+for use in this function. The code will look for a 'cdensity' column value
+within `mol_data` to use as its first guess. For a more detailed look at the
+input parameters and defaults, search for `from_pyradex` in
+`~sbpy.activity.NonLTE` under the Reference/API section.
+
+.. doctest-skip::
+
+    >>> from sbpy.activty import NonLTE
+    >>> nonlte = NonLTE()
+    >>> cdensity = nonlte.from_pyradex(integrated_flux,  mol_data, iter=500)
+    >>> mol_data.apply([cdensity.value] * cdensity.unit, name='cdensity')
+
+Note that for this calculation the installation of `pyradex` is needed. Pyradex
+is a python wrapper for the RADEX fortran code. See `here
+<https://github.com/keflavich/pyradex/blob/master/INSTALL.rstB>` and
+`here <https://github.com/keflavich/pyradex>` for installation instruction and
+tips as well as a briefing of how pyradex works and what common errors
+might arise. You need to make sure you have a fortran compiler installed
+in order for pyradex to work (gfortran works and can be installed with
+homebrew for easier management).
+
+Total Number
+^^^^^^^^^^^^
+
+In order to obtain our total number of molecules from flux data, we use the
+millimeter/submillimeter spectroscopy beam factors explained and detailed
+in equation 1.3 from:
+
+    | Drahus, M. (2010). Microwave observations and modeling of the molecular
+    | coma in comets. PhD Thesis, Georg-August-Universität Göttingen.
+
+If the user prefers to give the total number, they may do so by appending
+to the mol_data `~sbpy.data.phys` object with the name `total_number_nocd` or
+any of its alternative names. For more information on the needed parameters
+for this function follow the link for `~sbpy.activity.total_number_nocd`
+under Reference/API section.
+
+.. doctest-skip::
+
+    >>> from sbpy.activity import total_number
+    >>> integrated_flux = 0.26 * u.K * u.km / u.s
+    >>> b = 0.74
+    >>> aper = 10 * u.m
+    >>> tnum = total_number(integrated_flux, mol_data, aper, b)
+    >>> mol_data.apply([tnum], name='total_number')
+     14
+    >>> tnum
+     <Quantity [2.93988826e+26]>
 
 
 Haser Model for Production Rate
@@ -268,15 +327,16 @@ under Reference/API section.
 
 .. doctest-skip::
 
-    >>> from sbpy.activity import Haser, photo_timescale
+    >>> from sbpy.activity import Haser, photo_timescale, from_Haser
     >>> Q_estimate = 3.5939*10**(28) / u.s
     >>> parent = photo_timescale('CO') * vgas
     >>> coma = Haser(Q_estimate, vgas, parent)
-    >>> lte = LTE()
-    >>> Q = lte.from_Haser(coma, mol_data, aper=aper)
+    >>> Q = from_Haser(coma, mol_data, aper=aper)
     >>> Q
      <Quantity [[9.35795579e+27]] 1 / s>
 
+For more involved examples and literature comparison for any of the production
+rate modules, please see notebook examples.
 
 Reference/API
 -------------
