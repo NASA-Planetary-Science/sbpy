@@ -165,8 +165,12 @@ class Orbit(DataClass):
         # https://ssd.jpl.nasa.gov/?horizons_doc
         all_elem['epoch'] = Time(all_elem['datetime_jd'], format='jd',
                                  scale='tdb')
+        all_elem['Tp'] = Time(all_elem['Tp_jd'], format='jd',
+                              scale='tdb')
+
         all_elem.remove_column('datetime_jd')
         all_elem.remove_column('datetime_str')
+        all_elem.remove_column('Tp_jd')
 
         return cls.from_table(all_elem)
 

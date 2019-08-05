@@ -192,6 +192,8 @@ class Ephem(DataClass):
                                        scale='ut1', format='jd').utc.jd
         all_eph['epoch'] = Time(all_eph['datetime_jd'], format='jd',
                                 scale='utc')
+        all_eph['siderealtime'].unit = u.Unit('hour')
+
         all_eph.remove_column('datetime_jd')
         all_eph.remove_column('datetime_str')
 
