@@ -154,7 +154,7 @@ class Conf():
          'provenance': ['ephem', 'obs'],
          'dimension': 'angle'},
         {'description': 'Declination',
-         'fieldnames': ['dec', 'DEC'],
+         'fieldnames': ['dec', 'DEC', 'Dec'],
          'provenance': ['ephem', 'obs'],
          'dimension': 'angle'},
         {'description': 'Right Ascension Rate',
