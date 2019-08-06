@@ -29,7 +29,7 @@ hence converted to a scale that is supported (``tdb`` in this case).
 The following fields are available in this object:
 
     >>> elem.field_names  # doctest: +REMOTE_DATA
-    <TableColumns names=('targetname','H','G','e','q','incl','Omega','w','Tp_jd','n','M','nu','a','Q','P','epoch')>
+    <TableColumns names=('targetname','H','G','e','q','incl','Omega','w','n','M','nu','a','Q','P','epoch','Tp')>
 
 If ``epochs`` is not set, the osculating elements for the current
 epoch (current time) are queried. Similar to
