@@ -26,6 +26,7 @@ class Obs(Ephem):
     @classmethod
     @cite({'data source':
            'https://minorplanetcenter.net/db_search'})
+    @cite({'software: astroquery': '2019AJ....157...98G'})
     def from_mpc(cls, targetid, id_type=None, **kwargs):
         """Load available observations for a target from the
         `Minor Planet Center <http://minorplanetcenter.net>`_ using
@@ -94,6 +95,7 @@ class Obs(Ephem):
 
         return cls.from_table(results)
 
+    @cite({'software: astroquery': '2019AJ....157...98G'})
     def supplement(self, service='jplhorizons', id_field='targetname',
                    epoch_field='epoch', location='500',
                    modify_fieldnames='obs', **kwargs):

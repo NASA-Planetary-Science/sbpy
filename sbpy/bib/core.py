@@ -107,7 +107,8 @@ def track():
     """Enable `sbpy` bibliography tracking."""
     global _track
     _track = True
-    register('sbpy', {'software': ['https://doi.org/10.21105/joss.01426']})
+    register('sbpy', {'software: sbpy': [
+             'https://doi.org/10.21105/joss.01426']})
 
 
 class Tracking:
@@ -155,6 +156,9 @@ def cite(citations):
     >>> with Tracking(to_text):
     ...     print(force(1, 2))    # doctest: +REMOTE_DATA
     2
+    sbpy:
+      software: sbpy:
+          https://doi.org/10.21105/joss.01426
     sbpy.bib.core.force:
       method:
           Newton 1687, Philosophiae Naturalis Principia Mathematica. Auctore Js. Newton
@@ -341,7 +345,7 @@ def _to_format(format, filter=None):
                     output += '% {:s}/{:s}:\n{:s}\n'.format(
                         task, key.replace(' ', '_'), data)
                 except ads.exceptions.APIResponseError:
-                    output += '% {:s}/{:s}:\n{:s}\n'.format(
+                    output += '% {:s}/{:s}:\n{:s}\n\n'.format(
                         task, key.replace(' ', '_'), ", ".join(list(val)))
 
     return output

@@ -182,8 +182,8 @@ class TestEphemFromMPC:
         assert eph['Date'][1] == '2018-10-06 00:00:00.000'
 
     def test_step_unit(self):
-        with pytest.raises(ValueError):
-            eph = Ephem.from_mpc('Ceres', epochs={
+        with pytest.raises(QueryError):
+            Ephem.from_mpc('Ceres', epochs={
                 'start': Time('2018-10-01'),
                 'step': 1*u.year})
 
