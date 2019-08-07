@@ -262,7 +262,7 @@ classes.
         </tr>
     </table>
 
-    
+
 `sbpy.calib`
 --------------
 
@@ -299,7 +299,7 @@ classes.
         </tr>
    </table>
 
-    
+
 `sbpy.photometry`
 -----------------
 
@@ -331,7 +331,37 @@ classes.
                 JYL
             </td>
             <td>
-                disk integrated phase functions implemented: HG, HG12, HG1G2, linear phasecurve; disk-resolved phase functions tbd.
+                Disk integrated phase functions implemented: HG, HG1G2, HG12,
+                HG12_Pen16, linear phasecurve; disk-resolved phase functions
+                tbd.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <em>sbpy.photometry.hapke</em>
+            </td>
+            <td align='center'>
+                <span class="planned"></span>
+            </td>
+            <td align='center'>
+                JYL
+            </td>
+            <td>
+                Hapke photometric model TBD.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <em>sbpy.photometry.dust</em>
+            </td>
+            <td align='center'>
+                <span class="planned"></span>
+            </td>
+            <td align='center'>
+                JYL
+            </td>
+            <td>
+                Phase function of dust grains in cometary comae TBD.
             </td>
         </tr>
     </table>
@@ -387,7 +417,7 @@ classes.
         </tr>
     </table>
 
-    
+
 `sbpy.spectroscopy`
 -------------------
 
@@ -464,6 +494,20 @@ classes.
                 `synphot` integration complete, basic quantities (bandpass filtering, color index) complete.
             </td>
         </tr>
+        <tr>
+            <td>
+                <em>sbpy.spectroscopy.hapke</em>
+            </td>
+            <td align='center'>
+                <span class="planned"></span>
+            </td>
+            <td align='center'>
+                JYL
+            </td>
+             <td>
+                Hapke spectral mixing model, TBD.
+            </td>
+        </tr>
     </table>
 
 `sbpy.thermal`
@@ -497,12 +541,12 @@ classes.
                 MM
             </td>
             <td>
-                STM, FRM, NEATM thermal model implementations tbd, fitting and modeling routines tbd. 
+                STM, FRM, NEATM thermal model implementations tbd, fitting and modeling routines tbd.
             </td>
         </tr>
    </table>
 
-    
+
 `sbpy.imageanalysis`
 --------------------
 
@@ -622,7 +666,7 @@ classes.
                 MSK/MdVB/MM
             </td>
             <td>
-                fully implemented 
+                fully implemented
             </td>
         </tr>
     </table>
@@ -676,4 +720,4 @@ classes.
             </td>
         </tr>
     </table>
-    
+

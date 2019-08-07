@@ -18,8 +18,8 @@ adopted a number of models to describe the phase function of asteroids,
 including the two-parameter H, G system (Bowell et al. 1989), the
 three-parameter H, G1, G2, and the two-parameter H, G12 system derived from
 the three-parameter system (Muinonen et al. 2010).  The H, G12 system was
-further revised by Penttilä et al. (2016).  `~sbpy.photometry` provides all
-four models classes `~sbpy.photometry.HG`, `~sbpy.photometry.HG1G2`,
+further revised by Penttilä et al. (2016).  `~sbpy.photometry` provides
+classes for all four models `~sbpy.photometry.HG`, `~sbpy.photometry.HG1G2`,
 `~sbpy.photometry.HG12`, and `~sbpy.photometry.HG12_Pen16`, respectively.
 
 The photometric model class can be initialized with the default parameters,
