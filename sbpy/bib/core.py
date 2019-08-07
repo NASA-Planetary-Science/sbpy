@@ -107,6 +107,7 @@ def track():
     """Enable `sbpy` bibliography tracking."""
     global _track
     _track = True
+    register('sbpy', {'software': ['https://doi.org/10.21105/joss.01426']})
 
 
 class Tracking:
@@ -330,23 +331,18 @@ def _to_format(format, filter=None):
     for task, ref in _filter(filter).items():
         with warnings.catch_warnings():
             # warnings.filterwarnings('error')
-            try:
-                for key, val in ref.items():
-                    # This method avoids using multiple calls to the
-                    # API that may impact rate limits
-                    # https://github.com/adsabs/adsabs-dev-api/blob/master/Export_API.ipynb
+            for key, val in ref.items():
+                # This method avoids using multiple calls to the
+                # API that may impact rate limits
+                # https://github.com/adsabs/adsabs-dev-api/blob/master/Export_API.ipynb
+                try:
                     query = ads.ExportQuery(list(val), format=format)
                     data = query.execute()
-                    output += '% {:s}/{:s}:\n{:s}\n'.format(task, key,
-                                                            data)
-            except ads.exceptions.APIResponseError as e:
-                e = str(e)
-                if '<title>' in e:
-                    e = e[e.find('<title>')+7: e.find('</title>')]
-                warnings.warn('cannot obtain ADS data for {:s}/{:s}: ({:s})'.
-                              format(task, key, e),
-                              RuntimeWarning)
-                pass
+                    output += '% {:s}/{:s}:\n{:s}\n'.format(
+                        task, key.replace(' ', '_'), data)
+                except ads.exceptions.APIResponseError:
+                    output += '% {:s}/{:s}:\n{:s}\n'.format(
+                        task, key.replace(' ', '_'), ", ".join(list(val)))
 
     return output
 
