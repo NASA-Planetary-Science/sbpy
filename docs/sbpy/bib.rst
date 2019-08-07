@@ -31,7 +31,7 @@ Use `~sbpy.bib.track()` to enable citation tracking. Every method called after a
     >>> eph = data.Ephem.from_horizons('433')    # doctest: +SKIP
     >>> print(bib.to_text())                     # doctest: +SKIP
     sbpy.data.Ephem.from_horizons:
-      data service:
+      data source:
           Giorgini, Yeomans, Chamberlin et al. 1996, AAS/Division for Planetary Sciences Meeting Abstracts #28, 25.04
 
 In this case, ``Giorgini et al. 1996, 1996DPS....28.2504G`` describes the JPL Horizons data service that is queried by :func:`~sbpy.data.Ephem.from_horizons`. `~sbpy.bib.to_text` outputs the current citation registry in simple text form.
@@ -50,7 +50,7 @@ Bibliography tracking can also be used in a context manager:
     >>> with bib.Tracking(bib.to_text):
     ...     eph = data.Ephem.from_horizons('Ceres')    # doctest: +SKIP
     sbpy.data.Ephem.from_horizons:
-      data service:
+      data source:
           Giorgini, Yeomans, Chamberlin et al. 1996, AAS/Division for Planetary Sciences Meeting Abstracts #28, 25.04
 
 Automatic reporting
@@ -73,7 +73,7 @@ Unformatted (`~sbpy.bib.show`)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     >>> bib.show() # doctest: +SKIP
     sbpy.data.Ephem.from_horizons:
-      data service:
+      data source:
         1996DPS....28.2504G
 
 
@@ -81,14 +81,14 @@ Simple text (`~sbpy.bib.to_text`)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     >>> bib.to_text() # doctest: +SKIP
     sbpy.data.Ephem.from_horizons:
-      data service:
+      data source:
           Giorgini, Yeomans, Chamberlin et al. 1996, AAS/Division for Planetary Sciences Meeting Abstracts #28, 25.04
 
 
 BibTeX (`~sbpy.bib.to_bibtex`)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     >>> bib.to_bibtex() # doctest: +SKIP
-    % sbpy.data.Ephem.from_horizons/data service:
+    % sbpy.data.Ephem.from_horizons/data source:
     @INPROCEEDINGS{1996DPS....28.2504G,
            author = {{Giorgini}, J.~D. and {Yeomans}, D.~K. and {Chamberlin}, A.~B. and
             {Chodas}, P.~W. and {Jacobson}, R.~A. and {Keesey}, M.~S. and
@@ -107,7 +107,7 @@ BibTeX (`~sbpy.bib.to_bibtex`)
 AASTeX (`~sbpy.bib.to_aastex`)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     >>> bib.to_aastex() # doctest: +SKIP
-    % sbpy.data.Ephem.from_horizons/data service:
+    % sbpy.data.Ephem.from_horizons/data source:
     \bibitem[Giorgini et al.(1996)]{1996DPS....28.2504G} Giorgini, J.~D.,
     Yeomans, D.~K., Chamberlin, A.~B., et al.\ 1996, AAS/Division for
     Planetary Sciences Meeting Abstracts \#28 , 25.04.
@@ -115,7 +115,7 @@ AASTeX (`~sbpy.bib.to_aastex`)
 Icarus (`~sbpy.bib.to_icarus`)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     >>> bib.to_icarus() # doctest: +SKIP
-    % sbpy.data.Ephem.from_horizons/data service:
+    % sbpy.data.Ephem.from_horizons/data source:
     \bibitem[Giorgini et al.(1996)]{1996DPS....28.2504G} Giorgini, J.~D.,
     and 9 colleagues 1996.\ JPL's On-Line Solar System Data Service.\
     AAS/Division for Planetary Sciences Meeting Abstracts \#28 25.04.
@@ -123,7 +123,7 @@ Icarus (`~sbpy.bib.to_icarus`)
 MNRAS (`~sbpy.bib.to_mnras`)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     >>> bib.to_mnras() # doctest: +SKIP
-    % sbpy.data.Ephem.from_horizons/data service:
+    % sbpy.data.Ephem.from_horizons/data source:
     \bibitem[\protect\citeauthoryear{Giorgini, et al.}{1996}]{1996DPS....28.2504G}
     Giorgini J.~D., et al., 1996, AAS/Division for Planetary Sciences
     Meeting Abstracts \#28, 25.04
@@ -137,6 +137,28 @@ so, please re-try the query until it is successful.
 Other bibliography styles, for instance in accordance to specific
 journal rules, can be readily implemented.
 
+Filtering
+---------
+
+The aformentioned output functions enable the filtering of references
+based on their relevance. For instance, in the examples show above,
+the relevance is ``data source``. In order to properly use filter,
+only select keywords can be used a relevance: allowed is any string
+that **must start with** either of the following words: ``'method'``
+(acknowledge the original author of the method), ``'data source'``
+(acknowledge a service or publication providing data), ``'software'``
+(acknowledge existing software that was used), or ``'parameter'``
+(acknowledge specific parameter choices).
+
+For instance, to create a list of software packages that were used,
+you can select only citations that are relevant to ``software`` by
+using:
+
+    >>> bib.to_aastex(filter='software')  # doctest: +SKIP
+
+This list can be readily used in your publication to cite software
+packages that were used as part of session.
+    
 
 Reference/API
 -------------

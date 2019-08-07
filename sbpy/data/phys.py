@@ -17,7 +17,7 @@ from astroquery.jplsbdb import SBDB
 from astroquery.jplspec import JPLSpec
 
 from .core import DataClass
-from .. import bib
+from ..bib import cite
 from ..exceptions import SbpyException
 
 __all__ = ['Phys']
@@ -33,6 +33,7 @@ class Phys(DataClass):
     """Class for storing and querying physical properties"""
 
     @classmethod
+    @cite({'software: astroquery': '2019AJ....157...98G'})
     def from_sbdb(cls, targetids, references=False, notes=False):
         """Load physical properties from `JPL Small-Body Database (SBDB)
         <https://ssd.jpl.nasa.gov/sbdb.cgi>`_ using
@@ -153,15 +154,11 @@ class Phys(DataClass):
             else:
                 coldata.append(data)
 
-        if bib.status() is None or bib.status():
-            bib.register('sbpy.data.Phys.from_sbdb',
-                         {'data service url':
-                          'https://ssd.jpl.nasa.gov/sbdb.cgi'})
-
         # assemble data as Phys object
         return cls.from_columns(coldata, names=columnnames)
 
     @classmethod
+    @cite({'software: astroquery': '2019AJ....157...98G'})
     def from_jplspec(cls, temp_estimate, transition_freq, mol_tag):
         """Returns relevant constants from JPLSpec catalog and energy
         calculations

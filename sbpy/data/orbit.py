@@ -21,11 +21,16 @@ from ..bib import cite
 from ..exceptions import SbpyException
 from . import conf, DataClass, QueryError, TimeScaleWarning
 
-__all__ = ['Orbit']
+__all__ = ['Orbit', 'OrbitError', 'OpenOrbError']
 
 
 class OrbitError(SbpyException):
     """Generic Error used in sbpy.data.orbit"""
+    pass
+
+
+class OpenOrbError(SbpyException):
+    """To be raised by issues with OpenOrb"""
     pass
 
 
@@ -35,6 +40,7 @@ class Orbit(DataClass):
 
     @classmethod
     @cite({'data source': '1996DPS....28.2504G'})
+    @cite({'software: astroquery': '2019AJ....157...98G'})
     def from_horizons(cls, targetids, id_type='smallbody',
                       epochs=None, center='500@10',
                       **kwargs):
@@ -177,6 +183,7 @@ class Orbit(DataClass):
     @classmethod
     @cite({'data source':
            'https://minorplanetcenter.net/iau/MPEph/MPEph.html'})
+    @cite({'software: astroquery': '2019AJ....157...98G'})
     def from_mpc(cls, targetids, id_type=None, target_type=None, **kwargs):
         """Load latest orbital elements from the
         `Minor Planet Center <http://minorplanetcenter.net>`_.
@@ -501,7 +508,7 @@ class Orbit(DataClass):
                              'DEL': 4, 'EQX': 5}[orbittype])
 
         if err != 0:
-            RuntimeError('pyoorb failed with error code {:d}'.format(err))
+            OpenOrbError('pyoorb failed with error code {:d}'.format(err))
 
         # reorder data in Orbit object
         field_names = conf.oorb_orbit_fields[orbittype]
@@ -623,7 +630,7 @@ class Orbit(DataClass):
                 pass
 
         if orbittype is None:
-            raise ValueError(
+            raise OrbitError(
                 'orbit type cannot be determined from elements')
 
         # derive and apply default units
@@ -652,7 +659,7 @@ class Orbit(DataClass):
             in_dynmodel=dynmodel)
 
         if err != 0:
-            RuntimeError('pyoorb failed with error code {:d}'.format(err))
+            OpenOrbError('pyoorb failed with error code {:d}'.format(err))
 
         # reorder data in Orbit object
         field_names = conf.oorb_orbit_fields[orbittype]

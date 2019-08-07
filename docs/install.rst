@@ -29,7 +29,10 @@ wants to use them:
   orbit transformations (`~sbpy.data.Orbit.oo_transform`) and
   propagations (`~sbpy.data.Orbit.oo_propagate`), as well as
   ephemerides calculations (`~sbpy.data.Ephem.from_oo`).
-
+* `pyradex <https://github.com/keflavich/pyradex>`__: For non-LTE
+  production rate calculation related to cometary activity
+  (`~sbpy.activity.gas.NonLTE`).
+  
 
 Using pip
 ^^^^^^^^^

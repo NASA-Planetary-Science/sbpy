@@ -48,6 +48,9 @@ With the :doc:`../bib`, the citation may be discovered:
   >>> with bib.Tracking():
   ...    tau = gas.photo_timescale('H2O')
   >>> print(bib.to_text())    # doctest: +REMOTE_DATA
+  sbpy:
+    software: sbpy:
+        https://doi.org/10.21105/joss.01426
   sbpy.activity.gas.core.photo_timescale:
     H2O photodissociation timescale:
         Cochran & Schleicher 1993, Icarus, Vol 105, 1, 235

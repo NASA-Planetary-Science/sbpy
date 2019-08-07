@@ -24,6 +24,8 @@ from astropy.coordinates import EarthLocation
 
 from ..bib import cite
 from .core import DataClass, conf, QueryError, TimeScaleWarning
+from ..exceptions import SbpyException
+from .orbit import OpenOrbError
 
 __all__ = ['Ephem']
 
@@ -33,6 +35,7 @@ class Ephem(DataClass):
 
     @classmethod
     @cite({'data source': '1996DPS....28.2504G'})
+    @cite({'software: astroquery': '2019AJ....157...98G'})
     def from_horizons(cls, targetids, id_type='smallbody',
                       epochs=None, location='500', **kwargs):
         """Load target ephemerides from
@@ -202,6 +205,7 @@ class Ephem(DataClass):
     @classmethod
     @cite({'data source':
            'https://minorplanetcenter.net/iau/MPEph/MPEph.html'})
+    @cite({'software: astroquery': '2019AJ....157...98G'})
     def from_mpc(cls, targetids, epochs=None, location='500', **kwargs):
         """Load ephemerides from the
         `Minor Planet Center <http://minorplanetcenter.net>`_.
@@ -332,7 +336,7 @@ class Ephem(DataClass):
             if step is not None and stop is None:
                 step = u.Quantity(step)
                 if step.unit not in (u.d, u.h, u.min, u.s):
-                    raise ValueError(
+                    raise QueryError(
                         'step must have units of days, hours, minutes,'
                         ' or seconds')
             if stop is not None:
@@ -401,6 +405,7 @@ class Ephem(DataClass):
 
     @classmethod
     @cite({'data source': 'http://vo.imcce.fr/webservices/miriade/'})
+    @cite({'software: astroquery': '2019AJ....157...98G'})
     def from_miriade(cls, targetids, objtype='asteroid',
                      epochs=None, location='500', **kwargs):
         """Load target ephemerides from
@@ -706,7 +711,7 @@ class Ephem(DataClass):
                 pass
 
         if orbittype is None:
-            raise ValueError(
+            raise OpenOrbError(
                 'orbit type cannot be determined from elements')
 
         # add/update orbittype column
@@ -750,7 +755,7 @@ class Ephem(DataClass):
                 dynmodel)
 
         if err != 0:
-            RuntimeError('pyoorb failed with error code {:d}'.format(err))
+            OpenOrbError('pyoorb failed with error code {:d}'.format(err))
 
         # reorder data on per-column basis and apply units
         oo_eph_col = hstack([oo_eph.transpose()[:, :, i]

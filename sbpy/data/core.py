@@ -849,4 +849,7 @@ class DataClass():
         # add new column
         _newtable.add_column(Column(_newcolumn, name=name, unit=unit))
 
+        # restore meta data
+        _newtable.meta = self.meta
+
         self._table = _newtable
