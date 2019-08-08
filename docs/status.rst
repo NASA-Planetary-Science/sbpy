@@ -116,13 +116,13 @@ classes.
                 <em>sbpy.data.DataClass</em>
             </td>
             <td align='center'>
-                <span class="stable"></span>
+                <span class="mature"></span>
             </td>
             <td align='center'>
                 MM
             </td>
             <td>
-                basic functionality established, alternative property names implemented; tests and documentation available
+                fully implemented
             </td>
         </tr>
         <tr>
@@ -136,21 +136,21 @@ classes.
                 MM
             </td>
              <td>
-                asteroid and comet name parsing established, asteroid_or_comet implemented; <em>sbpy.data.Names.altident</em> not yet implemented
-            </td>
+                waiting for Lowell ASTORB functionality for alternative name queries 
+             </td>
         </tr>
         <tr>
             <td>
                 <em>sbpy.data.Ephem</em>
             </td>
             <td align='center'>
-                <span class="stable"></span>
+                <span class="mature"></span>
             </td>
             <td align='center'>
                 MM
             </td>
             <td>
-	       jplhorizons and Minor Planet Center queries implemented, OpenOrb ephemeris computation available; imcce, lowell queries tbd.
+	       fully implemented
             </td>
         </tr>
         <tr>
@@ -158,13 +158,13 @@ classes.
                 <em>sbpy.data.Obs</em>
             </td>
             <td align='center'>
-                <span class="stable"></span>
+                <span class="mature"></span>
             </td>
             <td align='center'>
                 MM
             </td>
             <td>
-                from_mpc query and supplement method implemented
+                fully implemented
             </td>
         </tr>
         <tr>
@@ -178,7 +178,7 @@ classes.
                 MM
             </td>
             <td>
-                jplhorizons query implemented, OpenOrb orbit transformations and orbit propagation implemented; mpc, imcce, lowell queries, as well as OpenOrb ranging tbd.
+	        OpenOrb ranging to be implemented
             </td>
         </tr>
         <tr>
@@ -186,13 +186,13 @@ classes.
                 <em>sbpy.data.Phys</em>
             </td>
             <td align='center'>
-                <span class="dev"></span>
+                <span class="stable"></span>
             </td>
             <td align='center'>
                 MM
             </td>
             <td>
-                jplsbdb query implemented; lowell query tbd.
+                waiting for Lowell ASTORB functionality for physical properties queries
             </td>
         </tr>
     </table>
@@ -535,13 +535,13 @@ classes.
                 <em>sbpy.thermal</em>
             </td>
             <td align='center'>
-                <span class="planned"></span>
+                <span class="dev"></span>
             </td>
             <td align='center'>
                 MM
             </td>
             <td>
-                STM, FRM, NEATM thermal model implementations tbd, fitting and modeling routines tbd.
+                currently under development
             </td>
         </tr>
    </table>
