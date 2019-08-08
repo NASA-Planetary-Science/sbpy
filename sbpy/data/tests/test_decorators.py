@@ -4,6 +4,7 @@ import pytest
 import numpy as np
 import astropy.units as u
 from astropy.table import Table, QTable
+import pytest
 from ... import data as sbd
 from ..decorators import *
 
@@ -18,6 +19,19 @@ def test_quantity_to_dataclass_single():
     assert temperature(rh, 1, 2, 3) == temperature(eph, 7, 8, 9, d=10)
     assert np.isclose(temperature(rh, 4, 5, 6).value, 278.0)
 
+def test_quantity_to_dataclass_single_quantity_check():
+    @quantity_to_dataclass(eph=('rh', sbd.Ephem, 'length'))
+    def temperature(eph, a, b, c, d=5):
+        return 278 * u.K / np.sqrt(eph['rh'] / u.au)
+
+    rh = 1 * u.au
+    eph = sbd.Ephem.from_dict({'rh': 1 * u.au})
+    assert temperature(rh, 1, 2, 3) == temperature(eph, 7, 8, 9, d=10)
+    assert np.isclose(temperature(rh, 4, 5, 6).value, 278.0)
+    with pytest.raises(TypeError):
+        temperature(1, 1, 2, 3)
+    with pytest.raises(u.UnitsError):
+        temperature(1 * u.s, 1, 2, 3)
 
 def test_quantity_to_dataclass_multiple():
     @quantity_to_dataclass(eph=('rh', sbd.Ephem), orbit=('a', sbd.Orbit))
@@ -28,6 +42,19 @@ def test_quantity_to_dataclass_multiple():
     a = 2 * u.au
     assert np.isclose(contrived(rh, a).value, 0.5)
 
+def test_quantity_to_dataclass_multiple_quantity_check():
+    @quantity_to_dataclass(eph=('rh', sbd.Ephem, 'length'),
+        orbit=('a', sbd.Orbit, 'length'))
+    def contrived(eph, orbit):
+        return (eph['rh'] / orbit['a']).decompose()
+
+    rh = 1 * u.au
+    a = 2 * u.au
+    assert np.isclose(contrived(rh, a).value, 0.5)
+    with pytest.raises(TypeError):
+        contrived(1, a)
+    with pytest.raises(u.UnitsError):
+        contrived(rh, 2 * u.s)
 
 def test_quantity_to_dataclass_stacked():
     """Note, this is not a preferred use case."""
@@ -42,6 +69,22 @@ def test_quantity_to_dataclass_stacked():
     R = 100 * u.km
     assert np.isclose(contrived(rh, a, R).value, 50)
 
+def test_quantity_to_dataclass_stacked_quantity_check():
+    """Note, this is not a preferred use case."""
+    @quantity_to_dataclass(eph=('rh', sbd.Ephem, 'length'))
+    @quantity_to_dataclass(orbit=('a', sbd.Orbit, 'au'))
+    @quantity_to_dataclass(phys=('R', sbd.Phys, 'km'))
+    def contrived(eph, orbit, phys):
+        return (eph['rh'] / orbit['a']).decompose() * phys['R']
+
+    rh = 1 * u.au
+    a = 2 * u.au
+    R = 100 * u.km
+    assert np.isclose(contrived(rh, a, R).value, 50)
+    with pytest.raises(TypeError):
+        contrived(1, a, R)
+    with pytest.raises(u.UnitsError):
+        contrived(rh, 2 * u.s, R)
 
 def test_quantity_to_dataclass_optional():
     @quantity_to_dataclass(eph=('rh', sbd.Ephem))
