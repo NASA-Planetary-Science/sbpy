@@ -19,6 +19,7 @@ def test_quantity_to_dataclass_single():
     assert temperature(rh, 1, 2, 3) == temperature(eph, 7, 8, 9, d=10)
     assert np.isclose(temperature(rh, 4, 5, 6).value, 278.0)
 
+
 def test_quantity_to_dataclass_single_quantity_check():
     @quantity_to_dataclass(eph=('rh', sbd.Ephem, 'length'))
     def temperature(eph, a, b, c, d=5):
@@ -33,6 +34,7 @@ def test_quantity_to_dataclass_single_quantity_check():
     with pytest.raises(u.UnitsError):
         temperature(1 * u.s, 1, 2, 3)
 
+
 def test_quantity_to_dataclass_multiple():
     @quantity_to_dataclass(eph=('rh', sbd.Ephem), orbit=('a', sbd.Orbit))
     def contrived(eph, orbit):
@@ -41,6 +43,7 @@ def test_quantity_to_dataclass_multiple():
     rh = 1 * u.au
     a = 2 * u.au
     assert np.isclose(contrived(rh, a).value, 0.5)
+
 
 def test_quantity_to_dataclass_multiple_quantity_check():
     @quantity_to_dataclass(eph=('rh', sbd.Ephem, 'length'),
@@ -56,6 +59,7 @@ def test_quantity_to_dataclass_multiple_quantity_check():
     with pytest.raises(u.UnitsError):
         contrived(rh, 2 * u.s)
 
+
 def test_quantity_to_dataclass_stacked():
     """Note, this is not a preferred use case."""
     @quantity_to_dataclass(eph=('rh', sbd.Ephem))
@@ -68,6 +72,7 @@ def test_quantity_to_dataclass_stacked():
     a = 2 * u.au
     R = 100 * u.km
     assert np.isclose(contrived(rh, a, R).value, 50)
+
 
 def test_quantity_to_dataclass_stacked_quantity_check():
     """Note, this is not a preferred use case."""
@@ -85,6 +90,7 @@ def test_quantity_to_dataclass_stacked_quantity_check():
         contrived(1, a, R)
     with pytest.raises(u.UnitsError):
         contrived(rh, 2 * u.s, R)
+
 
 def test_quantity_to_dataclass_optional():
     @quantity_to_dataclass(eph=('rh', sbd.Ephem))
