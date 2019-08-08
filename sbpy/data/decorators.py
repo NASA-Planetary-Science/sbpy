@@ -93,7 +93,8 @@ def quantity_to_dataclass(**kwargs):
                     from astropy.units.decorators import (_get_allowed_units,
                          _validate_arg_value)
                     units = decorator_kwargs[param.name][2]
-                    if not hasattr(units, '__iter__'):
+                    if isinstance(units, str) or (not hasattr(units,
+                            '__iter__')):
                         units = [units]
                     units = _get_allowed_units(units)
                 else:
