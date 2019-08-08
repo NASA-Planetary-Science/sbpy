@@ -42,6 +42,19 @@ def quantity_to_dataclass(**kwargs):
     >>> print(temperature(eph))         # doctest: +FLOAT_CMP
     [278.] K
 
+    This decorator also optionally check function parameters as
+    astropy Quantity and units similar to the functionality of
+    `astropy.units.quantity_input`:
+
+    >>> import astropy.units as u
+    >>> import sbpy.data as sbd
+    >>>
+    >>> @sbd.quantity_to_dataclass(eph=(sbd.Ephem, 'rh', 'length'))
+    ... def temperature(eph):
+    ...     return 278 * u.K / (eph['rh'] / u.au)**0.5
+    >>>
+    >>> print(temperature(1 * u.s))     # doctest: +SKIP
+    UnitsError: Argument 'eph' to function 'temperature' must be in units convertible to 'm'.
     """
 
     def decorator(wrapped_function):
