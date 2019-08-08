@@ -11,7 +11,7 @@ Requirements
 ^^^^^^^^^^^^
 
 `sbpy` has the following requirements that will be automatically taken
-of with installation using pip:
+care of with installation using pip:
 
 * Python 3.6 or later
 * `numpy <https://www.numpy.org/>`__ 1.13.0 or later

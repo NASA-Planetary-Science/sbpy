@@ -1,3 +1,5 @@
+.. doctest-skip-all
+
 About sbpy
 ==========
 
@@ -13,7 +15,7 @@ comets.
 
 As such, `sbpy` is open source and freely available to everyone. The
 development of `sbpy` is funded through NASA PDART Grant
-No. 80NSSC18K0987, but contributions are welcome for everyone!
+No. 80NSSC18K0987, but contributions are welcome by everyone!
 
 
 Why sbpy?
@@ -54,7 +56,7 @@ of the progress of development, please have a look at the :ref:`status
 page`.
   
 Additional functionality may be implemented. If you are interested in
-contributing to `sbpy`, please have a look at the :ref:`contributing`.
+contributing to `sbpy`, please have a look at the :ref:`contribution guidelines <contributing>`.
   
 Module Structure
 ----------------
@@ -287,8 +289,8 @@ Physical parameters are quantities
 
 `sbpy` requires every parameter with a physical dimension (e.g.,
 length, mass, velocity, etc.) to be a `astropy.units.Quantity`
-object. Only dimensionless parameters (eccentricity, infrared beaming
-parameter, etc.) are allowed to be floats.
+object. Only dimensionless parameters (e.g., eccentricity, infrared beaming
+parameter, etc.) are allowed to be dimensionless data types such as floats.
 
 The reason for this decision is simple: every `astropy.units.Quantity`
 object comes with a physical unit. Consider the following example: we
@@ -298,10 +300,10 @@ define a `~sbpy.data.Phys` object with a diameter for asteroid Ceres:
     >>> ceres = Phys.from_dict({'targetname': 'Ceres',
     ...                         'diameter': 945})
 
-Of course, Ceres' diameter is 945~km. But this is not clear from this
-definition:
+Of course, everybody knows that Ceres' diameter is 945 km. But this is
+not clear from this definition:
 
-    >>> ceres['diameter'] # doctest: +SKIP
+    >>> ceres['diameter']
     <QTable length=1>
     targetname diameter
        str5     int64  
@@ -310,7 +312,9 @@ definition:
 
 Any functionality in `sbpy` thus has to presume that diameters are
 always given in km. This makes sense for large objects - but what
-about meter-sized objects like Near-Earth asteroids? Following the
+about meter-sized objects like Near-Earth asteroids?
+
+Following the
 `Zen of Python <https://www.python.org/dev/peps/pep-0020/>`_ (explicit
 is better than implicit), we require that units are explicitly
 defined:
@@ -318,7 +322,7 @@ defined:
     >>> import astropy.units as u
     >>> ceres = Phys.from_dict({'targetname': 'Ceres',
     ...                         'diameter': 945*u.km})
-    >>> ceres # doctest: +SKIP
+    >>> ceres
     <QTable length=1>
     targetname diameter
 		  km   
@@ -329,7 +333,7 @@ defined:
 This way, units and dimensions are always available where they make
 sense and we can easily convert between different units:
 
-    >>> ceres['diameter'].to('m') # doctest: +SKIP
+    >>> ceres['diameter'].to('m')
     [945000.] m
 
     
@@ -337,49 +341,57 @@ sense and we can easily convert between different units:
 Epochs must be Time objects
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Following the same reasoning as above, we require that epochs and
-points in time are defined as `~astropy.time.Time` objects:
+The same point in time can be described by a human-readable ISO time
+string (``'2019-08-08 17:11:19.196'``) or a Julian Date
+(``2458704.216194403``), as well as other formats. Furthermore, these
+time formats return different results for different time scales: UT
+ISO time ``'2019-08-08 17:11:19.196'`` converts to ``'2019-08-08
+17:12:28.379'`` using the TDB time scale.
+
+In order to minimize confusion introduced by different time formats
+and time scales, `sbpy` requires that epochs and points in time are
+defined as `~astropy.time.Time` objects, which resolve this confusion:
 
     >>> from sbpy.data import Obs
     >>> from astropy.time import Time
     >>> obs = Obs.from_dict({'epoch': Time(['2018-01-12', '2018-01-13']),
     ...                      'mag': [12.3, 12.6]*u.mag})
-    >>> obs['epoch'] # doctest: +SKIP
+    >>> obs['epoch']
     ['2018-01-12 00:00:00.000' '2018-01-13 00:00:00.000']
-    
+
 `~astropy.time.Time` objects can be readily converted into other formats:
 
-    >>> obs['epoch'].jd # doctest: +SKIP
+    >>> obs['epoch'].jd
     [2458130.5 2458131.5]
-    >>> obs['epoch'].mjd # doctest: +SKIP
+    >>> obs['epoch'].mjd
     [58130. 58131.]
-    >>> obs['epoch'].decimalyear # doctest: +SKIP
+    >>> obs['epoch'].decimalyear
     [2018.03013699 2018.03287671]
-    >>> obs['epoch'].iso # doctest: +SKIP
+    >>> obs['epoch'].iso
     ['2018-01-12 00:00:00.000' '2018-01-13 00:00:00.000']
 
 ... as well as other time scales:
 
-    >>> obs['epoch'].utc.iso # doctest: +SKIP
+    >>> obs['epoch'].utc.iso
     ['2018-01-12 00:00:00.000' '2018-01-13 00:00:00.000']
-    >>> obs['epoch'].tdb.iso # doctest: +SKIP
+    >>> obs['epoch'].tdb.iso
     ['2018-01-12 00:01:09.184' '2018-01-13 00:01:09.184']
-    >>> obs['epoch'].tai.iso # doctest: +SKIP
+    >>> obs['epoch'].tai.iso
     ['2018-01-12 00:00:37.000' '2018-01-13 00:00:37.000']
 
-See :ref:`epochs` for additional information.
+See :ref:`epochs` and `~astropy.time.Time` for additional information.
     
     
 Use sbpy ``DataClass`` objects
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Finally, we require that topically similar parametes are bundled in
+Finally, we require that topically similar parameters are bundled in
 `~sbpy.data.DataClass` objects, which serve as data containers (see
 :ref:`this page <data containers>` for an introduction).
 
-This containerization makes it possible to keep data nearly formatted
+This containerization makes it possible to keep data neatly formatted
 and to minimize the number of input parameters for functions and
-method.
+methods.
 
 
 

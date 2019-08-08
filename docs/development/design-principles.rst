@@ -3,7 +3,7 @@
 Design Principles
 =================
 
-All sbpy code must be written according to the following design principles.
+All `sbpy` code must be written according to the following design principles.
 
 
 Physical parameters are quantities
@@ -24,7 +24,7 @@ Epochs must be Time objects
 Use sbpy ``DataClass`` objects
 ------------------------------
 
-* `~sbpy.data.Orbit`, `~sbpy.data.Phys`, `~sbpy.data.Ephem`, and `~sbpy.data.Obs` are the sbpy `~sbpy.data.DataClass` objects.  See :doc:`../sbpy/data/index` for details.
+* `~sbpy.data.Orbit`, `~sbpy.data.Phys`, `~sbpy.data.Ephem`, and `~sbpy.data.Obs` are the `sbpy` `~sbpy.data.DataClass` objects.  See :doc:`../sbpy/data/index` for details.
 
 * All inputs based on ephemeris, orbit, and physical parameters must use these classes.
 
@@ -78,6 +78,10 @@ Use sbpy ``DataClass`` objects
 Append fields to ``DataClass`` at the user's request
 ----------------------------------------------------
 
+* If a function takes a `~sbpy.data.DataClass` object as input, the
+  results of this function may be optionally appended to this object,
+  if appropriate.
+
 * Use the keyword argument ``append_results``.
 
 * If ``True``, add the data to the ``DataClass`` object as new fields, and return the result.
@@ -86,7 +90,7 @@ Append fields to ``DataClass`` at the user's request
 Cite relevant works
 -------------------
 
-* All important references for methods, data sources, constants, software, etc., must be cited.
+* All important references for methods, data sources, parameters, software, etc., must be cited.
 
 * Citations may be executed internally with :func:`sbpy.bib.register`, or via the `~sbpy.bib.cite` decorator:
 
@@ -96,6 +100,14 @@ Cite relevant works
      def force(mass, acceleration):
          return mass * acceleration
 
+* Labels describing references (``'method'`` in the above example) are
+  required to start with the following strings: ``'method'`` (for
+  general method descriptions), ``'data source'`` (for data provenance
+  referencing), ``'parameter'`` (for use of specific parameters),
+  ``'software'`` (for use of specific software packages). Each of
+  these labels can be suffixed at the users discretion (e.g.,
+  ```parameter: beaming parameter'`` defines a reference for the value
+  used for the beaming parameter).
 
 Exceptions for private functions or speed
 ------------------------------------------

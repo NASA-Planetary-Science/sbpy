@@ -57,8 +57,6 @@ Getting Started
    install.rst
    Tutorials <https://github.com/NASA-Planetary-Science/sbpy-tutorial>
    status.rst
-   development/index.rst
-
 
 
 ******************
