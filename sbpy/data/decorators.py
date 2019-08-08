@@ -77,7 +77,7 @@ def quantity_to_dataclass(**kwargs):
 
                 # get requested DataClass and field name
                 dataclass, field = None, None
-                for v in decorator_kwargs[param.name]:
+                for v in decorator_kwargs[param.name][:2]:
                     if isinstance(v, str):
                         field = v
                     elif issubclass(v, DataClass):
@@ -88,8 +88,22 @@ def quantity_to_dataclass(**kwargs):
                         'quantity_to_dataclass decorator requires a '
                         'DataClass object and a field name as a string.')
 
+                if len(decorator_kwargs[param.name]) > 2:
+                    # Process units
+                    from astropy.units.decorators import (_get_allowed_units,
+                         _validate_arg_value)
+                    units = decorator_kwargs[param.name][2]
+                    if not hasattr(units, '__iter__'):
+                        units = [units]
+                    units = _get_allowed_units(units)
+                else:
+                    units = None
+
                 if not isinstance(arg, dataclass):
                     # Argument is not a DataClass.  Make it so.
+                    if units is not None:
+                        _validate_arg_value(param.name,
+                            wrapped_function.__name__, arg, units, [])
                     new_arg = dataclass.from_dict({field: arg})
                     bound_args.arguments[param.name] = new_arg
 
