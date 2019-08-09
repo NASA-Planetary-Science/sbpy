@@ -219,10 +219,11 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
     ...     def evaluate(a, H, S):
     ...         return H + S * a
     ...
-    >>> linear_phasefunc = LinearPhaseFunc(5, 2.29, radius=300)
-    >>> pha = np.linspace(0, 180, 200)
-    >>> mag = linear_phasefunc.to_mag(np.deg2rad(pha))
-    >>> ref = linear_phasefunc.to_ref(np.deg2rad(pha))
+    >>> linear_phasefunc = LinearPhaseFunc(5 * u.mag, 0.04 * u.mag/u.deg,
+    ...     radius=300)
+    >>> pha = np.linspace(0, 180, 200) * u.deg
+    >>> mag = linear_phasefunc.to_mag(pha)
+    >>> ref = linear_phasefunc.to_ref(pha)
     >>> geomalb = linear_phasefunc.geomalb
     >>> phaseint = linear_phasefunc.phaseint
     >>> bondalb = linear_phasefunc.bondalb
@@ -231,7 +232,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
     >>> print('Bond albedo is {0:.3}'.format(bondalb))
     Bond albedo is 0.0184
     >>> print('Phase integral is {0:.3}'.format(phaseint))
-    Phase integral is 0.368
+    Phase integral is 0.367
 
     Initialization with subclass of `~sbpy.data.DataClass`:
 
@@ -325,8 +326,8 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
     @property
     def geomalb(self):
         """Geometric albedo"""
-        alb = np.pi*self.to_ref(0)
-        if hasattr(alb, 'unit'):
+        alb = np.pi*self.to_ref(0.*u.rad)
+        if hasattr(alb, 'unit') and (alb.unit == 1/u.sr):
             alb = alb*u.sr
         return alb
 
@@ -559,7 +560,8 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
                 sz2 = len(cls.param_names), n_models
                 if sz1 != sz2:
                     raise ValueError('`init` must have a shape of ({}, {}),'
-                                     ' shape {} is given.'.format(sz2[0], sz2[1], sz1))
+                                     ' shape {} is given.'.format(sz2[0],
+                                     sz2[1], sz1))
             par = np.zeros((len(cls.param_names), n_models))
             for i in range(n_models):
                 mag = obs[fields[i]]
@@ -672,16 +674,18 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         >>> from sbpy.data import Ephem
         >>> ceres_hg = HG(3.34, 0.12)
         >>> # parameter `eph` as `~sbpy.data.Ephem` type
-        >>> eph = Ephem.from_dict({'alpha': np.linspace(0,np.pi*0.9,200),
+        >>> eph = Ephem.from_dict({'alpha': np.linspace(0,np.pi*0.9,200)*u.rad,
         ...              'r': np.repeat(2.7*u.au, 200),
         ...              'delta': np.repeat(1.8*u.au, 200)})
         >>> mag1 = ceres_hg.to_mag(eph)
         >>> # parameter `eph` as numpy array
-        >>> pha = np.linspace(0, 180, 200)
-        >>> mag2 = ceres_hg.to_mag(np.deg2rad(pha))
+        >>> pha = np.linspace(0, 180, 200) * u.deg
+        >>> mag2 = ceres_hg.to_mag(pha)
         """
         self._check_unit()
         pha = eph['alpha']
+        if len(pha) == 1:
+            pha = pha[0]
         out = self(pha, **kwargs)
         if self._unit != 'mag':
             if self.radius is None:
@@ -748,16 +752,18 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         >>> from sbpy.data import Ephem
         >>> ceres_hg = HG(3.34, 0.12, radius=480)
         >>> # parameter `eph` as `~sbpy.data.Ephem` type
-        >>> eph = Ephem.from_dict({'alpha': np.linspace(0,np.pi*0.9,200),
+        >>> eph = Ephem.from_dict({'alpha': np.linspace(0,np.pi*0.9,200)*u.rad,
         ...              'r': np.repeat(2.7*u.au, 200),
         ...              'delta': np.repeat(1.8*u.au, 200)})
         >>> ref1 = ceres_hg.to_ref(eph)
         >>> # parameter `eph` as numpy array
-        >>> pha = np.linspace(0, 180, 200)
-        >>> ref2 = ceres_hg.to_ref(np.deg2rad(pha))
+        >>> pha = np.linspace(0, 180, 200) * u.deg
+        >>> ref2 = ceres_hg.to_ref(pha)
         """
         self._check_unit()
         pha = eph['alpha']
+        if len(pha) == 1:
+            pha = pha[0]
         out = self(pha, **kwargs)
         if normalized is not None:
             norm = self(normalized, **kwargs)
@@ -767,7 +773,8 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         else:
             if self.radius is None:
                 raise ValueError(
-                    'cannot calculate phase function in reflectance unit because the size of object is unknown')
+                    'Cannot calculate phase function in reflectance unit'
+                    ' because the size of object is unknown.')
             out = mag2ref(out, self.radius, M_sun=self.M_sun)
             if normalized is not None:
                 out /= mag2ref(norm, self.radius, M_sun=self.M_sun)
@@ -805,7 +812,8 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         0.364
 
         """
-        def integrand(x): return 2*self.to_ref(x, normalized=0.)*np.sin(x)
+        def integrand(x):
+            return 2*self.to_ref(x*u.rad, normalized=0.*u.rad)*np.sin(x)
         return integrator(integrand, 0, np.pi)[0]
 
 
@@ -818,10 +826,11 @@ class LinearPhaseFunc(DiskIntegratedPhaseFunc):
     >>> # H = 5 and slope = 0.04 mag/deg = 2.29 mag/rad
     >>> from sbpy.photometry import LinearPhaseFunc
     >>>
-    >>> linear_phasefunc = LinearPhaseFunc(5, 2.29, radius=300)
-    >>> pha = np.linspace(0, 180, 200)
-    >>> mag = linear_phasefunc.to_mag(np.deg2rad(pha))
-    >>> ref = linear_phasefunc.to_ref(np.deg2rad(pha))
+    >>> linear_phasefunc = LinearPhaseFunc(5 * u.mag, 0.04 * u.mag/u.deg,
+    ...     radius=300)
+    >>> pha = np.linspace(0, 180, 200) * u.deg
+    >>> mag = linear_phasefunc.to_mag(pha)
+    >>> ref = linear_phasefunc.to_ref(pha)
     >>> geomalb = linear_phasefunc.geomalb
     >>> phaseint = linear_phasefunc.phaseint
     >>> bondalb = linear_phasefunc.bondalb
@@ -830,7 +839,7 @@ class LinearPhaseFunc(DiskIntegratedPhaseFunc):
     >>> print('Bond albedo is {0:.3}'.format(bondalb))
     Bond albedo is 0.0184
     >>> print('Phase integral is {0:.3}'.format(phaseint))
-    Phase integral is 0.368
+    Phase integral is 0.367
 
     """
 
@@ -890,7 +899,8 @@ class HG(DiskIntegratedPhaseFunc):
         """
         if np.any(value > 1.194):
             warnings.warn(
-                'G parameter could result in a non-monotonic phase function', NonmonotonicPhaseFunctionWarning)
+                'G parameter could result in a non-monotonic phase function',
+                NonmonotonicPhaseFunctionWarning)
 
     @staticmethod
     def _hgphi(pha, i):
@@ -1052,7 +1062,8 @@ class HG1G2(HG12BaseClass):
         """
         if np.any(value < 0) or np.any(value + self.G2 > 1):
             warnings.warn(
-                'G1, G2 parameter combination might result in a non-monotonic phase function', NonmonotonicPhaseFunctionWarning)
+                'G1, G2 parameter combination might result in a non-monotonic'
+                ' phase function', NonmonotonicPhaseFunctionWarning)
 
     @G2.validator
     def G2(self, value):
@@ -1063,7 +1074,8 @@ class HG1G2(HG12BaseClass):
         """
         if np.any(value < 0) or np.any(value + self.G1 > 1):
             warnings.warn(
-                'G1, G2 parameter combination might result in a non-monotonic phase function', NonmonotonicPhaseFunctionWarning)
+                'G1, G2 parameter combination might result in a non-monotonic'
+                ' phase function', NonmonotonicPhaseFunctionWarning)
 
     @property
     def _G1(self):
@@ -1140,7 +1152,8 @@ class HG12(HG12BaseClass):
         """
         if np.any(value < -0.70) or np.any(value > 1.30):
             warnings.warn(
-                'G12 parameter could result in a non-monotonic phase function', NonmonotonicPhaseFunctionWarning)
+                'G12 parameter could result in a non-monotonic phase function',
+                NonmonotonicPhaseFunctionWarning)
 
     @property
     def _G1(self):
