@@ -111,6 +111,15 @@ phase angle can be calculated:
   >>> print(ref)  # doctest: +FLOAT_CMP
   [0.0021763  0.00201223 0.0022041  0.00269637 0.00292785] 1 / sr
 
+`~sbpy.units.reflectance` also supports dimensionless logarithmic unit for
+solar flux, which can be specified with `~sbpy.calib.solar_fluxd.set`:
+
+  >>> with solar_fluxd.set({'V': -26.77 * u.mag}):
+  ...     mag = 3.4 * u.mag
+  ...     ref = mag.to('1/sr', reflectance('V', cross_section =
+  ...         np.pi*(460*u.km)**2))
+  >>> print(ref)  # doctest: +FLOAT_CMP
+  0.028786262941247264 1 / sr
 
 Projected Sizes
 ---------------
