@@ -33,8 +33,8 @@ We are looking for volunteers to test `sbpy` functionality. In order
 to make this task worthwhile for you, we only ask you to test routines
 that are stable and which you can already use for your research. We
 will indicate which functions are ready to be tested on this dedicated
-`status page <status.rst>`_. Keep in mind that there might be issues,
-so feel free to compare the function results with your own results.
+:doc:`/status`. Keep in mind that there might be issues, so feel free to
+compare the function results with your own results.
 
 
 Reporting Problems
@@ -100,8 +100,8 @@ Technical requirements
   ultimately be derived from the base classes in `sbpy.exceptions`
 * if you use `~sbpy.data.DataClass` objects, extend the :ref:`field
   name list` list  where it makes sense
-* a CHANGELOG entry is required as of v0.2; update the `status page
-  <status.rst>`_ where applicable
+* a CHANGELOG entry is required as of v0.2; update the :doc:`/status`
+  where applicable
 
 
 
