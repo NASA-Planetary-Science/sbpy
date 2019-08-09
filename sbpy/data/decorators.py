@@ -13,7 +13,9 @@ __all__ = [
 import inspect
 from functools import wraps
 from astropy.table import Table, QTable
+import astropy.units as u
 from .core import DataClass
+from . import Conf
 
 
 def quantity_to_dataclass(**kwargs):
@@ -42,19 +44,13 @@ def quantity_to_dataclass(**kwargs):
     >>> print(temperature(eph))         # doctest: +FLOAT_CMP
     [278.] K
 
-    This decorator also optionally check function parameters as
-    astropy Quantity and units similar to the functionality of
-    `astropy.units.quantity_input`:
-
-    >>> import astropy.units as u
-    >>> import sbpy.data as sbd
-    >>>
-    >>> @sbd.quantity_to_dataclass(eph=(sbd.Ephem, 'rh', 'length'))
-    ... def temperature(eph):
-    ...     return 278 * u.K / (eph['rh'] / u.au)**0.5
-    >>>
-    >>> print(temperature(1 * u.s))     # doctest: +SKIP
-    UnitsError: Argument 'eph' to function 'temperature' must be in units convertible to 'm'.
+    This decorator also validates the dimensions of function parameters
+    against the default dimensions as listed in the Field Name List
+    (https://sbpy.readthedocs.io/en/latest/sbpy/data/fieldnames.html#id1).
+    A `~astropy.units.UnitsError` will be raised if the unit attribute of the
+    argument is not equivalent to default unit.  If the default dimension is
+    not `None`, and the argument has no unit attribute, and  i.e. it is not a
+    Quantity object, a `ValueError` will be raised.
     """
 
     def decorator(wrapped_function):
@@ -101,21 +97,33 @@ def quantity_to_dataclass(**kwargs):
                         'quantity_to_dataclass decorator requires a '
                         'DataClass object and a field name as a string.')
 
-                if len(decorator_kwargs[param.name]) > 2:
-                    # Process units
-                    from astropy.units.decorators import (_get_allowed_units,
-                         _validate_arg_value)
-                    units = decorator_kwargs[param.name][2]
-                    if isinstance(units, str) or (not hasattr(units,
-                            '__iter__')):
-                        units = [units]
-                    units = _get_allowed_units(units)
-                else:
-                    units = None
+                field_idx = [field in x for x in Conf.fieldnames]
+                if not any(field_idx):
+                    raise DataClassError('argument {} to function {} has an'
+                        ' invalide field name {} for {}'
+                        ' object'.format(param.name, wrapped_function.__name__,
+                        field, dataclass))
+                units = [x['dimension'] for x in [Conf.fieldnames_info[i] for
+                    i,x in enumerate(field_idx) if x]]
+                if isinstance(units, str) or (not hasattr(units, '__iter__')):
+                    units = [units]
+                equivlencies = []
+                for i in range(len(units)):
+                    # translate the dimension as listed in sbpy Field Name List
+                    # to astropy-recoganizable unit strings
+                    if units[i] is None:
+                        units[i] = ''
+                if any([x == '' for x in units]):
+                    if not hasattr(arg, 'unit'):
+                        arg = arg * u.dimensionless_unscaled
+
+                from astropy.units.decorators import (_get_allowed_units,
+                     _validate_arg_value)
+                units = _get_allowed_units(units)
 
                 if not isinstance(arg, dataclass):
                     # Argument is not a DataClass.  Make it so.
-                    if units is not None:
+                    if units:
                         _validate_arg_value(param.name,
                             wrapped_function.__name__, arg, units, [])
                     new_arg = dataclass.from_dict({field: arg})

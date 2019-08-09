@@ -18,17 +18,6 @@ def test_quantity_to_dataclass_single():
     eph = sbd.Ephem.from_dict({'rh': 1 * u.au})
     assert temperature(rh, 1, 2, 3) == temperature(eph, 7, 8, 9, d=10)
     assert np.isclose(temperature(rh, 4, 5, 6).value, 278.0)
-
-
-def test_quantity_to_dataclass_single_quantity_check():
-    @quantity_to_dataclass(eph=('rh', sbd.Ephem, 'length'))
-    def temperature(eph, a, b, c, d=5):
-        return 278 * u.K / np.sqrt(eph['rh'] / u.au)
-
-    rh = 1 * u.au
-    eph = sbd.Ephem.from_dict({'rh': 1 * u.au})
-    assert temperature(rh, 1, 2, 3) == temperature(eph, 7, 8, 9, d=10)
-    assert np.isclose(temperature(rh, 4, 5, 6).value, 278.0)
     with pytest.raises(TypeError):
         temperature(1, 1, 2, 3)
     with pytest.raises(u.UnitsError):
@@ -37,17 +26,6 @@ def test_quantity_to_dataclass_single_quantity_check():
 
 def test_quantity_to_dataclass_multiple():
     @quantity_to_dataclass(eph=('rh', sbd.Ephem), orbit=('a', sbd.Orbit))
-    def contrived(eph, orbit):
-        return (eph['rh'] / orbit['a']).decompose()
-
-    rh = 1 * u.au
-    a = 2 * u.au
-    assert np.isclose(contrived(rh, a).value, 0.5)
-
-
-def test_quantity_to_dataclass_multiple_quantity_check():
-    @quantity_to_dataclass(eph=('rh', sbd.Ephem, 'length'),
-        orbit=('a', sbd.Orbit, 'length'))
     def contrived(eph, orbit):
         return (eph['rh'] / orbit['a']).decompose()
 
@@ -65,20 +43,6 @@ def test_quantity_to_dataclass_stacked():
     @quantity_to_dataclass(eph=('rh', sbd.Ephem))
     @quantity_to_dataclass(orbit=('a', sbd.Orbit))
     @quantity_to_dataclass(phys=('R', sbd.Phys))
-    def contrived(eph, orbit, phys):
-        return (eph['rh'] / orbit['a']).decompose() * phys['R']
-
-    rh = 1 * u.au
-    a = 2 * u.au
-    R = 100 * u.km
-    assert np.isclose(contrived(rh, a, R).value, 50)
-
-
-def test_quantity_to_dataclass_stacked_quantity_check():
-    """Note, this is not a preferred use case."""
-    @quantity_to_dataclass(eph=('rh', sbd.Ephem, 'length'))
-    @quantity_to_dataclass(orbit=('a', sbd.Orbit, 'au'))
-    @quantity_to_dataclass(phys=('R', sbd.Phys, 'km'))
     def contrived(eph, orbit, phys):
         return (eph['rh'] / orbit['a']).decompose() * phys['R']
 
