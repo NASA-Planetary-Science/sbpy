@@ -58,6 +58,8 @@ def test_quantity_to_dataclass_stacked():
 
 
 u.imperial.enable()
+
+
 @pytest.mark.parametrize('field, arg, test_unit', (
     ('a', 1 * u.au, 's'),
     ('e', 0.5, 's'),

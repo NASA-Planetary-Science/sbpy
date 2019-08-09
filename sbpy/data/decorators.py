@@ -110,7 +110,7 @@ def quantity_to_dataclass(**kwargs):
                         " object".format(param.name, wrapped_function.__name__,
                         field, dataclass))
                 units = [x['dimension'] for x in [Conf.fieldnames_info[i] for
-                    i,x in enumerate(field_idx) if x]]
+                    i, x in enumerate(field_idx) if x]]
                 if isinstance(units, str) or (not hasattr(units, '__iter__')):
                     units = [units]
                 for i in range(len(units)):
@@ -131,7 +131,7 @@ def quantity_to_dataclass(**kwargs):
                         units[i] = 'sr'
                         equivalencies.extend(u.dimensionless_angles())
                     elif units[i] == 'intensity':
-                        units[i] = 'W/(m**2 sr)' # is this correct?
+                        units[i] = 'W/(m**2 sr)'   # is this correct?
                     elif units[i] == '1/time':
                         units[i] = '1/s'
                     elif units[i] == 'time * length^2':
