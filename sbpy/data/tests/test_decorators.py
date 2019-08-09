@@ -4,6 +4,7 @@ import pytest
 import numpy as np
 import astropy.units as u
 from astropy.table import Table, QTable
+from astropy.time import Time
 import pytest
 from ... import data as sbd
 from ..decorators import *
@@ -54,6 +55,85 @@ def test_quantity_to_dataclass_stacked():
         contrived(1, a, R)
     with pytest.raises(u.UnitsError):
         contrived(rh, 2 * u.s, R)
+
+
+u.imperial.enable()
+@pytest.mark.parametrize('field, arg, test_unit', (
+    ('a', 1 * u.au, 's'),
+    ('e', 0.5, 's'),
+    ('inc', 10 * u.deg, 's'),
+    ('delta_v', 0.5 * u.km/u.s, 'm'),
+    ('P', 9. * u.hour, 'm'),
+    ('ra_rate', 10 * u.rad / u.day, 's'),
+    ('V', 3 * u.mag, 'm'),
+    ('lun_illum', 10 * u.percent, 'm'),
+    ('area_3sigma', 10 * u.deg**2, 'm'),
+    ('area_3sigma', 10 * u.sr, 'm'),
+    ('sband_3sigma', 5 * u.GHz, 's'),
+    ('temp', 300 * u.K, 'm'),  # looks like astropy has problem handling
+    # temperature units
+    ('lgint300', 300 * u.Unit('W/(m**2 sr)'), 'm/s'),
+    ('eup_j', 1 * u.J, 'm'),
+    ('eup_j', 1 * u.eV, 'm')
+))
+def test_quantity_to_dataclass_dimensions(field, arg, test_unit):
+    @quantity_to_dataclass(x=(field, sbd.DataClass))
+    def test(x):
+        return x[field]
+
+    assert all(test(arg) == arg)
+    if isinstance(arg, u.Quantity):
+        with pytest.raises((TypeError, AttributeError)):
+            test(1)
+    with pytest.raises(u.UnitsError):
+        test(1 * u.Unit(test_unit))
+
+
+@pytest.mark.parametrize('arg, test_arg', (
+    (Time('2019-01-01'), Time('2019-01-01')),
+    (Time(['2019-01-01', '2019-01-02']), Time(['2019-01-01', '2019-01-02'])),
+    ([Time('2019-01-01'), Time('2019-01-02')], Time(['2019-01-01', '2019-01-02']))
+))
+def test_quantity_to_dataclass_timetype(arg, test_arg):
+    @quantity_to_dataclass(x=('epoch', sbd.Obs))
+    def test(x):
+        return x['epoch']
+
+    assert np.all(test(arg) == test_arg)
+
+
+@pytest.mark.parametrize('arg', (
+    (1),
+    ('2015-01-01'),
+    (1 * u.s),
+    ([1, 2]),
+    ([1, 2] * u.s)
+))
+def test_quantity_to_dataclass_timetype_error(arg):
+    @quantity_to_dataclass(x=('epoch', sbd.Obs))
+    def test(x):
+        return x['epoch']
+
+    with pytest.raises(TypeError):
+        test(arg)
+
+
+def test_quantity_to_dataclass_equivalencies():
+    @quantity_to_dataclass(x=('sband_3sigma', sbd.Obs), equivalencies=u.spectral())
+    def test(x):
+        return x['sband_3sigma']
+
+    assert test(1 * u.mm) == (1 * u.mm)
+    assert test(300 * u.GHz) == (300 * u.GHz)
+
+
+def test_quantity_to_dataclass_dataclasserror():
+    @quantity_to_dataclass(x=('test', sbd.Obs))
+    def test(x):
+        return x['test']
+
+    with pytest.raises(sbd.DataClassError):
+        test(1)
 
 
 def test_quantity_to_dataclass_optional():
