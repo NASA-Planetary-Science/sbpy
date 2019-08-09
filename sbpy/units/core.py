@@ -175,7 +175,8 @@ def reflectance(wfb, cross_section=None, reflectance=None, **kwargs):
     `~sbpy.calib.solar_fluxd`.
 
     Spectral flux density equivalencies for Vega are automatically
-    used, if possible.
+    used, if possible.  Dimensionless logarithmic units are also supported
+    if the corresponding solar value is set by `~sbpy.calib.solar_fluxd.set`.
 
 
     Parameters
@@ -245,6 +246,11 @@ def reflectance(wfb, cross_section=None, reflectance=None, **kwargs):
             f_sun.append(sun(wfb, unit=unit))
         except (u.UnitConversionError, FilterLookupError):
             pass
+    if len(f_sun) == 0:
+        try:
+            f_sun.append(sun.observe(wfb, **kwargs))
+        except (SinglePointSpectrumError, u.UnitConversionError, FilterLookupError):
+            pass
 
     # pass fluxd0 as an optional argument to dereference it,
     # otherwise both equivalencies will use the fluxd0 for
@@ -253,22 +259,42 @@ def reflectance(wfb, cross_section=None, reflectance=None, **kwargs):
     if cross_section is not None:
         xsec = cross_section.to('au2').value
         for fluxd0 in f_sun:
-            equiv.append((
-                fluxd0.unit, u.sr**-1,
-                lambda fluxd, fluxd0=fluxd0.value: fluxd / (fluxd0 * xsec),
-                lambda ref, fluxd0=fluxd0.value: ref * fluxd0 * xsec
-            ))
+            if fluxd0.unit in [u.mag, u.dB, u.dex]:
+                equiv.append((
+                    fluxd0.unit, u.sr**-1,
+                    lambda mag, mag0=fluxd0.value: u.Quantity(mag - mag0,
+                        fluxd0.unit).to('', u.logarithmic()).value / xsec,
+                    lambda ref, mag0=fluxd0.value: u.Quantity(ref * xsec).to(
+                        fluxd0.unit, u.logarithmic()).value + mag0
+                    ))
+            else:
+                equiv.append((
+                    fluxd0.unit, u.sr**-1,
+                    lambda fluxd, fluxd0=fluxd0.value: fluxd / (fluxd0 * xsec),
+                    lambda ref, fluxd0=fluxd0.value: ref * fluxd0 * xsec
+                ))
     elif reflectance is not None:
         ref = reflectance.to('1/sr').value
         au2km = (const.au.to('km')**2).value
         for fluxd0 in f_sun:
-            equiv.append((
-                fluxd0.unit, u.km**2,
-                lambda fluxd, fluxd0=fluxd0.value: (
-                    fluxd / (fluxd0 * ref) * au2km),
-                lambda xsec, fluxd0=fluxd0.value: (
-                    fluxd0 * ref * xsec / au2km)
-            ))
+            if fluxd0.unit in [u.mag, u.dB, u.dex]:
+                equiv.append((
+                    fluxd0.unit, u.km**2,
+                    lambda mag, mag0=fluxd0.value: u.Quantity(mag - mag0,
+                        fluxd0.unit).to('', u.logarithmic()).value / ref *
+                        au2km,
+                    lambda xsec, mag0=fluxd0.value: u.Quantity(ref *
+                        xsec / au2km).to(fluxd0.unit, u.logarithmic()).value
+                        + mag0
+                    ))
+            else:
+                equiv.append((
+                    fluxd0.unit, u.km**2,
+                    lambda fluxd, fluxd0=fluxd0.value: (
+                        fluxd / (fluxd0 * ref) * au2km),
+                    lambda xsec, fluxd0=fluxd0.value: (
+                        fluxd0 * ref * xsec / au2km)
+                ))
     return equiv
 
 

@@ -13,7 +13,8 @@ from .. import core
 from ..core import *
 from ...photometry import bandpass
 from ...calib import (vega_spectrum, vega_fluxd, solar_fluxd,
-                      solar_spectrum, Sun, Vega, UndefinedSourceError)
+                      solar_spectrum, Sun, Vega, UndefinedSourceError,
+                      FilterLookupError)
 from ...exceptions import OptionalPackageUnavailable
 
 
@@ -121,6 +122,7 @@ def test_spectral_density_vega_undefinedsourceerror():
         1.86599755e-12 * u.Unit('W/(m2 Hz)'), 0.02809415),
     (3.4 * VEGAmag, 'V', -26.77471503 * VEGAmag, 0.02865984),
     (3.4 * u.ABmag, 'V', -26.77471503 * u.ABmag, 0.02865984),
+    (3.4 * u.mag, 'V', -26.77471503 * u.mag, 0.02865984)
 ))
 def test_reflectance_ref(fluxd, wfb, f_sun, ref):
     """Test conversion from flux to reflectance
@@ -149,6 +151,7 @@ def test_reflectance_ref(fluxd, wfb, f_sun, ref):
         1.86599755e-12 * u.Unit('W/(m2 Hz)'), 455.45095634),
     (3.4 * VEGAmag, 'V', -26.77471503 * VEGAmag, 460.01351274),
     (3.4 * u.ABmag, 'V', -26.77471503 * u.ABmag, 460.01351274),
+    (3.4 * u.mag, 'V', -26.77471503 * u.mag, 460.01351274)
 ))
 def test_reflectance_xsec(fluxd, wfb, f_sun, radius):
     """Test conversion from flux to reflectance
@@ -166,6 +169,10 @@ def test_reflectance_xsec(fluxd, wfb, f_sun, radius):
             ra = np.sqrt(xs / np.pi)
     assert ra.unit == u.km
     assert np.isclose(ra.value, radius)
+
+
+def test_reflectance_exception():
+    assert reflectance('B', reflectance=1/u.sr) == []
 
 
 def test_reflectance_spec():
