@@ -6,9 +6,8 @@ created on June 23, 2017
 
 """
 
-__all__ = ['ref2mag', 'mag2ref', 'DiskIntegratedPhaseFunc', 'LinearPhaseFunc',
-           'HG', 'HG12BaseClass', 'HG12', 'HG1G2', 'HG12_Pen16',
-           'NonmonotonicPhaseFunctionWarning']
+__all__ = ['DiskIntegratedPhaseFunc', 'LinearPhaseFunc', 'HG', 'HG12BaseClass',
+           'HG12', 'HG1G2', 'HG12_Pen16', 'NonmonotonicPhaseFunctionWarning']
 
 from collections import OrderedDict
 import warnings
@@ -22,105 +21,8 @@ from astropy import log
 from ..data import (DataClass, Phys, Obs, Ephem, dataclass_input,
                     quantity_to_dataclass)
 from ..bib import cite
+from ..units import reflectance
 from ..exceptions import SbpyWarning
-
-
-def ref2mag(ref, radius, M_sun=None):
-    """Convert average bidirectional reflectance to reduced magnitude
-
-    Parameters
-    ----------
-    ref : float, astropy.units.Quantity
-        Average bidirectional reflectance
-    radius : float, astropy.units.Quantity
-        Radius of object
-    M_sun : float, optional
-        The magnitude of the Sun, default is -26.74
-
-    Returns
-    -------
-    The same type as input, reduced magnitude (at r=delta=1 au)
-
-    Examples
-    --------
-    >>> from astropy import units as u
-    >>> from sbpy.photometry import ref2mag
-    >>> mag = ref2mag(0.1, 460)
-    >>> print('{0:.4}'.format(mag))
-    2.078
-    >>> mag = ref2mag(0.1, 460*u.km)
-    >>> print('{0:.4}'.format(mag))
-    2.078 mag
-    """
-
-    if M_sun is None:
-        M_sun = -26.74
-    Q = False
-    if isinstance(ref, u.Quantity):
-        ref = ref.value
-        Q = True
-    if isinstance(radius, u.Quantity):
-        radius = radius.to('km').value
-        Q = True
-    if isinstance(M_sun, u.Quantity):
-        M_sun = M_sun.to('mag').value
-        Q = True
-
-    mag = M_sun-2.5*np.log10(ref*np.pi*radius*radius*u.km.to('au')**2)
-    if Q:
-        return mag*u.mag
-    else:
-        return mag
-
-
-def mag2ref(mag, radius, M_sun=None):
-    """Convert reduced magnitude to average bidirectional reflectance
-
-    Parameters
-    ----------
-    mag : float, astropy.units.Quantity
-        Reduced magnitude
-    radius : float, astropy.units.Quantity
-        Radius of object
-    M_sun : float, optional
-        The magnitude of the Sun, default is -26.74
-
-    Returns
-    -------
-    The same type as input, average bidirectional reflectance
-
-    Examples
-    --------
-    >>> from astropy import units as u
-    >>> from sbpy.photometry import mag2ref
-    >>> ref = mag2ref(2.08, 460)
-    >>> print('{0:.4}'.format(ref))
-    0.09981
-    >>> ref = mag2ref(2.08, 460*u.km)
-    >>> print('{0:.4}'.format(ref))
-    0.09981 1 / sr
-    """
-
-    if M_sun is None:
-        M_sun = -26.74
-    Q = False
-    if isinstance(mag, u.Quantity):
-        mag = mag.value
-        Q = True
-    if isinstance(radius, u.Quantity):
-        radius = radius.to('km').value
-        Q = True
-    if isinstance(M_sun, u.Quantity):
-        M_sun = M_sun.to('mag').value
-        Q = True
-
-    ref = 10**((M_sun-mag)*0.4)/(np.pi*radius*radius*u.km.to('au')**2)
-    if hasattr(ref, '__iter__') and (len(ref) == 1):
-        ref = ref[0]
-    if Q:
-        return ref/u.sr
-    else:
-        return ref
 
 
 class _spline(object):
@@ -302,22 +204,25 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
     # Whether or not the model input is allowed to be dimensionless
     input_units_allow_dimensionless = {'x': True}
 
-    def __init__(self, *args, radius=None, M_sun=None, **kwargs):
+    @u.quantity_input(radius=u.km)
+    def __init__(self, *args, radius=None, wfb=None, **kwargs):
         """Initialize DiskIntegratedPhaseFunc
 
         Parameters
         ----------
         radius : astropy.units.Quantity, optional
-            Radius of object, in km if a float.  Needed for magnitude and
-            reflectance conversion
-        M_sun : float or astropy.units.Quantity, optional
-            Solar magnitude.  Needed for magnitude and reflectance conversion.
-            If not supplied, the V-band solar magnitude assumed.  See
-            `~ref2mag` and `~mag2ref`
+            Radius of object.  Required if conversion between magnitude and
+            reflectance is involved.
+        wfb : `~astropy.units.Quantity`, `~synphot.SpectralElement`, string
+            Wavelengths, frequencies, or bandpasses.  Bandpasses may
+            be a filter name (string).  Required if conversion between
+            magnitude and reflectance is involved.
+        **kwargs : optional parameters accepted by
+            `astropy.modeling.Model.__init__()`
         """
         super().__init__(*args, **kwargs)
         self.radius = radius
-        self.M_sun = M_sun
+        self.wfb = wfb
 
     def _check_unit(self):
         if self._unit is None:
@@ -342,7 +247,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         return self._phase_integral()
 
     @classmethod
-    def from_phys(cls, phys, M_sun=None, **kwargs):
+    def from_phys(cls, phys, **kwargs):
         """Initialize an object from `~sbpy.data.Phys` object
 
         Parameters
@@ -351,10 +256,8 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
             Contains the parameters needed to initialize the model class
             object.  If the required field is not found, then an `KeyError`
             exception will be thrown.
-        M_sun : float or astropy.units.Quantity, optional
-            Solar magnitude.  Needed for magnitude and reflectance conversion.
-            If not supplied, the V-band solar magnitude assumed.  See
-            `~ref2mag` and `~mag2ref`
+        **kwargs : optional parameters accepted by
+            `astropy.modeling.Model.__init__()`
 
         Returns
         ------
@@ -432,7 +335,6 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
             raise ValueError(
                 'no valid model parameters found in `data` keyword')
         out = cls(**kwargs)
-        out.M_sun = M_sun
         return out
 
     def to_phys(self):
@@ -514,7 +416,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
             The initial parameters for model fitting.  Its first dimension has
             the length of the model parameters, and its second dimension has
             the length of ``n_model`` if multiple models are fitted.
-        **kwargs : Keyword parameters accepted by `fitter()`.
+        **kwargs : optional parameters accepted by `fitter()`.
             Note that the magnitude uncertainty can also be supplied to the fit
             via `weights` keyword for all fitters provided by
             `~astropy.modeling.fitting`.
@@ -635,7 +537,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
             return module
 
     @quantity_to_dataclass(eph=(Ephem, 'alpha'))
-    def to_mag(self, eph, append_results=False, **kwargs):
+    def to_mag(self, eph, unit=None, append_results=False, **kwargs):
         """Calculate phase function in magnitude
 
         Parameters
@@ -650,8 +552,14 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
             If no unit is provided via type `~astropy.units.Quantity`, then
             radians is assumed for phase angle, and au is assumed for
             distances.
-        append_results : bool
+        unit : `astropy.units.mag`, `astropy.units.MagUnit`, optional
+            The unit of output magnitude.  The corresponding solar magnitude
+            must be available either through `~sbpy.calib.sun` module or set
+            by `~sbpy.calib.solar_fluxd.set`.
+        append_results : bool, optional
             Controls the return of this method.
+        **kwargs : optional parameters accepted by
+            `astropy.modeling.Model.__call__`
 
         Returns
         -------
@@ -672,7 +580,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         >>> from astropy import units as u
         >>> from sbpy.photometry import HG
         >>> from sbpy.data import Ephem
-        >>> ceres_hg = HG(3.34, 0.12)
+        >>> ceres_hg = HG(3.34 * u.mag, 0.12)
         >>> # parameter `eph` as `~sbpy.data.Ephem` type
         >>> eph = Ephem.from_dict({'alpha': np.linspace(0,np.pi*0.9,200)*u.rad,
         ...              'r': np.repeat(2.7*u.au, 200),
@@ -688,11 +596,16 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
             pha = pha[0]
         out = self(pha, **kwargs)
         if self._unit != 'mag':
+            if unit is None:
+                raise ValueError('Magnitude unit is not specified.')
             if self.radius is None:
                 raise ValueError(
                     'Cannot calculate phase funciton in magnitude because the'
-                    ' size of object is unknown')
-            out = ref2mag(out, self.radius, M_sun=self.M_sun)
+                    ' size of object is unknown.')
+            if self.wfb is None:
+                raise ValueError('Wavelength/Frequency/Band is unknown.')
+            out = out.to(unit, reflectance(self.wfb,
+                    cross_section=np.pi*self.radius**2))
         else:
             dist_corr = self._distance_module(eph)
             if isinstance(out, u.Quantity):
@@ -729,6 +642,8 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
             The angle to which the reflectance is normalized.
         append_results : bool
             Controls the return of this method.
+        **kwargs : optional parameters accepted by
+            `astropy.modeling.Model.__call__`
 
         Returns
         -------
@@ -775,9 +690,13 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
                 raise ValueError(
                     'Cannot calculate phase function in reflectance unit'
                     ' because the size of object is unknown.')
-            out = mag2ref(out, self.radius, M_sun=self.M_sun)
+            if self.wfb is None:
+                raise ValueError('Wavelength/Frequency/Band is unknown.')
+            out = out.to('1/sr', reflectance(self.wfb,
+                    cross_section=np.pi*self.radius**2))
             if normalized is not None:
-                out /= mag2ref(norm, self.radius, M_sun=self.M_sun)
+                out /= norm.to('1/sr', reflectance(self.wfb,
+                        cross_section=np.pi*self.radius**2))
         if append_results:
             name = 'ref'
             i = 1
