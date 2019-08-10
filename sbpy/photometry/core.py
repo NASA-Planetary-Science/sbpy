@@ -1205,4 +1205,3 @@ class HG12_Pen16(HG12):
         p2 = -0.53513350
         ddg = 1.085736205*((phi3-phi1)*p1+(phi3-phi2)*p2)/dom
         return [ddh, ddg]
-

@@ -63,6 +63,7 @@ Calculate geometric albedo, Bond albedo, and phase integral:
   >>> import astropy.units as u
   >>> from sbpy.calib import solar_fluxd
   >>> solar_fluxd.set({'V': -26.77 * u.mag})
+  <ScienceState solar_fluxd: {'V': <Quantity -26.77 mag>}>
   >>> print(m.geomalb)  # doctest: +FLOAT_CMP
   0.09557298727307795
   >>> print(m.bondalb)  # doctest: +FLOAT_CMP
