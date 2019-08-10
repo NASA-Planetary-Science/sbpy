@@ -38,7 +38,8 @@ by supplying the model parameters as either dimensionless numbers or
        H   G
       --- ---
       8.0 0.4
-  >>> m = HG(H=3.34*u.mag, G=0.12*u.dimensionless_unscaled, radius=460*u.km)
+
+  >>> m = HG(H = 3.34 * u.mag, G = 0.12, radius = 460 * u.km, wfb = 'V')
   >>> print(m)
   Model: HG
   Inputs: ('x',)
@@ -50,18 +51,30 @@ by supplying the model parameters as either dimensionless numbers or
       ---- ----
       3.34 0.12
 
+The calculations that involve conversion between magnitude and reflectance
+requires valid object size and `wfb` (wavelength/frequency/band) parameter to
+be set for the photometric model.  The corresponding solar flux at the `wfb`
+of the photometric model object has to be available through `~sbpy.calib`
+system, or set by `~sbpy.calib.solar_fluxd.set`, which works with context
+management `with` syntax.
+
 Calculate geometric albedo, Bond albedo, and phase integral:
 
+  >>> import astropy.units as u
+  >>> from sbpy.calib import solar_fluxd
+  >>> solar_fluxd.set({'V': -26.77 * u.mag})
   >>> print(m.geomalb)  # doctest: +FLOAT_CMP
-  0.09825058857735823
+  0.09557298727307795
   >>> print(m.bondalb)  # doctest: +FLOAT_CMP
-  0.035797658494252343
+  0.03482207291799989
   >>> print(m.phaseint)  # doctest: +FLOAT_CMP
-  0.36435057552929395
+  0.3643505755292945
 
-Users can supply a solar magnitude corresponding to the magnitude system of
-the H-parameter.  The default is the apparent V-magnitude of the Sun,
-M_sun = -26.74 mag.
+Note that the current version of `astropy.modeling.Model` doesn't support
+`astropy.units.MagUnit` instance as model parameters.  For now one has to use
+the dimensionless magnitude `~astropy.units.mag` in the phase function
+parameter, and manually set solar flux in order for the conversion between
+magnitude and reflectance to work.
 
 The model class can also be initialized by a subclass of ``sbpy``'s
 `~sbpy.data.DataClass`, such as `~sbpy.data.Phys`, as long as it contains the
@@ -90,11 +103,12 @@ the fitter classes defined in `astropy.modeling.fitting`
 submodule, such as `~astropy.modeling.fitting.LevMarLSQFitter`.
 
   >>> import numpy as np
+  >>> import astropy.units as u
   >>> from astropy.modeling.fitting import LevMarLSQFitter
   >>> # generate data to be fitted
-  >>> model1 = HG(3.34, 0.12)
+  >>> model1 = HG(3.34 * u .mag, 0.12)
   >>> alpha = np.linspace(0, 40, 20) * u.deg
-  >>> mag = model1(alpha) + np.random.rand(20)*0.2-0.1
+  >>> mag = model1(alpha) + (np.random.rand(20)*0.2 - 0.1) * u.mag
   >>> # fit new model
   >>> fitter = LevMarLSQFitter()
   >>> model2 = HG()
@@ -118,8 +132,8 @@ measurements.  The columns to be fitted are specified by a keyward argument
 ``fields``.  By default, the column ``'mag'`` will be fitted.
 
   >>> # Initialize model set
-  >>> model4 = HG(5.2, 0.18)
-  >>> mag4 = model4(alpha) + np.random.rand(20)*0.2-0.1
+  >>> model4 = HG(5.2 * u.mag, 0.18)
+  >>> mag4 = model4(alpha) + (np.random.rand(20)*0.2 - 0.1) * u.mag
   >>> fitter = LevMarLSQFitter()
   >>> obs = Obs.from_dict({'alpha': alpha, 'mag': mag, 'mag1': mag4})
   >>> model5 = HG.from_obs(obs, fitter, fields=['mag', 'mag1'])
