@@ -691,17 +691,19 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
             if normalized is not None:
                 out /= norm
         else:
-            if self.radius is None:
-                raise ValueError(
-                    'Cannot calculate phase function in reflectance unit'
-                    ' because the size of object is unknown.')
-            if self.wfb is None:
-                raise ValueError('Wavelength/Frequency/Band is unknown.')
-            out = out.to('1/sr', reflectance(self.wfb,
-                    cross_section=np.pi*self.radius**2))
-            if normalized is not None:
-                out /= norm.to('1/sr', reflectance(self.wfb,
+            if normalized is None:
+                if self.radius is None:
+                    raise ValueError(
+                        'Cannot calculate phase function in reflectance unit'
+                        ' because the size of object is unknown.  Normalized'
+                        ' phase function can be calculated.')
+                if self.wfb is None:
+                    raise ValueError('Wavelength/Frequency/Band is unknown.')
+                out = out.to('1/sr', reflectance(self.wfb,
                         cross_section=np.pi*self.radius**2))
+            else:
+                out = out - norm
+                out = out.to('', u.logarithmic())
         if append_results:
             name = 'ref'
             i = 1
@@ -739,7 +741,8 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         0.364
         """
         def integrand(x):
-            return 2*self.to_ref(x*u.rad, normalized=0.*u.rad)*np.sin(x)
+            return 2*self.to_ref(x * u.rad, normalized=0. * u.rad) * \
+                np.sin(x * u.rad)
         return integrator(integrand, 0, np.pi)[0]
 
 
