@@ -108,7 +108,9 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
 
     >>> # Define a disk-integrated phase function model
     >>> import numpy as np
+    >>> import astropy.units as u
     >>> from astropy.modeling import Parameter
+    >>> from sbpy.calib import solar_fluxd
     >>> from sbpy.photometry import DiskIntegratedPhaseFunc
     >>>
     >>> class LinearPhaseFunc(DiskIntegratedPhaseFunc):
@@ -122,17 +124,18 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
     ...         return H + S * a
     ...
     >>> linear_phasefunc = LinearPhaseFunc(5 * u.mag, 0.04 * u.mag/u.deg,
-    ...     radius=300)
+    ...     radius = 300 * u.km, wfb = 'V')
     >>> pha = np.linspace(0, 180, 200) * u.deg
-    >>> mag = linear_phasefunc.to_mag(pha)
-    >>> ref = linear_phasefunc.to_ref(pha)
-    >>> geomalb = linear_phasefunc.geomalb
-    >>> phaseint = linear_phasefunc.phaseint
-    >>> bondalb = linear_phasefunc.bondalb
+    >>> with solar_fluxd.set({'V': -26.77 * u.mag}):
+    ...     mag = linear_phasefunc.to_mag(pha)
+    ...     ref = linear_phasefunc.to_ref(pha)
+    ...     geomalb = linear_phasefunc.geomalb
+    ...     phaseint = linear_phasefunc.phaseint
+    ...     bondalb = linear_phasefunc.bondalb
     >>> print('Geometric albedo is {0:.3}'.format(geomalb))
-    Geometric albedo is 0.0501
+    Geometric albedo is 0.0487
     >>> print('Bond albedo is {0:.3}'.format(bondalb))
-    Bond albedo is 0.0184
+    Bond albedo is 0.0179
     >>> print('Phase integral is {0:.3}'.format(phaseint))
     Phase integral is 0.367
 
@@ -587,7 +590,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         ...              'delta': np.repeat(1.8*u.au, 200)})
         >>> mag1 = ceres_hg.to_mag(eph)
         >>> # parameter `eph` as numpy array
-        >>> pha = np.linspace(0, 180, 200) * u.deg
+        >>> pha = np.linspace(0, 170, 200) * u.deg
         >>> mag2 = ceres_hg.to_mag(pha)
         """
         self._check_unit()
@@ -663,17 +666,19 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         --------
         >>> import numpy as np
         >>> from astropy import units as u
+        >>> from sbpy.calib import solar_fluxd
         >>> from sbpy.photometry import HG
         >>> from sbpy.data import Ephem
-        >>> ceres_hg = HG(3.34, 0.12, radius=480)
+        >>> ceres_hg = HG(3.34 * u.mag, 0.12, radius = 480 * u.km, wfb= 'V')
         >>> # parameter `eph` as `~sbpy.data.Ephem` type
         >>> eph = Ephem.from_dict({'alpha': np.linspace(0,np.pi*0.9,200)*u.rad,
         ...              'r': np.repeat(2.7*u.au, 200),
         ...              'delta': np.repeat(1.8*u.au, 200)})
-        >>> ref1 = ceres_hg.to_ref(eph)
-        >>> # parameter `eph` as numpy array
-        >>> pha = np.linspace(0, 180, 200) * u.deg
-        >>> ref2 = ceres_hg.to_ref(pha)
+        >>> with solar_fluxd.set({'V': -26.77 * u.mag}):
+        ...     ref1 = ceres_hg.to_ref(eph)
+        ...     # parameter `eph` as numpy array
+        ...     pha = np.linspace(0, 170, 200) * u.deg
+        ...     ref2 = ceres_hg.to_ref(pha)
         """
         self._check_unit()
         pha = eph['alpha']
@@ -725,11 +730,13 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
 
         Examples
         --------
+        >>> import astropy.units as u
+        >>> from sbpy.calib import solar_fluxd
         >>> from sbpy.photometry import HG
-        >>> ceres_hg = HG(3.34, 0.12, radius=480)
-        >>> print('{0:.3}'.format(ceres_hg._phase_integral()))
+        >>> ceres_hg = HG(3.34 * u.mag, 0.12, radius = 480 * u.km, wfb = 'V')
+        >>> with solar_fluxd.set({'V': -26.77 * u.mag}):
+        ...     print('{0:.3}'.format(ceres_hg._phase_integral()))
         0.364
-
         """
         def integrand(x):
             return 2*self.to_ref(x*u.rad, normalized=0.*u.rad)*np.sin(x)
@@ -743,20 +750,23 @@ class LinearPhaseFunc(DiskIntegratedPhaseFunc):
     --------
     >>> # Define a linear phase function model with absolute magnitude
     >>> # H = 5 and slope = 0.04 mag/deg = 2.29 mag/rad
+    >>> import astropy.units as u
+    >>> from sbpy.calib import solar_fluxd
     >>> from sbpy.photometry import LinearPhaseFunc
     >>>
     >>> linear_phasefunc = LinearPhaseFunc(5 * u.mag, 0.04 * u.mag/u.deg,
-    ...     radius=300)
-    >>> pha = np.linspace(0, 180, 200) * u.deg
-    >>> mag = linear_phasefunc.to_mag(pha)
-    >>> ref = linear_phasefunc.to_ref(pha)
-    >>> geomalb = linear_phasefunc.geomalb
-    >>> phaseint = linear_phasefunc.phaseint
-    >>> bondalb = linear_phasefunc.bondalb
+    ...     radius = 300 * u.km, wfb = 'V')
+    >>> with solar_fluxd.set({'V': -26.77 * u.mag}):
+    ...     pha = np.linspace(0, 180, 200) * u.deg
+    ...     mag = linear_phasefunc.to_mag(pha)
+    ...     ref = linear_phasefunc.to_ref(pha)
+    ...     geomalb = linear_phasefunc.geomalb
+    ...     phaseint = linear_phasefunc.phaseint
+    ...     bondalb = linear_phasefunc.bondalb
     >>> print('Geometric albedo is {0:.3}'.format(geomalb))
-    Geometric albedo is 0.0501
+    Geometric albedo is 0.0487
     >>> print('Bond albedo is {0:.3}'.format(bondalb))
-    Bond albedo is 0.0184
+    Bond albedo is 0.0179
     >>> print('Phase integral is {0:.3}'.format(phaseint))
     Phase integral is 0.367
 
@@ -792,12 +802,15 @@ class HG(DiskIntegratedPhaseFunc):
     --------
 
     >>> # Define the phase function for Ceres with H = 3.34, G = 0.12
+    >>> import astropy.units as u
+    >>> from sbpy.calib import solar_fluxd
     >>> from sbpy.photometry import HG
-    >>> ceres = HG(3.34, 0.12, radius=480)
-    >>> print('{0:.4f}'.format(ceres.geomalb))
-    0.0902
-    >>> print('{0:.4f}'.format(ceres.phaseint))
-    0.3644
+    >>> ceres = HG(3.34 * u.mag, 0.12, radius = 480 * u.km, wfb = 'V')
+    >>> with solar_fluxd.set({'V': -26.77 * u.mag}):
+    ...     print('geometric albedo = {0:.4f}'.format(ceres.geomalb))
+    ...     print('phase integral = {0:.4f}'.format(ceres.phaseint))
+    geometric albedo = 0.0878
+    phase integral = 0.3644
 
     """
 
@@ -959,13 +972,16 @@ class HG1G2(HG12BaseClass):
     >>> # Define the phase function for Themis with
     >>> # H = 7.063, G1 = 0.62, G2 = 0.14
     >>>
+    >>> import astropy.units as u
+    >>> from sbpy.calib import solar_fluxd
     >>> from sbpy.photometry import HG1G2
-    >>> themis = HG1G2(7.063,0.62,0.14,radius=100)
-    >>> print('{0:.4f}'.format(themis.geomalb))
-    0.0674
-    >>> print('{0:.4f}'.format(themis.phaseint))
-    0.3742
-
+    >>> themis = HG1G2(7.063 * u.mag, 0.62, 0.14, radius = 100 * u.km,
+    ...     wfb = 'V')
+    >>> with solar_fluxd.set({'V': -26.77 * u.mag}):
+    ...     print('geometric albedo = {0:.4f}'.format(themis.geomalb))
+    ...     print('phase integral = {0:.4f}'.format(themis.phaseint))
+    geometric albedo = 0.0656
+    phase integral = 0.3742
     """
 
     H = Parameter(description='H parameter', default=8)
@@ -1050,12 +1066,15 @@ class HG12(HG12BaseClass):
     >>> # Define the phase function for Themis with
     >>> # H = 7.121, G12 = 0.68
     >>>
+    >>> import astropy.units as u
+    >>> from sbpy.calib import solar_fluxd
     >>> from sbpy.photometry import HG12
-    >>> themis = HG12(7.121, 0.68, radius=100)
-    >>> print('{0:.4f}'.format(themis.geomalb))
-    0.0639
-    >>> print('{0:.4f}'.format(themis.phaseint))
-    0.3949
+    >>> themis = HG12(7.121 * u.mag, 0.68, radius = 100 * u.km, wfb = 'V')
+    >>> with solar_fluxd.set({'V': -26.77 * u.mag}):
+    ...     print('geometric albedo = {0:.4f}'.format(themis.geomalb))
+    ...     print('phase integral = {0:.4f}'.format(themis.phaseint))
+    geometric albedo = 0.0622
+    phase integral = 0.3949
 
     """
 
@@ -1144,13 +1163,16 @@ class HG12_Pen16(HG12):
     >>> # Define the phase function for Themis with
     >>> # H = 7.121, G12 = 0.68
     >>>
-    >>> from sbpy.photometry import HG12
-    >>> themis = HG12_Pen16(7.121, 0.68, radius=100)
-    >>> print('{0:.4f}'.format(themis.geomalb))
-    0.0639
-    >>> print('{0:.4f}'.format(themis.phaseint))
-    0.3804
-
+    >>> import astropy.units as u
+    >>> from sbpy.calib import solar_fluxd
+    >>> from sbpy.photometry import HG12_Pen16
+    >>> themis = HG12_Pen16(7.121 * u.mag, 0.68, radius = 100 * u.km,
+    ...     wfb = 'V')
+    >>> with solar_fluxd.set({'V': -26.77 * u.mag}):
+    ...     print('geometric albedo = {0:.4f}'.format(themis.geomalb))
+    ...     print('phase integral = {0:.4f}'.format(themis.phaseint))
+    geometric albedo = 0.0622
+    phase integral = 0.3804
     """
 
     @cite({'definition': '2016P&SS..123..117P'})
@@ -1183,3 +1205,4 @@ class HG12_Pen16(HG12):
         p2 = -0.53513350
         ddg = 1.085736205*((phi3-phi1)*p1+(phi3-phi2)*p2)/dom
         return [ddh, ddg]
+
