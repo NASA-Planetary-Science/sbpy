@@ -39,6 +39,7 @@ def mock_nonlte(monkeypatch):
 
     monkeypatch.setattr(NonLTE, "from_pyradex", mock_cdensity)
 
+
 def data_path(filename):
     data_dir = os.path.join(os.path.dirname(__file__), 'data')
     return os.path.join(data_dir, filename)
@@ -399,4 +400,3 @@ def test_pyradex_cdensity(mock_nonlte):
                                    iter=100, collider_density={'H2': 900})
 
     assert np.isclose(cdensity.value[0], 94500000000000.0)
-
