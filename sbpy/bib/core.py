@@ -108,7 +108,7 @@ def track():
     global _track
     _track = True
     register('sbpy', {'software: sbpy': [
-             'https://doi.org/10.21105/joss.01426']})
+             '2019JOSS....4.1426M']})
 
 
 class Tracking:
@@ -158,11 +158,10 @@ def cite(citations):
     2
     sbpy:
       software: sbpy:
-          https://doi.org/10.21105/joss.01426
+          Mommert, Kelley, De Val-Borro, Li et al. 2019, The Journal of Open Source Software, Vol 4, 38, 1426
     sbpy.bib.core.force:
       method:
           Newton 1687, Philosophiae Naturalis Principia Mathematica. Auctore Js. Newton
-
     """
 
     def decorator(f):
@@ -265,10 +264,10 @@ def to_text(filter=None):
 
                     # format authors
                     if len(paper.author) > 4:
-                        # more than 3 authors
+                        # more than 4 authors
                         author = '{:s} et al.'.format(
                             ', '.join([au.split(',')[0] for au in
-                                       paper.author[:3]]))
+                                       paper.author[:4]]))
                     elif len(paper.author) > 1:
                         # less than or equal to 3 authors
                         author = ', '.join([au.split(',')[0] for au in

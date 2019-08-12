@@ -65,7 +65,7 @@ def test_register_single():
     with Tracking():
         register('test1', {'track_this': 'bibcode1'})
 
-    assert (set(['sbpy:', 'software:', 'https://doi.org/10.21105/joss.01426',
+    assert (set(['sbpy:', 'software:', '2019JOSS....4.1426M',
                  'test1:', 'track_this:', 'bibcode1'])
             == set(show().split()))
     stop()
@@ -77,7 +77,7 @@ def test_register_list():
     with Tracking():
         register('test1', {'track_this': ['bibcode1', 'bibcode2']})
 
-    assert (set(['sbpy:', 'software:', 'https://doi.org/10.21105/joss.01426',
+    assert (set(['sbpy:', 'software:', '2019JOSS....4.1426M',
                  'test1:', 'track_this:', 'bibcode1', 'bibcode2'])
             == set(show().split()))
     stop()
@@ -109,7 +109,7 @@ def test_Tracking():
     assert not status()
 
     register('test', {'do not track this': 'bibcode'})
-    assert set(['sbpy:', 'software:', 'https://doi.org/10.21105/joss.01426',
+    assert set(['sbpy:', 'software:', '2019JOSS....4.1426M',
                 'test1:', 'track_this:', 'bibcode1', 'bibcode2',
                 'track_this_too:', 'bibcode', 'test2:', 'track_this:',
                 'bibcode', 'test3:', 'track_this:', 'bibcode',
@@ -138,7 +138,7 @@ def test_Tracking_reporter(capsys):
     with Tracking(reporter=show):
         register('test1', {'track_this': 'bibcode1'})
     captured = capsys.readouterr()
-    assert (set(['sbpy:', 'software:', 'https://doi.org/10.21105/joss.01426',
+    assert (set(['sbpy:', 'software:', '2019JOSS....4.1426M',
                  'test1:', 'track_this:', 'bibcode1'])
             == set(captured.out.split()))
     stop()
@@ -155,7 +155,7 @@ def test_cite_function():
     track()
     force(1, 2)
     assert (set(
-        ['sbpy:', 'software:', 'https://doi.org/10.21105/joss.01426',
+        ['sbpy:', 'software:', '2019JOSS....4.1426M',
          'sbpy.bib.tests.test_bib.test_cite_function.<locals>.force:',
          'method:', '1687pnpm.book.....N'])
         == set(show().split()))
@@ -174,7 +174,7 @@ def test_cite_function_twice():
     track()
     force(1, 2)
     assert (set(
-        ['sbpy:', 'software:', 'https://doi.org/10.21105/joss.01426',
+        ['sbpy:', 'software:', '2019JOSS....4.1426M',
          'sbpy.bib.tests.test_bib.test_cite_function_twice.<locals>.force:',
          'method:', '1687pnpm.book.....N', 'interpretation:',
          'philosophical', 'reference'])
@@ -197,7 +197,7 @@ def test_cite_class_method():
         p.force(1, 2)
 
     assert (set([
-        'sbpy:', 'software:', 'https://doi.org/10.21105/joss.01426',
+        'sbpy:', 'software:', '2019JOSS....4.1426M',
         'sbpy.bib.tests.test_bib.test_cite_class_method'
         '.<locals>.Physics.force:',
         'method:', '1687pnpm.book.....N'])
@@ -218,7 +218,7 @@ def test_cite_class():
         f(1, 2)
 
     assert (set([
-        'sbpy:', 'software:', 'https://doi.org/10.21105/joss.01426',
+        'sbpy:', 'software:', '2019JOSS....4.1426M',
         'sbpy.bib.tests.test_bib.test_cite_class'
         '.<locals>.Force:', 'method:', '1687pnpm.book.....N'])
         == set(show().split()))
@@ -235,7 +235,7 @@ def test_filter():
         register('test3', {'track_this': 'bibcode',
                            'software': 'bibcode'})
 
-    assert set(['sbpy:', 'software:', 'https://doi.org/10.21105/joss.01426',
+    assert set(['sbpy:', 'software:', '2019JOSS....4.1426M',
                 'test1:', 'software:', 'bibcode2',
                 'test2:', 'software:', 'bibcode',
                 'test3:', 'software:',
