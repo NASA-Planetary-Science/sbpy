@@ -349,11 +349,13 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
 
         Examples
         --------
+        >>> import astropy.units as u
+        >>> from sbpy.calib import solar_fluxd
         >>> from sbpy.photometry import HG
         >>> from sbpy.data import Phys
         >>>
         >>> # Initialize from physical parameters pulled from JPL SBDB
-        >>> phys = Phys.from_sbdb('Ceres')    # doctest: +REMOTE_DATA
+        >>> phys = Phys.from_sbdb('Ceres')             # doctest: +REMOTE_DATA
         >>> print(phys['targetname','radius','H','G']) # doctest: +REMOTE_DATA
         <QTable length=1>
         targetname  radius    H       G
@@ -361,18 +363,21 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
            str7    float64 float64 float64
         ---------- ------- ------- -------
            1 Ceres   469.7    3.34    0.12
-        >>> m = HG.from_phys(phys)  # doctest: +REMOTE_DATA
+        >>> m = HG.from_phys(phys)   # doctest: +REMOTE_DATA
         INFO: Model initialized for 1 Ceres. [sbpy.photometry.core]
-        >>> p = m.to_phys()  # doctest: +REMOTE_DATA
-        >>> print(type(p))  # doctest: +REMOTE_DATA
+        >>> m.wfb = 'V'              # doctest: +REMOTE_DATA
+        >>> m.H = m.H * u.mag        # doctest: +REMOTE_DATA
+        >>> with solar_fluxd.set({'V': -26.77 * u.mag}):
+        ...     p = m.to_phys()      # doctest: +REMOTE_DATA
+        >>> print(type(p))           # doctest: +REMOTE_DATA
         <class 'sbpy.data.phys.Phys'>
-        >>> print(p)  # doctest: +REMOTE_DATA
+        >>> print(p)                 # doctest: +REMOTE_DATA
         <QTable length=1>
         targetname diameter    H       G             pv                  A
-                      km
+                      km      mag
            str7    float64  float64 float64       float64             float64
         ---------- -------- ------- ------- ------------------- -------------------
-           1 Ceres    939.4    3.34    0.12 0.09423445077857852 0.03433437637586201
+           1 Ceres    939.4    3.34    0.12 0.09166630037900923 0.03339866929973315
         """
         cols = {}
         if (self.meta is not None) and ('targetname' in self.meta.keys()):
