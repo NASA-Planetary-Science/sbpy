@@ -13,9 +13,67 @@ from ...data import Ephem, Phys
 req_ver = LooseVersion('3.0.2')
 
 
+class TestDiskIntegratedPhaseFunc():
+    def test__unit(self):
+        class TestClass(DiskIntegratedPhaseFunc):
+            p = Parameter(default=1.)
+            @staticmethod
+            def evaluate(a, p):
+                return a * p
+
+        temp = TestClass()
+        with pytest.raises(ValueError):
+            temp._check_unit()
+
+    def test_ref_phasefunc(self):
+        solar_fluxd.set({'V': -26.77 * u.mag})
+        class ExpPhase(DiskIntegratedPhaseFunc):
+            _unit = 'ref'
+            p = Parameter(default=0.1 / u.sr)
+            nu = Parameter(default=0.1 / u.rad)
+            @staticmethod
+            def evaluate(a, p, nu):
+                return p * np.exp(-nu * a)
+
+        exp_phase = ExpPhase()
+        pha_test = np.linspace(0, 120, 10) * u.deg
+        ref_test = [0.1, 0.09769976, 0.09545244, 0.0932568 , 0.09111168,
+                    0.08901589, 0.08696831, 0.08496784, 0.08301337,
+                    0.08110387] / u.sr
+        ref = exp_phase(pha_test)
+        assert np.allclose(ref.value, ref_test.value)
+        assert ref.unit == ref_test.unit
+        ref_n_test = [1.01760649, 0.99419913, 0.97133019, 0.94898729,
+                    0.92715833, 0.90583148, 0.88499521, 0.86463822,
+                    0.84474949, 0.82531824]
+        ref_n = exp_phase.to_ref(pha_test, normalized=10 * u.deg)
+        assert np.allclose(ref_n, ref_n_test)
+
+        with pytest.raises(ValueError):
+            mag = exp_phase.to_mag(1 * u.rad)
+        with pytest.raises(ValueError):
+            mag = exp_phase.to_mag(1 * u.rad, unit=u.mag)
+        exp_phase.radius = 100 * u.km
+        with pytest.raises(ValueError):
+            mag = exp_phase.to_mag(1 * u.rad, unit=u.mag)
+        exp_phase.wfb = 'V'
+        mag = exp_phase.to_mag(pha_test, unit=u.mag)
+        mag_test = [5.36175238, 5.38701861, 5.41228484, 5.43755106,
+                5.46281729, 5.48808352, 5.51334975, 5.53861598, 5.56388221,
+                5.58914844] * u.mag
+        assert np.allclose(mag.value, mag_test.value)
+        assert mag.unit == mag_test.unit
+
+        eph_dict = {'alpha': pha_test,
+                    'r': np.repeat(0.8 * u.au, 10),
+                    'delta': np.repeat(0.5 * u.au, 10)}
+        eph_test = Ephem.from_dict(eph_dict)
+        ref1 = exp_phase.to_ref(eph_test)
+        assert np.allclose(ref1.value, ref_test.value)
+
+
 class TestLinear():
     def test_init(self):
-        solar_fluxd.set({'V': -26.77 * u.mag})
         linphase = LinearPhaseFunc(5 * u.mag, 0.04 * u.mag/u.deg,
                 radius=300 * u.km, wfb='V')
         assert np.isclose(linphase.H.value, 5)
@@ -36,6 +94,8 @@ class TestLinear():
         assert np.allclose(eph['alpha'].value, pha_test.value)
         assert eph['alpha'].unit == pha_test.unit
         assert set(eph.field_names) == {'alpha', 'mag'}
+        eph = linphase.to_mag(eph, append_results=True)
+        assert set(eph.field_names) == {'alpha', 'mag', 'mag1'}
 
     def test_to_ref(self):
         linphase = LinearPhaseFunc(5 * u.mag, 0.04 * u.mag/u.deg,
@@ -59,6 +119,13 @@ class TestLinear():
             assert u.allclose(eph_norm['ref'], ref_norm_test)
             assert u.allclose(eph_norm['alpha'], pha_test)
         assert set(eph_norm.field_names) == {'alpha', 'ref'}
+        eph = linphase.to_ref(eph, append_results=True)
+        assert set(eph.field_names) == {'alpha', 'ref', 'ref1'}
+        # test exception
+        linphase = LinearPhaseFunc(5 * u.mag, 0.04 * u.mag/u.deg,
+                radius=300 * u.km)
+        with pytest.raises(ValueError):
+            linphase.to_ref(10 * u.deg)
 
     def test_props(self):
         linphase = LinearPhaseFunc(5 * u.mag, 2.29 * u.mag/u.rad,
@@ -78,6 +145,16 @@ class TestLinear():
         module = np.array([4.1195437, -0., -0.39590623, -3.01029996])
         assert np.allclose(m._distance_module(
             Ephem.from_dict({'r': r, 'delta': delta})), module)
+
+    def test_fit(self):
+        pha = np.linspace(0, 60, 100) * u.deg
+        mag = LinearPhaseFunc(5 * u.mag, 0.04 * u.mag/u.deg)(pha) + \
+                (np.random.rand(100)*0.2-0.1) * u.mag
+        from astropy.modeling.fitting import LevMarLSQFitter
+        fitter = LevMarLSQFitter()
+        m0 = LinearPhaseFunc(3 * u.mag, 0.02 * u.mag/u.deg)
+        m = fitter(m0, pha, mag)
+        assert isinstance(m, LinearPhaseFunc)
 
 
 class TestHG:
@@ -101,6 +178,9 @@ class TestHG:
         assert np.isclose(m.H.value, phys['H'])
         assert np.isclose(m.G.value, phys['G'])
         assert np.isclose(m.radius.value, phys['diameter'].value/2)
+        # test the case when target name is unknown
+        phys.table.remove_column('targetname')
+        m = HG.from_phys(phys)
         # test initialization failure with `sbpy.data.DataClass` when H or G
         # is not present
         phys = Phys.from_sbdb('12893')
@@ -108,6 +188,13 @@ class TestHG:
             m = HG.from_phys(phys)
 
     def test_to_phys(self):
+        m = HG(3.34 * u.mag, 0.12)
+        p = m.to_phys()
+        assert isinstance(p, Phys)
+        assert set(p.field_names.keys()) == {'H', 'G'}
+        assert np.isclose(p['H'].value, 3.34)
+        assert p['H'].unit == u.mag
+        assert np.isclose(p['G'], 0.12)
         m = HG(3.34 * u.mag, 0.12, radius=480 * u.km, wfb='V',
                 meta={'targetname': '1 Ceres'})
         p = m.to_phys()
@@ -458,6 +545,11 @@ class TestHG12:
         with pytest.warns(NonmonotonicPhaseFunctionWarning):
             m = HG12(0, -0.71)
             m = HG12(0, 1.31)
+
+    def test_G1_G2(self):
+        themis = HG12(7.121 * u.mag, 0.68, radius=100 * u.km, wfb='V')
+        assert np.isclose(themis._G1, 0.669592)
+        assert np.isclose(themis._G2, 0.1407)
 
 
 class TestHG12_Pen16:
