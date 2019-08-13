@@ -37,7 +37,7 @@ class TestDiskIntegratedPhaseFunc():
 
         exp_phase = ExpPhase()
         pha_test = np.linspace(0, 120, 10) * u.deg
-        ref_test = [0.1, 0.09769976, 0.09545244, 0.0932568 , 0.09111168,
+        ref_test = [0.1, 0.09769976, 0.09545244, 0.0932568, 0.09111168,
                     0.08901589, 0.08696831, 0.08496784, 0.08301337,
                     0.08110387] / u.sr
         ref = exp_phase(pha_test)
