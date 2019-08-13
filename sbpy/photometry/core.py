@@ -457,7 +457,9 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         if n_models == 1:
             mag = obs[fields]
             if isinstance(mag, u.Quantity):
-                dist_corr = dist_corr * u.mag
+                dist_corr = u.Quantity(dist_corr).to(u.mag, u.logarithmic())
+            else:
+                dist_corr = -2.5 * alog10(dist_corr)
             mag0 = mag + dist_corr
             if init is None:
                 m0 = cls()
@@ -476,9 +478,10 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
             for i in range(n_models):
                 mag = obs[fields[i]]
                 if isinstance(mag, u.Quantity):
-                    dist_corr1 = dist_corr * u.mag
+                    dist_corr1 = u.Quantity(dist_corr).to(u.mag,
+                            u.logarithmic())
                 else:
-                    dist_corr1 = dist_corr
+                    dist_corr1 = -2.5 * alog10(dist_corr)
                 mag0 = mag + dist_corr1
                 if init is None:
                     m0 = cls()
@@ -519,9 +522,8 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         Returns
         -------
         float or numpy array
-            Factors to be applied to flux to correct to heliocentric distance
-            and observer distance of both 1 au.  The unit of correction
-            (linear or magnitude) is determined by ``._unit``.
+            Linear factors to be applied to flux to correct to heliocentric
+            distance and observer distance of both 1 au.
         """
         module = 1.
         try:
@@ -538,11 +540,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
             module = module * delta * delta
         except (KeyError, TypeError):
             pass
-        module = np.asarray(module)
-        if self._unit == 'mag':
-            return -2.5 * np.log10(module)
-        else:
-            return module
+        return np.asarray(module)
 
     @quantity_to_dataclass(eph=(Ephem, 'alpha'))
     def to_mag(self, eph, unit=None, append_results=False, **kwargs):
@@ -603,7 +601,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         if len(pha) == 1:
             pha = pha[0]
         out = self(pha, **kwargs)
-        if self._unit != 'mag':
+        if self._unit == 'ref':
             if unit is None:
                 raise ValueError('Magnitude unit is not specified.')
             if self.radius is None:
@@ -613,12 +611,10 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
             if self.wfb is None:
                 raise ValueError('Wavelength/Frequency/Band is unknown.')
             out = out.to(unit, reflectance(self.wfb,
-                    cross_section=np.pi*self.radius**2))
-        else:
-            dist_corr = self._distance_module(eph)
-            if isinstance(out, u.Quantity):
-                dist_corr = dist_corr*u.mag
-            out = out - dist_corr
+                    cross_section=np.pi * self.radius**2))
+        dist_corr = self._distance_module(eph)
+        dist_corr = u.Quantity(dist_corr).to(u.mag, u.logarithmic())
+        out = out - dist_corr
         if append_results:
             name = 'mag'
             i = 1
