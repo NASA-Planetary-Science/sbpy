@@ -28,6 +28,8 @@ class MockPyradex:
         self.value = {0, 94500000000000.0}
 
 # monkeypatched NonLTE.from_pyradex
+
+
 @pytest.fixture
 def mock_nonlte(monkeypatch):
     """
@@ -72,7 +74,8 @@ def test_remote_prodrate_simple_hcn():
 
         lte = LTE()
 
-        q = lte.from_Drahus(integrated_flux, mol_data, ephemobj, vgas, aper, b=b)
+        q = lte.from_Drahus(integrated_flux, mol_data,
+                            ephemobj, vgas, aper, b=b)
 
         q = np.log10(q.value)
 
@@ -113,7 +116,8 @@ def test_remote_prodrate_simple_ch3oh():
 
         lte = LTE()
 
-        q = lte.from_Drahus(integrated_flux, mol_data, ephemobj, vgas, aper, b=b)
+        q = lte.from_Drahus(integrated_flux, mol_data,
+                            ephemobj, vgas, aper, b=b)
 
         q = np.log10(q.value)
 
@@ -372,7 +376,8 @@ def test_pyradex_case():
     temp_back = 2.8 * u.K
 
     mol_data = Phys.from_jplspec(temp_estimate, transition_freq, mol_tag)
-    mol_data.apply([cdensity_guess.value] * cdensity_guess.unit, name='cdensity')
+    mol_data.apply([cdensity_guess.value] *
+                   cdensity_guess.unit, name='cdensity')
     mol_data.apply([temp_back.value] * temp_back.unit, name='temp_back')
     mol_data.apply(['HCO+@xpol'], name='lamda_name')
     nonLTE = NonLTE()
@@ -392,11 +397,12 @@ def test_pyradex_cdensity(mock_nonlte):
     temp_back = 2.8 * u.K
 
     mol_data = Phys.from_jplspec(temp_estimate, transition_freq, mol_tag)
-    mol_data.apply([cdensity_guess.value] * cdensity_guess.unit, name='cdensity')
+    mol_data.apply([cdensity_guess.value] *
+                   cdensity_guess.unit, name='cdensity')
     mol_data.apply([temp_back.value] * temp_back.unit, name='temp_back')
     mol_data.apply(['HCO+@xpol'], name='lamda_name')
     nonLTE = NonLTE()
     cdensity = nonLTE.from_pyradex(1.234 * u.K * u.km / u.s, mol_data,
                                    iter=100, collider_density={'H2': 900})
 
-    assert np.isclose(cdensity.value[0], 94500000000000.0)
+    assert 94500000000000.0 in cdensity.value
