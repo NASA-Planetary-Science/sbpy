@@ -6,53 +6,105 @@ from distutils.version import LooseVersion
 import astropy
 from astropy import units as u
 from astropy.modeling import Parameter
+from ...calib import solar_fluxd
 from ..core import *
 from ...data import Ephem, Phys
 
 req_ver = LooseVersion('3.0.2')
 
 
-def test_ref2mag():
-    assert np.isclose(ref2mag(0.1/np.pi, 460), 3.3208379018205285)
-    if LooseVersion(astropy.__version__) >= req_ver:
-        assert u.isclose(ref2mag(0.1/np.pi, 460*u.km),
-                         3.3208379018205285*u.mag)
+class TestDiskIntegratedPhaseFunc():
+    def test__unit(self):
+        class TestClass(DiskIntegratedPhaseFunc):
+            p = Parameter(default=1.)
+            @staticmethod
+            def evaluate(a, p):
+                return a * p
 
+        temp = TestClass()
+        with pytest.raises(ValueError):
+            temp._check_unit()
 
-def test_mag2ref():
-    assert np.isclose(mag2ref(3.32, 460), 0.03185556322261901)
-    if LooseVersion(astropy.__version__) >= req_ver:
-        assert u.isclose(mag2ref(3.32, 460*u.km), 0.03185556322261901/u.sr)
+    def test_ref_phasefunc(self):
+        solar_fluxd.set({'V': -26.77 * u.mag})
+        class ExpPhase(DiskIntegratedPhaseFunc):
+            _unit = 'ref'
+            p = Parameter(default=0.1 / u.sr)
+            nu = Parameter(default=0.1 / u.rad)
+            @staticmethod
+            def evaluate(a, p, nu):
+                return p * np.exp(-nu * a)
+
+        exp_phase = ExpPhase()
+        pha_test = np.linspace(0, 120, 10) * u.deg
+        ref_test = [0.1, 0.09769976, 0.09545244, 0.0932568, 0.09111168,
+                    0.08901589, 0.08696831, 0.08496784, 0.08301337,
+                    0.08110387] / u.sr
+        ref = exp_phase(pha_test)
+        assert np.allclose(ref.value, ref_test.value)
+        assert ref.unit == ref_test.unit
+        ref_n_test = [1.01760649, 0.99419913, 0.97133019, 0.94898729,
+                    0.92715833, 0.90583148, 0.88499521, 0.86463822,
+                    0.84474949, 0.82531824]
+        ref_n = exp_phase.to_ref(pha_test, normalized=10 * u.deg)
+        assert np.allclose(ref_n, ref_n_test)
+
+        with pytest.raises(ValueError):
+            mag = exp_phase.to_mag(1 * u.rad)
+        with pytest.raises(ValueError):
+            mag = exp_phase.to_mag(1 * u.rad, unit=u.mag)
+        exp_phase.radius = 100 * u.km
+        with pytest.raises(ValueError):
+            mag = exp_phase.to_mag(1 * u.rad, unit=u.mag)
+        exp_phase.wfb = 'V'
+        mag = exp_phase.to_mag(pha_test, unit=u.mag)
+        mag_test = [5.36175238, 5.38701861, 5.41228484, 5.43755106,
+                5.46281729, 5.48808352, 5.51334975, 5.53861598, 5.56388221,
+                5.58914844] * u.mag
+        assert np.allclose(mag.value, mag_test.value)
+        assert mag.unit == mag_test.unit
+
+        eph_dict = {'alpha': pha_test,
+                    'r': np.repeat(0.8 * u.au, 10),
+                    'delta': np.repeat(0.5 * u.au, 10)}
+        eph_test = Ephem.from_dict(eph_dict)
+        ref1 = exp_phase.to_ref(eph_test)
+        assert np.allclose(ref1.value, ref_test.value)
 
 
 class TestLinear():
     def test_init(self):
-        linphase = LinearPhaseFunc(5 * u.mag, 0.04 * u.mag/u.deg, radius=300)
+        linphase = LinearPhaseFunc(5 * u.mag, 0.04 * u.mag/u.deg,
+                radius=300 * u.km, wfb='V')
         assert np.isclose(linphase.H.value, 5)
         assert linphase.H.unit == u.mag
         assert np.isclose(linphase.S.value, 0.04)
         assert linphase.S.unit == u.mag/u.deg
+        assert linphase.radius == 300 * u.km
+        assert linphase.wfb == 'V'
 
-    def test_mag(self):
-        linphase = LinearPhaseFunc(5 * u.mag, 0.04 * u.mag/u.deg, radius=300)
+    def test_to_mag(self):
+        linphase = LinearPhaseFunc(5 * u.mag, 0.04 * u.mag/u.deg,
+                radius=300 * u.km)
         pha_test = np.linspace(0, np.pi, 10) * u.rad
-        mag_test = np.array([5., 5.8, 6.6, 7.4, 8.2, 9., 9.8, 10.6, 11.4,
-            12.2]) * u.mag
+        mag_test = [5., 5.8, 6.6, 7.4, 8.2, 9., 9.8, 10.6, 11.4, 12.2] * u.mag
         eph = linphase.to_mag(pha_test, append_results=True)
         assert np.allclose(eph['mag'].value, mag_test.value)
         assert eph['mag'].unit == mag_test.unit
         assert np.allclose(eph['alpha'].value, pha_test.value)
         assert eph['alpha'].unit == pha_test.unit
         assert set(eph.field_names) == {'alpha', 'mag'}
+        eph = linphase.to_mag(eph, append_results=True)
+        assert set(eph.field_names) == {'alpha', 'mag', 'mag1'}
 
-    def test_ref(self):
-        linphase = LinearPhaseFunc(5 * u.mag, 0.04 * u.mag/u.deg, radius=300)
+    def test_to_ref(self):
+        linphase = LinearPhaseFunc(5 * u.mag, 0.04 * u.mag/u.deg,
+                radius=300 * u.km, wfb='V')
         pha_test = np.linspace(0, 180, 10) * u.deg
         eph = linphase.to_ref(pha_test, append_results=True)
-        ref_test = np.array(
-            [1.59389035e-02, 7.62883887e-03, 3.65139185e-03, 1.74766602e-03,
-             8.36485548e-04, 4.00367155e-04, 1.91627768e-04, 9.17188165e-05,
-             4.38993856e-05, 2.10115670e-05])/u.sr
+        ref_test = [1.55045242e-02, 7.42093183e-03, 3.55188129e-03,
+            1.70003727e-03, 8.13688994e-04, 3.89456039e-04, 1.86405380e-04,
+            8.92192241e-05, 4.27030055e-05, 2.04389434e-05] / u.sr
         ref_norm_test = np.array(
             [1., 0.47863009, 0.22908677, 0.10964782, 0.05248075,
              0.02511886, 0.01202264, 0.0057544, 0.00275423,
@@ -61,17 +113,26 @@ class TestLinear():
             assert u.allclose(eph['ref'], ref_test)
             assert u.allclose(eph['alpha'], pha_test)
         assert set(eph.field_names) == {'alpha', 'ref'}
-        eph_norm = linphase.to_ref(pha_test, normalized=0*u.deg, append_results=True)
+        eph_norm = linphase.to_ref(pha_test, normalized=0 * u.deg,
+            append_results=True)
         if LooseVersion(astropy.__version__) >= req_ver:
             assert u.allclose(eph_norm['ref'], ref_norm_test)
             assert u.allclose(eph_norm['alpha'], pha_test)
         assert set(eph_norm.field_names) == {'alpha', 'ref'}
+        eph = linphase.to_ref(eph, append_results=True)
+        assert set(eph.field_names) == {'alpha', 'ref', 'ref1'}
+        # test exception
+        linphase = LinearPhaseFunc(5 * u.mag, 0.04 * u.mag/u.deg,
+                radius=300 * u.km)
+        with pytest.raises(ValueError):
+            linphase.to_ref(10 * u.deg)
 
     def test_props(self):
-        linphase = LinearPhaseFunc(5 * u.mag, 2.29 * u.mag/u.rad, radius=300)
-        assert np.isclose(linphase.geomalb, 0.05007354222252798)
-        assert np.isclose(linphase.bondalb, 0.018404727835791654)
-        assert np.isclose(linphase.phaseint, 0.3675539420399024)
+        linphase = LinearPhaseFunc(5 * u.mag, 2.29 * u.mag/u.rad,
+                radius=300 * u.km, wfb='V')
+        assert np.isclose(linphase.geomalb, 0.0487089)
+        assert np.isclose(linphase.bondalb, 0.01790315)
+        assert np.isclose(linphase.phaseint, 0.36755394203990327)
 
     def test__distance_module(self):
         r = [0.5, 1, 1.2, 2]
@@ -85,24 +146,28 @@ class TestLinear():
         assert np.allclose(m._distance_module(
             Ephem.from_dict({'r': r, 'delta': delta})), module)
 
+    def test_fit(self):
+        pha = np.linspace(0, 60, 100) * u.deg
+        mag = LinearPhaseFunc(5 * u.mag, 0.04 * u.mag/u.deg)(pha) + \
+                (np.random.rand(100)*0.2-0.1) * u.mag
+        from astropy.modeling.fitting import LevMarLSQFitter
+        fitter = LevMarLSQFitter()
+        m0 = LinearPhaseFunc(3 * u.mag, 0.02 * u.mag/u.deg)
+        m = fitter(m0, pha, mag)
+        assert isinstance(m, LinearPhaseFunc)
+
 
 class TestHG:
     def test_init(self):
         # initialize with numbers
-        ceres = HG(3.34, 0.12, radius=480*u.km, M_sun=-26.74)
+        ceres = HG(3.34 * u.mag, 0.12, radius=480 * u.km, wfb='V')
         if LooseVersion(astropy.__version__) >= req_ver:
-            assert u.isclose(ceres.radius, 480*u.km)
-        assert np.isclose(ceres.M_sun, -26.74)
+            assert u.isclose(ceres.radius, 480 * u.km)
         assert isinstance(ceres.H, Parameter)
         assert np.isclose(ceres.H.value, 3.34)
         assert isinstance(ceres.G, Parameter)
         assert np.isclose(ceres.G.value, 0.12)
-        # initialize with Quantity
-        ceres = HG(3.34 * u.mag, 0.12 * u.dimensionless_unscaled)
-        assert np.isclose(ceres.H.value, 3.34)
-        assert ceres.H.unit == u.mag
-        assert np.isclose(ceres.G.value, 0.12)
-        assert ceres.G.unit == u.dimensionless_unscaled
+        assert ceres.wfb == 'V'
 
     @pytest.mark.remote_data
     def test_from_phys(self):
@@ -113,6 +178,9 @@ class TestHG:
         assert np.isclose(m.H.value, phys['H'])
         assert np.isclose(m.G.value, phys['G'])
         assert np.isclose(m.radius.value, phys['diameter'].value/2)
+        # test the case when target name is unknown
+        phys.table.remove_column('targetname')
+        m = HG.from_phys(phys)
         # test initialization failure with `sbpy.data.DataClass` when H or G
         # is not present
         phys = Phys.from_sbdb('12893')
@@ -120,17 +188,25 @@ class TestHG:
             m = HG.from_phys(phys)
 
     def test_to_phys(self):
-        m = HG(3.34, 0.12, radius=480*u.km, M_sun=-26.74,
+        m = HG(3.34 * u.mag, 0.12)
+        p = m.to_phys()
+        assert isinstance(p, Phys)
+        assert set(p.field_names.keys()) == {'H', 'G'}
+        assert np.isclose(p['H'].value, 3.34)
+        assert p['H'].unit == u.mag
+        assert np.isclose(p['G'], 0.12)
+        m = HG(3.34 * u.mag, 0.12, radius=480 * u.km, wfb='V',
                 meta={'targetname': '1 Ceres'})
         p = m.to_phys()
         assert isinstance(p, Phys)
         assert p['targetname'] == '1 Ceres'
-        assert np.isclose(p['H'], 3.34)
+        assert np.isclose(p['H'].value, 3.34)
+        assert p['H'].unit == u.mag
         assert np.isclose(p['G'], 0.12)
         assert np.isclose(p['diameter'].value, 960)
         assert p['diameter'].unit == u.km
-        assert np.isclose(p['pv'], 0.09023361346774741)
-        assert np.isclose(p['A'], 0.03287666899906162)
+        assert np.isclose(p['pv'], 0.0877745)
+        assert np.isclose(p['A'], 0.03198069)
 
     def test_evaluate(self):
         pha_test = np.linspace(0, np.pi, 10)
@@ -151,21 +227,14 @@ class TestHG:
             deriv_test)
 
     def test__check_unit(self):
-        ceres = HG(3.34, 0.12, radius=480*u.km, M_sun=-26.74)
+        ceres = HG(3.34 * u.mag, 0.12)
         assert ceres._unit == 'mag'
 
     def test_props(self):
-        ceres = HG(3.34, 0.12, radius=480)
-        assert np.isclose(ceres.geomalb, 0.09023361346774741)
-        assert np.isclose(ceres.bondalb, 0.03287666899906162)
-        assert np.isclose(ceres.phaseint, 0.36435057552929395)
-        ceres.radius = 480*u.km
-        if LooseVersion(astropy.__version__) >= req_ver:
-            assert u.isclose(ceres.geomalb,
-                             0.09023361*u.dimensionless_unscaled)
-            assert u.isclose(ceres.bondalb, 0.03287667 *
-                             u.dimensionless_unscaled)
-        assert np.isclose(ceres.phaseint, 0.36435057552929323)
+        ceres = HG(3.34 * u.mag, 0.12, radius=480 * u.km, wfb='V')
+        assert np.isclose(ceres.geomalb, 0.0877745)
+        assert np.isclose(ceres.bondalb, 0.03198069)
+        assert np.isclose(ceres.phaseint, 0.3643505755292945)
 
     def test_from_obs(self):
         pha = np.array(
@@ -219,8 +288,8 @@ class TestHG:
         assert m.meta['fields'] == ['mag', 'mag1', 'mag2']
 
     def test_to_mag(self):
-        ceres = HG(3.34 * u.mag, 0.12 * u.dimensionless_unscaled, radius=480)
-        eph_dict = {'alpha': np.linspace(0, np.pi*0.9, 10)*u.rad,
+        ceres = HG(3.34 * u.mag, 0.12, radius=480 * u.km, wfb='V')
+        eph_dict = {'alpha': np.linspace(0, np.pi*0.9, 10) * u.rad,
                     'r': np.repeat(2.7*u.au, 10),
                     'delta': np.repeat(1.8*u.au, 10)}
         eph_test = Ephem.from_dict(eph_dict)
@@ -247,27 +316,20 @@ class TestHG:
         if LooseVersion(astropy.__version__) >= req_ver:
             assert u.allclose(mag4, mag2_test)
 
-    def test_ref(self):
-        ceres = HG(3.34 * u.mag, 0.12, radius=480)
+    def test_to_ref(self):
+        ceres = HG(3.34 * u.mag, 0.12, radius=480 * u.km, wfb='V')
         eph_dict = {'alpha': np.linspace(0, np.pi*0.9, 10)*u.rad,
                     'r': np.repeat(2.7*u.au, 10),
                     'delta': np.repeat(1.8*u.au, 10)}
         eph_test = Ephem.from_dict(eph_dict)
-        ref1_test = np.array(
-            [0.02872225123287084, 0.0117208743870569, 0.007053334911678305,
-             0.004384267859347806, 0.0026347477224558857,
-             0.0014383641304522461, 0.0006498514365555728,
-             0.0002042614521939071, 3.1202240400267656e-05,
-             5.942043286373853e-07]) / u.sr
+        ref1_test = [2.79394901e-02, 1.14014480e-02, 6.86111195e-03,
+            4.26478439e-03, 2.56294353e-03, 1.39916471e-03, 6.32141181e-04,
+            1.98694761e-04, 3.03518927e-05, 5.78010611e-07] / u.sr
         eph1 = ceres.to_ref(eph_test, append_results=True)
         assert set(eph1.field_names) == {'alpha', 'delta', 'ref', 'r'}
         if LooseVersion(astropy.__version__) >= req_ver:
             assert u.allclose(eph1['ref'], ref1_test)
         pha_test = np.linspace(0, np.pi*0.9, 10) * u.rad
-        ref2_test = np.array(
-            [2.87222512e-02, 1.17208744e-02, 7.05333491e-03, 4.38426786e-03,
-             2.63474772e-03, 1.43836413e-03, 6.49851437e-04, 2.04261452e-04,
-             3.12022404e-05, 5.94204329e-07]) / u.sr
         ref2_norm_test = np.array(
             [1.00000000e+00, 4.08076452e-01, 2.45570407e-01, 1.52643601e-01,
              9.17319364e-02, 5.00783911e-02, 2.26253657e-02, 7.11161011e-03,
@@ -277,11 +339,11 @@ class TestHG:
         assert set(eph3.field_names) == {'alpha', 'ref'}
         assert set(eph4.field_names) == {'alpha', 'ref'}
         if LooseVersion(astropy.__version__) >= req_ver:
-            assert u.allclose(eph3['ref'], ref2_test)
+            assert u.allclose(eph3['ref'], ref1_test)
             assert u.allclose(eph4['ref'], ref2_norm_test)
         ref5 = ceres.to_ref(pha_test)
         if LooseVersion(astropy.__version__) >= req_ver:
-            assert u.allclose(ref5, ref2_test)
+            assert u.allclose(ref5, ref1_test)
 
     def test_g_validate(self):
         with pytest.warns(NonmonotonicPhaseFunctionWarning):
@@ -291,26 +353,17 @@ class TestHG:
 class TestHG1G2:
     def test_init(self):
         # initialization with numbers
-        themis = HG1G2(7.063, 0.62, 0.14, radius=100.*u.km, M_sun=-26.74)
+        themis = HG1G2(7.063 * u.mag, 0.62, 0.14, radius=100 * u.km, wfb='V')
         assert themis._unit == 'mag'
         if LooseVersion(astropy.__version__) >= req_ver:
-            assert u.isclose(themis.radius, 100*u.km)
-        assert np.isclose(themis.M_sun, -26.74)
+            assert u.isclose(themis.radius, 100 * u.km)
         assert isinstance(themis.H, Parameter)
         assert np.isclose(themis.H.value, 7.063)
         assert isinstance(themis.G1, Parameter)
         assert np.isclose(themis.G1.value, 0.62)
         assert isinstance(themis.G2, Parameter)
         assert np.isclose(themis.G2.value, 0.14)
-        # initialization with Quantity
-        themis = HG1G2(7.062 * u.mag, 0.62 * u.dimensionless_unscaled,
-                       0.14 * u.dimensionless_unscaled)
-        assert np.isclose(themis.H.value, 7.062)
-        assert themis.H.unit == u.mag
-        assert np.isclose(themis.G1.value, 0.62)
-        assert themis.G1.unit == u.dimensionless_unscaled
-        assert np.isclose(themis.G2.value, 0.14)
-        assert themis.G2.unit == u.dimensionless_unscaled
+        assert themis.wfb == 'V'
 
     @pytest.mark.remote_data
     def test_from_phys(self):
@@ -321,7 +374,7 @@ class TestHG1G2:
             m = HG1G2.from_phys(phys)
 
     def test__G1_G2(self):
-        themis = HG1G2(7.063, 0.62, 0.14, radius=100*u.km, M_sun=-26.74)
+        themis = HG1G2(7.063 * u.mag, 0.62, 0.14)
         assert np.isclose(themis._G1, 0.62)
         assert np.isclose(themis._G2, 0.14)
 
@@ -352,31 +405,22 @@ class TestHG1G2:
             pha_test, 7.063, 0.62, 0.14)), deriv_test)
 
     def test_props(self):
-        themis = HG1G2(7.063, 0.62, 0.14, radius=100)
-        assert np.isclose(themis.geomalb, 0.06739859193616704)
-        assert np.isclose(themis.bondalb, 0.02521731797010077)
-        assert np.isclose(themis.phaseint, 0.374152)
-        themis.radius = 100*u.km
-        if LooseVersion(astropy.__version__) >= req_ver:
-            assert u.isclose(themis.geomalb, 0.06739859 *
-                             u.dimensionless_unscaled)
-            assert u.isclose(themis.bondalb, 0.02521732 *
-                             u.dimensionless_unscaled)
+        themis = HG1G2(7.063 * u.mag, 0.62, 0.14, radius=100 * u.km, wfb='V')
+        assert np.isclose(themis.geomalb, 0.06556179)
+        assert np.isclose(themis.bondalb, 0.02453008)
         assert np.isclose(themis.phaseint, 0.374152)
 
     def test_from_obs(self):
-        pha = np.array(
-            [0., 6.31578947, 12.63157895, 18.94736842, 25.26315789,
-             31.57894737, 37.89473684, 44.21052632, 50.52631579, 56.84210526,
-             63.15789474, 69.47368421, 75.78947368, 82.10526316, 88.42105263,
-             94.73684211, 101.05263158, 107.36842105, 113.68421053,
-             120.]) * u.deg
-        data = np.array(
-            [7.14679706, 7.32220201, 7.85637226, 7.98824651, 8.2029765,
-             8.27574759, 8.49437766, 9.05650671, 8.79649221, 9.33071561,
-             9.24703668, 9.49069761, 9.57246629, 10.12429626, 10.14465944,
-             10.51021594, 10.63215313, 11.15570421, 11.44890748,
-             11.43888611]) * u.mag
+        pha = [0., 6.31578947, 12.63157895, 18.94736842, 25.26315789,
+               31.57894737, 37.89473684, 44.21052632, 50.52631579, 56.84210526,
+               63.15789474, 69.47368421, 75.78947368, 82.10526316, 88.42105263,
+               94.73684211, 101.05263158, 107.36842105, 113.68421053,
+               120.] * u.deg
+        data = [7.14679706, 7.32220201, 7.85637226, 7.98824651, 8.2029765,
+                8.27574759, 8.49437766, 9.05650671, 8.79649221, 9.33071561,
+                9.24703668, 9.49069761, 9.57246629, 10.12429626, 10.14465944,
+                10.51021594, 10.63215313, 11.15570421, 11.44890748,
+                11.43888611] * u.mag
         from astropy.modeling.fitting import LevMarLSQFitter
         fitter = LevMarLSQFitter()
         m = HG1G2.from_obs({'alpha': pha, 'mag': data}, fitter)
@@ -388,26 +432,21 @@ class TestHG1G2:
         assert isinstance(m.G2, Parameter) & np.isclose(
             m.G2.value, 0.17262569) & (m.G2.unit == u.dimensionless_unscaled)
 
-    def test_mag(self):
-        themis = HG1G2(7.063*u.mag, 0.62*u.dimensionless_unscaled,
-                       0.14*u.dimensionless_unscaled, radius=100)
+    def test_to_mag(self):
+        themis = HG1G2(7.063 * u.mag, 0.62, 0.14, radius=100 * u.km, wfb='V')
         pha_test = np.linspace(0, np.pi, 10)*u.rad
-        mag_test = np.array([7.063, 8.07436233, 8.68048572,
-                             9.29834638, 9.96574599, 10.72080704,
-                             11.52317465, 12.15094612,
-                             18.65369516, 18.65389398])*u.mag
+        mag_test = [7.063, 8.07436233, 8.68048572, 9.29834638, 9.96574599,
+            10.72080704, 11.52317465, 12.15094612, 18.65369516,
+            18.65389398] * u.mag
         if LooseVersion(astropy.__version__) >= req_ver:
             assert u.allclose(themis.to_mag(pha_test), mag_test)
 
-    def test_ref(self):
-        themis = HG1G2(7.063*u.mag, 0.62*u.dimensionless_unscaled,
-                       0.14*u.dimensionless_unscaled, radius=100)
+    def test_to_ref(self):
+        themis = HG1G2(7.063 * u.mag, 0.62, 0.14, radius=100 * u.km, wfb='V')
         pha_test = np.linspace(0, np.pi, 10)*u.rad
-        ref_test = np.array(
-            [2.14536381e-02, 8.45193252e-03, 4.83622683e-03,
-             2.73755213e-03, 1.48048003e-03, 7.38546998e-04,
-             3.52720817e-04, 1.97843827e-04, 4.95704528e-07,
-             4.95613763e-07])/u.sr
+        ref_test = [2.08689669e-02, 8.22159390e-03, 4.70442623e-03,
+                2.66294623e-03, 1.44013284e-03, 7.18419542e-04, 3.43108196e-04,
+                1.92452033e-04, 4.82195204e-07, 4.82106912e-07] / u.sr
         if LooseVersion(astropy.__version__) >= req_ver:
             assert u.allclose(themis.to_ref(pha_test), ref_test)
 
@@ -420,20 +459,23 @@ class TestHG1G2:
 
 class TestHG12:
     def test_init(self):
-        themis = HG12(7.121, 0.68, radius=100*u.km, M_sun=-26.74)
+        themis = HG12(7.121 * u.mag, 0.68, radius=100 * u.km, wfb='V')
         assert themis._unit == 'mag'
         if LooseVersion(astropy.__version__) >= req_ver:
-            assert u.isclose(themis.radius, 100*u.km)
-        assert np.isclose(themis.M_sun, -26.74)
+            assert u.isclose(themis.radius, 100 * u.km)
         assert isinstance(themis.H, Parameter)
         assert np.isclose(themis.H.value, 7.121)
         assert isinstance(themis.G12, Parameter)
         assert np.isclose(themis.G12.value, 0.68)
+        assert themis.wfb == 'V'
 
     def test__G1_G2(self):
-        themis = HG12(7.121, 0.68, radius=100*u.km, M_sun=-26.74)
+        themis = HG12(7.121 * u.mag, 0.68)
         assert np.isclose(themis._G1, 0.669592)
         assert np.isclose(themis._G2, 0.1407)
+        themis = HG12(7.121 * u.mag, 0.1)
+        assert np.isclose(themis._G1, 0.13691)
+        assert np.isclose(themis._G2, 0.53088)
 
     def test_evaluate(self):
         pha_test = np.linspace(0, np.pi, 10)
@@ -459,31 +501,24 @@ class TestHG12:
             pha_test, 7.121, 0.68)), phi_test)
 
     def test_props(self):
-        themis = HG12(7.121, 0.68, radius=100)
-        assert np.isclose(themis.geomalb, 0.06389263856216909)
-        assert np.isclose(themis.bondalb, 0.02522850358089249)
+        themis = HG12(7.121 * u.mag, 0.68, radius=100 * u.km, wfb='V')
+        assert np.isclose(themis.geomalb, 0.06215139)
+        assert np.isclose(themis.bondalb, 0.02454096)
         assert np.isclose(themis.phaseint, 0.3948577512)
-        themis.radius = 100*u.km
-        if LooseVersion(astropy.__version__) >= req_ver:
-            assert u.isclose(themis.geomalb, 0.06389264 *
-                             u.dimensionless_unscaled)
-            assert u.isclose(themis.bondalb, 0.0252285 *
-                             u.dimensionless_unscaled)
-        assert np.isclose(themis.phaseint, 0.3948577512)
+        assert np.isclose(themis.phasecoeff, -1.6777182566684201)
+        assert np.isclose(themis.oe_amp, 0.23412300750840437)
 
     def test_from_obs(self):
-        pha = np.array(
-            [0., 6.31578947, 12.63157895, 18.94736842, 25.26315789,
+        pha = [0., 6.31578947, 12.63157895, 18.94736842, 25.26315789,
              31.57894737, 37.89473684, 44.21052632, 50.52631579, 56.84210526,
              63.15789474, 69.47368421, 75.78947368, 82.10526316, 88.42105263,
              94.73684211, 101.05263158, 107.36842105, 113.68421053,
-             120.]) * u.deg
-        data = np.array(
-            [6.95036472, 7.71609702, 8.04175457, 7.88226545, 8.28192813,
+             120.] * u.deg
+        data = [6.95036472, 7.71609702, 8.04175457, 7.88226545, 8.28192813,
              8.50954834, 8.36880691, 8.73216696, 8.90742914, 9.05696656,
              9.20869753, 9.52578025, 9.8427691, 9.91588852, 10.3636637,
              10.26459992, 10.79316978, 10.79202241, 11.36950747,
-             11.61018708]) * u.mag
+             11.61018708] * u.mag
         from astropy.modeling.fitting import LevMarLSQFitter
         fitter = LevMarLSQFitter()
         m = HG12.from_obs({'alpha': pha, 'mag': data}, fitter)
@@ -493,23 +528,21 @@ class TestHG12:
         assert isinstance(m.G12, Parameter) & np.isclose(
             m.G12.value, 0.44872) & (m.G12.unit == u.dimensionless_unscaled)
 
-    def test_mag(self):
+    def test_to_mag(self):
         pha_test = np.linspace(0, np.pi, 10) * u.rad
-        mag_test = np.array(
-          [7.121, 8.07252953, 8.67890827, 9.2993879, 9.96817595, 10.72086969,
-          11.51208664, 12.12722017, 18.70628001, 18.70647883]) * u.mag
-        themis = HG12(7.121*u.mag, 0.68*u.dimensionless_unscaled, radius=100)
+        mag_test = [7.121, 8.07252953, 8.67890827, 9.2993879, 9.96817595,
+                10.72086969, 11.51208664, 12.12722017, 18.70628001,
+                18.70647883] * u.mag
+        themis = HG12(7.121 * u.mag, 0.68)
         if LooseVersion(astropy.__version__) >= req_ver:
             assert u.allclose(themis.to_mag(pha_test), mag_test)
 
-    def test_ref(self):
+    def test_to_ref(self):
         pha_test = np.linspace(0, np.pi, 10) * u.rad
-        ref_test = np.array(
-            [2.03376585e-02, 8.46621202e-03, 4.84325842e-03,
-             2.73492734e-03, 1.47717032e-03, 7.38504380e-04,
-             3.56341412e-04, 2.02214774e-04, 4.72268466e-07,
-             4.72181992e-07]) / u.sr
-        themis = HG12(7.121*u.mag, 0.68*u.dimensionless_unscaled, radius=100)
+        ref_test = [1.97834009e-02, 8.23548424e-03, 4.71126618e-03,
+            2.66039298e-03, 1.43691333e-03, 7.18378086e-04, 3.46630119e-04,
+            1.96703860e-04, 4.59397839e-07, 4.59313722e-07] / u.sr
+        themis = HG12(7.121 * u.mag, 0.68, radius=100 * u.km, wfb='V')
         if LooseVersion(astropy.__version__) >= req_ver:
             assert u.allclose(themis.to_ref(pha_test), ref_test)
 
@@ -518,21 +551,26 @@ class TestHG12:
             m = HG12(0, -0.71)
             m = HG12(0, 1.31)
 
+    def test_G1_G2(self):
+        themis = HG12(7.121 * u.mag, 0.68, radius=100 * u.km, wfb='V')
+        assert np.isclose(themis._G1, 0.669592)
+        assert np.isclose(themis._G2, 0.1407)
+
 
 class TestHG12_Pen16:
     def test_init(self):
-        themis = HG12_Pen16(7.121, 0.68, radius=100*u.km, M_sun=-26.74)
+        themis = HG12_Pen16(7.121 * u.mag, 0.68, radius=100 * u.km, wfb='V')
         assert themis._unit == 'mag'
         if LooseVersion(astropy.__version__) >= req_ver:
             assert u.isclose(themis.radius, 100*u.km)
-        assert np.isclose(themis.M_sun, -26.74)
         assert isinstance(themis.H, Parameter)
         assert np.isclose(themis.H.value, 7.121)
         assert isinstance(themis.G12, Parameter)
         assert np.isclose(themis.G12.value, 0.68)
+        assert themis.wfb == 'V'
 
     def test__G1_G2(self):
-        themis = HG12_Pen16(7.121, 0.68, radius=100*u.km, M_sun=-26.74)
+        themis = HG12_Pen16(7.121 * u.mag, 0.68)
         assert np.isclose(themis._G1, 0.5731968132)
         assert np.isclose(themis._G2, 0.17124272)
 
@@ -559,31 +597,22 @@ class TestHG12_Pen16:
             pha_test, 7.121, 0.68)), phi_test)
 
     def test_props(self):
-        themis = HG12_Pen16(7.121, 0.68, radius=100)
-        assert np.isclose(themis.geomalb, 0.06389263856216909)
-        assert np.isclose(themis.bondalb, 0.024306474259348763)
-        assert np.isclose(themis.phaseint, 0.38042683486452)
-        themis.radius = 100*u.km
-        if LooseVersion(astropy.__version__) >= req_ver:
-            assert u.isclose(themis.geomalb, 0.06389264 *
-                             u.dimensionless_unscaled)
-            assert u.isclose(themis.bondalb, 0.02430647 *
-                             u.dimensionless_unscaled)
+        themis = HG12_Pen16(7.121 * u.mag, 0.68, radius=100 * u.km, wfb='V')
+        assert np.isclose(themis.geomalb, 0.06215139)
+        assert np.isclose(themis.bondalb, 0.02364406)
         assert np.isclose(themis.phaseint, 0.38042683486452)
 
     def test_from_obs(self):
-        pha = np.array(
-            [0., 6.31578947, 12.63157895, 18.94736842, 25.26315789,
+        pha = [0., 6.31578947, 12.63157895, 18.94736842, 25.26315789,
              31.57894737, 37.89473684, 44.21052632, 50.52631579, 56.84210526,
              63.15789474, 69.47368421, 75.78947368, 82.10526316, 88.42105263,
              94.73684211, 101.05263158, 107.36842105, 113.68421053,
-             120.]) * u.deg
-        data = np.array(
-            [7.15663893, 7.4389134, 8.00006177, 7.9044872, 8.16865497,
+             120.] * u.deg
+        data = [7.15663893, 7.4389134, 8.00006177, 7.9044872, 8.16865497,
              8.51010016, 8.63386712, 8.65893367, 8.84895152, 9.24495642,
              9.16195702, 9.54770054, 9.60599559, 10.06129054, 10.22544773,
              10.49122575, 10.78544483, 11.12145723, 11.18055954,
-             11.40468613]) * u.mag
+             11.40468613] * u.mag
         from astropy.modeling.fitting import LevMarLSQFitter
         fitter = LevMarLSQFitter()
         m = HG12_Pen16.from_obs({'alpha': pha, 'mag': data}, fitter)
@@ -593,24 +622,21 @@ class TestHG12_Pen16:
         assert isinstance(m.G12, Parameter) & np.isclose(
             m.G12.value, 0.631243) & (m.G12.unit == u.dimensionless_unscaled)
 
-    def test_mag(self):
+    def test_to_mag(self):
         pha_test = np.linspace(0, np.pi, 10) * u.rad
-        mag_test = np.array(
-          [7.121, 8.07252953, 8.67890827, 9.2993879, 9.96817595, 10.72086969,
-           11.51208664, 12.12722017, 18.70628001, 18.70647883]) * u.mag
-        themis = HG12_Pen16(7.121*u.mag, 0.68 *
-                            u.dimensionless_unscaled, radius=100)
+        mag_test = [7.121, 8.07252953, 8.67890827, 9.2993879, 9.96817595,
+            10.72086969, 11.51208664, 12.12722017, 18.70628001,
+            18.70647883] * u.mag
+        themis = HG12_Pen16(7.121 * u.mag, 0.68)
         if LooseVersion(astropy.__version__) >= req_ver:
             assert u.allclose(themis.to_mag(pha_test), mag_test)
 
-    def test_ref(self):
+    def test_to_ref(self):
         pha_test = np.linspace(0, np.pi, 10) * u.rad
-        ref_test = np.array(
-            [2.03376585e-02, 8.46621202e-03, 4.84325842e-03, 2.73492734e-03,
-             1.47717032e-03, 7.38504380e-04, 3.56341412e-04, 2.02214774e-04,
-             4.72268466e-07, 4.72181992e-07]) / u.sr
-        themis = HG12_Pen16(7.121*u.mag, 0.68 *
-                            u.dimensionless_unscaled, radius=100)
+        ref_test = [1.97834009e-02, 8.23548424e-03, 4.71126618e-03,
+            2.66039298e-03, 1.43691333e-03, 7.18378086e-04, 3.46630119e-04,
+            1.96703860e-04, 4.59397839e-07, 4.59313722e-07] / u.sr
+        themis = HG12_Pen16(7.121 * u.mag, 0.68, radius=100 * u.km, wfb='V')
         if LooseVersion(astropy.__version__) >= req_ver:
             assert u.allclose(themis.to_ref(pha_test), ref_test)
 
