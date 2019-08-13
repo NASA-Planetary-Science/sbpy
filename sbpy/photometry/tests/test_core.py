@@ -606,7 +606,7 @@ class TestHG12_Pen16:
         assert np.allclose(np.array(HG12_Pen16.fit_deriv(
             pha_test, 7.121, 0.68)), phi_test)
         assert np.allclose(HG12_Pen16.fit_deriv(0.2, 7.121, 0.68),
-                [ 1., -0.08302351])
+                [1., -0.08302351])
 
     def test_props(self):
         themis = HG12_Pen16(7.121 * u.mag, 0.68, radius=100 * u.km, wfb='V')
