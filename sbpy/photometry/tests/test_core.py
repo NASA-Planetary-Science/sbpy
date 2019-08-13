@@ -473,6 +473,9 @@ class TestHG12:
         themis = HG12(7.121 * u.mag, 0.68)
         assert np.isclose(themis._G1, 0.669592)
         assert np.isclose(themis._G2, 0.1407)
+        themis = HG12(7.121 * u.mag, 0.1)
+        assert np.isclose(themis._G1, 0.13691)
+        assert np.isclose(themis._G2, 0.53088)
 
     def test_evaluate(self):
         pha_test = np.linspace(0, np.pi, 10)
@@ -502,6 +505,8 @@ class TestHG12:
         assert np.isclose(themis.geomalb, 0.06215139)
         assert np.isclose(themis.bondalb, 0.02454096)
         assert np.isclose(themis.phaseint, 0.3948577512)
+        assert np.isclose(themis.phasecoeff, -1.6777182566684201)
+        assert np.isclose(themis.oe_amp, 0.23412300750840437)
 
     def test_from_obs(self):
         pha = [0., 6.31578947, 12.63157895, 18.94736842, 25.26315789,
