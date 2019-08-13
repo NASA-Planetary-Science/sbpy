@@ -137,14 +137,10 @@ class TestLinear():
     def test__distance_module(self):
         r = [0.5, 1, 1.2, 2]
         delta = [0.3, 1, 1, 2]
-        m = LinearPhaseFunc(5*u.mag, 0.04*u.mag/u.deg)
-        module = np.array([4.1195437, -0., -0.39590623, -3.01029996])
-        assert np.allclose(m._distance_module(
-            Ephem.from_dict({'r': r, 'delta': delta})), module)
-        m = HG(5*u.mag, 0.3*u.dimensionless_unscaled)
-        module = np.array([4.1195437, -0., -0.39590623, -3.01029996])
-        assert np.allclose(m._distance_module(
-            Ephem.from_dict({'r': r, 'delta': delta})), module)
+        m = LinearPhaseFunc(5 * u.mag, 0.04 * u.mag / u.deg)
+        module_test = [0.0225, 1., 1.44, 16.]
+        module = m._distance_module(Ephem.from_dict({'r': r, 'delta': delta}))
+        assert np.allclose(module, module_test)
 
     def test_fit(self):
         pha = np.linspace(0, 60, 100) * u.deg
@@ -237,18 +233,16 @@ class TestHG:
         assert np.isclose(ceres.phaseint, 0.3643505755292945)
 
     def test_from_obs(self):
-        pha = np.array(
-            [0., 6.31578947, 12.63157895, 18.94736842, 25.26315789,
+        pha = [0., 6.31578947, 12.63157895, 18.94736842, 25.26315789,
              31.57894737, 37.89473684, 44.21052632, 50.52631579, 56.84210526,
              63.15789474, 69.47368421, 75.78947368, 82.10526316, 88.42105263,
              94.73684211, 101.05263158, 107.36842105, 113.68421053,
-             120.]) * u.deg
-        data = np.array(
-            [3.14451639, 4.06262914, 4.1154297, 4.54870242, 4.42265052,
+             120.] * u.deg
+        data = [3.14451639, 4.06262914, 4.1154297, 4.54870242, 4.42265052,
              4.71990531, 5.1628504, 5.16098737, 5.20971821, 5.3032115,
              5.52976173, 5.64255607, 5.84536878, 6.13724017, 6.33675472,
              6.63099954, 7.2461781, 7.32734464, 8.00147425,
-             8.40595306]) * u.mag
+             8.40595306] * u.mag
         from astropy.modeling.fitting import LevMarLSQFitter
         fitter = LevMarLSQFitter()
         # test fit with one column
