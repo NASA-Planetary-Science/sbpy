@@ -37,7 +37,10 @@ def mock_nonlte(monkeypatch):
     """
 
     def mock_cdensity(*args, **kwargs):
-        return MockPyradex()
+        """
+        Define a testing Quantity
+        """
+        return u.Quantity([94500000000000.0], 1/u.cm**2)
 
     monkeypatch.setattr(NonLTE, "from_pyradex", mock_cdensity)
 
@@ -405,4 +408,5 @@ def test_pyradex_cdensity(mock_nonlte):
     cdensity = nonLTE.from_pyradex(1.234 * u.K * u.km / u.s, mol_data,
                                    iter=100, collider_density={'H2': 900})
 
-    assert 94500000000000.0 in cdensity.value
+    assert np.isclose(cdensity.value[0], 94500000000000.0)
+    assert cdensity.unit == u.cm**-2
