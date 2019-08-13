@@ -152,6 +152,9 @@ class TestLinear():
         m = fitter(m0, pha, mag)
         assert isinstance(m, LinearPhaseFunc)
 
+    def test_fit_deriv(self):
+        assert np.allclose(LinearPhaseFunc.fit_deriv(1, 1, 2), [1, 1])
+
 
 class TestHG:
     def test_init(self):
@@ -221,6 +224,7 @@ class TestHG:
               1.23379114]])
         assert np.allclose(np.array(HG.fit_deriv(pha_test, 3.34, 0.12)),
             deriv_test)
+        assert np.allclose(HG.fit_deriv(1, 3.4, 0.2), [1.0, -2.031224359464])
 
     def test__check_unit(self):
         ceres = HG(3.34 * u.mag, 0.12)
@@ -343,6 +347,12 @@ class TestHG:
         with pytest.warns(NonmonotonicPhaseFunctionWarning):
             m = HG(0, 1.2)
 
+    def test_hgphi_exception(self):
+        with pytest.raises(ValueError):
+            tmp = HG._hgphi(0, 0)
+        with pytest.raises(ValueError):
+            tmp = HG._hgphi(0, 3)
+
 
 class TestHG1G2:
     def test_init(self):
@@ -397,6 +407,8 @@ class TestHG1G2:
               -7.75525861e+00]])
         assert np.allclose(np.array(HG1G2.fit_deriv(
             pha_test, 7.063, 0.62, 0.14)), deriv_test)
+        assert np.allclose(HG1G2.fit_deriv(0.2, 3.4, 0.62, 0.14),
+                [1.0, -1.1563984700303085, -1.6666940099848913])
 
     def test_props(self):
         themis = HG1G2(7.063 * u.mag, 0.62, 0.14, radius=100 * u.km, wfb='V')
@@ -493,6 +505,10 @@ class TestHG12:
               4.72646358e+00]])
         assert np.allclose(np.array(HG12.fit_deriv(
             pha_test, 7.121, 0.68)), phi_test)
+        assert np.allclose(HG12.fit_deriv(0.2, 7.121, 0.68),
+                [1.0, -0.07693564214597949])
+        assert np.allclose(HG12.fit_deriv(0.2, 7.121, 0.1),
+                [1.0, 0.6739785181393765])
 
     def test_props(self):
         themis = HG12(7.121 * u.mag, 0.68, radius=100 * u.km, wfb='V')
@@ -589,6 +605,8 @@ class TestHG12_Pen16:
               3.39292564e+00]])
         assert np.allclose(np.array(HG12_Pen16.fit_deriv(
             pha_test, 7.121, 0.68)), phi_test)
+        assert np.allclose(HG12_Pen16.fit_deriv(0.2, 7.121, 0.68),
+                [ 1., -0.08302351])
 
     def test_props(self):
         themis = HG12_Pen16(7.121 * u.mag, 0.68, radius=100 * u.km, wfb='V')
