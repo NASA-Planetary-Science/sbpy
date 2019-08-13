@@ -25,7 +25,7 @@ class MockPyradex:
         """
         Define a testing dictionary
         """
-        self.value = {0, 1.134e14}
+        self.value = {0: 1.134e14}
 
 # monkeypatched NonLTE.from_pyradex
 
