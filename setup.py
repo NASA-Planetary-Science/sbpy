@@ -76,7 +76,7 @@ else:
 builtins._ASTROPY_PACKAGE_NAME_ = PACKAGENAME
 
 # VERSION should be PEP440 compatible (http://www.python.org/dev/peps/pep-0440)
-VERSION = metadata.get('version', '0.2dev')
+VERSION = '0.2'
 
 # Indicates if this version is a release version
 RELEASE = 'dev' not in VERSION

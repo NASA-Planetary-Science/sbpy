@@ -37,6 +37,13 @@ wants to use them:
 Using pip
 ^^^^^^^^^
 
+The latest stable version of `sbpy` can be installed with
+
+.. code-block:: bash
+
+    $ pip install sbpy
+
+
 The latest development version of `sbpy` can be easily installed using
 
 .. code-block:: bash

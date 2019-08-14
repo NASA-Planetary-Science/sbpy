@@ -39,11 +39,11 @@ the `official sbpy website <http://sbpy.org>`_.
 Installation
 ------------
 
-The current development version of sbpy can be installed with pip:
+The current stable version of sbpy can be installed with pip:
 
 .. code-block:: bash
 
-    $ pip install git+https://github.com/NASA-Planetary-Science/sbpy.git
+    $ pip install sbpy
 
 For details on the installation process, please refer to the `detailed installation guide <https://sbpy.readthedocs.io/en/latest/install.html>`_.
     
