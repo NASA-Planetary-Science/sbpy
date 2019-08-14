@@ -361,51 +361,61 @@ def from_Haser(coma, mol_data, aper=25 * u.m):
 
     Examples
     --------
-    >>> import astropy.units as u  # doctest: +SKIP
-    >>> from astropy.time import Time # doctest: +SKIP
-    >>> from sbpy.data import Ephem, Phys # doctest: +SKIP
-    >>> from sbpy.activity import Haser, LTE, photo_timescale, einstein_coeff, from_Haser # doctest: +SKIP
-    >>> from sbpy.activity import intensity_conversion, beta_factor, total_number  # doctest: +SKIP
+    >>> import astropy.units as u
+    >>> from astropy.time import Time
+    >>> from sbpy.data import Ephem, Phys
+    >>> from sbpy.activity import (Haser, LTE, photo_timescale, einstein_coeff,
+    ...                            from_Haser)
+    >>> from sbpy.activity import (intensity_conversion, beta_factor,
+    ...                            total_number)
 
-    >>> aper = 10 * u.m # doctest: +SKIP
-    >>> mol_tag = 28001 # doctest: +SKIP
-    >>> temp_estimate = 25. * u.K # doctest: +SKIP
-    >>> target = 'C/2016 R2' # doctest: +SKIP
-    >>> b = 0.74 # doctest: +SKIP
-    >>> vgas = 0.5 * u.km / u.s # doctest: +SKIP
-    >>> transition_freq = (230.53799 * u.GHz).to('MHz') # doctest: +SKIP
-    >>> integrated_flux = 0.26 * u.K * u.km / u.s # doctest: +SKIP
+    >>> aper = 10 * u.m
+    >>> mol_tag = 28001
+    >>> temp_estimate = 25. * u.K
+    >>> target = 'C/2016 R2'
+    >>> b = 0.74
+    >>> vgas = 0.5 * u.km / u.s
+    >>> transition_freq = (230.53799 * u.GHz).to('MHz')
+    >>> integrated_flux = 0.26 * u.K * u.km / u.s
 
-    >>> time = Time('2017-12-22 05:24:20', format = 'iso') # doctest: +SKIP
-    >>> ephemobj = Ephem.from_horizons(target, epochs=time.jd) # doctest: +SKIP
+    >>> time = Time('2017-12-22 05:24:20', format = 'iso')
+    >>> ephemobj = Ephem.from_horizons(target,
+    ...                                epochs=time.jd) # doctest: +REMOTE_DATA
 
-    >>> mol_data = Phys.from_jplspec(temp_estimate, transition_freq, mol_tag) # doctest: +SKIP
+    >>> mol_data = Phys.from_jplspec(temp_estimate, transition_freq,
+    ...                              mol_tag) # doctest: +REMOTE_DATA
 
-    >>> intl = intensity_conversion(mol_data) # doctest: +SKIP
-    >>> mol_data.apply([intl.value] * intl.unit, name='intl') # doctest: +SKIP
+    >>> intl = intensity_conversion(mol_data) # doctest: +REMOTE_DATA
+    >>> mol_data.apply([intl.value] * intl.unit,
+    ...                name='intl') # doctest: +REMOTE_DATA
 
-    >>> au = einstein_coeff(mol_data) # doctest: +SKIP
-    >>> mol_data.apply([au.value] * au.unit, name='eincoeff') # doctest: +SKIP
+    >>> au = einstein_coeff(mol_data) # doctest: +REMOTE_DATA
+    >>> mol_data.apply([au.value] * au.unit,
+    ...                name='eincoeff') # doctest: +REMOTE_DATA
 
-    >>> beta = beta_factor(mol_data, ephemobj) # doctest: +SKIP
-    >>> mol_data.apply([beta.value] * beta.unit, name='beta') # doctest: +SKIP
+    >>> beta = beta_factor(mol_data, ephemobj) # doctest: +REMOTE_DATA
+    >>> mol_data.apply([beta.value] * beta.unit,
+    ...                name='beta') # doctest: +REMOTE_DATA
 
     >>> lte = LTE()
 
-    >>> cdensity = lte.cdensity_Bockelee(integrated_flux, mol_data) # doctest: +SKIP
-    >>> mol_data.apply([cdensity.value] * cdensity.unit, name='cdensity') # doctest: +SKIP
+    >>> cdensity = lte.cdensity_Bockelee(integrated_flux,
+    ...                                  mol_data) # doctest: +REMOTE_DATA
+    >>> mol_data.apply([cdensity.value] * cdensity.unit,
+    ...                name='cdensity') # doctest: +REMOTE_DATA
 
-    >>> tnum = total_number(mol_data, aper, b) # doctest: +SKIP
-    >>> mol_data.apply([tnum.value] * tnum.unit, name='total_number') # doctest: +SKIP
+    >>> tnum = total_number(mol_data, aper, b) # doctest: +REMOTE_DATA
+    >>> mol_data.apply([tnum.value] * tnum.unit,
+    ...                name='total_number') # doctest: +REMOTE_DATA
 
-    >>> Q_estimate = 2.8*10**(28) / u.s # doctest: +SKIP
-    >>> parent = photo_timescale('CO') * vgas # doctest: +SKIP
-    >>> coma = Haser(Q_estimate, vgas, parent) # doctest: +SKIP
+    >>> Q_estimate = 2.8*10**(28) / u.s
+    >>> parent = photo_timescale('CO') * vgas
+    >>> coma = Haser(Q_estimate, vgas, parent)
 
-    >>> Q = from_Haser(coma, mol_data, aper=aper) # doctest: +SKIP
+    >>> Q = from_Haser(coma, mol_data, aper=aper) # doctest: +REMOTE_DATA
 
-    >>> Q # doctest: +SKIP
-        <Quantity [[9.35795579e+27]] 1 / s>
+    >>> Q # doctest: +REMOTE_DATA +FLOAT_CMP
+        <Quantity [9.35795579e+27] 1 / s>
 
     References
     ----------
@@ -441,12 +451,12 @@ class LTE():
     def cdensity_Bockelee(self, integrated_flux, mol_data):
         """
         Basic equation relating column density with observed integrated flux
-        without the need for an initial column density to be given
+        without the need for an initial column density to be given.
         This is found in equation 10 in
         https://ui.adsabs.harvard.edu/#abs/2004come.book..391B
-        and is derived from data from JPLSpec, feel free to use your own column density
-        to calculate production rate or use this function with your own molecular data
-        as long as you are aware of the needed data
+        and is derived from data from JPLSpec, feel free to use your own column
+        density to calculate production rate or use this function with your own
+        molecular data as long as you are aware of the needed data.
 
         Parameters
         ----------
@@ -519,8 +529,8 @@ class LTE():
             `~sbpy.data.phys.from_jplspec`,
             `~sbpy.activity.gas.productionrate.einstein_coeff`,
             Keywords that can be used for these values are found under
-            `~sbpy.data.conf.fieldnames` documentation. We recommend the use of the
-            JPL Molecular Spectral Catalog and the use of
+            `~sbpy.data.conf.fieldnames` documentation. We recommend the use of
+            the JPL Molecular Spectral Catalog and the use of
             `~sbpy.data.Phys.from_jplspec` to obtain
             these values in order to maintain consistency. Yet, if you wish to
             use your own molecular data, it is possible. Make sure to inform
@@ -529,7 +539,8 @@ class LTE():
 
         ephemobj : `sbpy.data.ephem`
             `sbpy.data.ephem` object holding ephemeride information including
-            distance from comet to Sun ['r'] and from comet to observer ['delta']
+            distance from comet to Sun ['r'] and from comet to observer
+            ['delta']
 
         vgas : `~astropy.units.Quantity`
             Gas velocity approximation in km / s. Default is 1 km / s
@@ -549,36 +560,40 @@ class LTE():
 
         Examples
         --------
-        >>> import astropy.units as u  # doctest: +SKIP
-        >>> from astropy.time import Time # doctest: +SKIP
-        >>> from sbpy.data import Ephem, Phys # doctest: +SKIP
-        >>> from sbpy.activity import LTE, einstein_coeff, intensity_conversion, beta_factor  # doctest: +SKIP
+        >>> import astropy.units as u
+        >>> from astropy.time import Time
+        >>> from sbpy.data import Ephem, Phys
+        >>> from sbpy.activity import LTE, einstein_coeff, intensity_conversion
 
-        >>> temp_estimate = 47. * u.K  # doctest: +SKIP
-        >>> target = '103P'  # doctest: +SKIP
-        >>> vgas = 0.8 * u.km / u.s  # doctest: +SKIP
-        >>> aper = 30 * u.m  # doctest: +SKIP
-        >>> b = 1.13  # doctest: +SKIP
-        >>> mol_tag = 27001  # doctest: +SKIP
-        >>> transition_freq = (265.886434 * u.GHz).to('MHz')  # doctest: +SKIP
-        >>> integrated_flux = 1.22 * u.K * u.km / u.s  # doctest: +SKIP
+        >>> temp_estimate = 47. * u.K
+        >>> target = '103P'
+        >>> vgas = 0.8 * u.km / u.s
+        >>> aper = 30 * u.m
+        >>> b = 1.13
+        >>> mol_tag = 27001
+        >>> transition_freq = (265.886434 * u.GHz).to('MHz')
+        >>> integrated_flux = 1.22 * u.K * u.km / u.s
 
-        >>> time = Time('2010-11-3 00:48:06', format='iso')  # doctest: +SKIP
-        >>> ephemobj = Ephem.from_horizons(target, epochs=time.jd, id_type='id') # doctest: +SKIP
+        >>> time = Time('2010-11-3 00:48:06', format='iso')
+        >>> ephemobj = Ephem.from_horizons(target, epochs=time.jd,
+        ...                                id_type='id') # doctest: +REMOTE_DATA
 
-        >>> mol_data = Phys.from_jplspec(temp_estimate, transition_freq, mol_tag) # doctest: +SKIP
+        >>> mol_data = Phys.from_jplspec(temp_estimate, transition_freq,
+        ...                              mol_tag) # doctest: +REMOTE_DATA
 
-        >>> intl = intensity_conversion(mol_data) # doctest: +SKIP
-        >>> mol_data.apply([intl.value] * intl.unit, name='intl') # doctest: +SKIP
+        >>> intl = intensity_conversion(mol_data) # doctest: +REMOTE_DATA
+        >>> mol_data.apply([intl.value] * intl.unit,
+        ...                name='intl') # doctest: +REMOTE_DATA
 
-        >>> au = einstein_coeff(mol_data) # doctest: +SKIP
-        >>> mol_data.apply([au.value] * au.unit, name='eincoeff') # doctest: +SKIP
+        >>> au = einstein_coeff(mol_data) # doctest: +REMOTE_DATA
+        >>> mol_data.apply([au.value] * au.unit,
+        ...                name='eincoeff') # doctest: +REMOTE_DATA
 
-        >>> lte = LTE() # doctest: +SKIP
-        >>> q = lte.from_Drahus(integrated_flux, mol_data, # doctest: +SKIP
-                            ephemobj, vgas, aper, b=b)
+        >>> lte = LTE()
+        >>> q = lte.from_Drahus(integrated_flux, mol_data,
+        ...                     ephemobj, vgas, aper, b=b) # doctest: +REMOTE_DATA
 
-        >>> q  # doctest: +SKIP
+        >>> q  # doctest: +REMOTE_DATA +FLOAT_CMP
         <Quantity 1.09899965e+25 1 / s>
 
 
@@ -668,16 +683,16 @@ class NonLTE():
             velocity gradient (dv/length)) in km/s (default is 1.0 km/s)
 
         escapeProbGeom : str
-            Which escape probability method to use, available choices are 'sphere',
-            'lvg', and 'slab'
+            Which escape probability method to use, available choices are
+            'sphere', 'lvg', and 'slab'
 
         iter : int
             Number of iterations you wish to perform. Default is 100, more
             iterations will take more time to do but will offer a better range
-            of results to compare against. The range of guesses is built by having
-            the column density guess and subtracting/adding an order of magnitude
-            for the start and end values of the loop, respectively. i.e.
-            a guess of 1e15 will create a range between 1e14 and 1e16
+            of results to compare against. The range of guesses is built by
+            having the column density guess and subtracting/adding an order of
+            magnitude for the start and end values of the loop, respectively.
+            i.e.  a guess of 1e15 will create a range between 1e14 and 1e16
 
         collider_density : dict
             Dictionary of colliders and their densities in cm^-3. Allowed
@@ -702,28 +717,34 @@ class NonLTE():
 
         Examples
         --------
-        >>> from sbpy.activity import NonLTE  # doctest: +SKIP
-        >>> from sbpy.data import Phys # doctest: +SKIP
-        >>> import astropy.units as u # doctest: +SKIP
+        >>> from sbpy.activity import NonLTE
+        >>> from sbpy.data import Phys
+        >>> import astropy.units as u
 
-        >>> transition_freq = (177.196 * u.GHz).to(u.MHz) # doctest: +SKIP
-        >>> mol_tag =  29002  # doctest: +SKIP
-        >>> cdensity_guess = (1.89*10.**(14) / (u.cm * u.cm)) # doctest: +SKIP
-        >>> temp_estimate = 20. * u.K # doctest: +SKIP
+        >>> transition_freq = (177.196 * u.GHz).to(u.MHz)
+        >>> mol_tag =  29002
+        >>> cdensity_guess = (1.89*10.**(14) / (u.cm * u.cm))
+        >>> temp_estimate = 20. * u.K
 
-        >>> mol_data = Phys.from_jplspec(temp_estimate, transition_freq, # doctest: +SKIP
-                                         mol_tag)
-        >>> mol_data.apply([cdensity_guess.value] * cdensity_guess.unit, name= 'cdensity') # doctest: +SKIP
-        >>> mol_data.apply(['HCO+@xpol'], name='lamda_name') # doctest: +SKIP
+        >>> mol_data = Phys.from_jplspec(temp_estimate, transition_freq,
+        ...                              mol_tag)  # doctest: +REMOTE_DATA
+        >>> mol_data.apply([cdensity_guess.value] * cdensity_guess.unit,
+        ...                 name= 'cdensity')  # doctest: +REMOTE_DATA
+        >>> mol_data.apply(['HCO+@xpol'],
+        ...                 name='lamda_name')  # doctest: +REMOTE_DATA
 
-        >>> nonLTE = NonLTE() # doctest: +SKIP
-        >>> cdensity = nonLTE.from_pyradex(1.234 * u.K * u.km / u.s, # doctest: +SKIP
-                                           mol_data, iter=600, # doctest: +SKIP
-                                           collider_density={'H2': 900}) # doctest: +SKIP
-            Closest Integrated Flux:[1.24925956] K km / s # doctest: +SKIP
-            Given Integrated Flux: 1.234 K km / s # doctest: +SKIP
-        >>> print(cdensity) # doctest: +SKIP
-            [1.06363773e+14] 1 / cm2
+        >>> nonLTE = NonLTE()
+        >>> try:  # doctest: +SKIP
+        ...     cdensity = nonLTE.from_pyradex(1.234 * u.K * u.km / u.s,
+        ...                                    mol_data, iter=600,
+        ...                                    collider_density={'H2': 900})  # doctest: +REMOTE_DATA
+        ...     print(cdensity)  # doctest: +REMOTE_DATA
+        ... except ImportError:
+        ...     pass
+        Closest Integrated Flux:[1.24925956] K km / s
+        Given Integrated Flux: 1.234 K km / s
+        [1.06363773e+14] 1 / cm2
+
 
         References
         ----------
