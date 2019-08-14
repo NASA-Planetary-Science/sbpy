@@ -1,11 +1,6 @@
-0.1.1
-=====
-
-* minor fixes and updates resulting from JOSS review process
+0.3dev
+======
 
 
-0.1
-===
-
-* first release with limited and preliminary functionality in data, photometry, activity, and spectroscopy
+This changelog tracks changes to sbpy starting with version v0.2.
 

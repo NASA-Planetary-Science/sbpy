@@ -50,7 +50,7 @@ With the :doc:`../bib`, the citation may be discovered:
   >>> print(bib.to_text())    # doctest: +REMOTE_DATA
   sbpy:
     software: sbpy:
-        https://doi.org/10.21105/joss.01426
+        Mommert, Kelley, De Val-Borro, Li et al. 2019, The Journal of Open Source Software, Vol 4, 38, 1426
   sbpy.activity.gas.core.photo_timescale:
     H2O photodissociation timescale:
         Cochran & Schleicher 1993, Icarus, Vol 105, 1, 235
