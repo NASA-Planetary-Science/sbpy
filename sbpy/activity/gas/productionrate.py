@@ -74,7 +74,7 @@ def intensity_conversion(mol_data):
     lgint = mol_data['lgint300'][0]
     part300 = mol_data['partfn300'][0]
     partition = mol_data['partfn'][0]
-    energy_J = mol_data['eup_j'][0]
+    eup_J = mol_data['eup_j'][0]
     elo_J = mol_data['elo_J'][0]
     df = mol_data['degfr'][0]
 
@@ -82,8 +82,7 @@ def intensity_conversion(mol_data):
 
     k = con.k_B.to('J/K')  # Boltzmann constant
 
-    if (((energy_J - elo_J).value / (k * temp).value) and
-            ((energy_J - elo_J).value / (k * 300 * u.K).value) < 1):
+    if (eup_J - elo_J) < (k * min(temp, 300 * u.K)):
 
         if df == 0 or 2:
 
@@ -98,8 +97,8 @@ def intensity_conversion(mol_data):
     else:
 
         intl = lgint*(part300/partition)*(np.exp(-elo_J/(k*temp)) -
-                                          np.exp(-energy_J/(k*temp))) / \
-            (np.exp(-elo_J/(k*300 * u.K)) - np.exp(-energy_J/(k*300*u.K)))
+                                          np.exp(-eup_J/(k*temp))) / \
+            (np.exp(-elo_J/(k*300 * u.K)) - np.exp(-eup_J/(k*300*u.K)))
 
     return intl
 
@@ -149,7 +148,7 @@ def einstein_coeff(mol_data):
     lgint = mol_data['lgint300'][0]
     part300 = mol_data['partfn300'][0]
     partition = mol_data['partfn'][0]
-    energy_J = mol_data['eup_j'][0]
+    eup_J = mol_data['eup_j'][0]
     elo_J = mol_data['elo_J'][0]
     df = mol_data['degfr'][0]
     t_freq = mol_data['t_freq'][0]
@@ -165,13 +164,13 @@ def einstein_coeff(mol_data):
             (h*t_freq/(k*300*u.K)).decompose().value < 1:
 
         au = (lgint*t_freq
-              * (part300/gu)*np.exp(energy_J / (k*300*u.K))*(1.748e-9)).value
+              * (part300/gu)*np.exp(eup_J / (k*300*u.K))*(1.748e-9)).value
 
     else:
 
         au = (intl*(t_freq)**2 *
               (partition/gu)*(np.exp(-(elo_J/(k*temp)).value) -
-                              np.exp(-(energy_J/(k*temp)).value))**(-1)
+                              np.exp(-(eup_J/(k*temp)).value))**(-1)
               * (2.7964e-16)).value
 
     au = au / u.s
@@ -615,7 +614,7 @@ class LTE():
         temp = mol_data['Temperature'][0]
         partition = mol_data['partfn']
         gu = mol_data['dgup'][0]
-        energy_J = mol_data['eup_j'][0]
+        eup_J = mol_data['eup_j'][0]
         h = con.h.to('J*s')  # Planck constant
         k = con.k_B.to('J/K')  # Boltzmann constant
         c = con.c.to('m/s')  # speed of light
@@ -628,7 +627,7 @@ class LTE():
         calc = ((16*np.pi*k*t_freq.decompose() *
                  partition*vgas) / (np.sqrt(np.pi*np.log(2))
                                     * h * c**2 * au * gu *
-                                    np.exp(-energy_J/(k*temp)))).decompose()
+                                    np.exp(-eup_J/(k*temp)))).decompose()
 
         q = integrated_flux*(calc * b * delta / aper)
 
