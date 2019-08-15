@@ -30,8 +30,8 @@ def intensity_conversion(mol_data):
 
     Parameters
     ----------
-    mol_data : `~sbpy.data.phys`
-        `~sbpy.data.phys` object that contains the following data,
+    mol_data : `~sbpy.data.Phys`
+        `~sbpy.data.Phys` object that contains the following data,
         using `~astropy.units` for the required units:
 
             * Transition frequency in MHz
@@ -52,19 +52,23 @@ def intensity_conversion(mol_data):
         `sbpy` scope if JPLSpec is used. Yet, if you wish to use your own
         molecular data, it is possible. Make sure to inform yourself on the
         values needed for each function, their units, and their interchangeable
-        keywords as part of the `~sbpy.data.phys` data class.
+        keywords as part of the `~sbpy.data.Phys` data class.
 
     Returns
     -------
     intl : `~astropy.Quantity`
         Integrated line intensity at designated temperature in MHz * nm**2,
-        which can be appended to the original `sbpy.phys` object for future
-        calculations
+        which can be appended to the original `sbpy.data.Phys` object for
+        future calculations
+
+    References
+    ----------
+    Picket et al 1998, JQSRT 60, 883-890
 
     """
 
     if not isinstance(mol_data, Phys):
-        raise ValueError('mol_data must be a `sbpy.data.phys` instance.')
+        raise ValueError('mol_data must be a `sbpy.data.Phys` instance.')
 
     temp = mol_data['Temperature'][0]
     lgint = mol_data['lgint300'][0]
@@ -73,6 +77,8 @@ def intensity_conversion(mol_data):
     energy_J = mol_data['eup_j'][0]
     elo_J = mol_data['elo_J'][0]
     df = mol_data['degfr'][0]
+
+    register(intensity_conversion, {'conversion': '1998JQSRT..60..883P'})
 
     k = con.k_B.to('J/K')  # Boltzmann constant
 
