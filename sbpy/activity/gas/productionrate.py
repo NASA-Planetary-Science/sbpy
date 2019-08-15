@@ -51,12 +51,12 @@ def intensity_conversion(mol_data):
         Keywords that can be used for these values are found under
         `~sbpy.data.conf.fieldnames` documentation. We recommend the use of the
         JPL Molecular Spectral Catalog and the use of
-        `~sbpy.data.phys.from_jplspec` to obtain these values in order to maintain
-        consistency and because all calculations can be handled within `sbpy`
-        scope if JPLSpec is used. Yet, if you wish to use your own molecular data,
-        it is possible. Make sure to inform yourself on the values needed for each
-        function, their units, and their interchangeable keywords as part of
-        the `~sbpy.data.phys` data class.
+        `~sbpy.data.phys.from_jplspec` to obtain these values in order to
+        maintain consistency and because all calculations can be handled within
+        `sbpy` scope if JPLSpec is used. Yet, if you wish to use your own
+        molecular data, it is possible. Make sure to inform yourself on the
+        values needed for each function, their units, and their interchangeable
+        keywords as part of the `~sbpy.data.phys` data class.
 
     Returns
     -------
@@ -129,11 +129,11 @@ def einstein_coeff(mol_data):
         Keywords that can be used for these values are found under
         `~sbpy.data.conf.fieldnames` documentation. We recommend the use of the
         JPL Molecular Spectral Catalog and the use of
-        `~sbpy.data.phys.from_jplspec` to obtain these values in order to maintain
-        consistency. Yet, if you wish to use your own molecular data, it is
-        possible. Make sure to inform yourself on the values needed for each
-        function, their units, and their interchangeable keywords as part of
-        the data class.
+        `~sbpy.data.phys.from_jplspec` to obtain these values in order to
+        maintain consistency. Yet, if you wish to use your own molecular data,
+        it is possible. Make sure to inform yourself on the values needed for
+        each function, their units, and their interchangeable keywords as part
+        of the data class.
 
     Returns
     -------
@@ -204,8 +204,8 @@ def beta_factor(mol_data, ephemobj):
         program will assume it is the JPL Spectral Molecular Catalog identifier
         of the molecule and will treat it as such. If mol_tag is a string,
         then it will be assumed to be the human-readable name of the molecule.
-        The molecule MUST be defined in `sbpy.activity.gas.timescale`, otherwise
-        this function cannot be used and the beta factor
+        The molecule MUST be defined in `sbpy.activity.gas.timescale`,
+        otherwise this function cannot be used and the beta factor
         will have to be provided by the user directly for calculations. The
         user can obtain the beta factor from the formula provided above.
         Keywords that can be used for these values are found under
@@ -471,12 +471,12 @@ class LTE():
             This function will calculate the column
             density from Bockelee-Morvan et al. 2004 and append it to the phys
             object as 'Column Density' or any of its alternative field names.
-            The values above can either be given by the user or obtained from the
-            functions `~sbpy.activity.gas.productionrate.einstein_coeff` and
-            `~sbpy.activity.gas.productionrate.beta_factor`
+            The values above can either be given by the user or obtained from
+            the functions `~sbpy.activity.gas.productionrate.einstein_coeff`
+            and `~sbpy.activity.gas.productionrate.beta_factor`
             Keywords that can be used for these values are found under
-            `~sbpy.data.conf.fieldnames` documentation. We recommend the use of the
-            JPL Molecular Spectral Catalog and the use of
+            `~sbpy.data.conf.fieldnames` documentation. We recommend the use of
+            the JPL Molecular Spectral Catalog and the use of
             `~sbpy.data.phys.from_jplspec` to obtain
             these values in order to maintain consistency. Yet, if you wish to
             use your own molecular data, it is possible. Make sure to inform
@@ -704,8 +704,8 @@ class NonLTE():
             as follows:
             (mu_H2O/mu_H2)**0.5 = ((18**2/18*2)/((18*2)/(18+2)))**0.5 = 2.2
             in order to scale the collisional excitation to H2O as the main
-            collisional partner. (Walker, et al. 2014; de val Borro, et al. 2017;
-            & Schoier, et al. 2004)
+            collisional partner. (Walker, et al. 2014; de val Borro, et al.
+            2017; & Schoier, et al. 2004)
 
         Returns
         -------
@@ -828,9 +828,10 @@ class NonLTE():
 
         with tempfile.TemporaryDirectory() as datapath:
             for i in cdensity_range:
-                R = pyradex.Radex(column=i, deltav=line_width, tbackground=tbackground,
-                                  species=name, temperature=temp,
-                                  datapath=datapath, escapeProbGeom=escapeProbGeom,
+                R = pyradex.Radex(column=i, deltav=line_width,
+                                  tbackground=tbackground, species=name,
+                                  temperature=temp, datapath=datapath,
+                                  escapeProbGeom=escapeProbGeom,
                                   collider_densities=collider_density)
 
                 table = R()
