@@ -34,8 +34,6 @@ def intensity_conversion(mol_data):
         `~sbpy.data.phys` object that contains the following data,
         using `~astropy.units` for the required units:
 
-            .. _making-a-list:
-
             * Transition frequency in MHz
             * Temperature in Kelvins
             * Integrated line intensity at 300 K in MHz * nm**2
@@ -109,8 +107,6 @@ def einstein_coeff(mol_data):
     mol_data : `~sbpy.data.phys`
         `~sbpy.data.phys` object that contains the following data,
         using `astropy.units` for the required units:
-
-            .. _making-a-list:
 
             * Transition frequency in MHz
             * Temperature in Kelvins
