@@ -12,9 +12,8 @@ please refer to the :doc:`about` page; the :doc:`status` page provides
 an overview on the implementation status of all modules and functions.
 
 .. Important:: `sbpy` is functional, but incomplete, and under heavy
-               development.  Expect API changes between v0.1 and v0.2.
-               However, the code's functionality will remain the same.
-               Starting with v0.2, we expect most modules will have a
+               development. However, starting with the current stable
+               version (v0.2), we expect most modules will have a
                stable API.
 
 The development of `sbpy` is expected to conclude with version 1.0
