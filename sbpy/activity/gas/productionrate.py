@@ -256,12 +256,11 @@ def beta_factor(mol_data, ephemobj):
 
 def total_number(mol_data, aper, b):
     """
-    Equation relating number of molecules with column density,
-    the aperture, and geometry given and accounting for photodissociation,
-    derived from data provided.
-    Feel free to use your own total number to calculate production rate or use
-    this function with your own molecular data
-    as long as you are aware of the needed data
+    Equation relating number of molecules with column density, the aperture,
+    and geometry given and accounting for photodissociation, derived from data
+    provided.  Feel free to use your own total number to calculate production
+    rate or use this function with your own molecular data as long as you are
+    aware of the needed data.
 
     Parameters
     ----------
@@ -302,9 +301,10 @@ def total_number(mol_data, aper, b):
 
     sigma = (1./2. * beta * b * con.c / (mol_data['t_freq'][0] * aper)).value
 
-    total_number = mol_data['cdensity'][0].decompose() * sigma * u.m * u.m / np.sqrt(np.log(2))
+    tnumber = mol_data['cdensity'][0].decompose() * sigma * u.m**2 / \
+        np.sqrt(np.log(2))
 
-    return total_number
+    return tnumber
 
 
 def from_Haser(coma, mol_data, aper=25 * u.m):
