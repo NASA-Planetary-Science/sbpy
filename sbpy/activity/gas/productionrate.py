@@ -13,8 +13,6 @@ import tempfile
 import numpy as np
 import astropy.constants as con
 import astropy.units as u
-from astropy.time import Time
-from astroquery.jplhorizons import Horizons, conf
 from astroquery.jplspec import JPLSpec
 from astroquery.lamda import Lamda
 from ...bib import register
@@ -108,7 +106,6 @@ def einstein_coeff(mol_data):
 
     Parameters
     ----------
-
     mol_data : `~sbpy.data.phys`
         `~sbpy.data.phys` object that contains the following data,
         using `astropy.units` for the required units:
