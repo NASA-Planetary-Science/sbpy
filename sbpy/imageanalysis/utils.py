@@ -198,7 +198,7 @@ def xarray(shape, yx=[0, 0], th=None):
       The shape of the resulting array, (y, x).
     yx : tuple of float
       Offset the array to align with this y, x center.
-    th : Quanitity, optional
+    th : Quantity, optional
       Place the x-axis along this position angle, measured
       counterclockwise from the original x-axis.
 

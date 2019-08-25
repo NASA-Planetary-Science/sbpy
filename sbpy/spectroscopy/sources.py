@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """sbpy Spectroscopy Sources Module
 
-Spectrophotometric classes that encasulate synphot.SpectralSource and
+Spectrophotometric classes that encapsulate synphot.SpectralSource and
 synphot.Observation in order to generate sbpy spectra and photometry.
 
 Requires synphot.
@@ -408,7 +408,7 @@ class SpectralSource(ABC):
         # Specele is defined over all wavelengths, but most spectral
         # standards are not.  force='taper' will affect retrieving
         # flux densities at the edges of the spectrum, but is
-        # preferered to avoid wild extrapolation.
+        # preferred to avoid wild extrapolation.
         kwargs['force'] = kwargs.get('force', 'taper')
 
         obs = synphot.Observation(

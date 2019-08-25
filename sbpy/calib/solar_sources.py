@@ -56,7 +56,7 @@ class SolarPhotometry:
         {
             'filename': 'solar-photometry-willmer2018.json',
             'data': { ... },
-            'description': 'Willmer (2018) apparent mangitudes',
+            'description': 'Willmer (2018) apparent magnitudes',
             'bibcode': '2018ApJS..236...47W'
         }
 
@@ -105,6 +105,6 @@ class SolarPhotometry:
     """
     Willmer2018 = {
         'filename': 'solar-photometry-willmer2018.json',
-        'description': 'Willmer (2018) apparent mangitudes',
+        'description': 'Willmer (2018) apparent magnitudes',
         'bibcode': '2018ApJS..236...47W'
     }

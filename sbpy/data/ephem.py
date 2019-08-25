@@ -291,7 +291,7 @@ class Ephem(DataClass):
         * All properties are provided in the J2000.0 reference system.
         * See `astroquery.mpc.MPC.get_ephemerides` and the Minor
           Planet Ephemeris Service user's guide [MPES]_ for details,
-          including accetable target names.
+          including acceptable target names.
 
 
         References

@@ -224,7 +224,7 @@ def reflectance(wfb, cross_section=None, reflectance=None, **kwargs):
     >>> print('{0:.2f}'.format(mag1))
     3.40 mag(VEGA)
 
-    >>> # Convertion bretween magnitude and scattering cross-section
+    >>> # Convertion between magnitude and scattering cross-section
     >>> ref = 0.0287 / u.sr
     >>> cross_sec = mag.to('km2', reflectance('V', reflectance=ref))
     >>> radius = np.sqrt(cross_sec/np.pi)

@@ -266,7 +266,7 @@ input parameters and defaults, search for `from_pyradex` in
 
 .. doctest-skip::
 
-    >>> from sbpy.activty import NonLTE
+    >>> from sbpy.activity import NonLTE
     >>> nonlte = NonLTE()
     >>> cdensity = nonlte.from_pyradex(integrated_flux,  mol_data, iter=500)
     >>> mol_data.apply([cdensity.value] * cdensity.unit, name='cdensity')

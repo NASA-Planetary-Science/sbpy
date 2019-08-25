@@ -140,7 +140,7 @@ journal rules, can be readily implemented.
 Filtering
 ---------
 
-The aformentioned output functions enable the filtering of references
+The aforementioned output functions enable the filtering of references
 based on their relevance. For instance, in the examples show above,
 the relevance is ``data source``. In order to properly use filter,
 only select keywords can be used a relevance: allowed is any string

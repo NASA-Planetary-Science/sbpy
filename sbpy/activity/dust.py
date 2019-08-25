@@ -520,7 +520,7 @@ class Efrho(DustComaQuantity):
     εfρ is the product of dust emissivity, dust filling factor, and
     circular aperture radius.  It is nominally a constant for a
     steady-state coma in free expansion, and is the thermal emission
-    equivalent for the Afρ quanitity.  See Kelley et al. (2013) for
+    equivalent for the Afρ quantity.  See Kelley et al. (2013) for
     details.
 
 

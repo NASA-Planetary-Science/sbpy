@@ -213,7 +213,7 @@ class Phys(DataClass):
             # sure to check back from time to time
             if len(res['Mol']) > 1:
                 raise JPLSpecQueryFailed(
-                    ("Ambiguious choice for molecule,\
+                    ("Ambiguous choice for molecule,\
                     more than one molecule was found for \
                     the given mol_tag. Please refine \
                     your search to one of the following tags\

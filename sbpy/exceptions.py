@@ -21,4 +21,4 @@ class SbpyWarning(Warning):
 
 
 class OptionalPackageUnavailable(SbpyWarning):
-    "Optional package is not avilable."
+    "Optional package is not available."
