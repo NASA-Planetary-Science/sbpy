@@ -151,7 +151,7 @@ derived with methods in `~sbpy.shape`. We also include the most
 commonly used 5-parameter version of the Hapke scattering
 model. Empirical cometary dust phase functions are implemented, too
 (Marcus 2007; Schleicher & Bair 2011,
-http://asteroid.lowell.edu/comet/dustphase.html).  Some
+https://asteroid.lowell.edu/comet/dustphase.html).  Some
 single-scattering phase functions such as the Henyey-Greenstein
 function will also be implemented.
 
@@ -395,18 +395,19 @@ methods.
 
 
 
-.. _JPL Horizons: http://ssd.jpl.nasa.gov/horizons.cgi
-.. _Minor Planet Center: http://minorplanetcenter.net/
-.. _IMCCE: http://vo.imcce.fr/webservices/miriade
-.. _Lowell Observatory: http://asteroid.lowell.edu
-.. _PyEphem: http://rhodesmill.org/pyephem
-.. _REBOUND: http://github.com/hannorein/rebound
-.. _OpenOrb: http://github.com/oorb/oorb
-.. _SpiceyPy: http://github.com/AndrewAnnex/SpiceyPy
-.. _web-API: http://minorplanetcenter.net/search_db
+.. _Astropy: https://www.astropy.org
+.. _JPL Horizons: https://ssd.jpl.nasa.gov/horizons.cgi
+.. _Minor Planet Center: https://minorplanetcenter.net/
+.. _IMCCE: http://vo.imcce.fr/webservices/miriade/
+.. _Lowell Observatory: https://asteroid.lowell.edu
+.. _PyEphem: https://rhodesmill.org/pyephem
+.. _REBOUND: https://github.com/hannorein/rebound
+.. _OpenOrb: https://github.com/oorb/oorb
+.. _SpiceyPy: https://github.com/AndrewAnnex/SpiceyPy
+.. _web-API: https://minorplanetcenter.net/search_db
 .. _Solar System Object Image Search function of the Canadian Astronomy Data Centre: http://goo.gl/2aGYsW
-.. _skybot: http://vo.imcce.fr/webservices/skybot
-.. _small bodies data ferret: http://sbntools.psi.edu/ferret
-.. _github wiki: http://github.com/mommermi/sbpy/wiki
-.. _Ginga Image Viewer: http://ejeschke.github.io/ginga/
+.. _skybot: http://vo.imcce.fr/webservices/skybot/
+.. _small bodies data ferret: https://sbnapps.psi.edu/ferret
+.. _github wiki: https://github.com/mommermi/sbpy/wiki
+.. _Ginga Image Viewer: https://ejeschke.github.io/ginga/
 .. _photutils: https://github.com/astropy/photutils

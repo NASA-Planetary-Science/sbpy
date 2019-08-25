@@ -100,7 +100,7 @@ BibTeX (`~sbpy.bib.to_bibtex`)
             month = Sep,
               eid = {25.04},
             pages = {25.04},
-           adsurl = {https://ui.adsabs.harvard.edu/#abs/1996DPS....28.2504G},
+           adsurl = {https://ui.adsabs.harvard.edu/abs/1996DPS....28.2504G},
           adsnote = {Provided by the SAO/NASA Astrophysics Data System}
     }
 

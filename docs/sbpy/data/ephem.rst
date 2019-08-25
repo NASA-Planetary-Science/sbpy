@@ -157,7 +157,7 @@ Offering almost identical functionality, the
 
 Finally, `~sbpy.data.Ephem.from_miriade` will retrieve ephemerides
 from the `Miriade ephemeris generator
-<http://vo.imcce.fr/webservices/miriade/>`_ at `IMCCE
+<http://vo.imcce.fr/webservices/miriade//>`_ at `IMCCE
 <https://www.imcce.fr/>`_:
 
     >>> eph = Ephem.from_miriade('2P', objtype='comet', location='568',

@@ -8,7 +8,7 @@ is expected to conclude in 2021.
 
 The current development version is **v0.2dev**; its status is as follows:
 
-.. image:: https://travis-ci.org/NASA-Planetary-Science/sbpy.svg?branch=master
+.. image:: https://api.travis-ci.org/NASA-Planetary-Science/sbpy.svg?branch=master
     :target: https://travis-ci.org/NASA-Planetary-Science/sbpy
     :alt: Travis-CI status
 
@@ -17,7 +17,7 @@ The current development version is **v0.2dev**; its status is as follows:
     :alt: codecov status
 
 .. image:: https://readthedocs.org/projects/sbpy/badge/?version=latest
-    :target: http://sbpy.readthedocs.io/en/latest/?badge=latest
+    :target: https://sbpy.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
 
 

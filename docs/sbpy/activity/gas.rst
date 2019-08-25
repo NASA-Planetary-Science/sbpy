@@ -238,7 +238,7 @@ LTE Column Density Calculation
 
 To calculate a column density with no previous column density information,
 we can use equation 10 from `Bockelee-Morvan et al. 2004
-<https://ui.adsabs.harvard.edu/#abs/2004come.book..391B>`. This function is
+<https://ui.adsabs.harvard.edu/abs/2004come.book..391B>`. This function is
 very useful to obtain a column density with no previous guess for it,
 and also useful to provide a first guess for the more involved Non-LTE model
 for column density explained in the next section.
