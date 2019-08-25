@@ -453,7 +453,7 @@ class LTE():
         Basic equation relating column density with observed integrated flux
         without the need for an initial column density to be given.
         This is found in equation 10 in
-        https://ui.adsabs.harvard.edu/#abs/2004come.book..391B
+        https://ui.adsabs.harvard.edu/abs/2004come.book..391B
         and is derived from data from JPLSpec, feel free to use your own column
         density to calculate production rate or use this function with your own
         molecular data as long as you are aware of the needed data.

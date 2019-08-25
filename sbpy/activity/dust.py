@@ -60,7 +60,7 @@ def phase_HalleyMarcus(phase):
     Bair (2011), but only described in detail by Schleicher and Marcus
     (May 2010) online at:
 
-        http://asteroid.lowell.edu/comet/dustphase.html
+        https://asteroid.lowell.edu/comet/dustphase.html
 
         "To distinguish this curve from others, we designate this as
         the HM phase function, for the sources of the two components:

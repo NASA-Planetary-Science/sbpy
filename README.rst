@@ -4,10 +4,10 @@
     :alt: sbpy	     
 	  
        
-sbpy is an `Astropy <http://www.astropy.org/>`_ affiliated package for small-body
+sbpy is an `Astropy <https://www.astropy.org/>`_ affiliated package for small-body
 planetary astronomy.
 
-.. image:: http://img.shields.io/badge/powered%20by-AstroPy-orange.svg?style=flat
+.. image:: https://img.shields.io/badge/powered%20by-AstroPy-orange.svg?style=flat
     :target: http://www.astropy.org
     :alt: Powered by Astropy Badge
 
@@ -16,10 +16,10 @@ planetary astronomy.
     :alt: Travis-CI status
 
 .. image:: https://readthedocs.org/projects/sbpy/badge/?version=latest
-    :target: http://sbpy.readthedocs.io/en/latest/?badge=latest
+    :target: https://sbpy.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation status
 
-.. image:: http://joss.theoj.org/papers/10.21105/joss.01426/status.svg
+.. image:: https://joss.theoj.org/papers/10.21105/joss.01426/status.svg
     :target: https://doi.org/10.21105/joss.01426
     :alt: JOSS documentation
 
@@ -51,7 +51,7 @@ For details on the installation process, please refer to the `detailed installat
 Documentation
 -------------
 
-The official documentation and API reference is available `here <http://sbpy.readthedocs.io/en/latest/>`_.
+The official documentation and API reference is available `here <https://sbpy.readthedocs.io/en/latest/>`_.
 
 Status
 ------
@@ -66,4 +66,4 @@ Acknowledgements
 
 If you use `sbpy` in your work, please acknowledge it by citing
 
-    `Mommert, Kelley, de-Val Borro, Li et al., (2019). sbpy: A Python module for small-body planetary astronomy. Journal of Open Source Software, 4(38), 1426 <http://joss.theoj.org/papers/8b8e7bb15fb4a14f80f2afd06b6ce060>`_
+    `Mommert, Kelley, de-Val Borro, Li et al., (2019). sbpy: A Python module for small-body planetary astronomy. Journal of Open Source Software, 4(38), 1426 <https://joss.theoj.org/papers/8b8e7bb15fb4a14f80f2afd06b6ce060>`_

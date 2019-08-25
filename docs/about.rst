@@ -395,7 +395,6 @@ methods.
 
 
 
-.. _Astropy: https://www.astropy.org
 .. _JPL Horizons: https://ssd.jpl.nasa.gov/horizons.cgi
 .. _Minor Planet Center: https://minorplanetcenter.net/
 .. _IMCCE: http://vo.imcce.fr/webservices/miriade/

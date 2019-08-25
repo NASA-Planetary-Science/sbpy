@@ -260,7 +260,7 @@ class SpectralSource(ABC):
         Notes
         -----
         Method for spectra adapted from AstroBetter post by Jessica Lu:
-        http://www.astrobetter.com/blog/2013/08/12/python-tip-re-sampling-spectra-with-pysynphot/
+        https://www.astrobetter.com/blog/2013/08/12/python-tip-re-sampling-spectra-with-pysynphot/
 
         """
 
@@ -382,7 +382,7 @@ class SpectralSource(ABC):
         Notes
         -----
         Method for spectra adapted from AstroBetter post by Jessica Lu:
-        http://www.astrobetter.com/blog/2013/08/12/python-tip-re-sampling-spectra-with-pysynphot/
+        https://www.astrobetter.com/blog/2013/08/12/python-tip-re-sampling-spectra-with-pysynphot/
 
         """
 
