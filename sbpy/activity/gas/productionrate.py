@@ -85,14 +85,11 @@ def intensity_conversion(mol_data):
     if (eup_J - elo_J) < (k * min(temp, 300 * u.K)):
 
         if df in (0, 2):
-
-            intl = lgint*(300*u.K / temp)**(2)*np.exp(-(1/temp - 1/(300*u.K))
-                                                      * elo_J/k)
-
+            n = 1
         else:
-
-            intl = lgint*(300*u.K/temp)**(5/2)*np.exp(-(1/temp - 1/(300*u.K))
-                                                      * elo_J/k)
+            n = 3./2
+        intl = lgint*(300*u.K/temp)**(n+1)*np.exp(-(1/temp - 1/(300*u.K))
+                                                  * elo_J/k)
 
     else:
 
