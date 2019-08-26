@@ -91,12 +91,12 @@ The gas coma models work with sbpy's apertures:
 Production Rate calculations
 ----------------------------
 
-`~sbpy.activity.gas.productionrate` offers various functions that aid in the calculation
-of production rates. `~sbpy.data.phys` has a function called `~sbpy.data.Phys.from_jplspec`
+Various functions that aid in the calculation of production rates are offered.
+`~sbpy.data.Phys` has a function called `~sbpy.data.Phys.from_jplspec`
 which takes care of querying the JPL Molecular Spectral Catalog through the use of
 `~astroquery.jplspec` and calculates all the necessary constants needed for
 production rate calculations in this module. Yet, the option for the user to
-provide their own molecular data is possible through the use of an `~sbpy.data.phys`
+provide their own molecular data is possible through the use of an `~sbpy.data.Phys`
 object, as long as it has the required information. It is imperative to read
 the documentation of the functions in this section to understand what is needed
 for each. If the user does not have the necessary data, they can build an object
@@ -132,8 +132,8 @@ at 300 K for a molecule. Yet, in order to calculate production rate, we need
 to know the integrated line intensity at a given temperature. This function
 takes care of converting the integrated line intensity at 300 K to its equivalent
 in the desired temperature using equations provided by the JPLSpec documentation.
-For more information on the needed parameters for this function follow the link
-for `~sbpy.activity.intensity_conversion` under Reference/API section.
+For more information on the needed parameters for this function see
+`~sbpy.activity.intensity_conversion`.
 
 .. doctest-skip::
 
@@ -161,8 +161,7 @@ allowed to provide their own Einstein Coefficient if they want. If the user
 does want to provide their own Einstein Coefficient, they may do so simply
 by appending their value with the unit 1/s to the `~sbpy.data.Phys` object, called
 `mol_data` in these examples. For more information on the needed parameters
-for this function follow the link for `~sbpy.activity.einstein_coeff`
-under Reference/API section.
+for this function see `~sbpy.activity.einstein_coeff`.
 
 .. doctest-skip::
 
@@ -178,17 +177,16 @@ Beta Factor Calculation
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 Returns beta factor based on timescales from `~sbpy.activity.gas` and distance
-from the Sun using an `~sbpy.data.ephem` object. The calculation is
+from the Sun using an `~sbpy.data.Ephem` object. The calculation is
 parent photodissociation timescale * (distance from comet to Sun)**2
 and it accounts for certain photodissociation and geometric factors needed
-in the calculation of total number of molecules `~sbpy.activity.total_number_nocd`
+in the calculation of total number of molecules `~sbpy.activity.total_number`
 If you wish to provide your own beta factor, you can calculate the equation
 expressed in units of AU**2 * s , all that is needed is the timescale
 of the molecule and the distance of the comet from the Sun. Once you
-have the beta factor you can append it to your mol_data phys object
+have the beta factor you can append it to your `mol_data` phys object
 with the name 'beta' or any of its alternative names. For more information on
-the needed parameters for this function follow the link for
-`~sbpy.activity.beta_factor` under Reference/API section.
+the needed parameters for this function see `~sbpy.activity.beta_factor`.
 
 .. doctest-skip::
 
@@ -219,9 +217,8 @@ One of the models followed by this module is based on the following paper:
 The following example shows the usage of the function. This LTE model does not
 include photodissociation, but it does serve as way to obtain educated
 first guesses for other models within sbpy. For more information on the
-parameters that are needed for the function follow
-the link for the function `from_Drahus` in `~sbpy.activity.LTE`
-under Reference/API section.
+parameters that are needed for the function see
+`~sbpy.activity.LTE.from_Drahus`.
 
 .. doctest-skip::
 
@@ -238,7 +235,7 @@ LTE Column Density Calculation
 
 To calculate a column density with no previous column density information,
 we can use equation 10 from `Bockelee-Morvan et al. 2004
-<https://ui.adsabs.harvard.edu/abs/2004come.book..391B>`. This function is
+<https://ui.adsabs.harvard.edu/abs/2004come.book..391B>`_. This function is
 very useful to obtain a column density with no previous guess for it,
 and also useful to provide a first guess for the more involved Non-LTE model
 for column density explained in the next section.
@@ -253,16 +250,15 @@ Non-LTE Column Density Calculation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Once the user has a guess for their column density, the user can then
-implement the `sbpy.activity` NonLTE function `from_pyradex`. This function
-calculates the best fitting column density for the integrated flux data using
-the python wrapper pyradex of the Non-LTE iterative code RADEX.
+implement the `sbpy.activity` NonLTE function `sbpy.activity.NonLTE.from_pyradex`.
+This function calculates the best fitting column density for the integrated
+flux data using the python wrapper pyradex of the Non-LTE iterative code RADEX.
 The code utilizes the LAMDA catalog collection of molecular data files,
 presently this is the only functionality available, yet in the future a function
 will be provided by `sbpy` to build your own molecular data file from JPLSpec
 for use in this function. The code will look for a 'cdensity' column value
 within `mol_data` to use as its first guess. For a more detailed look at the
-input parameters and defaults, search for `from_pyradex` in
-`~sbpy.activity.NonLTE` under the Reference/API section.
+input parameters, please see `~sbpy.activity.NonLTE.from_pyradex`.
 
 .. doctest-skip::
 
@@ -273,8 +269,8 @@ input parameters and defaults, search for `from_pyradex` in
 
 Note that for this calculation the installation of `pyradex` is needed. Pyradex
 is a python wrapper for the RADEX fortran code. See `here
-<https://github.com/keflavich/pyradex/blob/master/INSTALL.rstB>` and
-`here <https://github.com/keflavich/pyradex>` for installation instruction and
+<https://github.com/keflavich/pyradex/blob/master/INSTALL.rst>`_ and
+`here <https://github.com/keflavich/pyradex>`_ for installation instruction and
 tips as well as a briefing of how pyradex works and what common errors
 might arise. You need to make sure you have a fortran compiler installed
 in order for pyradex to work (gfortran works and can be installed with
@@ -291,10 +287,9 @@ in equation 1.3 from:
     | coma in comets. PhD Thesis, Georg-August-Universität Göttingen.
 
 If the user prefers to give the total number, they may do so by appending
-to the mol_data `~sbpy.data.phys` object with the name `total_number_nocd` or
+to the mol_data `~sbpy.data.Phys` object with the name `total_number` or
 any of its alternative names. For more information on the needed parameters
-for this function follow the link for `~sbpy.activity.total_number_nocd`
-under Reference/API section.
+for this function see `~sbpy.activity.total_number`.
 
 .. doctest-skip::
 
@@ -324,9 +319,8 @@ module found in `~sbpy.activity.gas` to find a ratio between the model
 total number of molecules and the number of molecules calculated from the data
 to scale the model Q and output the new production rate from the result. This
 LTE model does account for the effects of photolysis. For more information
-on the parameters that are needed for the function follow
-the link for the function `from_Haser` in `~sbpy.activity.LTE`
-under Reference/API section.
+on the parameters that are needed for the function see
+`~sbpy.activity.LTE.from_Haser`.
 
 .. doctest-skip::
 
