@@ -17,9 +17,11 @@ from astroquery.mpc import MPC
 import astropy.units as u
 from warnings import warn
 
-from .. import bib
-from . import conf, DataClass
-from . import utils
+from ..bib import cite
+from ..exceptions import SbpyException
+from . import conf, utils, DataClass, QueryError, TimeScaleWarning
+
+
 
 __all__ = ['Orbit', 'OrbitError', 'OpenOrbError']
 
@@ -181,14 +183,14 @@ class Orbit(DataClass):
         return cls.from_table(all_elem)
 
     @classmethod
-    def from_dastcom5(cls, identifier, is_record_number=False):
+    def from_dastcom5(cls, name):
         """Load orbital elements from the DASTCOM5 Database
         (ftp://ssd.jpl.nasa.gov/pub/ssd/dastcom5.zip).
 
         Parameters
         ----------
-        identifier: mandatory
-            Names, numbers, or designations of objects to be queried
+        name: str, mandatory
+            Name of NEO
 
         Returns
         -------
@@ -205,15 +207,11 @@ class Orbit(DataClass):
         if not os.path.isdir(dastcom5_dir):
             utils.dastcom5.download_dastcom5()
 
-        if is_record_number:
-            tb = utils.dastcom5.orbit_from_record(record=identifier)
-        else:
-            tb = utils.dastcom5.orbit_from_name(name=identifier)
+        tb = utils.dastcom5.orbit_from_name(name=name)
         return cls.from_table(tb)
 
     @classmethod
-    @cite({'data source':
-           'https://minorplanetcenter.net/iau/MPEph/MPEph.html'})
+    @cite({'data source': 'https://minorplanetcenter.net/iau/MPEph/MPEph.html'})
     @cite({'software: astroquery': '2019AJ....157...98G'})
     def from_mpc(cls, targetids, id_type=None, target_type=None, **kwargs):
         """Load latest orbital elements from the
