@@ -7,7 +7,7 @@ import zipfile
 import astropy.units as u
 import numpy as np
 from astropy.time import Time
-from astropy.table import Table, vstack
+from astropy.table import Table, vstack, QTable
 import astropy.units as u
 
 AST_DTYPE = np.dtype(
@@ -335,6 +335,34 @@ def orbit_from_name(name):
     return tbl
 
 
+def orbit_parser(name):
+    """Return :py:class:`~astropy.table.QTable` given a name.
+
+    Retrieve info with proper units from JPL DASTCOM5 database.
+
+    Parameters
+    ----------
+    name : str
+        NEO name.
+
+    Returns
+    -------
+    QTable : ~astropy.table.QTable
+        Near Earth Asteroid/Comet orbit parameters, all stacked.
+
+    """
+    orb = orbit_from_name(name)
+    record = [int(orb[1][0][0]),]
+    a = [float(orb[1][0][1]),] * u.au
+    ecc = [float(orb[1][0][2]),] * u.one
+    inc = [float(orb[1][0][3]),] * u.deg
+    raan = [float(orb[1][0][4]),] * u.deg
+    argp = [float(orb[1][0][5]),] * u.deg
+    m = [float(orb[1][0][6]),] * u.deg
+    epoch = [orb[1][0][7],]
+    tab = QTable([record, a, ecc, inc, raan, argp, m, epoch], names=("record", "a", "ecc", "inc", "raan", "argp", "m", "EPOCH"))
+    return tab
+
 def orbit_from_record(record):
     """Return :py:class:`~astropy.table.Table` given a record.
 
@@ -359,8 +387,8 @@ def orbit_from_record(record):
     argp = body_data["W"].item()
     m = body_data["MA"].item()
     epoch = Time(body_data["EPOCH"].item(), format="jd", scale="tdb")
-    column2 = (record, a, ecc, inc, raan, argp, m, epoch)
-    column1 = ("record", "a", "ecc", "inc", "raan", "argp", "m", "EPOCH")
+    column2 = [record, a, ecc, inc, raan, argp, m, epoch]
+    column1 = ["record", "a", "ecc", "inc", "raan", "argp", "m", "EPOCH"]
     data = Table(rows=[column1, column2])
 
     return data
