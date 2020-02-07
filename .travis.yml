@@ -37,7 +37,7 @@ env:
         - ADS_DEV_KEY=TjUyPHFOH48m5Katkeq0UCZQcejTg6bDbTuTGHxT
 
     matrix:
-        - PYTHON_VERSION=3.5 SETUP_CMD='egg_info'
+        - PYTHON_VERSION=3.6 SETUP_CMD='egg_info'
         - PYTHON_VERSION=3.7 SETUP_CMD='egg_info'
 
 matrix:

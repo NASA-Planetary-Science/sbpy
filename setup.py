@@ -142,7 +142,7 @@ setup(name=PACKAGENAME,
       scripts=scripts,
       install_requires=metadata.get(
           'install_requires', 'astropy').strip().split(','),
-      python_requires='>=3',
+      python_requires='>=3.6',
       include_package_data=True,
       author=AUTHOR,
       author_email=AUTHOR_EMAIL,
