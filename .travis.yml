@@ -33,7 +33,7 @@ env:
         - MAIN_CMD='python setup.py'
         - SETUP_CMD='test'
         - EVENT_TYPE='pull_request push'
-        - PIP_DEPENDENCIES='scipy astropy>=3.0<4.0 matplotlib ads synphot<0.2 https://github.com/astropy/astroquery/archive/master.zip pytest-astropy codecov'
+        - PIP_DEPENDENCIES='scipy matplotlib ads synphot<0.2 https://github.com/astropy/astroquery/archive/master.zip pytest-astropy codecov'
         - ADS_DEV_KEY=TjUyPHFOH48m5Katkeq0UCZQcejTg6bDbTuTGHxT
 
     matrix:
@@ -60,7 +60,7 @@ matrix:
         # Test docs and PEP8
         - os: linux
           stage: Test docs and PEP8
-          env: SETUP_CMD='build_docs -w' PIP_DEPENDENCIES="`echo $PIP_DEPENDENCIES sphinx-astropy`"
+          env: ASTROPY_VERSION=3 SETUP_CMD='build_docs -w' PIP_DEPENDENCIES="`echo $PIP_DEPENDENCIES sphinx-astropy`"
 
         - os: linux
           stage: Test docs and PEP8
