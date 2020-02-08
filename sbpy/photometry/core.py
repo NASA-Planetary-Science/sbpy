@@ -358,7 +358,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         >>> phys = Phys.from_sbdb('Ceres')             # doctest: +REMOTE_DATA
         >>> print(phys['targetname','radius','H','G']) # doctest: +REMOTE_DATA
         <QTable length=1>
-        targetname  radius    H       G   
+        targetname  radius    H       G
                       km
            str7    float64 float64 float64
         ---------- ------- ------- -------
