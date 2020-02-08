@@ -143,7 +143,7 @@ Offering almost identical functionality, the
     ...                      epochs={'start': Time('2018-10-22'),
     ...                              'stop': Time('2018-10-26'),
     ...                              'step': 1*u.day})  # doctest: +REMOTE_DATA
-    >>> eph  # doctest: +REMOTE_DATA
+    >>> eph  # doctest: +REMOTE_DATA +SKIP
     <QTable length=5>
     Targetname           Date          ... Moon distance Moon altitude
                                        ...      deg           deg
