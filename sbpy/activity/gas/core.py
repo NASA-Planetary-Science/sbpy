@@ -414,7 +414,7 @@ class GasComa(ABC):
         # quad diverges integrating to infinity, but 1e6 × rho is good
         # enough
         limit = 30
-        points = rho * np.logspace(-4, 4, limit / 2)
+        points = rho * np.logspace(-4, 4, limit // 2)
         sigma, err = quad(f, 0, 1e6 * rho, args=(rho**2,),
                           limit=limit, points=points, epsabs=epsabs)
 
