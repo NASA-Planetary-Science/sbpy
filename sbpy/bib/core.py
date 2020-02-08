@@ -158,7 +158,7 @@ def cite(citations):
     2
     sbpy:
       software: sbpy:
-          Mommert, Kelley, De Val-Borro, Li et al. 2019, The Journal of Open Source Software, Vol 4, 38, 1426
+          Mommert, Kelley, de Val-Borro, Li et al. 2019, The Journal of Open Source Software, Vol 4, 38, 1426
     sbpy.bib.core.force:
       method:
           Newton 1687, Philosophiae Naturalis Principia Mathematica. Auctore Js. Newton
