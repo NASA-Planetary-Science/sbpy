@@ -33,7 +33,7 @@ env:
         - MAIN_CMD='python setup.py'
         - SETUP_CMD='test'
         - EVENT_TYPE='pull_request push'
-        - PIP_DEPENDENCIES='scipy matplotlib ads synphot<0.2 https://github.com/astropy/astroquery/archive/master.zip pytest-astropy codecov'
+        - PIP_DEPENDENCIES='scipy matplotlib ads synphot https://github.com/astropy/astroquery/archive/master.zip pytest-astropy codecov'
         - ADS_DEV_KEY=TjUyPHFOH48m5Katkeq0UCZQcejTg6bDbTuTGHxT
 
     matrix:
@@ -69,7 +69,7 @@ matrix:
         # Remote data tests and coverage
         - os: linux
           stage: Remote data tests and coverage
-          env: DEBUG=True SETUP_CMD='test --coverage -R -V -a "--durations=50"' PYTEST_VERSION='<3.7'
+          env: DEBUG=True ASTROPY_VERSION=3 SYNPHOT_VERSION="0.1.*" SETUP_CMD='test --coverage -R -V -a "--durations=50"' PYTEST_VERSION='<3.7'
 
 install:
    - git clone git://github.com/astropy/ci-helpers.git
