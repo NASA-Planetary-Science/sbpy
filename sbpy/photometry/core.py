@@ -152,10 +152,10 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
     >>> phys = Phys.from_sbdb('Ceres')       # doctest: +REMOTE_DATA
     >>> print(phys['targetname','H','G'])    # doctest: +REMOTE_DATA
     <QTable length=1>
-    targetname    H       G
+    targetname    H       G   
        str7    float64 float64
     ---------- ------- -------
-       1 Ceres    3.34    0.12
+       1 Ceres     3.4    0.12
     >>> m = HG.from_phys(phys)                  # doctest: +REMOTE_DATA
     INFO: Model initialized for 1 Ceres. [sbpy.photometry.core]
     >>> print(m)                             # doctest: +REMOTE_DATA
@@ -164,9 +164,9 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
     Outputs: ('y',)
     Model set size: 1
     Parameters:
-         H    G
+         H    G  
         ---- ----
-        3.34 0.12
+         3.4 0.12
     >>> print(m.meta['targetname'])          # doctest: +REMOTE_DATA
     1 Ceres
     >>> print(m.radius)                      # doctest: +REMOTE_DATA
@@ -177,11 +177,11 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
     >>> elem = Orbit.from_horizons('Ceres')  # doctest: +REMOTE_DATA
     >>> print(elem['targetname','H','G'])    # doctest: +REMOTE_DATA
     <QTable masked=True length=1>
-    targetname    H       G
+    targetname    H       G   
                  mag
        str7    float64 float64
     ---------- ------- -------
-       1 Ceres    3.34    0.12
+       1 Ceres     3.4    0.12
     >>> m = HG.from_phys(elem)                    # doctest: +REMOTE_DATA
     INFO: Model initialized for 1 Ceres. [sbpy.photometry.core]
     >>>
@@ -279,10 +279,10 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         >>> phys = Phys.from_sbdb('Ceres')      # doctest: +REMOTE_DATA
         >>> print(phys['targetname','H','G'])   # doctest: +REMOTE_DATA
         <QTable length=1>
-        targetname    H       G
+        targetname    H       G  
            str7    float64 float64
         ---------- ------- -------
-           1 Ceres    3.34    0.12
+           1 Ceres     3.4    0.12
         >>> m = HG.from_phys(phys)              # doctest: +REMOTE_DATA
         INFO: Model initialized for 1 Ceres. [sbpy.photometry.core]
         >>> print(m)                            # doctest: +REMOTE_DATA
@@ -291,9 +291,9 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         Outputs: ('y',)
         Model set size: 1
         Parameters:
-             H    G
+             H    G  
             ---- ----
-            3.34 0.12
+             3.4 0.12
         >>> print(m.meta['targetname'])         # doctest: +REMOTE_DATA
         1 Ceres
         >>> print(m.radius)                     # doctest: +REMOTE_DATA

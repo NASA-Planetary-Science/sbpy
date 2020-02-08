@@ -64,3 +64,9 @@ distribute-*.tar.gz
 
 # Mac OSX
 .DS_Store
+
+# common virtual environment path
+.venv
+
+# visual studio code settings
+.vscode

@@ -233,7 +233,7 @@ class TestHaser:
         coma = Haser(Q, v, parent)
         N1 = coma.total_number(aper)
         N2 = coma._integrate_column_density(aper)[0]
-        assert np.isclose(N1, N2)
+        assert np.allclose(N1, N2)
 
     def test_circular_integration_1step(self):
         """Compare total number and integrated column density for circle.
@@ -270,7 +270,7 @@ class TestHaser:
         N1 = Haser(Q, v, parent).total_number(CircularAperture(aper.dim[0]))
         N2 = Haser(Q, v, parent).total_number(CircularAperture(aper.dim[1]))
 
-        assert np.isclose(N, N2 - N1)
+        assert np.allclose(N, N2 - N1)
 
     def test_total_number_rectangular_ap(self):
         """
