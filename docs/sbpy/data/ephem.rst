@@ -20,7 +20,7 @@ Mauna Kea Observatory (IAU observatory code ``568``) from the `JPL Horizons serv
     >>> eph  # doctest: +REMOTE_DATA +SKIP
     <QTable masked=True length=1>
     targetname    H       G    solar_presence ...  PABLon  PABLat       epoch
-		 mag                          ...   deg     deg
+                 mag                          ...   deg     deg
        str7    float64 float64      str1      ... float64 float64       object
     ---------- ------- ------- -------------- ... ------- ------- -----------------
        1 Ceres    3.34    0.12                ... 171.275  9.3473 2458334.097222222
@@ -57,7 +57,7 @@ full flexibility of the latter function:
     >>> eph  # doctest: +REMOTE_DATA +SKIP
     <QTable masked=True length=26>
     targetname    H       G    ...  PABLon   PABLat       epoch
-		 mag           ...   deg      deg
+                 mag           ...   deg      deg
        str7    float64 float64 ... float64  float64       object
     ---------- ------- ------- ... -------- ------- -----------------
        1 Ceres    3.34    0.12 ...  171.275  9.3473 2458334.097222222
@@ -66,7 +66,7 @@ full flexibility of the latter function:
        1 Ceres    3.34    0.12 ... 171.2822   9.347 2458334.118055556
        1 Ceres    3.34    0.12 ... 171.2846  9.3469       2458334.125
        1 Ceres    3.34    0.12 ... 171.2869  9.3468 2458334.131944444
-	   ...     ...     ... ...      ...     ...               ...
+           ...     ...     ... ...      ...     ...               ...
        1 Ceres    3.34    0.12 ... 171.5076  9.3369 2458334.777777778
        1 Ceres    3.34    0.12 ... 171.5099  9.3368 2458334.784722222
        1 Ceres    3.34    0.12 ... 171.5123  9.3367 2458334.791666667
@@ -85,12 +85,12 @@ concatenate queries for a number of objects:
     ...                           epochs=epoch1)  # doctest: +REMOTE_DATA
     >>> eph  # doctest: +REMOTE_DATA +SKIP
     <QTable masked=True length=4>
-	    targetname            H       G    ...  PABLat        epoch
-				 mag           ...   deg
-	      str26            float64 float64 ... float64        object
+            targetname            H       G    ...  PABLat        epoch
+                                 mag           ...   deg
+              str26            float64 float64 ... float64        object
     -------------------------- ------- ------- ... -------- -----------------
-		       1 Ceres    3.34    0.12 ...   9.3473 2458334.097222222
-		      2 Pallas    4.13    0.11 ... -20.1396 2458334.097222222
+                       1 Ceres    3.34    0.12 ...   9.3473 2458334.097222222
+                      2 Pallas    4.13    0.11 ... -20.1396 2458334.097222222
      12893 Mommert (1998 QS55)    13.9    0.15 ...  -2.0567 2458334.097222222
     3552 Don Quixote (1983 SA)    12.9    0.15 ...  13.3365 2458334.097222222
 
@@ -130,7 +130,7 @@ example:
     >>> eph # doctest: +REMOTE_DATA +SKIP
     <QTable masked=True length=1>
     targetname    H       G    solar_presence ...  PABLon   PABLat   epoch  
-		 mag                          ...   deg      deg            
+                 mag                          ...   deg      deg            
        str7    float64 float64      str1      ... float64  float64   object 
     ---------- ------- ------- -------------- ... -------- ------- ---------
        1 Ceres    3.34    0.12              * ... 130.4303  9.2004 2458119.5
@@ -146,14 +146,14 @@ Offering almost identical functionality, the
     >>> eph  # doctest: +REMOTE_DATA
     <QTable length=5>
     Targetname           Date          ... Moon distance Moon altitude
-				       ...      deg           deg
+                                       ...      deg           deg
        str2             object         ...    float64       float64
     ---------- ----------------------- ... ------------- -------------
-	    2P 2018-10-22 00:00:00.000 ...          28.0         -33.0
-	    2P 2018-10-23 00:00:00.000 ...          41.0         -41.0
-	    2P 2018-10-24 00:00:00.000 ...          54.0         -48.0
-	    2P 2018-10-25 00:00:00.000 ...          67.0         -53.0
-	    2P 2018-10-26 00:00:00.000 ...          81.0         -56.0
+            2P 2018-10-22 00:00:00.000 ...          28.0         -33.0
+            2P 2018-10-24 00:00:00.000 ...          54.0         -48.0
+            2P 2018-10-25 00:00:00.000 ...          67.0         -53.0
+            2P 2018-10-26 00:00:00.000 ...          81.0         -56.0
+            2P 2018-10-23 00:00:00.000 ...          41.0         -41.0
 
 Finally, `~sbpy.data.Ephem.from_miriade` will retrieve ephemerides
 from the `Miriade ephemeris generator
@@ -164,17 +164,17 @@ from the `Miriade ephemeris generator
     ...                          epochs={'start': Time('2018-10-22'),
     ...                                  'stop': Time('2018-10-26'),
     ...                                  'step': 1*u.day})  # doctest: +REMOTE_DATA
-    >>> eph  # doctest: +REMOTE_DATA
+    >>> eph  # doctest: +REMOTE_DATA +SKIP
     <QTable masked=True length=5>
      target   epoch           RA         ...   DEC_rate    delta_rate 
-			     deg         ... arcsec / min    km / s   
+                             deg         ... arcsec / min    km / s   
     bytes20   object       float64       ...   float64      float64   
     ------- --------- ------------------ ... ------------ ------------
-	 2P 2458413.5 329.99213124999994 ...    -0.063365   24.7933113
-	 2P 2458414.5 329.91132124999996 ...    -0.059361   25.0280603
-	 2P 2458415.5 329.83517041666664 ...    -0.055369    25.253586
-	 2P 2458416.5 329.76366666666667 ...    -0.051392   25.4700287
-	 2P 2458417.5  329.6967958333333 ...     -0.04743    25.677518
+         2P 2458413.5 329.99213124999994 ...    -0.063365   24.7933113
+         2P 2458414.5 329.91132124999996 ...    -0.059361   25.0280603
+         2P 2458415.5 329.83517041666664 ...    -0.055369    25.253586
+         2P 2458416.5 329.76366666666667 ...    -0.051392   25.4700287
+         2P 2458417.5  329.6967958333333 ...     -0.04743    25.677518
     
 Ephemerides can also be derived from `~sbpy.data.Orbit` objects using
 `sbpy`'s interface to `pyoorb
@@ -192,7 +192,7 @@ from the Discovery Channel Telescope:
     >>> eph # doctest: +SKIP 
     <QTable length=240>
     targetname         RA         ...      trueanom            epoch       
-		      deg         ...        deg                           
+                      deg         ...        deg                           
        str7         float64       ...      float64             object      
     ---------- ------------------ ... ------------------ ------------------
        1 Ceres 238.56187075007446 ...  105.8270438687299 2458694.6423231447
@@ -201,7 +201,7 @@ from the Discovery Channel Telescope:
        1 Ceres 238.56933812666867 ...  105.8528936974433 2458694.7673231447
        1 Ceres 238.57193638137088 ...  105.8615099186335  2458694.808989811
        1 Ceres 238.57460592776462 ... 105.87012594577034  2458694.850656478
-	   ...                ... ...                ...                ...
+           ...                ... ...                ...                ...
        1 Ceres  239.4677754274348 ... 107.83811369526742 2458704.3923231447
        1 Ceres  239.4726928414698 ...   107.846685468736  2458704.433989811
        1 Ceres 239.47756694312102 ... 107.85525705166283  2458704.475656478
