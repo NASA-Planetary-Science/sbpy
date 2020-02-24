@@ -5,7 +5,7 @@ import pytest
 from copy import deepcopy
 from numpy import array
 import astropy.units as u
-from astropy.table import QTable
+from astropy.table import QTable, Column
 from ..core import DataClass, conf, DataClassError
 
 
@@ -261,16 +261,25 @@ def test_get_set():
                      ('c', [7, 8, 8]))))
 
     # get a single column
-    assert len(data['a']) == 3
+    x = data['a']
+    assert len(x) == 3
+    assert isinstance(x, Column)
+
+    # get a list of columns
+    x = data[['a', 'c']]
+    assert len(x.field_names) == 2
+    assert isinstance(x, DataClass)
 
     # mask rows
     masked = data[[True, False, False]]
     assert len(masked) == 1
     assert masked['b'][0] == 4
+    assert isinstance(masked, DataClass)
 
     # get list of rows
     shortened = data[[0, 1]]
     assert len(shortened) == 2
+    assert isinstance(shortened, DataClass)
 
     # modify an existing column
     data['a'][:] = [0, 0, 0]
@@ -282,10 +291,12 @@ def test_get_set():
     # add non-existing column using set
     data['z'] = 3
     assert len(data['z'] == 3)
+    assert isinstance(data, DataClass)
 
     # modify existing column using set
     data['z'] = 2
     assert data['z'][1] == 2
+    assert isinstance(data, DataClass)
 
 
 def test_units():

@@ -614,17 +614,20 @@ class DataClass():
 
     def __getitem__(self, ident):
         """Return columns or rows from data table(``self._table``); checks
-        for and may use alternative field names."""
+        for and may use alternative field names. This method will always return
+        an instance of __class__, except in the case when a field name is
+        requested (then return a Table column)."""
 
+        # ignore slices
+        if isinstance(ident, slice):
+            pass
         # iterable
-        if isinstance(ident, (list, tuple, ndarray)):
+        elif isinstance(ident, (list, tuple, ndarray)):
             if all([isinstance(i, str) for i in ident]):
                 # list of column names
                 self = self._convert_columns(ident)
                 newkeylist = [self._translate_columns(i)[0] for i in ident]
                 ident = newkeylist
-                # return as new DataClass object
-                return self.from_table(self._table[ident])
             # ignore lists of boolean (masks)
             elif all([isinstance(i, bool) for i in ident]):
                 pass
@@ -635,11 +638,12 @@ class DataClass():
         elif isinstance(ident, str):
             self = self._convert_columns(ident)
             ident = self._translate_columns(ident)[0]
+            return self._table[ident]
         elif isinstance(ident, int):
-            return self.from_table(self._table[ident])
+            pass
 
-        # return as element from self_table
-        return self._table[ident]
+        # return as new instance of this class
+        return self.from_table(self._table[ident])
 
     def __setitem__(self, *args):
         """Refer cls.__setitem__ to self._table"""
