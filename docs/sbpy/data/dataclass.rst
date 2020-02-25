@@ -300,7 +300,8 @@ Each of these columns can be accessed easily, for instance:
     [10.223423 10.233453 10.243452] deg
 
 which will return an `~astropy.units.quantity.Quantity` object if that
-column has a `~astropy.units.Unit` attached to it.
+column has a `~astropy.units.Unit` attached to it or a `~astropy.table.Column`
+otherwise.
 
 Similarly, if you are interested in the first set of observations in
 ``obs``, you can use:
@@ -311,7 +312,8 @@ Similarly, if you are interested in the first set of observations in
     --------- --------- ------------
     10.223423 -12.42123 2451523.6234
 
-which returns you a table with only the requested subset of the
+which returns you a new instance of the same class as your original
+objet with only the requested subset of the
 data. In order to retrieve RA from the second observation, you can
 combine both examples and do:
 
@@ -331,6 +333,13 @@ for instance:
     10.223423 -12.42123
     10.233453 -12.41562
     10.243452 -12.40435
+
+    >>> obs[:2] # doctest: +SKIP
+        ra       dec         t
+       deg       deg         d
+    --------- --------- ------------
+    10.223423 -12.42123 2451523.6234
+    10.233453 -12.41562 2451523.7345
 
     >>> obs[obs['ra'] <= 10.233453*u.deg] # doctest: +SKIP
         ra       dec         t

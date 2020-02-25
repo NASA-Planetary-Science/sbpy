@@ -257,13 +257,16 @@ def test_get_set():
 
     data = DataClass.from_dict(
         OrderedDict((('a', [1, 2, 3]),
-                     ('b', [4, 5, 6]),
+                     ('b', [4, 5, 6]*u.m),
                      ('c', [7, 8, 8]))))
 
     # get a single column
     x = data['a']
     assert len(x) == 3
     assert isinstance(x, Column)
+    x = data['b']
+    assert len(x) == 3
+    assert isinstance(x, u.Quantity)
 
     # get a list of columns
     x = data[['a', 'c']]
@@ -273,11 +276,20 @@ def test_get_set():
     # mask rows
     masked = data[[True, False, False]]
     assert len(masked) == 1
-    assert masked['b'][0] == 4
+    assert masked['b'][0] == 4*u.m
     assert isinstance(masked, DataClass)
+
+    # get single row
+    shortened = data[1]
+    assert shortened['a'] == 2
+    assert isinstance(shortened, DataClass)
 
     # get list of rows
     shortened = data[[0, 1]]
+    assert len(shortened) == 2
+    assert isinstance(shortened, DataClass)
+
+    # get slice
     assert len(shortened) == 2
     assert isinstance(shortened, DataClass)
 
