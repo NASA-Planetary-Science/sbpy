@@ -614,32 +614,31 @@ class DataClass():
 
     def __getitem__(self, ident):
         """Return columns or rows from data table(``self._table``); checks
-        for and may use alternative field names."""
+        for and may use alternative field names. This method will always return
+        an instance of __class__, except in the case when a field name is
+        requested (then return an `astropy.table.Column` if no units are
+        provided or a `astropy.units.Quantity` if units are provided)."""
 
-        # iterable
-        if isinstance(ident, (list, tuple, ndarray)):
-            if all([isinstance(i, str) for i in ident]):
-                # list of column names
+        # slices, iterables consisting of booleans and integers, and integer
+        # indices are all treated in the same way and are required to return
+        # a new __class__ object; only have to treat string identifiers
+        # separately in that those have to be checked for conversions
+        # and translations
+
+        # list of field names
+        if (isinstance(ident, (list, tuple, ndarray)) and
+            all([isinstance(i, str) for i in ident])):
                 self = self._convert_columns(ident)
                 newkeylist = [self._translate_columns(i)[0] for i in ident]
                 ident = newkeylist
-                # return as new DataClass object
-                return self.from_table(self._table[ident])
-            # ignore lists of boolean (masks)
-            elif all([isinstance(i, bool) for i in ident]):
-                pass
-            # ignore lists of integers
-            elif all([isinstance(i, int) for i in ident]):
-                pass
-        # individual strings
+        # individual field names
         elif isinstance(ident, str):
             self = self._convert_columns(ident)
             ident = self._translate_columns(ident)[0]
-        elif isinstance(ident, int):
-            return self.from_table(self._table[ident])
+            return self._table[ident]
 
-        # return as element from self_table
-        return self._table[ident]
+        # return as new instance of this class for all other identifiers
+        return self.from_table(self._table[ident])
 
     def __setitem__(self, *args):
         """Refer cls.__setitem__ to self._table"""

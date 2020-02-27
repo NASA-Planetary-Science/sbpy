@@ -1,6 +1,9 @@
-0.3dev
+0.2.2dev
 ======
-
+- sbpy.data.DataClass.__getitem__ now always returns a new object of the same
+  class, unless a single field name is provided in which case an
+  astropy.Table.Column (no units provided) or astropy.units.Quantity
+  (units provided) is returned.
 
 This changelog tracks changes to sbpy starting with version v0.2.
 
