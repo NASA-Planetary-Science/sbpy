@@ -136,6 +136,24 @@ class TestHaser:
         ideal = Q * parent / v
         assert np.isclose(N, ideal.decompose().value)
 
+    def test_total_number_circular_aperture_angular(self):
+        """Regression test for issue #239.
+
+        https://github.com/NASA-Planetary-Science/sbpy/issues/239
+
+        Code initially from Quanzhi Ye.
+
+        """
+        
+        Q = 1e25 / u.s
+        v = 1 * u.km / u.s
+        parent = 24000 * u.km
+        daughter = 160000 * u.km
+        ap = core.CircularAperture(1 * u.arcsec).as_length(1 * u.au)
+        coma = Haser(Q, v, parent, daughter)
+        N = coma.total_number(ap)
+        assert np.isclose(N, 5.238964562688742e+26)
+
     def test_total_number_rho_AC75(self):
         """Reproduce A'Hearn and Cowan 1975
 

@@ -7,7 +7,6 @@ __all__ = [
     'photo_lengthscale',
     'photo_timescale',
     'fluorescence_band_strength',
-
     'Haser'
 ]
 
@@ -278,7 +277,7 @@ class GasComa(ABC):
 
         """
 
-        return self._volume_density(r.to('m').value) / u.m**3
+        return self._volume_density(r.to_value('m')) / u.m**3
 
     @sbd.dataclass_input(eph=sbd.Ephem)
     @sbd.quantity_to_dataclass(eph=(sbd.Ephem, 'delta'))
@@ -309,7 +308,7 @@ class GasComa(ABC):
         if eph is not None:
             equiv = sbu.projected_size(eph)
 
-        rho = rho.to('m', equiv).value
+        rho = rho.to_value('m', equiv)
         return self._column_density(rho) / u.m**2
 
     @sbd.dataclass_input(eph=sbd.Ephem)
@@ -454,9 +453,9 @@ class GasComa(ABC):
 
         if isinstance(aper, (CircularAperture, AnnularAperture)):
             if isinstance(aper, CircularAperture):
-                limits = (0, aper.radius.to('m').value)
+                limits = (0, aper.radius.to_value('m'))
             else:
-                limits = aper.shape.to('m').value
+                limits = aper.shape.to_value('m')
 
             # integrate in polar coordinates
             def f(rho):
@@ -471,7 +470,7 @@ class GasComa(ABC):
             N *= 2 * np.pi
             err *= 2 * np.pi
         elif isinstance(aper, RectangularAperture):
-            shape = aper.shape.to('m').value
+            shape = aper.shape.to_value('m')
 
             def f(rho, th):
                 """Column density integration in polar coordinates.
@@ -518,7 +517,7 @@ class GasComa(ABC):
                 return (rho * np.exp(-rho**2 / sigma**2 / 2)
                         * self._column_density(rho))
 
-            sigma = aper.sigma.to('m').value
+            sigma = aper.sigma.to_value('m')
             N, err = quad(f, 0, np.inf, args=(sigma,), epsabs=epsabs)
             N *= 2 * np.pi
             err *= 2 * np.pi
@@ -564,13 +563,13 @@ class Haser(GasComa):
         self.daughter = daughter
 
     def _volume_density(self, r):
-        n = (self.Q / self.v).to('1/m').value / r**2 / 4 / np.pi
-        parent = self.parent.to('m').value
+        n = (self.Q / self.v).to_value('1/m') / r**2 / 4 / np.pi
+        parent = self.parent.to_value('m')
         if self.daughter is None or self.daughter == 0:
             # parent only
             n *= np.exp(-r / parent)
         else:
-            daughter = self.daughter.to('m').value
+            daughter = self.daughter.to_value('m')
             n *= (daughter / (parent - daughter)
                   * (np.exp(-r / parent) - np.exp(-r / daughter)))
 
@@ -590,12 +589,12 @@ class Haser(GasComa):
 
     @bib.cite({'model': '1978Icar...35..360N'})
     def _column_density(self, rho):
-        sigma = (self.Q / self.v).to('1/m').value / rho / 2 / np.pi
-        parent = self.parent.to('m').value
+        sigma = (self.Q / self.v).to_value('1/m') / rho / 2 / np.pi
+        parent = self.parent.to_value('m')
         if self.daughter is None or self.daughter == 0:
             sigma *= np.pi / 2 - self._iK0(rho / parent)
         else:
-            daughter = self.daughter.to('m').value
+            daughter = self.daughter.to_value('m')
             sigma *= (daughter / (parent - daughter)
                       * (self._iK0(rho / daughter) - self._iK0(rho / parent)))
         return sigma
@@ -622,14 +621,14 @@ class Haser(GasComa):
 
         rho = aper.radius
         parent = self.parent.to(rho.unit)
-        x = (rho / parent).to('').value
-        N = (self.Q * rho / self.v).to(u.dimensionless_unscaled).value
+        x = (rho / parent).to_value(u.dimensionless_unscaled)
+        N = (self.Q * rho / self.v).to_value(u.dimensionless_unscaled)
         if self.daughter is None or self.daughter == 0:
             N *= 1 / x - self._K1(x) + np.pi / 2 - self._iK0(x)
         else:
             daughter = self.daughter.to(rho.unit)
-            y = (rho / daughter).to('').value
-            N *= (daughter / (parent - daughter)
+            y = (rho / daughter).to_value('')
+            N *= ((daughter / (parent - daughter)).to_value('')
                   * (self._iK0(y) - self._iK0(x) + x**-1 - y**-1
                      + self._K1(y) - self._K1(x)))
 
