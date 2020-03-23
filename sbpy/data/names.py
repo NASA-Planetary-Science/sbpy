@@ -430,7 +430,7 @@ class Names():
                # packed desig [4]
                '|(^[A-Za-z][0-9]{4}| [A-Za-z][0-9]{4})'
                # packed number [5]
-               '|([A-Z]{3,} |[A-Z]{3,}$'  # capitalized acronymns
+               '|([A-Z]{3,} |[A-Z]{3,}$'  # capitalized acronyms
                '|van de [A-Z][a-z]*[ ^ 0-9]*[-]?[A-Z]?[a-z]*[^0-9] *'
                '|de [A-Z][a-z]*[ ^ 0-9]*[-]?[A-Z]?[a-z]*[^0-9] *'
                "|['`]?[A-Z][A-Z]*['`]?[a-z][a-z]*['`]?[^0-9]*"

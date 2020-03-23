@@ -29,7 +29,7 @@ class Obs(Ephem):
     @cite({'software: astroquery': '2019AJ....157...98G'})
     def from_mpc(cls, targetid, id_type=None, **kwargs):
         """Load available observations for a target from the
-        `Minor Planet Center <http://minorplanetcenter.net>`_ using
+        `Minor Planet Center <https://minorplanetcenter.net>`_ using
         `~astroquery.mpc.MPCClass.get_observations`.
 
         Parameters

@@ -31,7 +31,7 @@ unstructured meta data.
 
 The user is free to add any fields they want to a
 `~sbpy.data.DataClass` object. However, in order to enable the
-seemless use of `sbpy` functions and methods, we require the user to
+seamless use of `sbpy` functions and methods, we require the user to
 pick among a few common field names for different properties as listed
 :ref:`here <field name list>`. `~sbpy.data.DataClass` objects
 are able to identify alternative field names as listed in this
@@ -428,7 +428,7 @@ The same result can be achieved using the following syntax:
     10.243452 -12.40435  2451523.8525      R       R
      10.25546  -12.3946 2451523.94653      i       i
 
-Similarly, exisiting columns can be modified using:
+Similarly, existing columns can be modified using:
 
     >>> obs['filter'] = ['g', 'i', 'R', 'V']  # doctest: +SKIP
     

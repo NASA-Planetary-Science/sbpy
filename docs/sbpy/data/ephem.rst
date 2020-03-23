@@ -117,7 +117,7 @@ option should be less than a few hundred to prevent corruption of the
 query (see `~astroquery.jplhorizons.HorizonsClass.ephemerides` for
 details).
 
-Observer locations can be defined as strings using offical `IAU
+Observer locations can be defined as strings using official `IAU
 observatory codes
 <https://www.minorplanetcenter.net/iau/lists/ObsCodesF.html>`__ or
 using `~astropy.coordinates.EarthLocation` as shown in the following

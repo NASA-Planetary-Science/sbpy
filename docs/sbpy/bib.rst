@@ -100,7 +100,7 @@ BibTeX (`~sbpy.bib.to_bibtex`)
             month = Sep,
               eid = {25.04},
             pages = {25.04},
-           adsurl = {https://ui.adsabs.harvard.edu/#abs/1996DPS....28.2504G},
+           adsurl = {https://ui.adsabs.harvard.edu/abs/1996DPS....28.2504G},
           adsnote = {Provided by the SAO/NASA Astrophysics Data System}
     }
 
@@ -140,7 +140,7 @@ journal rules, can be readily implemented.
 Filtering
 ---------
 
-The aformentioned output functions enable the filtering of references
+The aforementioned output functions enable the filtering of references
 based on their relevance. For instance, in the examples show above,
 the relevance is ``data source``. In order to properly use filter,
 only select keywords can be used a relevance: allowed is any string

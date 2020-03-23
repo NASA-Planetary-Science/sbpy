@@ -142,7 +142,7 @@ class TestSun:
 
         Using Haberreiter et al. 2017 solar spectrum: -26.77.
 
-        NaNs in Kurucz file should not affect this calulation.
+        NaNs in Kurucz file should not affect this calculation.
 
         """
         sun = Sun.from_builtin('Kurucz1993')

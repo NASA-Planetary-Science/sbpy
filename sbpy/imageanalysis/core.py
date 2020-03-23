@@ -16,7 +16,7 @@ def centroid(im, gyx, method='weighted'):
     im : array, mandatory
         image
     gyx : tuple, mandatory
-        initual guess coordinates (y, x)
+        initial guess coordinates (y, x)
     method : str, optional, default: `weighted`, choices: [`weighted`,
         `peak`, `comet`]
         method to use for finding centroid

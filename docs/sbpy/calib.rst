@@ -224,8 +224,9 @@ Solar spectra in Sun objects can be plotted at the native resolution of the data
   >>> fluxd_binned = sun.observe(wave_binned, unit='W / (m2 um)')
   >>> # Plot
   >>> plt.plot(sun.wave.to('um'), sun.fluxd.to('W/(m2 um)'),
-  ...          ls='steps-mid', color='#1f77b4', label='Native resolution')
-  >>> plt.plot(wave_binned, fluxd_binned, ls='steps-mid',
+  ...          drawstyle='steps-mid', color='#1f77b4',
+  ...          label='Native resolution')
+  >>> plt.plot(wave_binned, fluxd_binned, drawstyle='steps-mid',
   ...          color='#ff7f0e', label='R~25')
   >>> plt.setp(plt.gca(), xlim=wrange, xlabel='Wavelength (μm)',
   ...          ylabel='Flux density (W/(m2 μm)')
@@ -244,8 +245,8 @@ Solar spectra in Sun objects can be plotted at the native resolution of the data
   wave_binned = wrange[0] * d**np.arange(n) * u.um
   sun = Sun.from_default()
   fluxd_binned = sun.observe(wave_binned, unit='W / (m2 um)')
-  plt.plot(sun.wave.to('um'), sun.fluxd.to('W/(m2 um)'), ls='steps-mid', color='#1f77b4', label='Native resolution')
-  plt.plot(wave_binned, fluxd_binned, ls='steps-mid', color='#ff7f0e', label='R~25')
+  plt.plot(sun.wave.to('um'), sun.fluxd.to('W/(m2 um)'), drawstyle='steps-mid', color='#1f77b4', label='Native resolution')
+  plt.plot(wave_binned, fluxd_binned, drawstyle='steps-mid', color='#ff7f0e', label='R~25')
   plt.setp(plt.gca(), xlim=wrange, xlabel='Wavelength (μm)', ylabel='Flux density (W/(m2 μm)')
   plt.legend()
   plt.tight_layout()

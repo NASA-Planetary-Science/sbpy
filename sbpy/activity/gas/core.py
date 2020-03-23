@@ -342,7 +342,7 @@ class GasComa(ABC):
 
     @abstractmethod
     def _volume_density(self, r):
-        """Unitless volumne density function.
+        """Unitless volume density function.
 
 
         Parameters

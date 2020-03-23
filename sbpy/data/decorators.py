@@ -106,7 +106,7 @@ def quantity_to_dataclass(**kwargs):
                 field_idx = [field in x for x in Conf.fieldnames]
                 if not any(field_idx):
                     raise DataClassError("argument '{}' to function '{}' has"
-                        " an invalide field name '{}' for {}"
+                        " an invalid field name '{}' for {}"
                         " object".format(param.name, wrapped_function.__name__,
                         field, dataclass))
                 units = [x['dimension'] for x in [Conf.fieldnames_info[i] for
@@ -115,7 +115,7 @@ def quantity_to_dataclass(**kwargs):
                     units = [units]
                 for i in range(len(units)):
                     # translate the dimension as listed in sbpy Field Name List
-                    # to astropy-recoganizable unit strings
+                    # to astropy-recognizable unit strings
                     if units[i] is None:
                         units[i] = ''
                     elif units[i] in ['angle', 'deg']:

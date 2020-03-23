@@ -84,7 +84,7 @@ def test_spectral_density_vega_wf(wf, fluxd, to):
 def test_spectral_density_vega_bp(filename, fluxd, to, tol):
     """Test VEGAmag conversions for bandpasses.
 
-    Compare to Willmer 2018 Vega-mag zerpoints.  According to Eq. 13,
+    Compare to Willmer 2018 Vega-mag zeropoints.  According to Eq. 13,
     Table 3 assumes Vega is 0 mag, but only the Cousins I filter
     tested here agrees with that definition.  The rest have better
     agreement with 0.03 mag.

@@ -150,7 +150,7 @@ _str_types = (str, bytes)
 
 
 # What follows are several import statements meant to deal with install-time
-# issues with either missing or misbehaving pacakges (including making sure
+# issues with either missing or misbehaving packages (including making sure
 # setuptools itself is installed):
 
 # Check that setuptools 30.3 or later is present

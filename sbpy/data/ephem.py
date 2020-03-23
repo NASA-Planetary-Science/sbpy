@@ -208,7 +208,7 @@ class Ephem(DataClass):
     @cite({'software: astroquery': '2019AJ....157...98G'})
     def from_mpc(cls, targetids, epochs=None, location='500', **kwargs):
         """Load ephemerides from the
-        `Minor Planet Center <http://minorplanetcenter.net>`_.
+        `Minor Planet Center <https://minorplanetcenter.net>`_.
 
         Parameters
         ----------
@@ -291,7 +291,7 @@ class Ephem(DataClass):
         * All properties are provided in the J2000.0 reference system.
         * See `astroquery.mpc.MPC.get_ephemerides` and the Minor
           Planet Ephemeris Service user's guide [MPES]_ for details,
-          including accetable target names.
+          including acceptable target names.
 
 
         References

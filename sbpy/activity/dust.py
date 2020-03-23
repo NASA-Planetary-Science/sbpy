@@ -60,7 +60,7 @@ def phase_HalleyMarcus(phase):
     Bair (2011), but only described in detail by Schleicher and Marcus
     (May 2010) online at:
 
-        http://asteroid.lowell.edu/comet/dustphase.html
+        https://asteroid.lowell.edu/comet/dustphase.html
 
         "To distinguish this curve from others, we designate this as
         the HM phase function, for the sources of the two components:
@@ -520,7 +520,7 @@ class Efrho(DustComaQuantity):
     εfρ is the product of dust emissivity, dust filling factor, and
     circular aperture radius.  It is nominally a constant for a
     steady-state coma in free expansion, and is the thermal emission
-    equivalent for the Afρ quanitity.  See Kelley et al. (2013) for
+    equivalent for the Afρ quantity.  See Kelley et al. (2013) for
     details.
 
 

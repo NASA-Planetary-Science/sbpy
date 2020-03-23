@@ -186,7 +186,7 @@ class Orbit(DataClass):
     @cite({'software: astroquery': '2019AJ....157...98G'})
     def from_mpc(cls, targetids, id_type=None, target_type=None, **kwargs):
         """Load latest orbital elements from the
-        `Minor Planet Center <http://minorplanetcenter.net>`_.
+        `Minor Planet Center <https://minorplanetcenter.net>`_.
 
         Parameters
         ----------

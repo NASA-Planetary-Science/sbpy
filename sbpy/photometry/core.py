@@ -572,7 +572,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         `~astropy.units.Quantity`, array if ``append_results == False``
         `~sbpy.data.Ephem` if ``append_results == True``
 
-        When ``apend_results == False``: The calculated magnitude will be
+        When ``append_results == False``: The calculated magnitude will be
         returned.
 
         When ``append_results == True``:  If ``eph`` is a `~sbpy.data.Ephem`
@@ -606,7 +606,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
                 raise ValueError('Magnitude unit is not specified.')
             if self.radius is None:
                 raise ValueError(
-                    'Cannot calculate phase funciton in magnitude because the'
+                    'Cannot calculate phase function in magnitude because the'
                     ' size of object is unknown.')
             if self.wfb is None:
                 raise ValueError('Wavelength/Frequency/Band is unknown.')
@@ -654,7 +654,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         `~astropy.units.Quantity`, array if ``append_results == False``
         `~sbpy.data.Ephem` if ``append_results == True``
 
-        When ``apend_results == False``: The calculated reflectance will be
+        When ``append_results == False``: The calculated reflectance will be
         returned.
 
         When ``append_results == True``:  If ``eph`` is a `~sbpy.data.Ephem`
@@ -721,7 +721,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
 
         Parameters
         ----------
-        integrator : function, optinonal
+        integrator : function, optional
             Numerical integrator, default is `~scipy.integrate.quad`.
             If caller supplies a numerical integrator, it must has the same
             return signature as `~scipy.integrator.quad`, i.e., a tuple of
