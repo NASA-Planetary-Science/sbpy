@@ -144,7 +144,7 @@ class TestHaser:
         Code initially from Quanzhi Ye.
 
         """
-        
+
         Q = 1e25 / u.s
         v = 1 * u.km / u.s
         parent = 24000 * u.km
