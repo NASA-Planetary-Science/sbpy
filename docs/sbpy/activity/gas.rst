@@ -268,13 +268,13 @@ input parameters, please see `~sbpy.activity.NonLTE.from_pyradex`.
     >>> mol_data.apply([cdensity.value] * cdensity.unit, name='cdensity')
 
 Note that for this calculation the installation of `pyradex` is needed. Pyradex
-is a python wrapper for the RADEX fortran code. See `here
+is a python wrapper for the RADEX fortran code. See `pyradex installation
 <https://github.com/keflavich/pyradex/blob/master/INSTALL.rst>`_ and
-`here <https://github.com/keflavich/pyradex>`_ for installation instruction and
-tips as well as a briefing of how pyradex works and what common errors
-might arise. You need to make sure you have a fortran compiler installed
-in order for pyradex to work (gfortran works and can be installed with
-homebrew for easier management).
+`README file <https://github.com/keflavich/pyradex/blob/master/README.rst>`_
+for installation instruction and tips as well as a briefing of how pyradex
+works and what common errors might arise. You need to make sure you have a
+fortran compiler installed in order for pyradex to work (gfortran works and can
+be installed with homebrew for easier management).
 
 Total Number
 ^^^^^^^^^^^^
