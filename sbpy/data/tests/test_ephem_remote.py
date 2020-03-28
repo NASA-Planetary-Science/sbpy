@@ -110,7 +110,7 @@ class TestEphemFromHorizons:
     def test_minimum_working_columns(self):
         """Avoid assuming any particular columns are returned.
 
-        Regression test for #xxx.
+        Regression test for #242.
 
         """
         e = Ephem.from_horizons(1, quantities='1')  # just RA, Dec
