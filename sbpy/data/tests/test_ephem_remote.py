@@ -107,6 +107,17 @@ class TestEphemFromHorizons:
         except IERSRangeError:
             pass
 
+    def test_minimum_working_columns(self):
+        """Avoid assuming any particular columns are returned.
+
+        Regression test for #xxx.
+
+        """
+        e = Ephem.from_horizons(1, quantities='1')  # just RA, Dec
+        assert len(e) == 1
+        e = Ephem.from_horizons(1, quantities='19')  # just rh and delta-rh
+        assert len(e) == 1
+
 
 @pytest.mark.remote_data
 class TestEphemFromMPC:
