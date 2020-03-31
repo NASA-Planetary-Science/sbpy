@@ -6,7 +6,7 @@ Using DASTCOM5
 For using the DASTCOM5 Module, you have to first download the databse locally.
 That can be done by:
 
-    >>> from sbpy.utils import dastcom5
+    >>> from sbpy.data.utils import dastcom5
     >>> dastcom5.download_dastcom5()  # doctest: +SKIP
 
 After the database is downloaded, all the queries can be done easily.

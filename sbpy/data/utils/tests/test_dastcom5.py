@@ -59,6 +59,7 @@ def test_read_record(mock_open, mock_np_fromfile, mock_read_headers):
     )
 
 
+@pytest.mark.remote_data
 @mock.patch("sbpy.data.utils.dastcom5.os.makedirs")
 @mock.patch("sbpy.data.utils.dastcom5.zipfile")
 @mock.patch("sbpy.data.utils.dastcom5.os.path.isdir")
@@ -76,6 +77,7 @@ def test_download_dastcom5_raises_error_when_folder_exists(
     )
 
 
+@pytest.mark.remote_data
 @mock.patch("sbpy.data.utils.dastcom5.urllib.request")
 @mock.patch("sbpy.data.utils.dastcom5.os.makedirs")
 @mock.patch("sbpy.data.utils.dastcom5.zipfile")
@@ -89,6 +91,7 @@ def test_download_dastcom5_creates_folder(
     mock_makedirs.assert_called_once_with(dastcom5.SBPY_LOCAL_PATH)
 
 
+@pytest.mark.remote_data
 @mock.patch("sbpy.data.utils.dastcom5.zipfile")
 @mock.patch("sbpy.data.utils.dastcom5.os.path.isdir")
 @mock.patch("sbpy.data.utils.dastcom5.urllib.request.urlretrieve")
