@@ -211,7 +211,8 @@ class Orbit(DataClass):
         return cls.from_table(tb)
 
     @classmethod
-    @cite({'data source': 'https://minorplanetcenter.net/iau/MPEph/MPEph.html'})
+    @cite({'data source':
+               'https://minorplanetcenter.net/iau/MPEph/MPEph.html'})
     @cite({'software: astroquery': '2019AJ....157...98G'})
     def from_mpc(cls, targetids, id_type=None, target_type=None, **kwargs):
         """Load latest orbital elements from the
