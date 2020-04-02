@@ -630,15 +630,15 @@ class TestHG12_Pen16:
         m = HG12_Pen16.from_obs({'alpha': pha, 'mag': data}, fitter)
         assert isinstance(m, HG12_Pen16)
         assert isinstance(m.H, Parameter) & np.isclose(
-            m.H.value, 7.091456) & (m.H.unit == u.mag)
+            m.H.value, 7.038705) & (m.H.unit == u.mag)
         assert isinstance(m.G12, Parameter) & np.isclose(
             m.G12.value, 0.631243) & (m.G12.unit == u.dimensionless_unscaled)
 
     def test_to_mag(self):
         pha_test = np.linspace(0, np.pi, 10) * u.rad
-        mag_test = [7.121, 8.07252953, 8.67890827, 9.2993879, 9.96817595,
-            10.72086969, 11.51208664, 12.12722017, 18.70628001,
-            18.70647883] * u.mag
+        mag_test = [7.121, 8.12425116, 8.71866169, 9.32576929, 9.98752147,
+            10.7522335 , 11.60154855, 12.28573613, 18.49298496,
+            18.49318378] * u.mag
         themis = HG12_Pen16(7.121 * u.mag, 0.68)
         if LooseVersion(astropy.__version__) >= req_ver:
             assert u.allclose(themis.to_mag(pha_test), mag_test)
