@@ -12,6 +12,11 @@ from ...data import Ephem, Phys
 
 req_ver = LooseVersion('3.0.2')
 
+def setup_module(module):
+    module.solar_fluxd_default = solar_fluxd.get()
+    solar_fluxd.set({'V': -26.77 * u.mag})
+def teardown_module(module):
+    solar_fluxd.set(module.solar_fluxd_default)
 
 class TestDiskIntegratedPhaseFunc():
     def test__unit(self):
@@ -26,7 +31,6 @@ class TestDiskIntegratedPhaseFunc():
             temp._check_unit()
 
     def test_ref_phasefunc(self):
-        solar_fluxd.set({'V': -26.77 * u.mag})
         class ExpPhase(DiskIntegratedPhaseFunc):
             _unit = 'ref'
             p = Parameter(default=0.1 / u.sr)
@@ -645,9 +649,9 @@ class TestHG12_Pen16:
 
     def test_to_ref(self):
         pha_test = np.linspace(0, np.pi, 10) * u.rad
-        ref_test = [1.97834009e-02, 8.23548424e-03, 4.71126618e-03,
-            2.66039298e-03, 1.43691333e-03, 7.18378086e-04, 3.46630119e-04,
-            1.96703860e-04, 4.59397839e-07, 4.59313722e-07] / u.sr
+        ref_test = [1.97834009e-02, 7.85236516e-03, 4.54188647e-03,
+            2.59652934e-03, 1.41153731e-03, 6.97923066e-04, 3.19213708e-04,
+            1.69983395e-04, 5.59122499e-07, 5.59020121e-07] / u.sr
         themis = HG12_Pen16(7.121 * u.mag, 0.68, radius=100 * u.km, wfb='V')
         if LooseVersion(astropy.__version__) >= req_ver:
             assert u.allclose(themis.to_ref(pha_test), ref_test)
