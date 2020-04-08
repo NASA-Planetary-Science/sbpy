@@ -12,11 +12,15 @@ from ...data import Ephem, Phys
 
 req_ver = LooseVersion('3.0.2')
 
+
 def setup_module(module):
     module.solar_fluxd_default = solar_fluxd.get()
     solar_fluxd.set({'V': -26.77 * u.mag})
+
+
 def teardown_module(module):
     solar_fluxd.set(module.solar_fluxd_default)
+
 
 class TestDiskIntegratedPhaseFunc():
     def test__unit(self):
