@@ -13,8 +13,6 @@ import tempfile
 import numpy as np
 import astropy.constants as con
 import astropy.units as u
-from astropy.time import Time
-from astroquery.jplhorizons import Horizons, conf
 from astroquery.jplspec import JPLSpec
 from astroquery.lamda import Lamda
 from ...bib import register
@@ -32,11 +30,9 @@ def intensity_conversion(mol_data):
 
     Parameters
     ----------
-    mol_data : `~sbpy.data.phys`
-        `~sbpy.data.phys` object that contains the following data,
+    mol_data : `~sbpy.data.Phys`
+        `~sbpy.data.Phys` object that contains the following data,
         using `~astropy.units` for the required units:
-
-            .. _making-a-list:
 
             * Transition frequency in MHz
             * Temperature in Kelvins
@@ -51,53 +47,55 @@ def intensity_conversion(mol_data):
         Keywords that can be used for these values are found under
         `~sbpy.data.conf.fieldnames` documentation. We recommend the use of the
         JPL Molecular Spectral Catalog and the use of
-        `~sbpy.data.phys.from_jplspec` to obtain these values in order to maintain
-        consistency and because all calculations can be handled within `sbpy`
-        scope if JPLSpec is used. Yet, if you wish to use your own molecular data,
-        it is possible. Make sure to inform yourself on the values needed for each
-        function, their units, and their interchangeable keywords as part of
-        the `~sbpy.data.phys` data class.
+        `~sbpy.data.phys.from_jplspec` to obtain these values in order to
+        maintain consistency and because all calculations can be handled within
+        `sbpy` scope if JPLSpec is used. Yet, if you wish to use your own
+        molecular data, it is possible. Make sure to inform yourself on the
+        values needed for each function, their units, and their interchangeable
+        keywords as part of the `~sbpy.data.Phys` data class.
 
     Returns
     -------
     intl : `~astropy.Quantity`
         Integrated line intensity at designated temperature in MHz * nm**2,
-        which can be appended to the original `sbpy.phys` object for future
-        calculations
+        which can be appended to the original `sbpy.data.Phys` object for
+        future calculations
+
+    References
+    ----------
+    Picket et al 1998, JQSRT 60, 883-890
 
     """
 
     if not isinstance(mol_data, Phys):
-        raise ValueError('mol_data must be a `sbpy.data.phys` instance.')
+        raise ValueError('mol_data must be a `sbpy.data.Phys` instance.')
 
     temp = mol_data['Temperature'][0]
     lgint = mol_data['lgint300'][0]
     part300 = mol_data['partfn300'][0]
     partition = mol_data['partfn'][0]
-    energy_J = mol_data['eup_j'][0]
+    eup_J = mol_data['eup_j'][0]
     elo_J = mol_data['elo_J'][0]
     df = mol_data['degfr'][0]
 
+    register(intensity_conversion, {'conversion': '1998JQSRT..60..883P'})
+
     k = con.k_B.to('J/K')  # Boltzmann constant
 
-    if (((energy_J - elo_J).value / (k * temp).value) and
-            ((energy_J - elo_J).value / (k * 300 * u.K).value) < 1):
+    if (eup_J - elo_J) < (k * min(temp, 300 * u.K)):
 
-        if df == 0 or 2:
-
-            intl = lgint*(300*u.K / temp)**(2)*np.exp(-(1/temp - 1/(300*u.K))
-                                                      * elo_J/k)
-
+        if df in (0, 2):
+            n = 1
         else:
-
-            intl = lgint*(300*u.K/temp)**(5/2)*np.exp(-(1/temp - 1/(300*u.K))
-                                                      * elo_J/k)
+            n = 3./2
+        intl = lgint*(300*u.K/temp)**(n+1)*np.exp(-(1/temp - 1/(300*u.K))
+                                                  * elo_J/k)
 
     else:
 
         intl = lgint*(part300/partition)*(np.exp(-elo_J/(k*temp)) -
-                                          np.exp(-energy_J/(k*temp))) / \
-            (np.exp(-elo_J/(k*300 * u.K)) - np.exp(-energy_J/(k*300*u.K)))
+                                          np.exp(-eup_J/(k*temp))) / \
+            (np.exp(-elo_J/(k*300 * u.K)) - np.exp(-eup_J/(k*300*u.K)))
 
     return intl
 
@@ -108,12 +106,9 @@ def einstein_coeff(mol_data):
 
     Parameters
     ----------
-
     mol_data : `~sbpy.data.phys`
         `~sbpy.data.phys` object that contains the following data,
         using `astropy.units` for the required units:
-
-            .. _making-a-list:
 
             * Transition frequency in MHz
             * Temperature in Kelvins
@@ -129,11 +124,11 @@ def einstein_coeff(mol_data):
         Keywords that can be used for these values are found under
         `~sbpy.data.conf.fieldnames` documentation. We recommend the use of the
         JPL Molecular Spectral Catalog and the use of
-        `~sbpy.data.phys.from_jplspec` to obtain these values in order to maintain
-        consistency. Yet, if you wish to use your own molecular data, it is
-        possible. Make sure to inform yourself on the values needed for each
-        function, their units, and their interchangeable keywords as part of
-        the data class.
+        `~sbpy.data.phys.from_jplspec` to obtain these values in order to
+        maintain consistency. Yet, if you wish to use your own molecular data,
+        it is possible. Make sure to inform yourself on the values needed for
+        each function, their units, and their interchangeable keywords as part
+        of the data class.
 
     Returns
     -------
@@ -150,7 +145,7 @@ def einstein_coeff(mol_data):
     lgint = mol_data['lgint300'][0]
     part300 = mol_data['partfn300'][0]
     partition = mol_data['partfn'][0]
-    energy_J = mol_data['eup_j'][0]
+    eup_J = mol_data['eup_j'][0]
     elo_J = mol_data['elo_J'][0]
     df = mol_data['degfr'][0]
     t_freq = mol_data['t_freq'][0]
@@ -166,13 +161,13 @@ def einstein_coeff(mol_data):
             (h*t_freq/(k*300*u.K)).decompose().value < 1:
 
         au = (lgint*t_freq
-              * (part300/gu)*np.exp(energy_J / (k*300*u.K))*(1.748e-9)).value
+              * (part300/gu)*np.exp(eup_J / (k*300*u.K))*(1.748e-9)).value
 
     else:
 
         au = (intl*(t_freq)**2 *
               (partition/gu)*(np.exp(-(elo_J/(k*temp)).value) -
-                              np.exp(-(energy_J/(k*temp)).value))**(-1)
+                              np.exp(-(eup_J/(k*temp)).value))**(-1)
               * (2.7964e-16)).value
 
     au = au / u.s
@@ -204,8 +199,8 @@ def beta_factor(mol_data, ephemobj):
         program will assume it is the JPL Spectral Molecular Catalog identifier
         of the molecule and will treat it as such. If mol_tag is a string,
         then it will be assumed to be the human-readable name of the molecule.
-        The molecule MUST be defined in `sbpy.activity.gas.timescale`, otherwise
-        this function cannot be used and the beta factor
+        The molecule MUST be defined in `sbpy.activity.gas.timescale`,
+        otherwise this function cannot be used and the beta factor
         will have to be provided by the user directly for calculations. The
         user can obtain the beta factor from the formula provided above.
         Keywords that can be used for these values are found under
@@ -263,12 +258,11 @@ def beta_factor(mol_data, ephemobj):
 
 def total_number(mol_data, aper, b):
     """
-    Equation relating number of molecules with column density,
-    the aperture, and geometry given and accounting for photodissociation,
-    derived from data provided.
-    Feel free to use your own total number to calculate production rate or use
-    this function with your own molecular data
-    as long as you are aware of the needed data
+    Equation relating number of molecules with column density, the aperture,
+    and geometry given and accounting for photodissociation, derived from data
+    provided.  Feel free to use your own total number to calculate production
+    rate or use this function with your own molecular data as long as you are
+    aware of the needed data.
 
     Parameters
     ----------
@@ -309,9 +303,10 @@ def total_number(mol_data, aper, b):
 
     sigma = (1./2. * beta * b * con.c / (mol_data['t_freq'][0] * aper)).value
 
-    total_number = mol_data['cdensity'][0].decompose() * sigma * u.m * u.m / np.sqrt(np.log(2))
+    tnumber = mol_data['cdensity'][0].decompose() * sigma * u.m**2 / \
+        np.sqrt(np.log(2))
 
-    return total_number
+    return tnumber
 
 
 def from_Haser(coma, mol_data, aper=25 * u.m):
@@ -471,12 +466,12 @@ class LTE():
             This function will calculate the column
             density from Bockelee-Morvan et al. 2004 and append it to the phys
             object as 'Column Density' or any of its alternative field names.
-            The values above can either be given by the user or obtained from the
-            functions `~sbpy.activity.gas.productionrate.einstein_coeff` and
-            `~sbpy.activity.gas.productionrate.beta_factor`
+            The values above can either be given by the user or obtained from
+            the functions `~sbpy.activity.gas.productionrate.einstein_coeff`
+            and `~sbpy.activity.gas.productionrate.beta_factor`
             Keywords that can be used for these values are found under
-            `~sbpy.data.conf.fieldnames` documentation. We recommend the use of the
-            JPL Molecular Spectral Catalog and the use of
+            `~sbpy.data.conf.fieldnames` documentation. We recommend the use of
+            the JPL Molecular Spectral Catalog and the use of
             `~sbpy.data.phys.from_jplspec` to obtain
             these values in order to maintain consistency. Yet, if you wish to
             use your own molecular data, it is possible. Make sure to inform
@@ -616,7 +611,7 @@ class LTE():
         temp = mol_data['Temperature'][0]
         partition = mol_data['partfn']
         gu = mol_data['dgup'][0]
-        energy_J = mol_data['eup_j'][0]
+        eup_J = mol_data['eup_j'][0]
         h = con.h.to('J*s')  # Planck constant
         k = con.k_B.to('J/K')  # Boltzmann constant
         c = con.c.to('m/s')  # speed of light
@@ -629,7 +624,7 @@ class LTE():
         calc = ((16*np.pi*k*t_freq.decompose() *
                  partition*vgas) / (np.sqrt(np.pi*np.log(2))
                                     * h * c**2 * au * gu *
-                                    np.exp(-energy_J/(k*temp)))).decompose()
+                                    np.exp(-eup_J/(k*temp)))).decompose()
 
         q = integrated_flux*(calc * b * delta / aper)
 
@@ -704,8 +699,8 @@ class NonLTE():
             as follows:
             (mu_H2O/mu_H2)**0.5 = ((18**2/18*2)/((18*2)/(18+2)))**0.5 = 2.2
             in order to scale the collisional excitation to H2O as the main
-            collisional partner. (Walker, et al. 2014; de val Borro, et al. 2017;
-            & Schoier, et al. 2004)
+            collisional partner. (Walker, et al. 2014; de val Borro, et al.
+            2017; & Schoier, et al. 2004)
 
         Returns
         -------
@@ -828,9 +823,10 @@ class NonLTE():
 
         with tempfile.TemporaryDirectory() as datapath:
             for i in cdensity_range:
-                R = pyradex.Radex(column=i, deltav=line_width, tbackground=tbackground,
-                                  species=name, temperature=temp,
-                                  datapath=datapath, escapeProbGeom=escapeProbGeom,
+                R = pyradex.Radex(column=i, deltav=line_width,
+                                  tbackground=tbackground, species=name,
+                                  temperature=temp, datapath=datapath,
+                                  escapeProbGeom=escapeProbGeom,
                                   collider_densities=collider_density)
 
                 table = R()
