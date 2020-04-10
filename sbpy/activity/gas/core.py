@@ -26,6 +26,7 @@ except ImportError:
 from astropy.table import Table
 from ... import bib
 from ... import data as sbd
+from ... import units as sbu
 from ...exceptions import RequiredPackageUnavailable
 from .. core import (Aperture, RectangularAperture, GaussianAperture,
                      AnnularAperture, CircularAperture)

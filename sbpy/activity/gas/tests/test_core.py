@@ -112,6 +112,24 @@ class TestHaser:
         assert np.isclose(N_avg.decompose().value, ideal.decompose().value,
                           rtol=0.001)
 
+    def test_column_density_small_angular_aperture(self):
+        """Test column density for angular aperture << lengthscale.
+
+        Regression test for PR#243.
+
+        Should be within 1% of ideal value.
+
+        """
+        Q = 1e28 / u.s
+        v = 1 * u.km / u.s
+        rho = 0.001 * u.arcsec
+        eph = dict(delta=1 * u.au)
+        parent = 1e4 * u.km
+        N_avg = 2 * Haser(Q, v, parent).column_density(rho, eph)
+        rho_km = (rho * eph['delta'] * 725.24 * u.km / u.arcsec / u.au).to('km')
+        ideal = Q / v / 2 / rho_km
+        assert np.isclose(N_avg.to_value('1/m2'), ideal.to_value('1/m2'), rtol=0.001)
+
     def test_column_density(self):
         """
         Test column density for aperture = lengthscale.
@@ -125,6 +143,16 @@ class TestHaser:
         N_avg = coma.column_density(rho)
         integral = coma._integrate_volume_density(rho.to('m').value)[0]
         assert np.isclose(N_avg.decompose().value, integral)
+
+    def test_total_number_large_aperture(self):
+        """Test column density for aperture >> lengthscale."""
+        Q = 1 / u.s
+        v = 1 * u.km / u.s
+        rho = 1000 * u.km
+        parent = 10 * u.km
+        N = Haser(Q, v, parent).total_number(rho)
+        ideal = Q * parent / v
+        assert np.isclose(N, ideal.decompose().value)
 
     def test_total_number_large_aperture(self):
         """Test column density for aperture >> lengthscale."""
