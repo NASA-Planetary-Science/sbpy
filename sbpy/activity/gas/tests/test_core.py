@@ -115,7 +115,7 @@ class TestHaser:
     def test_column_density_small_angular_aperture(self):
         """Test column density for angular aperture << lengthscale.
 
-        Regression test for PR#
+        Regression test for PR#243.
 
         Should be within 1% of ideal value.
 
@@ -126,9 +126,9 @@ class TestHaser:
         eph = dict(delta=1 * u.au)
         parent = 1e4 * u.km
         N_avg = 2 * Haser(Q, v, parent).column_density(rho, eph)
-        rho_km = (rho * eph['delta'] / (725.24 * u.km / u.arcsec)).to('km')
+        rho_km = (rho * eph['delta'] * 725.24 * u.km / u.arcsec / u.au).to('km')
         ideal = Q / v / 2 / rho_km
-        assert np.isclose(N_avg.to_value(''), ideal.to_value(''), rtol=0.001)
+        assert np.isclose(N_avg.to_value('1/m2'), ideal.to_value('1/m2'), rtol=0.001)
 
     def test_column_density(self):
         """
