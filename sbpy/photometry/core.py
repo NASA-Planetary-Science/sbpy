@@ -1122,24 +1122,24 @@ class HG12(HG12BaseClass):
             return -0.6125*g12+0.5572
 
     @staticmethod
-    def evaluate(ph, h, g):
-        g1 = HG12._G12_to_G1(g)
-        g2 = HG12._G12_to_G2(g)
+    def evaluate(ph, h, g12):
+        g1 = HG12._G12_to_G1(g12)
+        g2 = HG12._G12_to_G2(g12)
         return HG1G2.evaluate(ph, h, g1, g2)
 
     @staticmethod
-    def fit_deriv(ph, h, g):
+    def fit_deriv(ph, h, g12):
         if hasattr(ph, '__iter__'):
             ddh = np.ones_like(ph)
         else:
             ddh = 1.
-        g1 = HG12._G12_to_G1(g)
-        g2 = HG12._G12_to_G2(g)
+        g1 = HG12._G12_to_G1(g12)
+        g2 = HG12._G12_to_G2(g12)
         phi1 = HG1G2._phi1(ph)
         phi2 = HG1G2._phi2(ph)
         phi3 = HG1G2._phi3(ph)
         dom = (g1*phi1+g2*phi2+(1-g1-g2)*phi3)
-        if g < 0.2:
+        if g12 < 0.2:
             p1 = 0.7527
             p2 = -0.9612
         else:
@@ -1194,13 +1194,19 @@ class HG12_Pen16(HG12):
         return 0.53513350*(1-g12)
 
     @staticmethod
-    def fit_deriv(ph, h, g):
+    def evaluate(ph, h, g12):
+        g1 = HG12_Pen16._G12_to_G1(g12)
+        g2 = HG12_Pen16._G12_to_G2(g12)
+        return HG1G2.evaluate(ph, h, g1, g2)
+
+    @staticmethod
+    def fit_deriv(ph, h, g12):
         if hasattr(ph, '__iter__'):
             ddh = np.ones_like(ph)
         else:
             ddh = 1.
-        g1 = HG12_Pen16._G12_to_G1(g)
-        g2 = HG12_Pen16._G12_to_G2(g)
+        g1 = HG12_Pen16._G12_to_G1(g12)
+        g2 = HG12_Pen16._G12_to_G2(g12)
         phi1 = HG1G2._phi1(ph)
         phi2 = HG1G2._phi2(ph)
         phi3 = HG1G2._phi3(ph)
