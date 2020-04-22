@@ -25,11 +25,21 @@ class TestEphemFromHorizons:
         assert_allclose(data['epoch'].jd, now.jd)
 
     def test_daterange_step(self):
+        """Test start/stop/step.
+
+        Also, verify that the epochs parameter was not modified in-place, 
+        sbpy PR#xxxx.
+
+        """
         epochs = {'start': Time('2018-01-02', format='iso'),
                   'stop': Time('2018-01-05', format='iso'),
                   'step': 6*u.hour}
+        epochs_saved = epochs.copy()
+
         data = Ephem.from_horizons('Ceres', epochs=epochs)
+
         assert len(data.table) == 13
+        assert (epochs == epochs_saved) and isinstance(epochs['start'], Time)
 
     def test_daterange_number(self):
         epochs = {'start': Time('2018-01-02', format='iso'),
@@ -156,11 +166,20 @@ class TestEphemFromMPC:
         assert all(eph2['epoch'] != eph1['epoch'])
 
     def test_start_stop_step(self):
+        """Test start/stop/step.
+
+        Also, verify that the epochs parameter was not modified in-place, 
+        sbpy PR#xxxx.
+
+        """
+
         # utc
         epochs = dict(start=Time('2018-10-01'), stop=Time('2018-10-31'),
                       step=1*u.d)
+        epochs_saved = epochs.copy()
         eph1 = Ephem.from_mpc('Ceres', epochs=epochs)
         assert len(eph1.table) == 31
+        assert (epochs == epochs_saved) and isinstance(epochs['start'], Time)
 
         # tt
         epochs = dict(start=Time('2018-10-01', scale='tt'),
@@ -290,11 +309,21 @@ class TestEphemFromMiriade:
         assert all(eph1['epoch'] != eph2['epoch'])
 
     def test_epochrange_step(self):
-        eph = Ephem.from_miriade(["Ceres", 'Pallas'],
-                                 epochs={'start': Time('2018-10-01'),
-                                         'stop': Time('2018-10-10'),
-                                         'step': 0.5*u.d})
+        """Test start/stop/step.
+
+        Also, verify that the epochs parameter was not modified in-place, 
+        sbpy PR#xxxx.
+
+        """
+        epochs = {
+            'start': Time('2018-10-01'),
+            'stop': Time('2018-10-10'),
+            'step': 0.5*u.d
+        }
+        epochs_saved = epochs.copy()
+        eph = Ephem.from_miriade(["Ceres", 'Pallas'], epochs=epochs)
         assert len(eph.table) == 38
+        assert (epochs == epochs_saved) and isinstance(epochs['start'], Time)
 
     def test_iaulocation(self):
         eph1 = Ephem.from_miriade(
@@ -318,10 +347,14 @@ class TestEphemFromMiriade:
         data = Ephem.from_miriade(['Ceres', 'Pallas'])
         assert 'sbpy.data.ephem.Ephem.from_miriade' in bib.to_text()
 
+    def test_invalid_epochs(self):
+        with pytest.raises(ValueError):
+            Ephem.from_miriade('Ceres', epochs='2020-04-01')
+
 
 @pytest.mark.remote_data
 class test_oorb:
-    def test_by_comparison():
+    def test_by_comparison(self):
         """test from_oo method"""
 
         try:
