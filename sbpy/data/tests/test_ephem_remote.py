@@ -27,8 +27,8 @@ class TestEphemFromHorizons:
     def test_daterange_step(self):
         """Test start/stop/step.
 
-        Also, verify that the epochs parameter was not modified in-place, 
-        sbpy PR#xxxx.
+        Also, verify that the epochs parameter was not modified in-place,
+        sbpy PR#247.
 
         """
         epochs = {'start': Time('2018-01-02', format='iso'),
@@ -168,8 +168,8 @@ class TestEphemFromMPC:
     def test_start_stop_step(self):
         """Test start/stop/step.
 
-        Also, verify that the epochs parameter was not modified in-place, 
-        sbpy PR#xxxx.
+        Also, verify that the epochs parameter was not modified in-place,
+        sbpy PR#247.
 
         """
 
@@ -311,8 +311,8 @@ class TestEphemFromMiriade:
     def test_epochrange_step(self):
         """Test start/stop/step.
 
-        Also, verify that the epochs parameter was not modified in-place, 
-        sbpy PR#xxxx.
+        Also, verify that the epochs parameter was not modified in-place,
+        sbpy PR#247.
 
         """
         epochs = {
