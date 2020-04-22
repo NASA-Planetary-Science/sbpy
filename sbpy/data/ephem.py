@@ -597,7 +597,7 @@ class Ephem(DataClass):
     @classmethod
     @cite({'method': '2009M&PS...44.1853G',
            'software': 'https://github.com/oorb/oorb'})
-    def from_oo(self, orbit, epochs=None, location='500', scope='full',
+    def from_oo(cls, orbit, epochs=None, location='500', scope='full',
                 dynmodel='N', ephfile='de430'):
         """Uses pyoorb to derive ephemerides from an `~Orbit` object. For a
         list of output parameters, please read the `pyoorb documentation
@@ -776,14 +776,14 @@ class Ephem(DataClass):
             for i, col in enumerate(oo_eph_col):
                 oo_eph_col_u.append(Ephem._unit_apply(
                     col, conf.oorb_ephem_full_units[i]))
-            ephem = self.from_columns(oo_eph_col_u,
-                                      names=conf.oorb_ephem_full_fields)
+            ephem = cls.from_columns(oo_eph_col_u,
+                                     names=conf.oorb_ephem_full_fields)
         elif scope == 'basic':
             for i, col in enumerate(oo_eph_col):
                 oo_eph_col_u.append(Ephem._unit_apply(
                     col, conf.oorb_ephem_basic_units[i]))
-            ephem = self.from_columns(oo_eph_col_u,
-                                      names=conf.oorb_ephem_basic_fields)
+            ephem = cls.from_columns(oo_eph_col_u,
+                                     names=conf.oorb_ephem_basic_fields)
 
         # add targetname column
         ephem.table.add_column(Column(data=sum([[orb['targetname'][i]] *
