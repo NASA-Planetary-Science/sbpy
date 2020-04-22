@@ -70,3 +70,6 @@ distribute-*.tar.gz
 
 # visual studio code settings
 .vscode
+
+# firebase
+website/.firebase
