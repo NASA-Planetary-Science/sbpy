@@ -21,10 +21,14 @@ from astroquery.imcce import Miriade
 from astroquery.exceptions import InvalidQueryError
 from astropy.coordinates import EarthLocation
 
+try:
+    import pyoorb
+except ImportError:
+    pyoorb = None
 
 from ..bib import cite
 from .core import DataClass, conf, QueryError, TimeScaleWarning
-from ..exceptions import SbpyException
+from ..exceptions import SbpyException, RequiredPackageUnavailable
 from .orbit import OpenOrbError
 
 __all__ = ['Ephem']
@@ -690,7 +694,8 @@ class Ephem(DataClass):
            1 Ceres 2458529.2336329385 ...   1.326517587380005e-05 70.34353031031534
            1 Ceres 2458529.2752996054 ...  1.1193369555934085e-05 70.35298818987367        """
 
-        import pyoorb
+        if not pyoorb:
+            raise RequiredPackageUnavailable('pyoorb')
 
         # create a copy of orbit
         from . import Orbit
