@@ -128,6 +128,10 @@ class TestEphemFromHorizons:
         e = Ephem.from_horizons(1, quantities='19')  # just rh and delta-rh
         assert len(e) == 1
 
+    def test_invalid_epochs(self):
+        with pytest.raises(ValueError):
+            Ephem.from_horizons('Ceres', epochs='2020-04-01')
+
 
 @pytest.mark.remote_data
 class TestEphemFromMPC:
@@ -164,6 +168,10 @@ class TestEphemFromMPC:
             assert any(["astroquery.mpc" in str(w[i].message)
                         for i in range(len(w))])
         assert all(eph2['epoch'] != eph1['epoch'])
+
+    def test_invalid_epochs(self):
+        with pytest.raises(ValueError):
+            Ephem.from_mpc('Ceres', epochs='2020-04-01')
 
     def test_start_stop_step(self):
         """Test start/stop/step.
@@ -325,6 +333,10 @@ class TestEphemFromMiriade:
         assert len(eph.table) == 38
         assert (epochs == epochs_saved) and isinstance(epochs['start'], Time)
 
+    def test_invalid_epochs(self):
+        with pytest.raises(ValueError):
+            Ephem.from_miriade('Ceres', epochs='2020-04-01')
+
     def test_iaulocation(self):
         eph1 = Ephem.from_miriade(
             "Ceres", location='G37', epochs=Time('2019-01-01'))
@@ -346,10 +358,6 @@ class TestEphemFromMiriade:
         bib.track()
         data = Ephem.from_miriade(['Ceres', 'Pallas'])
         assert 'sbpy.data.ephem.Ephem.from_miriade' in bib.to_text()
-
-    def test_invalid_epochs(self):
-        with pytest.raises(ValueError):
-            Ephem.from_miriade('Ceres', epochs='2020-04-01')
 
 
 @pytest.mark.remote_data

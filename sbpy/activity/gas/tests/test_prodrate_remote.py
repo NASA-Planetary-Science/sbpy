@@ -82,7 +82,7 @@ def test_remote_prodrate_simple_hcn():
 
         time = Time(hcn['Time'][i], format='iso')
         integrated_flux = hcn['T_B'][i] * u.K * u.km / u.s
-        ephemobj = Ephem.from_horizons(target, epochs=time.jd, id_type='id')
+        ephemobj = Ephem.from_horizons(target, epochs=time, id_type='id')
 
         lte = LTE()
 
@@ -124,7 +124,7 @@ def test_remote_prodrate_simple_ch3oh():
 
         time = Time(ch3oh['Time'][i], format='iso')
         integrated_flux = ch3oh['T_B'][i] * u.K * u.km / u.s
-        ephemobj = Ephem.from_horizons(target, epochs=time.jd, id_type='id')
+        ephemobj = Ephem.from_horizons(target, epochs=time, id_type='id')
 
         lte = LTE()
 
@@ -224,7 +224,7 @@ def test_Haser_prodrate():
 
         time = Time(co['Time'][i], format='iso')
         integrated_flux = co['T_B'][i] * u.K * u.km / u.s
-        ephemobj = Ephem.from_horizons(target, epochs=time.jd)
+        ephemobj = Ephem.from_horizons(target, epochs=time)
         beta = beta_factor(mol_data, ephemobj)
         mol_data['beta'] = beta
         cdensity = lte.cdensity_Bockelee(integrated_flux, mol_data)
@@ -291,7 +291,7 @@ def test_Haser_pyradex():
 
         time = Time(co['Time'][i], format='iso')
         integrated_flux = co['T_B'][i] * u.K * u.km / u.s
-        ephemobj = Ephem.from_horizons(target, epochs=time.jd)
+        ephemobj = Ephem.from_horizons(target, epochs=time)
         beta = beta_factor(mol_data, ephemobj)
         mol_data['beta'] = beta
         cdensity_bockelee = lte.cdensity_Bockelee(integrated_flux, mol_data)
@@ -432,7 +432,7 @@ def test_Haser_prodrate_pyradex(mock_nonlte):
 
         time = Time(co['Time'][i], format='iso')
         integrated_flux = co['T_B'][i] * u.K * u.km / u.s
-        ephemobj = Ephem.from_horizons(target, epochs=time.jd)
+        ephemobj = Ephem.from_horizons(target, epochs=time)
         beta = beta_factor(mol_data, ephemobj)
         mol_data['beta'] = beta
         cdensity_bockelee = lte.cdensity_Bockelee(integrated_flux, mol_data)

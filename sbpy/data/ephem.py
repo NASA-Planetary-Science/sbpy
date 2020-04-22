@@ -140,6 +140,8 @@ class Ephem(DataClass):
                 else:
                     _epochs['step'] = '{:d}'.format(
                         int(_epochs['step'].value-1))
+        else:
+            raise ValueError('Invalid `epochs` parameter')
 
         # if targetids is a list, run separate Horizons queries and append
         if not isinstance(targetids, (list, ndarray, tuple)):
@@ -314,14 +316,20 @@ class Ephem(DataClass):
             targetids = [targetids]
 
         _epochs = None  # avoid modifying epochs in-place
-        if isinstance(epochs, Time):
-            _epochs = epochs
-            if epochs.scale is not 'utc':
+        start = None
+        if epochs is None:
+            _epochs = Time([Time.now()])
+        elif isinstance(epochs, Time):
+            if not iterable(epochs):
+                _epochs = Time([epochs])
+            else:
+                _epochs = epochs
+
+            if _epochs.scale is not 'utc':
                 warn(('converting {} epochs to utc for use in '
-                      'astroquery.mpc').format(epochs.scale),
+                      'astroquery.mpc').format(_epochs.scale),
                      TimeScaleWarning)
-                _epochs = epochs.utc
-            start = None
+                _epochs = _epochs.utc
         elif isinstance(epochs, dict):
             _epochs = epochs.copy()
             start = _epochs['start']  # required
@@ -357,18 +365,11 @@ class Ephem(DataClass):
                         ('epoch definition unclear; step xor number '
                          'must be provided with start and stop'))
         else:
-            start = None
-
-        if _epochs is None:
-            _epochs = Time.now()
-
-        if not iterable(_epochs):
-            _epochs = [_epochs]
+            raise ValueError('Invalid `epochs` parameter')
 
         # append ephemerides table for each targetid
         all_eph = None
         for targetid in targetids:
-
             try:
                 # get ephemeris
                 if start is None:
