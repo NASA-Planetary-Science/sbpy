@@ -38,10 +38,9 @@ import os
 # This is to figure out the affiliated package version, rather than
 # using Astropy's
 try:
-    from .version import version, astropy_helpers_version
+    from .version import version
 except ImportError:
     version = 'dev'
 
 packagename = os.path.basename(os.path.dirname(__file__))
 TESTED_VERSIONS[packagename] = version
-TESTED_VERSIONS['astropy_helpers'] = astropy_helpers_version
