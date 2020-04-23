@@ -29,7 +29,7 @@ except ImportError:
 from ..bib import cite
 from .core import DataClass, conf, QueryError, TimeScaleWarning
 from ..exceptions import SbpyException, RequiredPackageUnavailable
-from .orbit import OpenOrbError
+from .orbit import Orbit, OpenOrbError
 
 __all__ = ['Ephem']
 
@@ -698,7 +698,6 @@ class Ephem(DataClass):
             raise RequiredPackageUnavailable('pyoorb')
 
         # create a copy of orbit
-        from . import Orbit
         orb = Orbit.from_table(orbit.table)
 
         if epochs is None:
@@ -799,9 +798,9 @@ class Ephem(DataClass):
                                index=0)
 
         # convert MJD to astropy.time.TimeJulian Date
-        ephem.table['epoch'] = Time(Time(ephem['MJD'], format='mjd',
-                                         scale=timescale.lower()),
-                                    format='jd')
+        ephem.table['epoch'] = Time(ephem['MJD'], format='mjd',
+                                    scale=timescale.lower())
+        ephem.table['epoch'].format = 'jd'
         ephem.table.remove_column('MJD')
 
         return ephem

@@ -11,9 +11,37 @@ from astropy.time import Time
 from astropy.coordinates import EarthLocation
 from astropy.tests.helper import assert_quantity_allclose
 
-from sbpy.data import Ephem, Orbit, QueryError
-from sbpy import bib
+from ... import exceptions as sbe
+from ... import bib
 from ..core import conf
+from .. import ephem
+from .. import Ephem, Orbit, QueryError
+
+try:
+    import pyoorb
+    HAS_PYOORB = True
+except ImportError:
+    HAS_PYOORB = False
+
+# retreived from Horizons on 23 Apr 2020
+CERES = {
+    'targetname': '1 Ceres',
+    'H': u.Quantity(3.4, 'mag'),
+    'G': 0.12,
+    'e': 0.07741102040801928,
+    'q': u.Quantity(2.55375156, 'au'),
+    'incl': u.Quantity(10.58910839, 'deg'),
+    'Omega': u.Quantity(80.29081558, 'deg'),
+    'w': u.Quantity(73.7435117, 'deg'),
+    'n': u.Quantity(0.21401711, 'deg / d'),
+    'M': u.Quantity(154.70418799, 'deg'),
+    'nu': u.Quantity(158.18663933, 'deg'),
+    'a': u.Quantity(2.76802739, 'AU'),
+    'Q': u.Quantity(2.98230321, 'AU'),
+    'P': u.Quantity(1682.10848349, 'd'),
+    'epoch': Time(2458963.26397076, scale='tdb', format='jd'),
+    'Tp': Time(2458240.40500675, scale='tdb', format='jd')
+}
 
 
 @pytest.mark.remote_data
@@ -65,9 +93,9 @@ class TestEphemFromHorizons:
         assert len(data.table) == 1
 
     def test_bib(self):
-        bib.track()
-        Ephem.from_horizons(['Ceres', 'Pallas'])
-        assert 'sbpy.data.ephem.Ephem.from_horizons' in bib.to_text()
+        with bib.Tracking():
+            Ephem.from_horizons(['Ceres', 'Pallas'])
+            assert 'sbpy.data.ephem.Ephem.from_horizons' in bib.to_text()
 
     def test_timescale(self):
         # test same timescale
@@ -256,9 +284,9 @@ class TestEphemFromMPC:
             Ephem.from_mpc('target does not exist')
 
     def test_bib(self):
-        bib.track()
-        data = Ephem.from_mpc(['Ceres', 'Pallas'])
-        assert 'sbpy.data.ephem.Ephem.from_mpc' in bib.to_text()
+        with bib.Tracking():
+            data = Ephem.from_mpc(['Ceres', 'Pallas'])
+            assert 'sbpy.data.ephem.Ephem.from_mpc' in bib.to_text()
 
 
 @pytest.mark.remote_data
@@ -355,20 +383,16 @@ class TestEphemFromMiriade:
             Ephem.from_miriade('target does not exist')
 
     def test_bib(self):
-        bib.track()
-        data = Ephem.from_miriade(['Ceres', 'Pallas'])
-        assert 'sbpy.data.ephem.Ephem.from_miriade' in bib.to_text()
+        with bib.Tracking():
+            data = Ephem.from_miriade(['Ceres', 'Pallas'])
+            assert 'sbpy.data.ephem.Ephem.from_miriade' in bib.to_text()
 
 
 @pytest.mark.remote_data
-class test_oorb:
+@pytest.mark.skipif('not HAS_PYOORB')
+class TestEphemFromOorb:
     def test_by_comparison(self):
         """test from_oo method"""
-
-        try:
-            import pyoorb
-        except ImportError:
-            return None
 
         orbit = Orbit.from_horizons('Ceres')
         horizons_ephem = Ephem.from_horizons('Ceres', location='500')
@@ -386,47 +410,3 @@ class test_oorb:
         u.isclose(horizons_ephem['hlon'][0], oo_ephem['hlon'][0])
         u.isclose(horizons_ephem['hlat'][0], oo_ephem['hlat'][0])
         u.isclose(horizons_ephem['EL'][0], oo_ephem['EL'][0])
-
-        # test manual orbit definition lacking units
-        manorbit = Orbit.from_dict({
-            'targetname': orbit['targetname'][0],
-            'a': orbit['a'].value[0],
-            'e': orbit['e'][0],
-            'i': orbit['i'].value[0],
-            'w': orbit['w'].value[0],
-            'Omega': orbit['Omega'].value[0],
-            'epoch': orbit['epoch'][0],
-            'M': orbit['M'].value[0],
-            'H': orbit['H'].value[0],
-            'G': orbit['G'][0]})
-
-        oo_ephem = Ephem.from_oo(manorbit)
-
-        u.isclose(horizons_ephem['ra'][0], oo_ephem['ra'][0])
-        u.isclose(horizons_ephem['dec'][0], oo_ephem['dec'][0])
-        u.isclose(horizons_ephem['RA*cos(Dec)_rate'][0],
-                  oo_ephem['RA*cos(Dec)_rate'][0])
-        u.isclose(horizons_ephem['dec_rate'][0], oo_ephem['dec_rate'][0])
-        u.isclose(horizons_ephem['alpha'][0], oo_ephem['alpha'][0])
-        u.isclose(horizons_ephem['r'][0], oo_ephem['r'][0])
-        u.isclose(horizons_ephem['delta'][0], oo_ephem['delta'][0])
-        u.isclose(horizons_ephem['V'][0], oo_ephem['V'][0])
-        u.isclose(horizons_ephem['hlon'][0], oo_ephem['hlon'][0])
-        u.isclose(horizons_ephem['hlat'][0], oo_ephem['hlat'][0])
-        u.isclose(horizons_ephem['EL'][0], oo_ephem['EL'][0])
-
-    def test_basic(self):
-        orbit = Orbit.from_horizons('Ceres')
-        oo_ephem = Ephem.from_oo(orbit, scope='basic')
-        assert 'dec_rate' not in oo_ephem.field_names
-
-    def test_timescale(self):
-        orbit = Orbit.from_horizons('Ceres')
-        oo_ephem = Ephem.from_oo(orbit, scope='basic')
-        assert oo_ephem['epoch'].scale == 'tai'
-
-    def test_bib(self):
-        bib.track()
-        orbit = Orbit.from_horizons('Ceres')
-        oo_ephem = Ephem.from_oo(orbit, scope='basic')
-        assert 'sbpy.data.ephem.Ephem.from_oo' in bib.to_text()
