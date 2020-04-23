@@ -375,7 +375,7 @@ def from_Haser(coma, mol_data, aper=25 * u.m):
 
     >>> time = Time('2017-12-22 05:24:20', format = 'iso')
     >>> ephemobj = Ephem.from_horizons(target,
-    ...                                epochs=time.jd) # doctest: +REMOTE_DATA
+    ...                                epochs=time) # doctest: +REMOTE_DATA
 
     >>> mol_data = Phys.from_jplspec(temp_estimate, transition_freq,
     ...                              mol_tag) # doctest: +REMOTE_DATA
@@ -570,7 +570,7 @@ class LTE():
         >>> integrated_flux = 1.22 * u.K * u.km / u.s
 
         >>> time = Time('2010-11-3 00:48:06', format='iso')
-        >>> ephemobj = Ephem.from_horizons(target, epochs=time.jd,
+        >>> ephemobj = Ephem.from_horizons(target, epochs=time,
         ...                                id_type='id') # doctest: +REMOTE_DATA
 
         >>> mol_data = Phys.from_jplspec(temp_estimate, transition_freq,
