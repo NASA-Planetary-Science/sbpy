@@ -88,4 +88,5 @@ class TestEphemFromOorb:
         with bib.Tracking():
             orbit = Orbit.from_dict(CERES)
             oo_ephem = Ephem.from_oo(orbit, scope='basic')
-            assert 'sbpy.data.ephem.Ephem.from_oo' in bib.to_text()
+            assert 'sbpy.data.ephem.Ephem.from_oo' in bib.show()
+        bib.reset()
