@@ -15,4 +15,5 @@ dependencies:
       - "git+https://github.com/astropy/astroquery.git"
       - ads
       - synphot>=0.1.2<0.2
+      - Sphinx==2.2.1
       - sphinx-astropy
