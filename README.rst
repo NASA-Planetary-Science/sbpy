@@ -1,4 +1,4 @@
-.. image:: https://github.com/NASA-Planetary-Science/sbpy/blob/master/logo/sbpy_logo_short.png
+.. image:: https://github.com/NASA-Planetary-Science/sbpy/raw/master/logo/sbpy_logo_short.png
     :width: 400px
     :align: center	    
     :alt: sbpy	     
