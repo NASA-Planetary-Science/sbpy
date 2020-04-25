@@ -1,4 +1,4 @@
-.. image:: logo/sbpy_logo_short.png
+.. image:: https://github.com/NASA-Planetary-Science/sbpy/blob/master/logo/sbpy_logo_short.png
     :width: 400px
     :align: center	    
     :alt: sbpy	     
@@ -31,9 +31,9 @@ planetary astronomy.
 Overview
 --------
 
-For an overview of the sbpy project please visit this `project
+For an overview of the sbpy project please visit the `project
 overview page <https://sbpy.readthedocs.io/en/latest/about.html>`_ and
-the `official sbpy website <http://sbpy.org>`_.
+the `official sbpy website <https://sbpy.org>`_.
 
 
 Installation
@@ -51,12 +51,12 @@ For details on the installation process, please refer to the `detailed installat
 Documentation
 -------------
 
-The official documentation and API reference is available `here <https://sbpy.readthedocs.io/en/latest/>`_.
+The official `documentation and API reference <https://sbpy.readthedocs.io/en/latest/>`_ is avilable.
 
 Status
 ------
 
-sbpy is still under development, which will be finished in 2021. For an overview on the status of individual features see the `Status Page <https://sbpy.readthedocs.io/en/latest/status.html>`_.
+sbpy is still under development, which will be finished in 2022. For an overview on the status of individual features see the `Status Page <https://sbpy.readthedocs.io/en/latest/status.html>`_.
 
 
 Acknowledgements
