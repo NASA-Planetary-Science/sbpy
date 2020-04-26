@@ -1,8 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import os
-import sys
-import importlib
 import pytest
 import numpy as np
 import astropy.units as u
@@ -13,9 +11,7 @@ from .. import core
 from ..core import *
 from ...photometry import bandpass
 from ...calib import (vega_spectrum, vega_fluxd, solar_fluxd,
-                      solar_spectrum, Sun, Vega, UndefinedSourceError,
-                      FilterLookupError)
-from ...exceptions import OptionalPackageUnavailable
+                      solar_spectrum, Sun, Vega)
 
 
 JohnsonV = bandpass('Johnson V')
