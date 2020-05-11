@@ -1,10 +1,8 @@
 
-language: minimal
+language: shell
 
 os:
     - linux
-
-sudo: false
 
 # The apt packages below are needed for sphinx builds. A full list of
 # packages that can be included can be found here:
@@ -21,8 +19,6 @@ stages:
    - name: Test docs and PEP8
    - name: Remote data tests and coverage
 
-stage: Build tests
-
 # setting up environment variables and the build matrix
 env:
     global:
@@ -33,14 +29,14 @@ env:
         - MAIN_CMD='python setup.py'
         - SETUP_CMD='test'
         - EVENT_TYPE='pull_request push'
-        - PIP_DEPENDENCIES='scipy matplotlib ads synphot https://github.com/astropy/astroquery/archive/master.zip pytest-astropy codecov'
+        - PIP_DEPENDENCIES='scipy matplotlib ads synphot astroquery pytest-astropy codecov'
         - ADS_DEV_KEY=TjUyPHFOH48m5Katkeq0UCZQcejTg6bDbTuTGHxT
 
-    matrix:
+    jobs:
         - PYTHON_VERSION=3.6 SETUP_CMD='egg_info'
         - PYTHON_VERSION=3.7 SETUP_CMD='egg_info'
 
-matrix:
+jobs:
 
     # Don't wait for allowed failures
     fast_finish: true
@@ -59,8 +55,9 @@ matrix:
 
         # Test docs and PEP8
         - os: linux
+          dist: bionic
           stage: Test docs and PEP8
-          env: ASTROPY_VERSION=3 SETUP_CMD='build_docs -w' PIP_DEPENDENCIES="`echo $PIP_DEPENDENCIES sphinx-astropy`"
+          env: ASTROPY_VERSION=3 SETUP_CMD='build_docs -w' PIP_DEPENDENCIES="`echo $PIP_DEPENDENCIES https://github.com/astropy/sphinx-automodapi/archive/master.zip sphinx-astropy`"
 
         - os: linux
           stage: Test docs and PEP8
