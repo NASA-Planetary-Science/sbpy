@@ -8,16 +8,11 @@ os:
 # packages that can be included can be found here:
 # https://github.com/travis-ci/apt-package-whitelist/blob/master/ubuntu-precise
 
-addons:
-    apt:
-        packages:
-            - graphviz
-
 stages:
-   - name: Build tests
-   - name: Tests with various Astropy/Numpy versions
-   - name: Test docs and PEP8
-   - name: Remote data tests and coverage
+    - name: Build tests
+    - name: Tests with various Astropy/Numpy versions
+    - name: Test docs and PEP8
+    - name: Remote data tests and coverage
 
 # setting up environment variables and the build matrix
 env:
@@ -47,26 +42,42 @@ jobs:
 
         - os: osx
           stage: Tests with various Astropy/Numpy versions
-          env: PYTHON_VERSION=3.6 NUMPY_VERSION=1.13 ASTROPY_VERSION=3 PYTEST_VERSION='<3.7'
+          env: PYTHON_VERSION=3.6
+               NUMPY_VERSION=1.13
+               ASTROPY_VERSION=3
+               PYTEST_VERSION='<3.7'
 
         - os: linux
           stage: Tests with various Astropy/Numpy versions
-          env: PYTHON_VERSION=3.7 NUMPY_VERSION=1.14 ASTROPY_VERSION=3 PYTEST_VERSION='<3.7'
+          env: PYTHON_VERSION=3.7
+               NUMPY_VERSION=1.14
+               ASTROPY_VERSION=3
+               PYTEST_VERSION='<3.7'
 
         # Test docs and PEP8
         - os: linux
-          dist: bionic
           stage: Test docs and PEP8
-          env: ASTROPY_VERSION=3 SETUP_CMD='build_docs -w' PIP_DEPENDENCIES="`echo $PIP_DEPENDENCIES https://github.com/astropy/sphinx-automodapi/archive/master.zip sphinx-astropy`"
+          env: ASTROPY_VERSION=3
+               SETUP_CMD='build_docs -w'
+               PIP_DEPENDENCIES="`echo $PIP_DEPENDENCIES https://github.com/astropy/sphinx-automodapi/archive/master.zip sphinx-astropy`"
+          addons:
+              apt:
+                  packages:
+                      - graphviz
 
         - os: linux
           stage: Test docs and PEP8
-          env: MAIN_CMD='pycodestyle sbpy --count' SETUP_CMD=''
+          env: MAIN_CMD='pycodestyle sbpy --count'
+               SETUP_CMD=''
 
         # Remote data tests and coverage
         - os: linux
           stage: Remote data tests and coverage
-          env: DEBUG=True ASTROPY_VERSION=3 SYNPHOT_VERSION="0.1.*" SETUP_CMD='test --coverage -R -V -a "--durations=50"' PYTEST_VERSION='<3.7'
+          env: DEBUG=True
+               ASTROPY_VERSION=3
+               SYNPHOT_VERSION="0.1.*"
+               SETUP_CMD='test --coverage -R -V -a "--durations=50"'
+               PYTEST_VERSION='<3.7'
 
 install:
    - git clone git://github.com/astropy/ci-helpers.git
