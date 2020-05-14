@@ -43,14 +43,14 @@ jobs:
         - os: osx
           stage: Tests with various Astropy/Numpy versions
           env: PYTHON_VERSION=3.6
-               NUMPY_VERSION=1.13
+               NUMPY_VERSION=1.17
                ASTROPY_VERSION=3
                PYTEST_VERSION='<3.7'
 
         - os: linux
           stage: Tests with various Astropy/Numpy versions
           env: PYTHON_VERSION=3.7
-               NUMPY_VERSION=1.14
+               NUMPY_VERSION=1.18
                ASTROPY_VERSION=3
                PYTEST_VERSION='<3.7'
 
