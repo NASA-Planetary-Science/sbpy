@@ -114,7 +114,7 @@ class Orbit(DataClass):
         if epochs is None:
             epochs = [Time.now().tdb.jd]
         elif isinstance(epochs, Time):
-            if epochs.scale is not 'tdb':
+            if epochs.scale != 'tdb':
                 warn(('converting {} epochs to tdb for use in '
                       'astroquery.jplhorizons').format(epochs.scale),
                      TimeScaleWarning)
