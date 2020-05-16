@@ -108,7 +108,7 @@ def bandpass(name):
     .. [TON12] Tonry, J. L. et al. 2012.  The Pan-STARRS1 Photometric
        System.  ApJ 750, 99.
 
-    .. [TON18] Tonry, J. L. et al. 2018.  ATLAS: A High-cadence All-sky 
+    .. [TON18] Tonry, J. L. et al. 2018.  ATLAS: A High-cadence All-sky
        Survey System.  PASP 130, 064505.
 
     """
