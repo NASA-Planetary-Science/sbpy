@@ -20,6 +20,7 @@ import abc
 
 import numpy as np
 import astropy.units as u
+from astropy.utils.misc import InheritDocstrings
 
 from .. import bib
 from ..calib import Sun
@@ -163,11 +164,17 @@ def phase_HalleyMarcus(phase):
     return Phi
 
 
-class DustComaQuantityMeta(type(u.SpecificTypeQuantity), abc.ABCMeta):
-    pass
+# checks if the installed astropy version is up-to-date
+if isinstance(u.SpecificTypeQuantity, InheritDocstrings):
+    # astropy < 4.0
+    class DustComaQuantityMeta(InheritDocstrings, abc.ABCMeta):
+        pass
+else:
+    # astropy >= 4.0
+    DustComaQuantityMeta = abc.ABCMeta
 
 
-class DustComaQuantity(u.SpecificTypeQuantity, abc.ABC,
+class DustComaQuantity(u.SpecificTypeQuantity,
                        metaclass=DustComaQuantityMeta):
     """Abstract base class for dust coma photometric models: Afrho, Efrho.
     """
