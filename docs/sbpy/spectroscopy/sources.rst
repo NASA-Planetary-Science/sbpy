@@ -28,8 +28,8 @@ Observe the source through a fictitious 10-μm filter:
 
   >>> from synphot import SpectralElement, Box1D
   >>> N = SpectralElement(Box1D, x_0=10.5 * u.um, width=1 * u.um)
-  >>> print(B.observe(N, unit='MJy'))
-  783576416.2276517 MJy
+  >>> print(B.observe(N, unit='MJy'))  # doctest: +FLOAT_CMP
+  783577717.2783749 MJy
 
 Observe the source through a low-resolution spectrometer:
 
