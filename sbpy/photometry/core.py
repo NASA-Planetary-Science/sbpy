@@ -373,9 +373,9 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         <class 'sbpy.data.phys.Phys'>
         >>> print(p)                 # doctest: +REMOTE_DATA
         <QTable length=1>
-            targetname    diameter    H       G            pv                 A         
-                             km      mag                                                
-              str17       float64  float64 float64      float64            float64      
+            targetname    diameter    H       G            pv                 A
+                             km      mag
+              str17       float64  float64 float64      float64            float64
         ----------------- -------- ------- ------- ----------------- -------------------
         1 Ceres (A801 AA)    939.4     3.4    0.12 0.086738059863538 0.03160306203157442
         """
