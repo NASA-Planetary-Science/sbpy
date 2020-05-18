@@ -18,6 +18,11 @@ from astroquery.mpc import MPC
 import astropy.units as u
 from warnings import warn
 
+try:
+    import pyoorb
+except ImportError:
+    pyoorb = None
+
 from ..bib import cite
 from ..exceptions import RequiredPackageUnavailable, SbpyException
 from . import Conf, DataClass, QueryError, TimeScaleWarning
