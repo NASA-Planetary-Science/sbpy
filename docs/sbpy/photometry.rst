@@ -84,7 +84,7 @@ model parameters:
   >>> from sbpy.data import Phys
   >>> phys = Phys.from_sbdb('Ceres')    # doctest: +REMOTE_DATA
   >>> m = HG.from_phys(phys)            # doctest: +REMOTE_DATA
-  INFO: Model initialized for 1 Ceres. [sbpy.photometry.core]
+  INFO: Model initialized for 1 Ceres (A801 AA). [sbpy.photometry.core]
   >>> print(m)                          # doctest: +REMOTE_DATA 
   Model: HG
   Inputs: ('x',)
