@@ -152,12 +152,12 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
     >>> phys = Phys.from_sbdb('Ceres')       # doctest: +REMOTE_DATA
     >>> print(phys['targetname','H','G'])    # doctest: +REMOTE_DATA
     <QTable length=1>
-    targetname    H       G
-       str7    float64 float64
-    ---------- ------- -------
-       1 Ceres     3.4    0.12
+        targetname       H       G
+          str17       float64 float64
+    ----------------- ------- -------
+    1 Ceres (A801 AA)     3.4    0.12
     >>> m = HG.from_phys(phys)                  # doctest: +REMOTE_DATA
-    INFO: Model initialized for 1 Ceres. [sbpy.photometry.core]
+    INFO: Model initialized for 1 Ceres (A801 AA). [sbpy.photometry.core]
     >>> print(m)                             # doctest: +REMOTE_DATA
     Model: HG
     Inputs: ('x',)
@@ -168,7 +168,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         --- ----
         3.4 0.12
     >>> print(m.meta['targetname'])          # doctest: +REMOTE_DATA
-    1 Ceres
+    1 Ceres (A801 AA)
     >>> print(m.radius)                      # doctest: +REMOTE_DATA
     469.7 km
     >>>
@@ -177,13 +177,13 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
     >>> elem = Orbit.from_horizons('Ceres')  # doctest: +REMOTE_DATA
     >>> print(elem['targetname','H','G'])    # doctest: +REMOTE_DATA
     <QTable masked=True length=1>
-    targetname    H       G
-                 mag
-       str7    float64 float64
-    ---------- ------- -------
-       1 Ceres     3.4    0.12
+        targetname       H       G
+                        mag
+          str17       float64 float64
+    ----------------- ------- -------
+    1 Ceres (A801 AA)     3.4    0.12
     >>> m = HG.from_phys(elem)                    # doctest: +REMOTE_DATA
-    INFO: Model initialized for 1 Ceres. [sbpy.photometry.core]
+    INFO: Model initialized for 1 Ceres (A801 AA). [sbpy.photometry.core]
     >>>
     >>> # Failed initialization due to the lack of field 'G'
     >>> phys = Phys.from_sbdb('12893')       # doctest: +REMOTE_DATA
@@ -279,12 +279,12 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         >>> phys = Phys.from_sbdb('Ceres')      # doctest: +REMOTE_DATA
         >>> print(phys['targetname','H','G'])   # doctest: +REMOTE_DATA
         <QTable length=1>
-        targetname    H       G
-           str7    float64 float64
-        ---------- ------- -------
-           1 Ceres     3.4    0.12
+            targetname       H       G
+              str17       float64 float64
+        ----------------- ------- -------
+        1 Ceres (A801 AA)     3.4    0.12
         >>> m = HG.from_phys(phys)              # doctest: +REMOTE_DATA
-        INFO: Model initialized for 1 Ceres. [sbpy.photometry.core]
+        INFO: Model initialized for 1 Ceres (A801 AA). [sbpy.photometry.core]
         >>> print(m)                            # doctest: +REMOTE_DATA
         Model: HG
         Inputs: ('x',)
@@ -295,7 +295,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
             --- ----
             3.4 0.12
         >>> print(m.meta['targetname'])         # doctest: +REMOTE_DATA
-        1 Ceres
+        1 Ceres (A801 AA)
         >>> print(m.radius)                     # doctest: +REMOTE_DATA
         469.7 km
         >>>
@@ -358,13 +358,13 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         >>> phys = Phys.from_sbdb('Ceres')             # doctest: +REMOTE_DATA
         >>> print(phys['targetname','radius','H','G']) # doctest: +REMOTE_DATA
         <QTable length=1>
-        targetname  radius    H       G
-                      km
-           str7    float64 float64 float64
-        ---------- ------- ------- -------
-           1 Ceres   469.7     3.4    0.12
+            targetname     radius    H       G
+                             km
+              str17       float64 float64 float64
+        ----------------- ------- ------- -------
+        1 Ceres (A801 AA)   469.7     3.4    0.12
         >>> m = HG.from_phys(phys)   # doctest: +REMOTE_DATA
-        INFO: Model initialized for 1 Ceres. [sbpy.photometry.core]
+        INFO: Model initialized for 1 Ceres (A801 AA). [sbpy.photometry.core]
         >>> m.wfb = 'V'              # doctest: +REMOTE_DATA
         >>> m.H = m.H * u.mag        # doctest: +REMOTE_DATA
         >>> with solar_fluxd.set({'V': -26.77 * u.mag}):
@@ -373,11 +373,11 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         <class 'sbpy.data.phys.Phys'>
         >>> print(p)                 # doctest: +REMOTE_DATA
         <QTable length=1>
-        targetname diameter    H       G             pv                  A
-                      km      mag
-           str7    float64  float64 float64       float64             float64
-        ---------- -------- ------- ------- ----------------- -------------------
-           1 Ceres    939.4     3.4    0.12 0.086738059863538 0.03160306203157442
+            targetname    diameter    H       G            pv                 A
+                             km      mag
+              str17       float64  float64 float64      float64            float64
+        ----------------- -------- ------- ------- ----------------- -------------------
+        1 Ceres (A801 AA)    939.4     3.4    0.12 0.086738059863538 0.03160306203157442
         """
         cols = {}
         if (self.meta is not None) and ('targetname' in self.meta.keys()):
