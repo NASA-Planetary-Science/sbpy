@@ -123,7 +123,7 @@ class Ephem(DataClass):
         if epochs is None:
             _epochs = [Time.now().utc.jd]
         elif isinstance(epochs, Time):
-            if epochs.scale is not 'utc':
+            if epochs.scale != 'utc':
                 warn(('converting {} epochs to utc for use in '
                       'astroquery.jplhorizons').format(epochs.scale),
                      TimeScaleWarning)
@@ -329,7 +329,7 @@ class Ephem(DataClass):
             else:
                 _epochs = epochs
 
-            if _epochs.scale is not 'utc':
+            if _epochs.scale != 'utc':
                 warn(('converting {} epochs to utc for use in '
                       'astroquery.mpc').format(_epochs.scale),
                      TimeScaleWarning)
@@ -337,14 +337,14 @@ class Ephem(DataClass):
         elif isinstance(epochs, dict):
             _epochs = epochs.copy()
             start = _epochs['start']  # required
-            if start.scale is not 'utc':
+            if start.scale != 'utc':
                 warn(('converting {} start epoch to utc for use in '
                       'astroquery.mpc').format(start.scale),
                      TimeScaleWarning)
                 start = start.utc
             step = _epochs.get('step')
             stop = _epochs.get('stop')
-            if stop is not None and stop.scale is not 'utc':
+            if stop is not None and stop.scale != 'utc':
                 warn(('converting {} stop epoch to utc for use in '
                       'astroquery.mpc').format(stop.scale),
                      TimeScaleWarning)
@@ -496,19 +496,19 @@ class Ephem(DataClass):
         if epochs is None:
             _epochs = {'start': Time.now().utc.jd}
         elif isinstance(epochs, Time):
-            if epochs.scale is not 'utc':
+            if epochs.scale != 'utc':
                 warn(('converting {} epochs to utc for use in '
                       'astroquery.imcce').format(epochs.scale),
                      TimeScaleWarning)
             _epochs = {'start': epochs.utc}
         elif isinstance(epochs, dict):
             _epochs = epochs.copy()
-            if _epochs['start'].scale is not 'utc':
+            if _epochs['start'].scale != 'utc':
                 warn(('converting {} start epoch to utc for use in '
                       'astroquery.imcce').format(_epochs['start'].scale),
                      TimeScaleWarning)
                 _epochs['start'] = _epochs['start'].utc
-            if 'stop' in _epochs and _epochs['stop'].scale is not 'utc':
+            if 'stop' in _epochs and _epochs['stop'].scale != 'utc':
                 warn(('converting {} stop epoch to utc for use in '
                       'astroquery.imcce').format(_epochs['stop'].scale),
                      TimeScaleWarning)
