@@ -176,7 +176,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
     >>> # contain the H and G parameters
     >>> elem = Orbit.from_horizons('Ceres')  # doctest: +REMOTE_DATA
     >>> print(elem['targetname','H','G'])    # doctest: +REMOTE_DATA
-    <QTable masked=True length=1>
+    <QTable length=1>
         targetname       H       G
                         mag
           str17       float64 float64
