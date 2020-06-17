@@ -1,0 +1,54 @@
+{% set name = "sbpy" %}
+{% set version = "0.3dev1" %}
+#{% set sha256 = "30187a295f42562ff86d800080859d49fde2cae697b04296cbb3efbb93b4bcb5" %}
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+source:
+  path: ..
+#  fn: {{ name }}-{{ version }}.tar.gz
+#  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
+#  sha256: {{ sha256 }}
+
+build:
+  number: 0
+  # Note: pip-based install fails due to wanting to download astropy-helpers
+  script: python setup.py install --offline --no-git --single-version-externally-managed --record=files.txt
+  noarch: python
+
+requirements:
+  host:
+    - numpy>=1.13.0
+    - astropy>=3.0
+    - matplotlib
+    - ads
+    - synphot
+    - astroquery>=0.4
+    - python=3.7
+    - setuptools
+
+  run:
+    - numpy>=1.13.0
+    - astropy>=3.0
+    - matplotlib
+    - ads
+    - synphot
+    - astroquery>=0.4
+    - python=3.7
+
+test:
+  imports:
+    - sbpy
+
+about:
+  home: http://sbpy.org
+  license: BSD 3-clause
+  license_file: LICENSE.rst
+  summary: 'A Python Module for Small-Body Planetary Astronomy'
+  dev_url: https://github.com/NASA-Planetary-Science/sbpy
+
+extra:
+  recipe-maintainers:
+    - mjuric
