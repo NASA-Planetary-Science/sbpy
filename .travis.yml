@@ -50,7 +50,7 @@ jobs:
           stage: Tests with various Astropy/Numpy versions
           env: PYTHON_VERSION=3.7
                NUMPY_VERSION=1.18
-               ASTROPY_VERSION=3
+               ASTROPY_VERSION=4
 
         # Test docs and PEP8
         - os: linux
