@@ -45,6 +45,7 @@ jobs:
           env: PYTHON_VERSION=3.6
                NUMPY_VERSION=1.17
                ASTROPY_VERSION=3
+               SETUP_CMD='test --coverage -V -a'
 
         - os: linux
           stage: Tests with various Astropy/Numpy versions
@@ -73,7 +74,7 @@ jobs:
           stage: Remote data tests and coverage
           env: DEBUG=True
                ASTROPY_VERSION=4
-               SYNPHOT_VERSION="0.1.*"
+               SYNPHOT_VERSION="0.3.*"
                SETUP_CMD='test --coverage -R -V -a "--durations=50"'
 
 install:
