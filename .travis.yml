@@ -45,7 +45,7 @@ jobs:
           env: PYTHON_VERSION=3.6
                NUMPY_VERSION=1.17
                ASTROPY_VERSION=3
-               SETUP_CMD='test --coverage -V -a'
+               SETUP_CMD='test --coverage'
 
         - os: linux
           stage: Tests with various Astropy/Numpy versions
