@@ -72,7 +72,7 @@ jobs:
         - os: linux
           stage: Remote data tests and coverage
           env: DEBUG=True
-               ASTROPY_VERSION=3
+               ASTROPY_VERSION=4
                SYNPHOT_VERSION="0.1.*"
                SETUP_CMD='test --coverage -R -V -a "--durations=50"'
 
