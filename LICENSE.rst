@@ -1,4 +1,4 @@
-Copyright (c) 2017-2019, sbpy team
+Copyright (c) 2017-2020, sbpy team
 All rights reserved.
 
 sbpy uses a 3-Clause BSD License:
