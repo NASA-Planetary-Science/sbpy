@@ -9,7 +9,6 @@ os:
 # https://github.com/travis-ci/apt-package-whitelist/blob/master/ubuntu-precise
 
 stages:
-    - name: Build tests
     - name: Tests with various Astropy/Numpy versions
     - name: Test docs and PEP8
     - name: Remote data tests and coverage
@@ -22,9 +21,9 @@ env:
         - NUMPY_VERSION=stable
         - ASTROPY_VERSION=stable
         - MAIN_CMD='python setup.py'
-        - SETUP_CMD='test'
+        - SETUP_CMD=''
         - EVENT_TYPE='pull_request push'
-        - PIP_DEPENDENCIES='scipy matplotlib ads synphot astroquery pytest-astropy codecov'
+        - PIP_DEPENDENCIES='scipy matplotlib ads synphot astroquery pytest pytest-astropy codecov'
         - ADS_DEV_KEY=TjUyPHFOH48m5Katkeq0UCZQcejTg6bDbTuTGHxT
 
     jobs:
@@ -45,20 +44,23 @@ jobs:
           env: PYTHON_VERSION=3.6
                NUMPY_VERSION=1.17
                ASTROPY_VERSION=3
-               SETUP_CMD='test --coverage'
+               MAIN_CMD='pytest --cov sbpy'
 
         - os: linux
           stage: Tests with various Astropy/Numpy versions
           env: PYTHON_VERSION=3.7
                NUMPY_VERSION=1.18
                ASTROPY_VERSION=4
+               MAIN_CMD='pytest'
 
         # Test docs and PEP8
         - os: linux
           stage: Test docs and PEP8
           env: ASTROPY_VERSION=3
-               SETUP_CMD='build_docs -w'
                PIP_DEPENDENCIES="`echo $PIP_DEPENDENCIES https://github.com/astropy/sphinx-automodapi/archive/master.zip sphinx-astropy`"
+          script:
+               - pip install -e .[docs]
+               - sphinx-build -b html docs _build/html
           addons:
               apt:
                   packages:
@@ -67,7 +69,6 @@ jobs:
         - os: linux
           stage: Test docs and PEP8
           env: MAIN_CMD='pycodestyle sbpy --count'
-               SETUP_CMD=''
 
         # Remote data tests and coverage
         - os: linux
@@ -75,7 +76,7 @@ jobs:
           env: DEBUG=True
                ASTROPY_VERSION=4
                SYNPHOT_VERSION="0.3.*"
-               SETUP_CMD='test --coverage -R -V -a "--durations=50"'
+               MAIN_CMD='pytest --cov sbpy --remote-data -V --durations=50'
 
 install:
    - git clone git://github.com/astropy/ci-helpers.git
@@ -87,6 +88,6 @@ script:
    - $MAIN_CMD $SETUP_CMD
 
 after_success:
-    - if [[ $SETUP_CMD == 'test --coverage'* ]]; then
+    - if [[ $MAIN_CMD == 'pytest --cov sbpy'* ]]; then
           codecov;
       fi
