@@ -26,6 +26,7 @@ Content
 .. toctree::
    :maxdepth: 2
 
+   dastcom5.rst
    dataclass.rst	     
    ephem.rst
    obs.rst
