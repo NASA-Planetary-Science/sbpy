@@ -68,7 +68,7 @@ class Names():
 
     # packed numbers translation string
     pkd = ('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-           'abcdefghifklmnopqrstuvwxyz')
+           'abcdefghijklmnopqrstuvwxyz')
 
     @staticmethod
     def to_packed(s):
