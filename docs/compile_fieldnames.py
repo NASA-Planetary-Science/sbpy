@@ -4,7 +4,7 @@
 import sys
 from io import TextIOWrapper, BytesIO
 from numpy import array
-from sbpy.data import conf
+from sbpy.data import Conf
 from astropy.table import Table
 from astropy.io import ascii
 
@@ -73,7 +73,7 @@ Field Name List
 
 # build table
 data = []
-for p in conf.fieldnames_info:
+for p in Conf.fieldnames_info:
     data.append(['**'+p['description']+'**',
                  ', '.join(['``'+str(f)+'``' for f in p['fieldnames']]),
                  ', '.join([{'orbit': '`~sbpy.data.Orbit`',

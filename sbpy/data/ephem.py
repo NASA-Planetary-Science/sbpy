@@ -27,8 +27,8 @@ except ImportError:
     pyoorb = None
 
 from ..bib import cite
-from .core import DataClass, conf, QueryError, TimeScaleWarning
-from ..exceptions import SbpyException, RequiredPackageUnavailable
+from .core import DataClass, QueryError, TimeScaleWarning
+from ..exceptions import RequiredPackageUnavailable
 from .orbit import Orbit, OpenOrbError
 
 __all__ = ['Ephem']

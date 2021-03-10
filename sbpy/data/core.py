@@ -13,7 +13,7 @@ from astropy.table import QTable, Column
 from astropy.time import Time
 import astropy.units as u
 
-from . import conf
+from . import DIMENSION_SI_UNITS, Conf
 from ..exceptions import SbpyException, SbpyWarning
 
 __all__ = ['DataClass', 'DataClassError', 'QueryError', 'TimeScaleWarning']
@@ -205,9 +205,9 @@ class DataClass():
         ------- ------- -------
          2.7674  0.0756   10.59
           3.123   0.021    3.21
-        >> > orb.meta
+        >>> orb.meta
         {'targetname': 'asteroid'}
-        >> > orb.meta['targetname']
+        >>> orb.meta['targetname']
         'asteroid'
         """
 
@@ -225,9 +225,7 @@ class DataClass():
                 else:
                     data[key] = [val]
 
-        self = cls()
-        self._table = QTable(data, meta=meta, **kwargs)
-        return self
+        return cls.from_table(QTable(data, meta=meta, **kwargs))
 
     @classmethod
     def from_columns(cls, columns, names, units=None, meta={}, **kwargs):
@@ -347,9 +345,7 @@ class DataClass():
                            for val, unit in
                            list(zip(columns, units))]
 
-        self = cls()
-        self._table = QTable(columns, names=names, meta=meta, **kwargs)
-        return self
+        return cls.from_table(QTable(columns, names=names, meta=meta, **kwargs))
 
     @classmethod
     def from_rows(cls, rows, names, units=None, meta={}, **kwargs):
@@ -504,9 +500,9 @@ class DataClass():
             2.0      5.0
             3.0      6.0
         """
-        self = cls()
-        self._table = QTable(table, meta={**table.meta, **meta}, **kwargs)
-        return self
+        tab = cls()
+        tab.table = QTable(table, meta={**table.meta, **meta}, **kwargs)
+        return tab
 
     @classmethod
     def from_file(cls, filename, meta={}, **kwargs):
@@ -551,13 +547,9 @@ class DataClass():
 
         """
 
-        data = QTable.read(filename, **kwargs)
-
-        self = cls()
-        self._table = data
-        self._table.meta = {**self._table.meta, **meta}
-
-        return self
+        table = QTable.read(filename, **kwargs)
+        table.meta.update(meta)
+        return cls.from_table(table)
 
     def to_file(self, filename, format='ascii', **kwargs):
         """Write object to a file using
@@ -596,24 +588,24 @@ class DataClass():
         >>> import astropy.units as u
         >>> dat = DataClass.from_columns([[1, 2, 3]*u.deg,
         ...                               [4, 5, 6]*u.km,
-        ...                               ['a', 'b', 'c']],
-        ...                              names=('a', 'b', 'c'))
+        ...                               ['aa', 'bb', 'cc']],
+        ...                              names=('aa', 'bb', 'cc'))
         >>> dat.to_file('test.txt')  # doctest: +SKIP
         """
 
-        self._table.write(filename, format=format, **kwargs)
+        self.table.write(filename, format=format, **kwargs)
 
     def __len__(self):
-        """Get number of data elements in _table"""
-        return len(self._table)
+        """Get number of data elements in table"""
+        return len(self.table)
 
     def __repr__(self):
         """Return representation of the underlying data table
-        (``self._table.__repr__()``)"""
-        return self._table.__repr__()
+        (``self.table.__repr__()``)"""
+        return self.table.__repr__()
 
     def __getitem__(self, ident):
-        """Return columns or rows from data table(``self._table``); checks
+        """Return columns or rows from data table(``self.table``); checks
         for and may use alternative field names. This method will always return
         an instance of __class__, except in the case when a field name is
         requested (then return an `astropy.table.Column` if no units are
@@ -635,14 +627,14 @@ class DataClass():
         elif isinstance(ident, str):
             self = self._convert_columns(ident)
             ident = self._translate_columns(ident)[0]
-            return self._table[ident]
+            return self.table[ident]
 
         # return as new instance of this class for all other identifiers
-        return self.from_table(self._table[ident])
+        return self.from_table(self.table[ident])
 
     def __setitem__(self, *args):
         """Refer cls.__setitem__ to self._table"""
-        self._table.__setitem__(*args)
+        self.table.__setitem__(*args)
 
     def _translate_columns(self, target_colnames):
         """Translate target_colnames to the corresponding column names
@@ -661,8 +653,8 @@ class DataClass():
             if colname in self.field_names:
                 continue
             # colname is an alternative column name
-            elif colname in sum(conf.fieldnames, []):
-                for alt in conf.fieldnames[conf.fieldname_idx[colname]]:
+            elif colname in sum(Conf.fieldnames, []):
+                for alt in Conf.fieldnames[Conf.fieldname_idx[colname]]:
                     # translation available for colname
                     if alt in self.field_names:
                         translated_colnames[idx] = alt
@@ -689,15 +681,15 @@ class DataClass():
             try:
                 # ignore if colname has already been converted
                 if any([alt in self.field_names for alt
-                        in conf.fieldnames[conf.fieldname_idx[colname]]]):
+                        in Conf.fieldnames[Conf.fieldname_idx[colname]]]):
                     continue
                 # consider alternative names for colname -> alt
-                for alt in conf.fieldnames[conf.fieldname_idx[colname]]:
-                    if alt in list(conf.field_eq.keys()):
+                for alt in Conf.fieldnames[Conf.fieldname_idx[colname]]:
+                    if alt in list(Conf.field_eq.keys()):
                         # conversion identified
                         convname = self._translate_columns(
-                            list(conf.field_eq[alt].keys())[0])[0]
-                        convfunc = list(conf.field_eq[alt].values())[0]
+                            list(Conf.field_eq[alt].keys())[0])[0]
+                        convfunc = list(Conf.field_eq[alt].values())[0]
                         if convname in self.field_names:
                             # create new column for the converted field
                             self[colname] = convfunc(self.table[convname])
@@ -712,10 +704,20 @@ class DataClass():
         """Return `~astropy.table.QTable` object containing all data."""
         return self._table
 
+    @table.setter
+    def table(self, new_table):
+        """Replace data with this table."
+        
+        This method verifies the units on known field names.
+        
+        """
+        self._table = new_table
+        self.verify_fields()
+
     @property
     def field_names(self):
         """Return a list of all field names in the data table."""
-        return self._table.columns
+        return self.table.colnames
 
     @property
     def meta(self):
@@ -727,7 +729,7 @@ class DataClass():
         >>> import astropy.units as u
         >>> data = DataClass.from_columns([[1, 2, 3, 4]*u.kg,
         ...                                [5, 6, 7, 8]*u.m],
-        ...                               names=['a', 'b'],
+        ...                               names=['b', 'c'],
         ...                               meta={'origin': 'measured'})
         >>> data.meta  # meta data access
         {'origin': 'measured'}
@@ -735,7 +737,7 @@ class DataClass():
         >>> data.meta['date']
         '2019-06-27'
         """
-        return self._table.meta
+        return self.table.meta
 
     def apply(self, data, name, unit=None):
         """Apply an arbitrarily shaped sequence as additional column to a
@@ -744,34 +746,36 @@ class DataClass():
         Parameters
         ----------
         data : list or iterable `~astropy.units.Quantity` object
-            Data to be added in a new column in form of a one-dimensional
-            list or a two-dimensional nested sequence. Each element in
-            ``data``
-            corresponds to one of the rows in the existing data table. If
-            an element
-            of ``data`` is a list, the corresponding data table row is
-            repeated the same the number of times as there are elements in
-            this sublist. If ``data`` is
-            provided as a flat list and has the same length as the current
-            data table, ``data`` will be simply added as a column to the data
-            table and the length of the data table will not change. If
-            ``data`` is provided as a `~astropy.units.Quantity` object (only
-            possible for flat lists), its
-            unit is adopted, unless ``unit`` is specified (not None).
+            Data to be added in a new column in form of a one-dimensional list
+            or a two-dimensional nested sequence. Each element in ``data``
+            corresponds to one of the rows in the existing data table. If an
+            element of ``data`` is a list, the corresponding data table row is
+            repeated the same the number of times as there are elements in this
+            sublist. If ``data`` is provided as a flat list and has the same
+            length as the current data table, ``data`` will be simply added as
+            a column to the data table and the length of the data table will not
+            change. If ``data`` is provided as a `~astropy.units.Quantity`
+            object (only possible for flat lists), its unit is adopted, unless
+            ``unit`` is specified (not None).
+
         name : str
             Name of the new data column.
+
         unit : `~astropy.units` object or str, optional
             Unit to be applied to the new column. Default:
             `None`
+
 
         Returns
         -------
         None
 
+
         Notes
         -----
         As a result of this method, the length of the underlying data table
         will be the same as the length of the flattened `data` parameter.
+
 
         Examples
         --------
@@ -819,8 +823,10 @@ class DataClass():
 
         Note how the data table has been re-arranged and rows have been
         duplicated in order to provide the expected shape.
+
         """
-        _newtable = None
+
+        new_table = None
 
         # strip units off Quantity objects
         if isinstance(data, u.Quantity):
@@ -840,15 +846,70 @@ class DataClass():
             # add corresponding row from _table for each element in val
             for j in range(len(val)):
                 # initialize new QTable object
-                if _newtable is None:
-                    _newtable = QTable(self.table[0])
+                if new_table is None:
+                    new_table = QTable(self.table[0])
                     continue
-                _newtable.add_row(self.table[i])
+                new_table.add_row(self.table[i])
 
         # add new column
-        _newtable.add_column(Column(_newcolumn, name=name, unit=unit))
+        new_table.add_column(Column(_newcolumn, name=name, unit=unit))
 
         # restore meta data
-        _newtable.meta = self.meta
+        new_table.meta = self.meta
 
-        self._table = _newtable
+        self.table = new_table
+
+    def verify_fields(self, field=None):
+        """Verify that the fields have the expected units or object types.
+
+        See ``sbpy.data.Conf`` for field definitions.
+
+
+        Parameters
+        ----------
+        field : string, optional
+            Only check this field.
+
+
+        Raises
+        ------
+        `astropy.units.UnitsError` on unit error, `TypeError` on object error.
+
+        """
+
+        fields = self.field_names if field is None else [field]
+        for test_field in fields:
+            i = Conf.fieldname_idx.get(test_field)
+
+            if i is None:
+                continue
+
+            expected_unit = DIMENSION_SI_UNITS.get(
+                Conf.fieldnames_info[i]['dimension']
+            )
+
+            equivalencies = Conf.fieldnames_info[i].get('equivalencies')
+
+            error = False
+            if expected_unit is None:
+                # do not test
+                continue
+            elif expected_unit is Time:
+                # astropy.time.Time
+                if not isinstance(self[test_field], Time):
+                    if not all([isinstance(x, Time) for x in self[test_field]]):
+                        raise TypeError('Field {} is not a Time object.'
+                                        .format(test_field))
+            elif self[test_field].unit is None:
+                # allow None as a stand-in for dimensionless
+                if expected_unit is not u.dimensionless_unscaled:
+                    error = True
+            else:
+                if not self[test_field].unit.is_equivalent(expected_unit, equivalencies):
+                    error = True
+
+            if error:
+                raise u.UnitsError(
+                    'Field {} is not equivalent to {}'
+                    .format(test_field, str(expected_unit))
+                )

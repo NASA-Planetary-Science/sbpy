@@ -143,8 +143,8 @@ class TestLinear():
         assert np.isclose(linphase.phaseint, 0.36755394203990327)
 
     def test__distance_module(self):
-        r = [0.5, 1, 1.2, 2]
-        delta = [0.3, 1, 1, 2]
+        r = [0.5, 1, 1.2, 2] * u.au
+        delta = [0.3, 1, 1, 2] * u.au
         m = LinearPhaseFunc(5 * u.mag, 0.04 * u.mag / u.deg)
         module_test = [0.0225, 1., 1.44, 16.]
         module = m._distance_module(Ephem.from_dict({'r': r, 'delta': delta}))
@@ -198,7 +198,7 @@ class TestHG:
         m = HG(3.34 * u.mag, 0.12)
         p = m.to_phys()
         assert isinstance(p, Phys)
-        assert set(p.field_names.keys()) == {'H', 'G'}
+        assert set(p.field_names) == {'H', 'G'}
         assert np.isclose(p['H'].value, 3.34)
         assert p['H'].unit == u.mag
         assert np.isclose(p['G'], 0.12)

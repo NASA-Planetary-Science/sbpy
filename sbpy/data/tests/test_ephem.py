@@ -13,7 +13,7 @@ from astropy.tests.helper import assert_quantity_allclose
 
 from ... import exceptions as sbe
 from ... import bib
-from ..core import conf
+from ..core import Conf
 from .. import ephem
 from .. import Ephem, Orbit, QueryError
 

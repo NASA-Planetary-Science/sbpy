@@ -19,7 +19,7 @@ def test_quantity_to_dataclass_single():
     eph = sbd.Ephem.from_dict({'rh': 1 * u.au})
     assert temperature(rh, 1, 2, 3) == temperature(eph, 7, 8, 9, d=10)
     assert np.isclose(temperature(rh, 4, 5, 6).value, 278.0)
-    with pytest.raises(TypeError):
+    with pytest.raises(u.UnitsError):
         temperature(1, 1, 2, 3)
     with pytest.raises(u.UnitsError):
         temperature(1 * u.s, 1, 2, 3)
@@ -33,7 +33,7 @@ def test_quantity_to_dataclass_multiple():
     rh = 1 * u.au
     a = 2 * u.au
     assert np.isclose(contrived(rh, a).value, 0.5)
-    with pytest.raises(TypeError):
+    with pytest.raises(u.UnitsError):
         contrived(1, a)
     with pytest.raises(u.UnitsError):
         contrived(rh, 2 * u.s)
@@ -51,7 +51,7 @@ def test_quantity_to_dataclass_stacked():
     a = 2 * u.au
     R = 100 * u.km
     assert np.isclose(contrived(rh, a, R).value, 50)
-    with pytest.raises(TypeError):
+    with pytest.raises(u.UnitsError):
         contrived(1, a, R)
     with pytest.raises(u.UnitsError):
         contrived(rh, 2 * u.s, R)
@@ -60,7 +60,7 @@ def test_quantity_to_dataclass_stacked():
 u.imperial.enable()
 
 
-@pytest.mark.parametrize('field, arg, test_unit', (
+@pytest.mark.parametrize('field, arg, test_invalid_unit', (
     ('a', 1 * u.au, 's'),
     ('e', 0.5, 's'),
     ('inc', 10 * u.deg, 's'),
@@ -74,21 +74,18 @@ u.imperial.enable()
     ('sband_3sigma', 5 * u.GHz, 's'),
     ('temp', 300 * u.K, 'm'),  # looks like astropy has problem handling
     # temperature units
-    ('lgint300', 300 * u.Unit('W/(m**2 sr)'), 'm/s'),
+    #('lgint300', 300 * u.Unit('W/(m**2 sr)'), 'm/s'),
     ('eup_j', 1 * u.J, 'm'),
     ('eup_j', 1 * u.eV, 'm')
 ))
-def test_quantity_to_dataclass_dimensions(field, arg, test_unit):
+def test_quantity_to_dataclass_dimensions(field, arg, test_invalid_unit):
     @quantity_to_dataclass(x=(field, sbd.DataClass))
     def test(x):
         return x[field]
 
     assert all(test(arg) == arg)
-    if isinstance(arg, u.Quantity):
-        with pytest.raises((TypeError, AttributeError)):
-            test(1)
     with pytest.raises(u.UnitsError):
-        test(1 * u.Unit(test_unit))
+        test(1 * u.Unit(test_invalid_unit))
 
 
 @pytest.mark.parametrize('arg, test_arg', (
@@ -105,11 +102,11 @@ def test_quantity_to_dataclass_timetype(arg, test_arg):
 
 
 @pytest.mark.parametrize('arg', (
-    (1),
-    ('2015-01-01'),
-    (1 * u.s),
-    ([1, 2]),
-    ([1, 2] * u.s)
+    [1],
+    ['2015-01-01'],
+    [1 * u.s],
+    [1, 2],
+    [1, 2] * u.s
 ))
 def test_quantity_to_dataclass_timetype_error(arg):
     @quantity_to_dataclass(x=('epoch', sbd.Obs))

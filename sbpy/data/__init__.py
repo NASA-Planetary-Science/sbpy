@@ -5,8 +5,44 @@ sbpy.data
 ---------
 
 :author: Michael Mommert (mommermiscience@gmail.com)
+
 """
 
+__all__ = ['DataClass', 'Ephem', 'Obs', 'Orbit', 'Phys', 'Names',
+           'conf', 'Conf', 'DataClassError', 'quantity_to_dataclass',
+           'QueryError', 'TimeScaleWarning']
+
+import astropy.units as u
+from astropy.time import Time
+
+
+DIMENSION_SI_UNITS = {
+    # dimension : astropy unit string
+    # * use 'inverse unit' for dimension rather than '1 / unit'
+    # * use 'unit1-unit2' for dimension rather than 'unit1*unit2'
+    # * after adding a new dimension, edit test_verify_units and test_verify_units_error
+    #   in test/test_dataclass: test_verify_units
+    # * do not add fields that are not quantities (e.g., targetname)
+    # * note astropy.time.Time objects are handled as a special case
+    '': u.Unit(''),  # dimensionless
+    '`~astropy.time.Time`': Time,
+    'angle': u.Unit('radian'),
+    'angular velocity': u.Unit('radian / second'),
+    'energy': u.Unit('Joule'),
+    'frequency': u.Unit('Hertz'),
+    # 'intensity': u.Unit('Hertz meter2'),  # isn't intensity W/m2?
+    'inverse area': u.Unit('1 / meter2'),
+    'inverse time': u.Unit('1 / second'),
+    'length': u.Unit('meter'),
+    'magnitude': u.Unit('mag'),
+    'magnitude / solid angle': u.Unit('mag / steradian'),
+    'percent': u.Unit('percent'),
+    'solid angle': u.Unit('steradian'),
+    'temperature': u.Unit('Kelvin'),
+    'time': u.Unit('second'),
+    'time-area': u.Unit('second meter2'),
+    'velocity': u.Unit('meter / second'),
+}
 
 class Conf():
 
@@ -44,7 +80,7 @@ class Conf():
         {'description': 'Eccentricity',
          'fieldnames': ['e', 'ecc'],
          'provenance': ['orbit'],
-         'dimension': None},
+         'dimension': ''},
         {'description': 'Inclination',
          'fieldnames': ['i', 'inc', 'incl'],
          'provenance': ['orbit'],
@@ -265,15 +301,15 @@ class Conf():
         {'description': 'Total Magnitude Scaling Factor',
          'fieldnames': ['k1', 'K1'],
          'provenance': ['ephem', 'obs'],
-         'dimension': None},
+         'dimension': ''},
         {'description': 'Nuclear Magnitude Scaling Factor',
          'fieldnames': ['k2', 'K2'],
          'provenance': ['ephem', 'obs'],
-         'dimension': None},
+         'dimension': ''},
         {'description': 'Phase Coefficient',
          'fieldnames': ['phase_coeff', 'Phase_coeff'],
          'provenance': ['ephem', 'obs'],
-         'dimension': None},
+         'dimension': ''},
         {'description': 'Information on Solar Presence',
          'fieldnames': ['solar_presence', 'Solar_presence'],
          'provenance': ['ephem', 'obs'],
@@ -309,7 +345,7 @@ class Conf():
         {'description': 'Target Optical Airmass',
          'fieldnames': ['airmass', 'Airmass'],
          'provenance': ['ephem', 'obs'],
-         'dimension': None},
+         'dimension': ''},
         {'description': 'V Magnitude Extinction',
          'fieldnames': ['vmagex', 'Vmagex'],
          'provenance': ['ephem', 'obs'],
@@ -317,7 +353,7 @@ class Conf():
         {'description': 'Surface Brightness',
          'fieldnames': ['Surfbright', 'surfbright'],
          'provenance': ['ephem', 'obs'],
-         'dimension': 'magnitude/angle^2'},
+         'dimension': 'magnitude / solid angle'},
         {'description': 'Fraction of Illumination',
          'fieldnames': ['frac_illum', 'Frac_illum'],
          'provenance': ['ephem', 'obs'],
@@ -409,7 +445,7 @@ class Conf():
         {'description': 'Orbital plane angle',
          'fieldnames': ['orbangle_plane', 'Orbangle_plane'],
          'provenance': ['ephem', 'obs'],
-         'dimension': 'deg'},
+         'dimension': 'angle'},
         {'description': 'Constellation ID containing target',
          'fieldnames': ['constellation', 'Constellation'],
          'provenance': ['ephem', 'obs'],
@@ -433,7 +469,7 @@ class Conf():
         {'description': 'Local apparent solar time',
          'fieldnames': ['solartime'],
          'provenance': ['ephem', 'obs'],
-         'dimension': None},
+         'dimension': 'time'},
         {'description': 'Observer light time from Earth',
          'fieldnames': ['earthlighttime', 'Earthlighttime'],
          'provenance': ['ephem', 'obs'],
@@ -461,7 +497,7 @@ class Conf():
         {'description': '3 sigma positional uncertainty ellipse area',
          'fieldnames': ['area_3sigma'],
          'provenance': ['ephem', 'obs'],
-         'dimension': 'angular area'},
+         'dimension': 'solid angle'},
         {'description': '3 sigma positional uncertainty root sum square',
          'fieldnames': ['rss_3sigma'],
          'provenance': ['ephem', 'obs'],
@@ -477,11 +513,13 @@ class Conf():
         {'description': '3 sigma doppler radar uncertainty at S-band',
          'fieldnames': ['sband_3sigma'],
          'provenance': ['ephem', 'obs'],
-         'dimension': 'frequency'},
+         'dimension': 'frequency',
+         'equivalencies': u.spectral()},
         {'description': '3 sigma doppler radar uncertainty at X-band',
          'fieldnames': ['xband_3sigma'],
          'provenance': ['ephem', 'obs'],
-         'dimension': 'frequency'},
+         'dimension': 'frequency',
+         'equivalencies': u.spectral()},
         {'description': '3 sigma doppler round-trip delay uncertainty',
          'fieldnames': ['dopdelay_3sigma'],
          'provenance': ['ephem', 'obs'],
@@ -527,7 +565,8 @@ class Conf():
         {'description': 'Temperature',
          'fieldnames': ['temp', 'Temp', 'temperature', 'Temperature'],
          'provenance': ['phys', 'ephem', 'obs'],
-         'dimension': 'temperature'},
+         'dimension': 'temperature',
+         'equivalencies': u.temperature()},
 
 
         # Physical properties (static)
@@ -542,15 +581,15 @@ class Conf():
         {'description': 'Geometric Albedo',
          'fieldnames': ['pv', 'pV', 'p_v', 'p_V', 'geomalb'],
          'provenance': ['phys'],
-         'dimension': None},
+         'dimension': ''},
         {'description': 'Bond Albedo',
          'fieldnames': ['A', 'bondalbedo'],
          'provenance': ['phys'],
-         'dimension': None},
+         'dimension': ''},
         {'description': 'Emissivity',
          'fieldnames': ['emissivity', 'Emissivity'],
          'provenance': ['phys'],
-         'dimension': None},
+         'dimension': ''},
         {'description': 'Absolute Magnitude',
          'fieldnames': ['absmag', 'H'],
          'provenance': ['phys', 'ephem', 'orbit'],
@@ -558,7 +597,7 @@ class Conf():
         {'description': 'Photometric Phase Slope Parameter',
          'fieldnames': ['G', 'slope'],
          'provenance': ['phys', 'ephem', 'orbit'],
-         'dimension': None},
+         'dimension': ''},
         {'description': 'Molecule Identifier',
          'fieldnames': ['mol_tag', 'mol_name'],
          'provenance': ['phys'],
@@ -566,7 +605,8 @@ class Conf():
         {'description': 'Transition frequency',
          'fieldnames': ['t_freq'],
          'provenance': ['phys'],
-         'dimension': 'frequency'},
+         'dimension': 'frequency',
+         'equivalencies': u.spectral()},
         {'description': 'Integrated line intensity at 300 K',
          'fieldnames': ['lgint300'],
          'provenance': ['phys'],
@@ -578,15 +618,15 @@ class Conf():
         {'description': 'Partition function at 300 K',
          'fieldnames': ['partfn300'],
          'provenance': ['phys'],
-         'dimension': None},
+         'dimension': ''},
         {'description': 'Partition function at designated temperature',
          'fieldnames': ['partfn'],
          'provenance': ['phys'],
-         'dimension': None},
+         'dimension': ''},
         {'description': 'Upper state degeneracy',
          'fieldnames': ['dgup'],
          'provenance': ['phys'],
-         'dimension': None},
+         'dimension': ''},
         {'description': 'Upper level energy in Joules',
          'fieldnames': ['eup_j', 'eup_J'],
          'provenance': ['phys'],
@@ -598,31 +638,37 @@ class Conf():
         {'description': 'Degrees of freedom',
          'fieldnames': ['degfr', 'ndf', 'degfreedom'],
          'provenance': ['phys'],
-         'dimension': None},
+         'dimension': ''},
         {'description': 'Einstein Coefficient',
          'fieldnames': ['au', 'eincoeff'],
          'provenance': ['phys'],
-         'dimension': '1/time'},
+         'dimension': 'inverse time'},
         {'description': 'Timescale * r^2',
          'fieldnames': ['beta', 'beta_factor'],
          'provenance': ['phys'],
-         'dimension': 'time * length^2'},
+         'dimension': 'time-area'},
         {'description': 'Total Number',
          'fieldnames': ['totnum', 'total_number_nocd' 'total_number'],
          'provenance': ['phys'],
-         'dimension': None},
+         'dimension': ''},
         {'description': 'Column Density from Bockelee Morvan et al. 2004',
          'fieldnames': ['cdensity', 'col_density'],
          'provenance': ['phys'],
-         'dimension': '1/length^2'},
-        # {'description': '',
-        #  'fieldnames': [],
-        #  'provenance': [],
-        #  'dimension': None},
+         'dimension': 'inverse area'},
+        # {
+        #   'description': '',
+        #   'fieldnames': [],
+        #   'provenance': [],
+        #   'dimension': None,
+        #   'equivalencies': (astropy units equivalencies, e.g., u.spectral())
+        # },
+        # dimension must be in DIMENSION_SI_UNITS above, use `None` if the concept of units
+        #   does not make sense, use '' (empty string) for dimensionless (scalar) quantities.
+        # equivalencies is optional
     ]
 
     # use this code snippet to identify duplicate field names:
-    # from sbpy.data import conf
+    # from sbpy.data import Conf
     # import collections
     # a = sum(conf.fieldnames, [])
     # print([item for item, count in collections.Counter(a).items()
@@ -724,8 +770,8 @@ class Conf():
         'venus_moid': ['moid_venus', 'au']
     }
 
-
-conf = Conf()
+# clean namespace
+del u, Time
 
 from .core import DataClass, DataClassError, QueryError, TimeScaleWarning
 from .decorators import *
@@ -734,7 +780,3 @@ from .orbit import Orbit
 from .phys import Phys
 from .obs import Obs
 from .names import Names, natural_sort_key
-
-__all__ = ['DataClass', 'Ephem', 'Obs', 'Orbit', 'Phys', 'Names',
-           'conf', 'Conf', 'DataClassError', 'quantity_to_dataclass',
-           'QueryError', 'TimeScaleWarning']

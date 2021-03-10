@@ -19,7 +19,7 @@ from warnings import warn
 
 from ..bib import cite
 from ..exceptions import SbpyException
-from . import conf, DataClass, QueryError, TimeScaleWarning
+from . import Conf, DataClass, QueryError, TimeScaleWarning
 
 __all__ = ['Orbit', 'OrbitError', 'OpenOrbError']
 

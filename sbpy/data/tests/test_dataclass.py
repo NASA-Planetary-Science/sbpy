@@ -6,7 +6,7 @@ from copy import deepcopy
 from numpy import array
 import astropy.units as u
 from astropy.table import QTable, Column
-from ..core import DataClass, conf, DataClassError
+from ..core import DataClass, Conf, DataClassError
 
 
 def data_path(filename):
@@ -19,25 +19,25 @@ def test_creation_single_row():
     single row only"""
 
     # ground truth tables - compare against these tables
-    ground_truth_1 = QTable([[1], [2], [3]], names=('a', 'b', 'c'))
+    ground_truth_1 = QTable([[1], [2], [3]], names=('aa', 'bb', 'cc'))
     ground_truth_2 = QTable([[1]*u.m, [2]*u.kg, [3]*u.cm/u.s],
-                            names=('a', 'b', 'c'))
-    ground_truth_3 = QTable([[1]*u.m, [2], [3]*u.kg], names=('a', 'b', 'c'))
-    ground_truth_4 = QTable([[1], ['stuff'], [3]], names=('a', 'b', 'c'))
-    ground_truth_5 = QTable([[1]*u.km, [2], ['test']], names=('a', 'b', 'c'))
+                            names=('aa', 'bb', 'cc'))
+    ground_truth_3 = QTable([[1]*u.m, [2], [3]*u.kg], names=('aa', 'bb', 'cc'))
+    ground_truth_4 = QTable([[1], ['stuff'], [3]], names=('aa', 'bb', 'cc'))
+    ground_truth_5 = QTable([[1]*u.km, [2], ['test']], names=('aa', 'bb', 'cc'))
 
     # test DataClass.from_dict for different cases
-    test_dict_1 = DataClass.from_dict(OrderedDict([('a', 1), ('b', 2),
-                                                   ('c', 3)]))
-    test_dict_2 = DataClass.from_dict(OrderedDict([('a', 1*u.m),
-                                                   ('b', 2*u.kg),
-                                                   ('c', 3*u.cm/u.s)]))
-    test_dict_3 = DataClass.from_dict(OrderedDict([('a', 1*u.m), ('b', 2),
-                                                   ('c', 3*u.kg)]))
-    test_dict_4 = DataClass.from_dict(OrderedDict([('a', 1), ('b', 'stuff'),
-                                                   ('c', 3)]))
-    test_dict_5 = DataClass.from_dict(OrderedDict([('a', 1*u.km), ('b', 2),
-                                                   ('c', 'test')]))
+    test_dict_1 = DataClass.from_dict(OrderedDict([('aa', 1), ('bb', 2),
+                                                   ('cc', 3)]))
+    test_dict_2 = DataClass.from_dict(OrderedDict([('aa', 1*u.m),
+                                                   ('bb', 2*u.kg),
+                                                   ('cc', 3*u.cm/u.s)]))
+    test_dict_3 = DataClass.from_dict(OrderedDict([('aa', 1*u.m), ('bb', 2),
+                                                   ('cc', 3*u.kg)]))
+    test_dict_4 = DataClass.from_dict(OrderedDict([('aa', 1), ('bb', 'stuff'),
+                                                   ('cc', 3)]))
+    test_dict_5 = DataClass.from_dict(OrderedDict([('aa', 1*u.km), ('bb', 2),
+                                                   ('cc', 'test')]))
 
     assert test_dict_1.table == ground_truth_1
     assert test_dict_2.table == ground_truth_2
@@ -47,15 +47,15 @@ def test_creation_single_row():
 
     # test DataClass.from_rows for different cases
     test_array_1 = DataClass.from_rows([1, 2, 3],
-                                       names=('a', 'b', 'c'))
+                                       names=('aa', 'bb', 'cc'))
     test_array_2 = DataClass.from_rows([1*u.m, 2*u.kg, 3*u.cm/u.s],
-                                       names=('a', 'b', 'c'))
+                                       names=('aa', 'bb', 'cc'))
     test_array_3 = DataClass.from_rows([1*u.m, 2, 3*u.kg],
-                                       names=('a', 'b', 'c'))
+                                       names=('aa', 'bb', 'cc'))
     test_array_4 = DataClass.from_rows([1, 'stuff', 3],
-                                       names=('a', 'b', 'c'))
+                                       names=('aa', 'bb', 'cc'))
     test_array_5 = DataClass.from_rows([1*u.km, 2, 'test'],
-                                       names=('a', 'b', 'c'))
+                                       names=('aa', 'bb', 'cc'))
 
     assert test_array_1.table == ground_truth_1
     assert test_array_2.table == ground_truth_2
@@ -64,35 +64,35 @@ def test_creation_single_row():
     assert test_array_5.table == ground_truth_5
 
     # test single row, single column
-    ground_truth_6 = QTable([[1]], names=('a'))
+    ground_truth_6 = QTable([[1]], names=('aa',))
 
-    test_dict_6 = DataClass.from_dict({'a': 1})
+    test_dict_6 = DataClass.from_dict({'aa': 1})
     assert test_dict_6.table == ground_truth_6
 
-    test_array_6 = DataClass.from_rows([1], names='a')
+    test_array_6 = DataClass.from_rows([1], names='aa')
     assert test_array_6.table == ground_truth_6
 
     # test units parameter
     test_array_2b = DataClass.from_rows([1, 2, 3],
-                                        names=('a', 'b', 'c'),
+                                        names=('aa', 'bb', 'cc'),
                                         units=(u.m, u.kg, u.cm/u.s))
     test_array_3b = DataClass.from_rows([1, 2, 3],
-                                        names=('a', 'b', 'c'),
+                                        names=('aa', 'bb', 'cc'),
                                         units=(u.m, None, u.kg))
 
     assert test_array_2b.table == ground_truth_2
     assert test_array_3b.table == ground_truth_3
 
-    ground_truth_7 = QTable([[1]*u.kg], names=('a'))
-    test_array_7 = DataClass.from_rows([1], names='a', units='kg')
+    ground_truth_7 = QTable([[1]*u.kg], names=('aa',))
+    test_array_7 = DataClass.from_rows([1], names='aa', units='kg')
     assert test_array_7.table == ground_truth_7
 
     with pytest.raises(DataClassError):
-        DataClass.from_rows([1], names='a', units=('m', 'kg'))
+        DataClass.from_rows([1], names='aa', units=('m', 'kg'))
 
     # test single row starting with string
-    ground_truth_8 = QTable(rows=[['a', 1]], names=('a', 'b'))
-    test_array_8 = DataClass.from_rows(['a', 1], names=('a', 'b'))
+    ground_truth_8 = QTable(rows=[['a', 1]], names=('aa', 'bb'))
+    test_array_8 = DataClass.from_rows(['a', 1], names=('aa', 'bb'))
 
     assert ground_truth_8 == test_array_8.table
 
@@ -102,32 +102,32 @@ def test_creation_multi_rows():
     multiple rows"""
     # ground truth tables - compare against these tables
     ground_truth_1 = QTable([[1, 2, 3], [4, 5, 6], [7, 8, 9]],
-                            names=('a', 'b', 'c'))
+                            names=('aa', 'bb', 'cc'))
     ground_truth_2 = QTable([[1, 2, 3]*u.m, [4, 5, 6]*u.kg,
-                             [7, 8, 9]*u.cm/u.s], names=('a', 'b', 'c'))
+                             [7, 8, 9]*u.cm/u.s], names=('aa', 'bb', 'cc'))
     ground_truth_3 = QTable([[1, 2, 3]*u.m, [4, 5, 6],
-                             [7, 8, 9]*u.kg], names=('a', 'b', 'c'))
+                             [7, 8, 9]*u.kg], names=('aa', 'bb', 'cc'))
     ground_truth_4 = QTable([[1, 2, 3], ['a', 'b', 'c'], [7, 8, 9]],
-                            names=('a', 'b', 'c'))
+                            names=('aa', 'bb', 'cc'))
     ground_truth_5 = QTable([[1, 2, 3]*u.km, [4, 5, 6], ['a', 'b', 'c']],
-                            names=('a', 'b', 'c'))
+                            names=('aa', 'bb', 'cc'))
 
     # test DataClass.from_dict for different cases
-    test_dict_1 = DataClass.from_dict(OrderedDict([('a', [1, 2, 3]),
-                                                   ('b', [4, 5, 6]),
-                                                   ('c', [7, 8, 9])]))
+    test_dict_1 = DataClass.from_dict(OrderedDict([('aa', [1, 2, 3]),
+                                                   ('bb', [4, 5, 6]),
+                                                   ('cc', [7, 8, 9])]))
     test_dict_2 = DataClass.from_dict(OrderedDict(
-        [('a', [1, 2, 3]*u.m), ('b', [4, 5, 6]*u.kg),
-         ('c', [7, 8, 9]*u.cm/u.s)]))
-    test_dict_3 = DataClass.from_dict(OrderedDict([('a', [1, 2, 3]*u.m),
-                                                   ('b', [4, 5, 6]),
-                                                   ('c', [7, 8, 9]*u.kg)]))
-    test_dict_4 = DataClass.from_dict(OrderedDict([('a', [1, 2, 3]),
-                                                   ('b', ['a', 'b', 'c']),
-                                                   ('c', [7, 8, 9])]))
-    test_dict_5 = DataClass.from_dict(OrderedDict([('a', [1, 2, 3]*u.km),
-                                                   ('b', [4, 5, 6]),
-                                                   ('c', ['a', 'b', 'c'])]))
+        [('aa', [1, 2, 3]*u.m), ('bb', [4, 5, 6]*u.kg),
+         ('cc', [7, 8, 9]*u.cm/u.s)]))
+    test_dict_3 = DataClass.from_dict(OrderedDict([('aa', [1, 2, 3]*u.m),
+                                                   ('bb', [4, 5, 6]),
+                                                   ('cc', [7, 8, 9]*u.kg)]))
+    test_dict_4 = DataClass.from_dict(OrderedDict([('aa', [1, 2, 3]),
+                                                   ('bb', ['a', 'b', 'c']),
+                                                   ('cc', [7, 8, 9])]))
+    test_dict_5 = DataClass.from_dict(OrderedDict([('aa', [1, 2, 3]*u.km),
+                                                   ('bb', [4, 5, 6]),
+                                                   ('cc', ['a', 'b', 'c'])]))
 
     assert all(test_dict_1.table == ground_truth_1)
     assert all(test_dict_2.table == ground_truth_2)
@@ -137,23 +137,23 @@ def test_creation_multi_rows():
 
     # test DataClass.from_rows for different cases
     test_array_1 = DataClass.from_rows([[1, 4, 7], [2, 5, 8], [3, 6, 9]],
-                                       names=('a', 'b', 'c'))
+                                       names=('aa', 'bb', 'cc'))
     test_array_2 = DataClass.from_rows([[1*u.m, 4*u.kg, 7*u.cm/u.s],
                                         [2*u.m, 5*u.kg, 8*u.cm/u.s],
                                         [3*u.m, 6*u.kg, 9*u.cm/u.s]],
-                                       names=('a', 'b', 'c'))
+                                       names=('aa', 'bb', 'cc'))
     test_array_3 = DataClass.from_rows([[1*u.m, 4, 7*u.kg],
                                         [2*u.m, 5, 8*u.kg],
                                         [3*u.m, 6, 9*u.kg]],
-                                       names=('a', 'b', 'c'))
+                                       names=('aa', 'bb', 'cc'))
     test_array_4 = DataClass.from_rows([[1, 'a', 7],
                                         [2, 'b', 8],
                                         [3, 'c', 9]],
-                                       names=('a', 'b', 'c'))
+                                       names=('aa', 'bb', 'cc'))
     test_array_5 = DataClass.from_rows([[1*u.km, 4, 'a'],
                                         [2*u.km, 5, 'b'],
                                         [3*u.km, 6, 'c']],
-                                       names=('a', 'b', 'c'))
+                                       names=('aa', 'bb', 'cc'))
 
     assert all(test_array_1.table == ground_truth_1)
     assert all(test_array_2.table == ground_truth_2)
@@ -167,35 +167,35 @@ def test_creation_single_column():
     single column only"""
 
     # ground truth tables - compare against these tables
-    ground_truth_1 = QTable([[1, 2, 3]], names=('a'))
-    ground_truth_2 = QTable([[1, 2, 3]*u.kg], names=('a'))
-    ground_truth_3 = QTable([['a', 'b', 'c']], names=('a'))
+    ground_truth_1 = QTable([[1, 2, 3]], names=('aa',))
+    ground_truth_2 = QTable([[1, 2, 3]*u.kg], names=('aa',))
+    ground_truth_3 = QTable([['a', 'b', 'c']], names=('aa',))
 
     # test DataClass.from_dict for different cases
-    test_dict_1 = DataClass.from_dict({'a': [1, 2, 3]})
-    test_dict_2 = DataClass.from_dict({'a': [1, 2, 3]*u.kg})
-    test_dict_3 = DataClass.from_dict({'a': ['a', 'b', 'c']})
+    test_dict_1 = DataClass.from_dict({'aa': [1, 2, 3]})
+    test_dict_2 = DataClass.from_dict({'aa': [1, 2, 3]*u.kg})
+    test_dict_3 = DataClass.from_dict({'aa': ['a', 'b', 'c']})
 
     assert all(test_dict_1.table == ground_truth_1)
     assert all(test_dict_2.table == ground_truth_2)
     assert all(test_dict_3.table == ground_truth_3)
 
     # test DataClass.from_columns for different cases
-    test_array_1 = DataClass.from_columns([1, 2, 3], names='a')
-    test_array_2 = DataClass.from_columns([1, 2, 3]*u.kg, names='a')
-    test_array_3 = DataClass.from_columns(['a', 'b', 'c'], names='a')
+    test_array_1 = DataClass.from_columns([1, 2, 3], names='aa')
+    test_array_2 = DataClass.from_columns([1, 2, 3]*u.kg, names='aa')
+    test_array_3 = DataClass.from_columns(['a', 'b', 'c'], names='aa')
 
     assert all(test_array_1.table == ground_truth_1)
     assert all(test_array_2.table == ground_truth_2)
     assert all(test_array_3.table == ground_truth_3)
 
     # test single row, single column
-    ground_truth_4 = QTable([[1]], names=('a'))
+    ground_truth_4 = QTable([[1]], names=('aa',))
 
-    test_dict_4 = DataClass.from_dict({'a': 1})
+    test_dict_4 = DataClass.from_dict({'aa': 1})
     assert test_dict_4.table == ground_truth_4
 
-    test_array_4 = DataClass.from_columns([1], names='a')
+    test_array_4 = DataClass.from_columns([1], names='aa')
     assert test_array_4.table == ground_truth_4
 
 
@@ -205,28 +205,28 @@ def test_creation_multi_column():
 
     # ground truth tables - compare against these tables
     ground_truth_1 = QTable([[1, 2, 3], [4, 5, 6], [7, 8, 9]],
-                            names=('a', 'b', 'c'))
+                            names=('aa', 'bb', 'cc'))
     ground_truth_2 = QTable([[1, 2, 3]*u.kg, [4, 5, 6]*u.m/u.s],
-                            names=('a', 'b'))
+                            names=('aa', 'bb'))
     ground_truth_3 = QTable([[1, 2, 3], [4, 5, 6]*u.m/u.s],
-                            names=('a', 'b'))
+                            names=('aa', 'bb'))
     ground_truth_4 = QTable([[1, 2, 3], ['a', 'b', 'c']],
-                            names=('a', 'b'))
+                            names=('aa', 'bb'))
     ground_truth_5 = QTable([[1, 2, 3], [4, 5, 6]*u.s/u.kg, ['a', 'b', 'c']],
-                            names=('a', 'b', 'c'))
+                            names=('aa', 'bb', 'cc'))
 
     # test DataClass.from_dict for different cases
-    test_dict_1 = DataClass.from_dict({'a': [1, 2, 3], 'b': [4, 5, 6],
-                                       'c': [7, 8, 9]})
-    test_dict_2 = DataClass.from_dict({'a': [1, 2, 3]*u.kg,
-                                       'b': [4, 5, 6]*u.m/u.s})
-    test_dict_3 = DataClass.from_dict({'a': [1, 2, 3],
-                                       'b': [4, 5, 6]*u.m/u.s})
-    test_dict_4 = DataClass.from_dict({'a': [1, 2, 3],
-                                       'b': ['a', 'b', 'c']})
-    test_dict_5 = DataClass.from_dict({'a': [1, 2, 3],
-                                       'b': [4, 5, 6]*u.s/u.kg,
-                                       'c': ['a', 'b', 'c']})
+    test_dict_1 = DataClass.from_dict({'aa': [1, 2, 3], 'bb': [4, 5, 6],
+                                       'cc': [7, 8, 9]})
+    test_dict_2 = DataClass.from_dict({'aa': [1, 2, 3]*u.kg,
+                                       'bb': [4, 5, 6]*u.m/u.s})
+    test_dict_3 = DataClass.from_dict({'aa': [1, 2, 3],
+                                       'bb': [4, 5, 6]*u.m/u.s})
+    test_dict_4 = DataClass.from_dict({'aa': [1, 2, 3],
+                                       'bb': ['a', 'b', 'c']})
+    test_dict_5 = DataClass.from_dict({'aa': [1, 2, 3],
+                                       'bb': [4, 5, 6]*u.s/u.kg,
+                                       'cc': ['a', 'b', 'c']})
     assert all(test_dict_1.table == ground_truth_1)
     assert all(test_dict_2.table == ground_truth_2)
     assert all(test_dict_3.table == ground_truth_3)
@@ -235,16 +235,16 @@ def test_creation_multi_column():
 
     # test DataClass.from_columns for different cases
     test_array_1 = DataClass.from_columns([[1, 2, 3], [4, 5, 6],
-                                           [7, 8, 9]], names=('a', 'b', 'c'))
+                                           [7, 8, 9]], names=('aa', 'bb', 'cc'))
     test_array_2 = DataClass.from_columns([[1, 2, 3]*u.kg, [4, 5, 6]*u.m/u.s],
-                                          names=('a', 'b'))
+                                          names=('aa', 'bb'))
     test_array_3 = DataClass.from_columns([[1, 2, 3], [4, 5, 6]*u.m/u.s],
-                                          names=('a', 'b'))
+                                          names=('aa', 'bb'))
     test_array_4 = DataClass.from_columns([[1, 2, 3], ['a', 'b', 'c']],
-                                          names=('a', 'b'))
+                                          names=('aa', 'bb'))
     test_array_5 = DataClass.from_columns([[1, 2, 3], [4, 5, 6]*u.s/u.kg,
                                            ['a', 'b', 'c']],
-                                          names=('a', 'b', 'c'))
+                                          names=('aa', 'bb', 'cc'))
     assert all(test_array_1.table == ground_truth_1)
     assert all(test_array_2.table == ground_truth_2)
     assert all(test_array_3.table == ground_truth_3)
@@ -256,32 +256,32 @@ def test_get_set():
     """ test the get and set methods"""
 
     data = DataClass.from_dict(
-        OrderedDict((('a', [1, 2, 3]),
-                     ('b', [4, 5, 6]*u.m),
-                     ('c', [7, 8, 8]))))
+        OrderedDict((('aa', [1, 2, 3]),
+                     ('bb', [4, 5, 6]*u.m),
+                     ('cc', [7, 8, 8]))))
 
     # get a single column
-    x = data['a']
+    x = data['aa']
     assert len(x) == 3
     assert isinstance(x, Column)
-    x = data['b']
+    x = data['bb']
     assert len(x) == 3
     assert isinstance(x, u.Quantity)
 
     # get a list of columns
-    x = data[['a', 'c']]
+    x = data[['aa', 'cc']]
     assert len(x.field_names) == 2
     assert isinstance(x, DataClass)
 
     # mask rows
     masked = data[[True, False, False]]
     assert len(masked) == 1
-    assert masked['b'][0] == 4*u.m
+    assert masked['bb'][0] == 4*u.m
     assert isinstance(masked, DataClass)
 
     # get single row
     shortened = data[1]
-    assert shortened['a'] == 2
+    assert shortened['aa'] == 2
     assert isinstance(shortened, DataClass)
 
     # get list of rows
@@ -294,11 +294,11 @@ def test_get_set():
     assert isinstance(shortened, DataClass)
 
     # modify an existing column
-    data['a'][:] = [0, 0, 0]
-    assert data['a'][0] == 0
+    data['aa'][:] = [0, 0, 0]
+    assert data['aa'][0] == 0
 
     with pytest.raises(KeyError):
-        data['d']
+        data['dd']
 
     # add non-existing column using set
     data['z'] = 3
@@ -317,52 +317,109 @@ def test_units():
     ground_truth = QTable([[1, 2, 3]*u.Unit('m'),
                            [4, 5, 6]*u.m/u.s,
                            ['a', 'b', 'c']],
-                          names=('a', 'b', 'c'))
+                          names=('aa', 'bb', 'cc'))
 
-    assert ((ground_truth['a']**2).unit == 'm2')
+    assert ((ground_truth['aa']**2).unit == 'm2')
 
     test_dict = DataClass.from_dict(
-        OrderedDict((('a', [1, 2, 3]*u.m),
-                     ('b', [4, 5, 6]*u.m/u.s),
-                     ('c', ['a', 'b', 'c']))))
+        OrderedDict((('aa', [1, 2, 3]*u.m),
+                     ('bb', [4, 5, 6]*u.m/u.s),
+                     ('cc', ['a', 'b', 'c']))))
     assert all(test_dict.table == ground_truth)
 
     test_array = DataClass.from_columns([[1, 2, 3]*u.m,
                                          [4, 5, 6]*u.m/u.s,
                                          ['a', 'b', 'c']],
-                                        names=('a', 'b', 'c'))
+                                        names=('aa', 'bb', 'cc'))
     assert all(test_array.table == ground_truth)
 
 
+def test_verify_fields():
+    data = DataClass.from_dict({
+        'name': 'asdf',
+        'RA': 1 * u.deg,
+        'dRA': 1 * u.deg / u.day,
+        'eup_J': 1 * u.J,
+        'sband_3sigma': 1 * u.Hz,
+        #'lgint': 1 * u.Hz / u.m**2,
+        'col_density': 1 * u.m**-2,
+        'au': 1 * u.s**-1,
+        'rh': 1 * u.m,
+        'V': 1 * u.mag,
+        'surfbright': 1 * u.mag / u.sr,
+        'frac_illum': 1 * u.percent,
+        'area_3sigma': 1 * u.steradian,
+        'temperature': 273 * u.K,
+        'period': 1 * u.s,
+        'beta': 1 * u.s * u.m**2,
+        'delta-v': 1 * u.m / u.s
+    })
+    # explicitly call for verification
+    data.verify_fields()
+
+@pytest.mark.parametrize(
+    'field,quantity',
+    (
+        ['RA', 1 * u.m],
+        ['dRA', 1 * u.m / u.day],
+        ['eup_J', 1 * u.kg],
+        ['sband_3sigma', 1 * u.s],
+        #['lgint', 1 * u.m],
+        ['col_density', 1 * u.s],
+        ['au', 1 * u.radian],
+        ['rh', 1 * u.radian],
+        ['V', 1 * u.m],
+        ['surfbright', 1 * u.s],
+        ['frac_illum', 1 * u.m],
+        ['area_3sigma', 1 * u.m**2],
+        ['temperature', 273 * u.s],
+        ['period', 1 * u.radian],
+        ['beta', 1 * u.s],
+        ['delta-v', 1 / u.s]
+    )
+)
+def test_verify_fields_error(field, quantity):
+    with pytest.raises(u.UnitsError):
+        data = DataClass.from_dict({field: quantity})
+        # explicitly call for verification
+        data.verify_fields()
+
 def test_alternative_name_uniqueness():
     """test the uniqueness of alternative field names"""
-    from ..core import conf
 
-    assert (len(sum(conf.fieldnames, [])) ==
-            len(set(sum(conf.fieldnames, []))))
+    assert (len(sum(Conf.fieldnames, [])) ==
+            len(set(sum(Conf.fieldnames, []))))
 
-    storage = (deepcopy(conf.fieldnames), deepcopy(conf.fieldname_idx))
+    storage = (deepcopy(Conf.fieldnames), deepcopy(Conf.fieldname_idx))
 
     with pytest.raises(AssertionError):
         # repeat existing fieldname should raise Error
-        conf.fieldnames.append(['i'])
-        assert (len(sum(conf.fieldnames, [])) ==
-                len(set(sum(conf.fieldnames, []))))
+        Conf.fieldnames.append(['i'])
+        assert (len(sum(Conf.fieldnames, [])) ==
+                len(set(sum(Conf.fieldnames, []))))
 
-    # revert changes to conf.fieldnames
-    conf.fieldnames = storage[0]
-    conf.fieldname_idx = storage[1]
+    # revert changes to Conf.fieldnames
+    Conf.fieldnames = storage[0]
+    Conf.fieldname_idx = storage[1]
 
 
-def test_translate_columns():
+def test_translate_columns(monkeypatch):
     """test function that translates column names"""
 
-    storage = (deepcopy(conf.fieldnames), deepcopy(conf.fieldname_idx))
-    conf.fieldnames = [['z', 'a']]
-    conf.fieldname_idx = {}
-    for idx, field in enumerate(conf.fieldnames):
+    new_fieldnames_info = [
+        {
+            'fieldnames': ['z', 'a'],
+            'dimension': 'length'
+        }
+    ]
+    new_fieldnames = [['z', 'a']]
+    new_fieldname_idx = {}
+    for idx, field in enumerate(new_fieldnames):
         for alt in field:
-            conf.fieldname_idx[alt] = idx
+            new_fieldname_idx[alt] = idx
+    monkeypatch.setattr(Conf, "fieldnames_info", new_fieldnames_info)
+    monkeypatch.setattr(Conf, "fieldnames", new_fieldnames)
+    monkeypatch.setattr(Conf, "fieldname_idx", new_fieldname_idx)
 
     tab = DataClass.from_dict(
         OrderedDict((('a', [1, 2, 3]*u.m),
@@ -375,31 +432,27 @@ def test_translate_columns():
     with pytest.raises(KeyError):
         tab._translate_columns(['x'])
 
-    # revert changes to conf.fieldnames
-    conf.fieldnames = storage[0]
-    conf.fieldname_idx = storage[1]
-
 
 def test_indexing():
     """make sure that indexing functionality is not compromised through
     column name translation"""
 
     tab = DataClass.from_dict(
-        OrderedDict((('a', [1, 2, 3]*u.m),
-                     ('b', [4, 5, 6]*u.m/u.s),
-                     ('c', ['a', 'b', 'c']))))
+        OrderedDict((('aa', [1, 2, 3]*u.m),
+                     ('bb', [4, 5, 6]*u.m/u.s),
+                     ('cc', ['a', 'b', 'c']))))
 
-    assert list(tab['a'].data) == [1, 2, 3]
-    assert list(tab['a', 'b']['a'].data) == [1, 2, 3]
-    assert len(tab[tab['a'] < 3*u.m]) == 2
+    assert list(tab['aa'].data) == [1, 2, 3]
+    assert list(tab['aa', 'bb']['aa'].data) == [1, 2, 3]
+    assert len(tab[tab['aa'] < 3*u.m]) == 2
 
 
 def test_field_conversion():
     """test field conversion functions"""
 
     tab = DataClass.from_dict(OrderedDict((('d', [1]*u.m),
-                                           ('b', [4]*u.m/u.s),
-                                           ('c', ['a']))))
+                                           ('bb', [4]*u.m/u.s),
+                                           ('cc', ['a']))))
 
     assert tab['d'] == 1*u.m
     assert tab['diameter'] == 1*u.m
@@ -407,24 +460,24 @@ def test_field_conversion():
     assert tab['radius'] == 0.5*u.m
 
     tab = DataClass.from_dict(OrderedDict((('R', [1]*u.m),
-                                           ('b', [4]*u.m/u.s),
-                                           ('c', ['a']))))
+                                           ('bb', [4]*u.m/u.s),
+                                           ('cc', ['a']))))
 
     assert tab['d'] == 2*u.m
     assert tab['R'] == 1*u.m
 
-    # test something that is not defined anywhere in data.conf
+    # test something that is not defined anywhere in data.Conf
     with pytest.raises(KeyError):
-        tab = DataClass.from_dict(OrderedDict((('a', [1]*u.m),
-                                               ('b', [4]*u.m/u.s),
-                                               ('c', ['a']))))
+        tab = DataClass.from_dict(OrderedDict((('aa', [1]*u.m),
+                                               ('bb', [4]*u.m/u.s),
+                                               ('cc', ['a']))))
         tab['bullpoop']
 
-    # test something that is defined anywhere in data.conf
+    # test something that is defined anywhere in data.Conf
     with pytest.raises(KeyError):
-        tab = DataClass.from_dict(OrderedDict((('a', [1]*u.m),
-                                               ('b', [4]*u.m/u.s),
-                                               ('c', ['a']))))
+        tab = DataClass.from_dict(OrderedDict((('aa', [1]*u.m),
+                                               ('bb', [4]*u.m/u.s),
+                                               ('cc', ['a']))))
         tab['radius']
 
 
@@ -432,9 +485,9 @@ def test_modifications():
     """test modifying tables using astropy.table methods"""
 
     tab = DataClass.from_dict(
-        OrderedDict((('a', [1, 2, 3]*u.m),
-                     ('b', [4, 5, 6]*u.m/u.s),
-                     ('c', ['a', 'b', 'c']))))
+        OrderedDict((('aa', [1, 2, 3]*u.m),
+                     ('bb', [4, 5, 6]*u.m/u.s),
+                     ('cc', ['a', 'b', 'c']))))
 
     # adding single rows
     tab.table.add_row([4*u.m, 7*u.m/u.s, 'd'])
@@ -451,12 +504,12 @@ def test_modifications():
     for dat in data:
         tab.table.add_row(dat)
 
-    assert all(tab['a']**2 == [1, 4, 9, 16, 49, 64]*u.m*u.m)
+    assert all(tab['aa']**2 == [1, 4, 9, 16, 49, 64]*u.m*u.m)
 
     # adding columns
-    tab['d'] = [10, 20, 30, 40, 50, 60]*u.kg/u.um
+    tab['dd'] = [10, 20, 30, 40, 50, 60]*u.kg/u.um
 
-    assert tab['d'][5] == 60*u.kg/u.um
+    assert tab['dd'][5] == 60*u.kg/u.um
 
     assert len(tab[5]) == 1
 
@@ -473,9 +526,9 @@ def test_unit_apply():
 
 def test_meta():
     """test meta data mechanisms"""
-    tab = DataClass.from_dict(OrderedDict([('a', [1, 2, 3]*u.m),
-                                           ('b', [4, 5, 6]),
-                                           ('c', [7, 8, 9]*u.kg)]))
+    tab = DataClass.from_dict(OrderedDict([('aa', [1, 2, 3]*u.m),
+                                           ('bb', [4, 5, 6]),
+                                           ('cc', [7, 8, 9]*u.kg)]))
     assert tab.meta == {}
 
     tab.meta['test'] = 'stuff'
@@ -485,9 +538,9 @@ def test_meta():
 
 def test_io():
     """test file writing and reading capabilities"""
-    tab = DataClass.from_dict(OrderedDict([('a', [1, 2, 3]*u.m),
-                                           ('b', [4, 5, 6]),
-                                           ('c', [7, 8, 9]*u.kg)]))
+    tab = DataClass.from_dict(OrderedDict([('aa', [1, 2, 3]*u.m),
+                                           ('bb', [4, 5, 6]),
+                                           ('cc', [7, 8, 9]*u.kg)]))
     tab.meta['test'] = 'stuff'
 
     tab.to_file('dataclass_table.fits', format='fits', overwrite=True)
