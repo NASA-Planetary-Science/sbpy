@@ -57,14 +57,14 @@ class TestEphemFromOorb:
 
         orbit2 = Orbit.from_dict({
             'targetname': orbit1['targetname'][0],
-            'a': orbit1['a'].value[0],
+            'a': orbit1['a'].value[0] * u.au,
             'e': orbit1['e'][0],
-            'i': orbit1['i'].value[0],
-            'w': orbit1['w'].value[0],
-            'Omega': orbit1['Omega'].value[0],
-            'epoch': orbit1['epoch'][0],
-            'M': orbit1['M'].value[0],
-            'H': orbit1['H'].value[0],
+            'i': orbit1['i'].value[0] * u.deg,
+            'w': orbit1['w'].value[0] * u.deg,
+            'Omega': orbit1['Omega'].value[0] * u.deg,
+            'epoch': Time(orbit1['epoch'][0], format='jd'),
+            'M': orbit1['M'].value[0] * u.deg,
+            'H': orbit1['H'].value[0] * u.mag,
             'G': orbit1['G'][0]
         })
         eph2 = Ephem.from_oo(orbit2)

@@ -12,7 +12,6 @@ from numpy import ndarray, array, hstack, iterable
 from astropy.table import QTable, Column
 from astropy.time import Time
 import astropy.units as u
-from astropy.coordinates import Angle
 
 from . import DIMENSION_SI_UNITS, Conf
 from ..exceptions import SbpyException, SbpyWarning
