@@ -12,6 +12,7 @@ from numpy import ndarray, array, hstack, iterable
 from astropy.table import QTable, Column
 from astropy.time import Time
 import astropy.units as u
+from astropy.coordinates import Angle
 
 from . import DIMENSION_SI_UNITS, Conf
 from ..exceptions import SbpyException, SbpyWarning
@@ -345,7 +346,9 @@ class DataClass():
                            for val, unit in
                            list(zip(columns, units))]
 
-        return cls.from_table(QTable(columns, names=names, meta=meta, **kwargs))
+        return cls.from_table(
+            QTable(columns, names=names, meta=meta, **kwargs)
+        )
 
     @classmethod
     def from_rows(cls, rows, names, units=None, meta={}, **kwargs):
@@ -618,11 +621,13 @@ class DataClass():
         # and translations
 
         # list of field names
-        if (isinstance(ident, (list, tuple, ndarray)) and
-            all([isinstance(i, str) for i in ident])):
-                self = self._convert_columns(ident)
-                newkeylist = [self._translate_columns(i)[0] for i in ident]
-                ident = newkeylist
+        if (
+            isinstance(ident, (list, tuple, ndarray))
+            and all([isinstance(i, str) for i in ident])
+        ):
+            self = self._convert_columns(ident)
+            newkeylist = [self._translate_columns(i)[0] for i in ident]
+            ident = newkeylist
         # individual field names
         elif isinstance(ident, str):
             self = self._convert_columns(ident)
@@ -707,9 +712,9 @@ class DataClass():
     @table.setter
     def table(self, new_table):
         """Replace data with this table."
-        
+
         This method verifies the units on known field names.
-        
+
         """
         self._table = new_table
         self.verify_fields()
@@ -753,8 +758,8 @@ class DataClass():
             repeated the same the number of times as there are elements in this
             sublist. If ``data`` is provided as a flat list and has the same
             length as the current data table, ``data`` will be simply added as
-            a column to the data table and the length of the data table will not
-            change. If ``data`` is provided as a `~astropy.units.Quantity`
+            a column to the data table and the length of the data table will
+            not change. If ``data`` is provided as a `~astropy.units.Quantity`
             object (only possible for flat lists), its unit is adopted, unless
             ``unit`` is specified (not None).
 
@@ -897,7 +902,8 @@ class DataClass():
             elif expected_unit is Time:
                 # astropy.time.Time
                 if not isinstance(self[test_field], Time):
-                    if not all([isinstance(x, Time) for x in self[test_field]]):
+                    is_time = [isinstance(x, Time) for x in self[test_field]]
+                    if not all(is_time):
                         raise TypeError('Field {} is not a Time object.'
                                         .format(test_field))
             elif self[test_field].unit is None:
@@ -905,7 +911,9 @@ class DataClass():
                 if expected_unit is not u.dimensionless_unscaled:
                     error = True
             else:
-                if not self[test_field].unit.is_equivalent(expected_unit, equivalencies):
+                is_equivalent = self[test_field].unit.is_equivalent(
+                    expected_unit, equivalencies)
+                if not is_equivalent:
                     error = True
 
             if error:

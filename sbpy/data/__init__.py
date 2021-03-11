@@ -6,11 +6,32 @@ sbpy.data
 
 :author: Michael Mommert (mommermiscience@gmail.com)
 
+``Conf`` contains metadata for ``sbpy`` `~sbpy.DataClass` field names.
+
+``Conf.fieldnames_info`` is a list of dictionaries, one per field, with the
+keys: `'description'`, `'fieldnames'`, `'provenance'`, `'dimension'`, and
+`'equivalencies'`: 
+* description: text description of the field
+* provenance: list of `~sbpy.DataClass` objects which use the field
+* fieldnames: list of field names as strings, the first is considered the
+  primary, the remaining strings, if any, are alternates
+* dimension: English description of the field's dimension (e.g., length)
+* equivalencies: `~astropy.units` list of equivalencies for unit conversion
+  (optional)
+
+The dimension must also be included in the ``DIMENSION_SI_UNITS`` dictionary.
+Use `None` if the concept of dimension does not make sense, and use '' (empty
+string) for dimensionless (scalar) quantities.
+
+``DIMENSION_SI_UNITS`` is a dictionary of dimensions used to validate the units
+of a field.  A special case is given for `~astropy.time.Time` objects.
+
 """
 
 __all__ = ['DataClass', 'Ephem', 'Obs', 'Orbit', 'Phys', 'Names',
-           'conf', 'Conf', 'DataClassError', 'quantity_to_dataclass',
-           'QueryError', 'TimeScaleWarning']
+           'Conf', 'DataClassError', 'quantity_to_dataclass',
+           'natural_sort_key', 'dataclass_input', 'QueryError',
+           'TimeScaleWarning']
 
 import astropy.units as u
 from astropy.time import Time
@@ -20,8 +41,8 @@ DIMENSION_SI_UNITS = {
     # dimension : astropy unit string
     # * use 'inverse unit' for dimension rather than '1 / unit'
     # * use 'unit1-unit2' for dimension rather than 'unit1*unit2'
-    # * after adding a new dimension, edit test_verify_units and test_verify_units_error
-    #   in test/test_dataclass: test_verify_units
+    # * after adding a new dimension, edit test_verify_units and
+    #   test_verify_units_error in test/test_dataclass: test_verify_units
     # * do not add fields that are not quantities (e.g., targetname)
     # * note astropy.time.Time objects are handled as a special case
     '': u.Unit(''),  # dimensionless
@@ -43,6 +64,7 @@ DIMENSION_SI_UNITS = {
     'time-area': u.Unit('second meter2'),
     'velocity': u.Unit('meter / second'),
 }
+
 
 class Conf():
 
@@ -111,8 +133,8 @@ class Conf():
          'dimension': 'angle'},
         {'description': 'Arc Length',
          'fieldnames': ['arc', 'arc_length'],
-         'provenance': ['orbit'],
-         'dimension': 'angle'},
+         'provenance': ['orbit', 'ephem'],
+         'dimension': 'time'},
         {'description': 'Delta-v',
          'fieldnames': ['delta_v', 'delta-v'],
          'provenance': ['orbit', 'phys'],
@@ -655,22 +677,19 @@ class Conf():
          'fieldnames': ['cdensity', 'col_density'],
          'provenance': ['phys'],
          'dimension': 'inverse area'},
-        # {
+        # {  # see module doc string
         #   'description': '',
         #   'fieldnames': [],
         #   'provenance': [],
         #   'dimension': None,
         #   'equivalencies': (astropy units equivalencies, e.g., u.spectral())
         # },
-        # dimension must be in DIMENSION_SI_UNITS above, use `None` if the concept of units
-        #   does not make sense, use '' (empty string) for dimensionless (scalar) quantities.
-        # equivalencies is optional
     ]
 
     # use this code snippet to identify duplicate field names:
     # from sbpy.data import Conf
     # import collections
-    # a = sum(conf.fieldnames, [])
+    # a = sum(Conf.fieldnames, [])
     # print([item for item, count in collections.Counter(a).items()
     #        if count > 1])
 
@@ -704,13 +723,13 @@ class Conf():
                          'CART': ['id', 'x', 'y', 'z', 'vx', 'vy', 'vz',
                                   'orbtype', 'epoch', 'epoch_scale', 'H',
                                   'G']}
-    oorb_orbit_units = {'COM': [None, 'au', None, 'deg', 'deg',
+    oorb_orbit_units = {'COM': [None, 'au', '', 'deg', 'deg',
                                 'deg', 'd', None, 'd',
-                                None, 'mag', None],
-                        'KEP': [None, 'au', None, 'deg', 'deg', 'deg', 'deg',
-                                None, 'd', None, 'mag', None],
+                                None, 'mag', ''],
+                        'KEP': [None, 'au', '', 'deg', 'deg', 'deg', 'deg',
+                                None, 'd', None, 'mag', ''],
                         'CART': [None, 'au', 'au', 'au', 'au/d', 'au/d',
-                                 'au/d', None, 'd', None, 'mag', None]}
+                                 'au/d', None, 'd', None, 'mag', '']}
 
     oorb_ephem_full_fields = [
         'MJD', 'RA', 'DEC', 'RA*cos(Dec)_rate', 'DEC_rate',
@@ -749,32 +768,33 @@ class Conf():
         'delta_v': ['delta_v', 'km/s'],
         'designation': ['desig', None],
         'earth_moid': ['moid_earth', 'au'],
-        'eccentricity': ['e', None],
+        'eccentricity': ['e', ''],
         'epoch_jd': ['epoch', 'time_jd_utc'],
         'inclination': ['i', 'deg'],
         'jupiter_moid': ['moid_jupiter', 'au'],
         'mars_moid': ['moid_mars', 'au'],
-        'mean_anomaly': ['M', None],
-        'mercury_moid': ['moid_mercury', None],
+        'mean_anomaly': ['M', 'deg'],
+        'mercury_moid': ['moid_mercury', 'au'],
         'name': ['name', None],
         'number': ['number', None],
         'orbit_type': ['mpc_orbit_type', None],
         'perihelion_date_jd': ['Tp', 'time_jd_utc'],
         'perihelion_distance': ['q', 'au'],
         'period': ['P', 'year'],
-        'phase_slope': ['G', None],
+        'phase_slope': ['G', ''],
         'saturn_moid': ['moid_saturn', 'au'],
         'semimajor_axis': ['a', 'au'],
-        'tisserand_jupiter': ['Tj', None],
+        'tisserand_jupiter': ['Tj', ''],
         'uranus_moid': ['moid_uranus', 'au'],
         'venus_moid': ['moid_venus', 'au']
     }
+
 
 # clean namespace
 del u, Time
 
 from .core import DataClass, DataClassError, QueryError, TimeScaleWarning
-from .decorators import *
+from .decorators import quantity_to_dataclass, dataclass_input
 from .ephem import Ephem
 from .orbit import Orbit
 from .phys import Phys
