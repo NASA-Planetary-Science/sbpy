@@ -29,7 +29,7 @@ class TestOrbitFromHorizons:
         data = Orbit.from_horizons('Ceres', epochs=epochs)
         assert len(data.table) == 13
 
-    def test_range_step(self):
+    def test_range_number(self):
         # date range - astropy.time.Time objects
         epochs = {'start': Time('2018-01-02', format='iso'),
                   'stop': Time('2018-01-05', format='iso'),
@@ -104,7 +104,7 @@ class TestOrbitFromMPC:
 
     def test_break(self):
         with pytest.raises(TargetNameParseError):
-            a = Orbit.from_mpc('does not exist')
+            Orbit.from_mpc('does not exist')
 
 
 @pytest.mark.remote_data
