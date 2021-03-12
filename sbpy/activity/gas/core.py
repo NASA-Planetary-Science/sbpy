@@ -642,9 +642,8 @@ class VectorialModel(GasComa):
 
     """ NOTE: We allow Q to vary with time, so I suppose we pass along Q to base class without using it """
     # TODO: We would have to rewrite the time-varying production stuff to accept Q here and then let the param structure
-    # define some variation as a percentage of this initial production rate
-    # TODO: Break volume density interpolation into three or so parts, near, medium, and far from the nucleus and see if
-    # that keeps the splines from going negative
+    # define some variation of this initial production rate
+    # TODO: these inputParameters could be moved to a different data structure like an astropy QTable with named fields
     @u.quantity_input(Q=(u.s**-1, u.mol / u.s), v=u.m / u.s)
     # def __init__(self, Q, v, vModelParams):
     def __init__(self, Q, v, inputParameters):
@@ -653,7 +652,7 @@ class VectorialModel(GasComa):
         # Deep copy so we can make changes without affecting data user passed in
         self.vModelParams = copy.deepcopy(inputParameters)
 
-        self.vModelParams['ParentSpecies']['Velocity'] = v.to(u.km/u.s).value
+        self.vModelParams['ParentSpecies']['Velocity'] = v.to(u.m/u.s).value
         # fill a few short names for readability later
         self.par = self.vModelParams['ParentSpecies']
         self.frag = self.vModelParams['FragmentSpecies']
@@ -665,10 +664,10 @@ class VectorialModel(GasComa):
         self.par['TotalLifetime'] = self.par['TotalLifetime'].to(u.s).value
         self.par['DissociativeLifetime'] = self.par['DissociativeLifetime'].to(u.s).value
 
-        self.frag['Velocity'] = self.frag['Velocity'].to(u.km/u.s).value
+        self.frag['Velocity'] = self.frag['Velocity'].to(u.m/u.s).value
         self.frag['TotalLifetime'] = self.frag['TotalLifetime'].to(u.s).value
 
-        self.sigma = self.par['Sigma'].to(u.km**2).value
+        self.sigma = self.par['Sigma'].to(u.m**2).value
 
         """Initialize data structures to hold our calculations"""
         self.vModel = {}
@@ -678,7 +677,7 @@ class VectorialModel(GasComa):
 
         # Build the radial grid
         self.vModel['FastRadialGrid'] = self._makeLogspaceGrid()
-        self.vModel['RadialGrid'] = self.vModel['FastRadialGrid']*(u.km)
+        self.vModel['RadialGrid'] = self.vModel['FastRadialGrid']*(u.m)
         self.vModel['NumRadialGridpoints'] = len(self.vModel['FastRadialGrid'])
 
         # Angular grid
@@ -716,14 +715,14 @@ class VectorialModel(GasComa):
         self.vModel['MiscOutput'] = {}
 
         # Eq. 5 of Festou 1981
-        self.vModel['MiscOutput']['CollisionSphereRadius'] = ((self.sigma * q * vtherm)/(vp * vp))*u.km
+        self.vModel['MiscOutput']['CollisionSphereRadius'] = ((self.sigma * q * vtherm)/(vp * vp))*u.m
 
         """ Calculates the radius of the coma given our input parameters """
         # NOTE: Equation (16) of Festou 1981 where alpha is the percent destruction of molecules
         parentBetaR = -np.log(1.0 - self.par['DestructionLevel'])
         parentR = parentBetaR * vp * self.par['TotalLifetime']
         fragR = vp * self.comet['TimeAtProductions'][0]
-        self.vModel['MiscOutput']['ComaRadius'] = min(parentR, fragR)*u.km
+        self.vModel['MiscOutput']['ComaRadius'] = min(parentR, fragR)*u.m
 
         """ Calculates the time needed to hit a steady, permanent production """
         fragmentBetaR = -np.log(1.0 - self.frag['DestructionLevel'])
@@ -740,7 +739,7 @@ class VectorialModel(GasComa):
         permFlowR = self.vModel['MiscOutput']['ComaRadius'].value + ((vp + vf) * fragmentBetaR * self.frag['TotalLifetime'])
         #       or Outburst situation
         outburstR = (vp + vf) * self.comet['TimeAtProductions'][0]
-        self.vModel['MaxRadiusOfGrid'] = min(permFlowR, outburstR)*u.km
+        self.vModel['MaxRadiusOfGrid'] = min(permFlowR, outburstR)*u.m
 
         # Two cases for angular range of ejection of fragment based on relative velocities of parent and fragment species
         if(vf < vp):
@@ -771,17 +770,18 @@ class VectorialModel(GasComa):
                 return self.comet['ProductionRates'][i]
 
     def _makeLogspaceGrid(self):
-        """ Creates a grid in km with numpy's logspace function that covers the expected radial size """
-
-        # NOTE: magic numbers
-        # 200km (arbitrarily chosen) out to max radius
-        rEndpointPower = np.log10(self.vModel['MaxRadiusOfGrid'].value*(1/2))
-        return np.logspace(2, rEndpointPower.astype(float), num=self.vModelParams['Grid']['RadialGridpoints'], endpoint=True)*2
+        """ Creates a grid (in meters) with numpy's logspace function that covers the expected radial size,
+            stretching from 2 times the collision sphere radius (near the nucleus be dragons) out to the calculated max
+            If we get too close to the nucleus things go very badly so don't do it, dear reader
+        """
+        rStartpointPower = np.log10(self.vModel['MiscOutput']['CollisionSphereRadius'].value * 2)
+        rEndpointPower = np.log10(self.vModel['MaxRadiusOfGrid'].value)
+        return np.logspace(rStartpointPower, rEndpointPower.astype(float), num=self.vModelParams['Grid']['RadialGridpoints'], endpoint=True)
 
     def _computeDensityGrid(self):
         """ Computes the density at different radii and due to each ejection angle, performing the
            radial integration of eq. (36), Festou 1981 with only one fragment velocity.
-           The resulting units will be in 1/(km^3) because we work in km, s, and km/s.
+           The resulting units will be in 1/(m^3) because we work in m, s, and m/s.
         """
         vp = self.par['Velocity']
         vf = self.frag['Velocity']
@@ -792,7 +792,6 @@ class VectorialModel(GasComa):
         rLimit = rComa
 
         # temporary radial array for when we loop through 0 to epsilonMax
-        # TODO: magic numbers
         ejectionRadii = np.zeros(self.vModelParams['Grid']['SubgridRadialSteps'])
 
         pTotLifetime = self.par['TotalLifetime']
@@ -839,6 +838,9 @@ class VectorialModel(GasComa):
 
                     # Loop over tiny slices along this chunk
                     for m in range(0, NumRadialSlices):
+
+                        # TODO: We could probably eliminate m by making a linear space from ejectionRadiiStart to
+                        # ejectionRadiiEnd
 
                         # Current distance along contributing axis
                         R = (m + 0.5)*dr + ejectionRadiiStart
@@ -908,12 +910,12 @@ class VectorialModel(GasComa):
         self.vModel['DensityGrid'] *= IntegrationFactor
         # phew
 
-        """ Performs angular part of the integration to yield density in km^-3 as a function of radius.
+        """ Performs angular part of the integration to yield density in m^-3 as a function of radius.
             Assumes spherical symmetry of parent production.
 
             Fills vModel['RadialDensity'] and vModel['FastRadialDensity'] with and without units respectively
             Fills vModel['rDensInterpolator'] with cubic spline interpolation of the radial density,
-                which takes radial coordinate in km and outputs the density at that coord in km^-3
+                which takes radial coordinate in m and outputs the density at that coord in m^-3
         """
 
         # Make array to hold our data, no units
@@ -929,7 +931,7 @@ class VectorialModel(GasComa):
                 self.vModel['FastRadialDensity'][i] += densityToAdd
 
         # Tag with proper units
-        self.vModel['RadialDensity'] = self.vModel['FastRadialDensity']/(u.km**3)
+        self.vModel['RadialDensity'] = self.vModel['FastRadialDensity']/(u.m**3)
 
         # Turn our grid into a function of r
         self._interpolateRadialDensity()
@@ -937,16 +939,13 @@ class VectorialModel(GasComa):
         # Count up the number of fragments in the grid versus theoretical value
         self.vModel['MiscOutput']['NumFragmentsTheory'] = self.calcNumFragmentsTheory()
         self.vModel['MiscOutput']['NumFragmentsFromGrid'] = self.calcNumFragmentsFromGrid()
-        self.vModel['MiscOutput']['FragmentRatio'] = self.vModel['MiscOutput']['NumFragmentsFromGrid']/self.vModel['MiscOutput']['NumFragmentsTheory']
 
     def _interpolateRadialDensity(self):
-        # TODO: make this a function of radius in meters and not km
-        # Interpolate this radial density grid with a cubic spline for lookup at non-grid radii, input in km, out in 1/km^3
+        # Interpolate this radial density grid with a cubic spline for lookup at non-grid radii, input in m, out in 1/m^3
         self.vModel['rDensInterpolator'] = CubicSpline(self.vModel['FastRadialGrid'], self.vModel['FastRadialDensity'], bc_type='natural')
 
     def _calculateColumnDensity(self, rho):
-        # TODO: make this a function of meters and not km
-        """ Returns the number of fragment species per km^2 at the given impact parameter, in km """
+        """ Returns the number of fragment species per m^2 at the given impact parameter, in m """
         rMax = self.vModel['MaxRadiusOfGrid'].value
         if(rho > rMax):
             return 0
@@ -965,13 +964,12 @@ class VectorialModel(GasComa):
         else:
             cDens = 2 * romberg(columnDensityIntegrand, 0, zMax, rtol=0.0001, divmax=20)
 
-        # result is in 1/km^2
+        # result is in 1/m^2
         return cDens
 
     def _interpolateColumnDensity(self):
-        # TODO: once we move to meters for the grid, the interpolator should be in m as well
         """ computes the column density on a grid and produces an interpolation function based on it.
-            The interpolator takes input in km from nucleus and return column density in km^-2
+            The interpolator takes input in m from nucleus and return column density in m^-2
         """
         cDensGrid = self._makeLogspaceGrid()
         cdVec = np.vectorize(self._calculateColumnDensity)
@@ -979,9 +977,9 @@ class VectorialModel(GasComa):
 
         self.vModel['ColumnDensity'] = {}
         self.vModel['ColumnDensity']['FastCDGrid'] = cDensGrid
-        self.vModel['ColumnDensity']['CDGrid'] = cDensGrid*u.km
-        self.vModel['ColumnDensity']['Values'] = columnDensities/(u.km**2)
-        # Interpolator gives column density in km^-2
+        self.vModel['ColumnDensity']['CDGrid'] = cDensGrid*u.m
+        self.vModel['ColumnDensity']['Values'] = columnDensities/(u.m**2)
+        # Interpolator gives column density in m^-2
         self.vModel['ColumnDensity']['Interpolator'] = CubicSpline(cDensGrid, columnDensities, bc_type='natural')
 
     def calcNumFragmentsTheory(self):
@@ -1030,10 +1028,8 @@ class VectorialModel(GasComa):
 
     def _column_density(self, rho):
         """ rho in meters """
-        # TODO: make sure col dens interpolator is function of meters and returns 1/m^2 (but not a Quantity)
         return self.vModel['ColumnDensity']['Interpolator'](rho)
 
     def _volume_density(self, rho):
         """ rho in meters """
-        # TODO: vol density as a function of r in meters, returns 1/m^3
         return self.vModel['rDensInterpolator'](rho)
