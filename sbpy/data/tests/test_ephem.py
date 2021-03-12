@@ -12,9 +12,8 @@ from .. import Ephem, Orbit
 
 try:
     import pyoorb
-    HAS_PYOORB = True
 except ImportError:
-    HAS_PYOORB = False
+    pyoorb = None
 
 # retreived from Horizons on 23 Apr 2020
 CERES = {
@@ -37,7 +36,7 @@ CERES = {
 }
 
 
-@pytest.mark.skipif('not HAS_PYOORB')
+@pytest.mark.skipif('pyoorb is None')
 class TestEphemFromOorb:
     def test_missing_pyoorb(self, monkeypatch):
         monkeypatch.setattr(ephem, 'pyoorb', None)
