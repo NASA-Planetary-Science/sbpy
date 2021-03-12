@@ -1,21 +1,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import pytest
-from copy import deepcopy
-from numpy import abs
-import warnings
 
-from numpy.testing import assert_allclose
 import astropy.units as u
 from astropy.time import Time
-from astropy.coordinates import EarthLocation
-from astropy.tests.helper import assert_quantity_allclose
 
 from ... import exceptions as sbe
 from ... import bib
-from ..core import Conf
 from .. import ephem
-from .. import Ephem, Orbit, QueryError
+from .. import Ephem, Orbit
 
 try:
     import pyoorb
