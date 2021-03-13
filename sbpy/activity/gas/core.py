@@ -639,35 +639,108 @@ class Haser(GasComa):
 
 
 class VectorialModel(GasComa):
+    """ Vectorial model for fragments in a coma produced with a dissociative energy kick
 
-    """ NOTE: We allow Q to vary with time, so I suppose we pass along Q to base class without using it """
+        Input is a dictionary with relevant data:
+
+            --- Production Rates ---
+            inputParameters['ProductionRates']: list of production rates if there is time-varying production, no units
+            inputParameters['TimeAtProductions']: list of times that the corresponding rates started, with zero meaning
+                now and higher positive numbers meaning farther into the past, with units
+
+                    This would describe production of 1e28 molecules/sec beginning 30 days ago until 15 days ago,
+                    then jumps up to 5e29 at 15 days ago until the current (observation) time.
+                        ---
+                        inputParameters['ProductionRates'] = [1.e28, 5.e29]
+                        inputParameters['TimeAtProductions'] = [30, 15] * u.day
+                        ---
+            --- Parent ---
+            inputParameters['Parent']['TotalLifetime']: Total lifetime of parent molecule, with units
+            inputParameters['Parent']['DissociativeLifetime']: Dissociative lifetime of parent molecule, with units
+            inputParameters['Parent']['Velocity']: Outflow velocity of parent molecules, with units
+            (Optional) inputParameters['Parent']['CrossSection']: Cross section of parent molecule
+            (Optional) inputParameters['Parent']['DestructionLevel']: Fraction of destroyed parent molecules at which we
+                stop tracking them
+
+            --- Fragment ---
+            inputParameters['Fragment']['TotalLifetime']: Total lifetime of fragment molecule, with units
+            inputParameters['Fragment']['Velocity']: Velocity of fragment after dissociative kick, with units
+            (Optional) inputParameters['Fragment']['DestructionLevel']: Similar to above, but for the fragments
+
+            --- (Optional) Grid Specifications ---
+            inputParameters['Grid']['NumRadialGridpoints']: Number of radial points to calculate volume/column density
+            inputParameters['Grid']['NumAngularGridpoints']: Number of angular slices for volume density grid
+            inputParameters['Grid']['NumSubgridRadialSteps']: How finely to integrate radially for a given gridpoint
+            inputParameters['Grid']['NumSubgridAngularSteps']: How finely to integrate over ejection angle
+
+            --- (Optional) Printing ---
+            inputParameters['PrintDensityProgress']: Print progress while calculating volume density, if you're using a
+                large grid
+    """
+
+    """ NOTE: We allow Q to vary with time, so we pass it along to the base class but it is ultimately ignored in favor
+        of the production information coming in through inputParameters.  Likewise, v is also ignored because the parent
+        outflow velocity is included in inputParameters.
+        Calculations are done internally in meters and seconds to match the base GasComa class.
+    """
     # TODO: We would have to rewrite the time-varying production stuff to accept Q here and then let the param structure
     # define some variation of this initial production rate
-    # TODO: these inputParameters could be moved to a different data structure like an astropy QTable with named fields
     @u.quantity_input(Q=(u.s**-1, u.mol / u.s), v=u.m / u.s)
-    # def __init__(self, Q, v, vModelParams):
     def __init__(self, Q, v, inputParameters):
         super().__init__(Q, v)
 
+        # TODO: figure out if this is really necessary
         # Deep copy so we can make changes without affecting data user passed in
         self.vModelParams = copy.deepcopy(inputParameters)
 
-        self.vModelParams['ParentSpecies']['Velocity'] = v.to(u.m/u.s).value
+        # Convert to seconds
+        self.vModelParams['TimeAtProductions'] = self.vModelParams['TimeAtProductions'].to(u.s).value
+        self.numProductionRates = len(self.vModelParams['ProductionRates'])
+
+        # Make sure we have as many production times as rates
+        if self.numProductionRates != len(self.vModelParams['TimeAtProductions']):
+            raise ValueError("Number of production rates and production times must match!")
+
         # fill a few short names for readability later
-        self.par = self.vModelParams['ParentSpecies']
-        self.frag = self.vModelParams['FragmentSpecies']
-        self.comet = self.vModelParams['Comet']
+        self.par = self.vModelParams['Parent']
+        self.frag = self.vModelParams['Fragment']
 
-        self.comet['TimeAtProductions'] = self.comet['TimeAtProductions'].to(u.s).value
-        self.numProductionRates = len(self.comet['ProductionRates'])
-
+        # Parent : convert to meters and seconds, and check for optional fields
+        self.par['Velocity'] = self.par['Velocity'].to(u.m/u.s).value
         self.par['TotalLifetime'] = self.par['TotalLifetime'].to(u.s).value
         self.par['DissociativeLifetime'] = self.par['DissociativeLifetime'].to(u.s).value
+        # If no cross section supplied, use a reasonable default
+        if 'CrossSection' not in self.par:
+            self.par['CrossSection'] = 3.0e-16 * u.cm**2
+        self.cross_section = self.par['CrossSection'].to(u.m**2).value
+        # Helps define cutoff for radial grid at this percentage of parents lost to decay
+        if 'DestructionLevel' not in self.par:
+            self.par['DestructionLevel'] = 0.99
 
+        # Fragment
         self.frag['Velocity'] = self.frag['Velocity'].to(u.m/u.s).value
         self.frag['TotalLifetime'] = self.frag['TotalLifetime'].to(u.s).value
+        # Helps define cutoff for radial grid at this percentage of fragments lost to decay
+        if 'DestructionLevel' not in self.frag:
+            # Default here is lower than parents because they are born farther from nucleus, tracking them too long will
+            # stretch the radial grid a bit too much
+            self.frag['DestructionLevel'] = 0.95
 
-        self.sigma = self.par['Sigma'].to(u.m**2).value
+        # Grid settings - set to defaults here unless passed in with the other parameters
+        if 'Grid' not in self.vModelParams:
+            self.vModelParams['Grid'] = {}
+        if 'NumRadialGridpoints' not in self.vModelParams['Grid']:
+            self.vModelParams['Grid']['NumRadialGridpoints'] = 25
+        if 'NumAngularGridpoints' not in self.vModelParams['Grid']:
+            self.vModelParams['Grid']['NumAngularGridpoints'] = 25
+        if 'NumSubgridRadialSteps' not in self.vModelParams['Grid']:
+            self.vModelParams['Grid']['NumSubgridRadialSteps'] = 12
+        if 'NumSubgridAngularSteps' not in self.vModelParams['Grid']:
+            self.vModelParams['Grid']['NumSubgridAngularSteps'] = 7
+
+        # Print progress during density calculations?  Defaults to no
+        if 'PrintDensityProgress' not in self.vModelParams:
+            self.vModelParams['PrintDensityProgress'] = False
 
         """Initialize data structures to hold our calculations"""
         self.vModel = {}
@@ -678,20 +751,18 @@ class VectorialModel(GasComa):
         # Build the radial grid
         self.vModel['FastRadialGrid'] = self._makeLogspaceGrid()
         self.vModel['RadialGrid'] = self.vModel['FastRadialGrid']*(u.m)
-        self.vModel['NumRadialGridpoints'] = len(self.vModel['FastRadialGrid'])
 
         # Angular grid
-        self.vModel['NumAngularGridpoints'] = self.vModelParams['Grid']['AngularGridpoints']
-        self.vModel['dAlpha'] = self.vModel['EpsilonMax']/self.vModel['NumAngularGridpoints']
+        self.vModel['dAlpha'] = self.vModel['EpsilonMax']/self.vModelParams['Grid']['NumAngularGridpoints']
         # Make array of angles adjusted up away from zero, to keep from calculating a radial line's contribution
         # to itself
-        self.vModel['AngularAlphaGrid'] = np.linspace(0, self.vModel['EpsilonMax'], num=self.vModel['NumAngularGridpoints'], endpoint=False)
+        self.vModel['AngularAlphaGrid'] = np.linspace(0, self.vModel['EpsilonMax'], num=self.vModelParams['Grid']['NumAngularGridpoints'], endpoint=False)
         # This maps addition over the whole array automatically
         self.vModel['AngularAlphaGrid'] += self.vModel['dAlpha']/2
 
         # makes a 2d array full of zero values
-        self.vModel['DensityGrid'] = np.zeros((self.vModel['NumRadialGridpoints'],
-                                               self.vModel['NumAngularGridpoints']))
+        self.vModel['DensityGrid'] = np.zeros((self.vModelParams['Grid']['NumRadialGridpoints'],
+                                               self.vModelParams['Grid']['NumAngularGridpoints']))
 
         self._computeDensityGrid()
         self._interpolateColumnDensity()
@@ -708,37 +779,34 @@ class VectorialModel(GasComa):
         # this factor comes from molecular flux of ideal gas moving through a surface, in our case the surface of the
         # collision sphere
         vtherm = self.par['Velocity']*0.25
-        q = self.comet['ProductionRates'][0]
+        q = self.vModelParams['ProductionRates'][0]
         vp = self.par['Velocity']
         vf = self.frag['Velocity']
 
-        self.vModel['MiscOutput'] = {}
-
         # Eq. 5 of Festou 1981
-        self.vModel['MiscOutput']['CollisionSphereRadius'] = ((self.sigma * q * vtherm)/(vp * vp))*u.m
+        self.vModel['CollisionSphereRadius'] = ((self.cross_section * q * vtherm)/(vp * vp))*u.m
 
         """ Calculates the radius of the coma given our input parameters """
         # NOTE: Equation (16) of Festou 1981 where alpha is the percent destruction of molecules
         parentBetaR = -np.log(1.0 - self.par['DestructionLevel'])
         parentR = parentBetaR * vp * self.par['TotalLifetime']
-        fragR = vp * self.comet['TimeAtProductions'][0]
-        self.vModel['MiscOutput']['ComaRadius'] = min(parentR, fragR)*u.m
+        fragR = vp * self.vModelParams['TimeAtProductions'][0]
+        self.vModel['ComaRadius'] = min(parentR, fragR)*u.m
 
         """ Calculates the time needed to hit a steady, permanent production """
         fragmentBetaR = -np.log(1.0 - self.frag['DestructionLevel'])
         # Permanent flow regime
-        permFlowR = self.vModel['MiscOutput']['ComaRadius'].value + ((vp + vf) * fragmentBetaR * self.frag['TotalLifetime'])
+        permFlowR = self.vModel['ComaRadius'].value + ((vp + vf) * fragmentBetaR * self.frag['TotalLifetime'])
 
-        timeInSecs = self.vModel['MiscOutput']['ComaRadius'].value/vp + (permFlowR - self.vModel['MiscOutput']['ComaRadius'].value)/(vp + vf)
-        self.vModel['MiscOutput']['TimeToPermanentFlowRegime'] = (timeInSecs * u.s).to(u.day)
+        timeInSecs = self.vModel['ComaRadius'].value/vp + (permFlowR - self.vModel['ComaRadius'].value)/(vp + vf)
+        self.vModel['TimeToPermanentFlowRegime'] = (timeInSecs * u.s).to(u.day)
 
         """ this is the total radial size that parents & fragments occupy, beyond which we assume zero density
         """
         # Calculate the lesser of the radii of two situations
-        #       Permanent flow regime
-        permFlowR = self.vModel['MiscOutput']['ComaRadius'].value + ((vp + vf) * fragmentBetaR * self.frag['TotalLifetime'])
+        #       Permanent flow regime, calculated above
         #       or Outburst situation
-        outburstR = (vp + vf) * self.comet['TimeAtProductions'][0]
+        outburstR = (vp + vf) * self.vModelParams['TimeAtProductions'][0]
         self.vModel['MaxRadiusOfGrid'] = min(permFlowR, outburstR)*u.m
 
         # Two cases for angular range of ejection of fragment based on relative velocities of parent and fragment species
@@ -753,46 +821,46 @@ class VectorialModel(GasComa):
 
             For times in the past beyond the specified production rates, returns zero
         """
-        if t > self.comet['TimeAtProductions'][0]:
+        if t > self.vModelParams['TimeAtProductions'][0]:
             return 0.0
 
         for i in range(0, self.numProductionRates):
-            binStartTime = self.comet['TimeAtProductions'][i]
+            binStartTime = self.vModelParams['TimeAtProductions'][i]
             if i == (self.numProductionRates - 1):
                 # We're at the end of the array, so stop time is zero seconds ago
                 binStopTime = 0
             else:
                 # Otherwise we go all the way to the start of the next one
-                binStopTime = self.comet['TimeAtProductions'][i+1]
+                binStopTime = self.vModelParams['TimeAtProductions'][i+1]
 
             # NOTE: remember that these times are in seconds ago, so the comparison is backward
             if t < binStartTime and t >= binStopTime:
-                return self.comet['ProductionRates'][i]
+                return self.vModelParams['ProductionRates'][i]
 
     def _makeLogspaceGrid(self):
         """ Creates a grid (in meters) with numpy's logspace function that covers the expected radial size,
             stretching from 2 times the collision sphere radius (near the nucleus be dragons) out to the calculated max
             If we get too close to the nucleus things go very badly so don't do it, dear reader
         """
-        rStartpointPower = np.log10(self.vModel['MiscOutput']['CollisionSphereRadius'].value * 2)
+        rStartpointPower = np.log10(self.vModel['CollisionSphereRadius'].value * 2)
         rEndpointPower = np.log10(self.vModel['MaxRadiusOfGrid'].value)
-        return np.logspace(rStartpointPower, rEndpointPower.astype(float), num=self.vModelParams['Grid']['RadialGridpoints'], endpoint=True)
+        return np.logspace(rStartpointPower, rEndpointPower.astype(float), num=self.vModelParams['Grid']['NumRadialGridpoints'], endpoint=True)
 
     def _computeDensityGrid(self):
         """ Computes the density at different radii and due to each ejection angle, performing the
            radial integration of eq. (36), Festou 1981 with only one fragment velocity.
-           The resulting units will be in 1/(m^3) because we work in m, s, and m/s.
+           The resulting units will be in 1/(m^3) as we work in m, s, and m/s.
         """
         vp = self.par['Velocity']
         vf = self.frag['Velocity']
 
         # Follow fragments until they have been totally destroyed
         timeLimit = 8.0 * self.frag['TotalLifetime']
-        rComa = self.vModel['MiscOutput']['ComaRadius'].value
+        rComa = self.vModel['ComaRadius'].value
         rLimit = rComa
 
         # temporary radial array for when we loop through 0 to epsilonMax
-        ejectionRadii = np.zeros(self.vModelParams['Grid']['SubgridRadialSteps'])
+        ejectionRadii = np.zeros(self.vModelParams['Grid']['NumSubgridRadialSteps'])
 
         pTotLifetime = self.par['TotalLifetime']
         fTotLifetime = self.frag['TotalLifetime']
@@ -802,12 +870,12 @@ class VectorialModel(GasComa):
         # More factors to fill out integral similar to eq. (36) Festou 1981
         IntegrationFactor = (1/(4 * np.pi * pDisLifetime)) * self.vModel['dAlpha']/(4.0 * np.pi)
 
-        # Build the 2d elementary density table
+        # Calculate the density contributions over the volume of the comet atmosphere due to one ejection axis
         # Loop through alpha
-        for j in range(0, self.vModel['NumAngularGridpoints']):
+        for j in range(0, self.vModelParams['Grid']['NumAngularGridpoints']):
             curAngle = self.vModel['AngularAlphaGrid'][j]
             # Loop through the radial points along this axis
-            for i in range(0, self.vModel['NumRadialGridpoints']):
+            for i in range(0, self.vModelParams['Grid']['NumRadialGridpoints']):
 
                 curR = self.vModel['FastRadialGrid'][i]
                 x = curR * np.sin(curAngle)
@@ -828,7 +896,7 @@ class VectorialModel(GasComa):
 
                 ejectionRadiiStart = 0
                 # Number of slices along the contributing axis for each step
-                NumRadialSlices = self.vModelParams['Grid']['SubgridAngularSteps']
+                NumRadialSlices = self.vModelParams['Grid']['NumSubgridAngularSteps']
 
                 # Loop over radial chunk that contributes to x,y
                 for ejectionRadiiEnd in ejectionRadii:
@@ -902,8 +970,8 @@ class VectorialModel(GasComa):
                     # Next starting radial point is the current end point
                     ejectionRadiiStart = ejectionRadiiEnd
 
-            if(self.vModelParams['Misc']['PrintDensityProgress'] is True):
-                progressPercent = (j+1)*100/self.vModel['NumAngularGridpoints']
+            if(self.vModelParams['PrintDensityProgress'] is True):
+                progressPercent = (j+1)*100/self.vModelParams['Grid']['NumAngularGridpoints']
                 print(f'Computing: {progressPercent:3.1f} %', end='\r')
 
         # Loops automatically over the 2d grid
@@ -919,11 +987,11 @@ class VectorialModel(GasComa):
         """
 
         # Make array to hold our data, no units
-        self.vModel['FastRadialDensity'] = np.zeros(self.vModel['NumRadialGridpoints'])
+        self.vModel['FastRadialDensity'] = np.zeros(self.vModelParams['Grid']['NumRadialGridpoints'])
 
         # loop through grid array
-        for i in range(0, self.vModel['NumRadialGridpoints']):
-            for j in range(0, self.vModel['NumAngularGridpoints']):
+        for i in range(0, self.vModelParams['Grid']['NumRadialGridpoints']):
+            for j in range(0, self.vModelParams['Grid']['NumAngularGridpoints']):
                 # Current angle is theta
                 theta = self.vModel['AngularAlphaGrid'][j]
                 # Integration factors from angular part of integral, similar to eq. (36) Festou 1981
@@ -937,8 +1005,8 @@ class VectorialModel(GasComa):
         self._interpolateRadialDensity()
 
         # Count up the number of fragments in the grid versus theoretical value
-        self.vModel['MiscOutput']['NumFragmentsTheory'] = self.calcNumFragmentsTheory()
-        self.vModel['MiscOutput']['NumFragmentsFromGrid'] = self.calcNumFragmentsFromGrid()
+        self.vModel['NumFragmentsTheory'] = self.calcNumFragmentsTheory()
+        self.vModel['NumFragmentsFromGrid'] = self.calcNumFragmentsFromGrid()
 
     def _interpolateRadialDensity(self):
         # Interpolate this radial density grid with a cubic spline for lookup at non-grid radii, input in m, out in 1/m^3
@@ -959,7 +1027,7 @@ class VectorialModel(GasComa):
         # the collision sphere radius, after a few tests
         # The results of both were the same to within .1% or better, generally
 
-        if rho < (60 * self.vModel['MiscOutput']['CollisionSphereRadius'].value):
+        if rho < (60 * self.vModel['CollisionSphereRadius'].value):
             cDens = (quad(columnDensityIntegrand, -zMax, zMax, limit=1000))[0]
         else:
             cDens = 2 * romberg(columnDensityIntegrand, 0, zMax, rtol=0.0001, divmax=20)
@@ -989,9 +1057,9 @@ class VectorialModel(GasComa):
         pTotLifetime = self.par['TotalLifetime']
         fTotLifetime = self.frag['TotalLifetime']
         pDisLifetime = self.par['DissociativeLifetime']
-        pRates = self.comet['ProductionRates']
-        pTimes = self.comet['TimeAtProductions']
-        tPerm = self.vModel['MiscOutput']['TimeToPermanentFlowRegime'].to(u.s).value
+        pRates = self.vModelParams['ProductionRates']
+        pTimes = self.vModelParams['TimeAtProductions']
+        tPerm = self.vModel['TimeToPermanentFlowRegime'].to(u.s).value
 
         mR = self.vModel['MaxRadiusOfGrid'].value
         lastDensityElement = len(self.vModel['FastRadialDensity'])-1
@@ -1021,7 +1089,6 @@ class VectorialModel(GasComa):
         def volIntegrand(r, rFunc):
             return (rFunc(r) * r**2)
 
-        # Maybe stay away from r = 0 here, but spline type of 'natural' seems to handle origin well
         rInt = romberg(volIntegrand, 0, maxR, args=(self.vModel['rDensInterpolator'], ),
                        rtol=0.0001, divmax=20)
         return 4*np.pi*rInt
