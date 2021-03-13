@@ -12,13 +12,12 @@ __all__ = ['DiskIntegratedPhaseFunc', 'LinearPhaseFunc', 'HG', 'HG12BaseClass',
 from collections import OrderedDict
 import warnings
 import numpy as np
-from numbers import Number
 from scipy.integrate import quad
 from astropy.modeling import (Fittable1DModel, Parameter)
 from astropy.table import Column
 import astropy.units as u
 from astropy import log
-from ..data import (DataClass, Phys, Obs, Ephem, dataclass_input,
+from ..data import (Phys, Obs, Ephem, dataclass_input,
                     quantity_to_dataclass)
 from ..bib import cite
 from ..units import reflectance
