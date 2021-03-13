@@ -92,8 +92,9 @@ model parameters:
   Model set size: 1
   Parameters:
        H    G 
-      --- ----
-      3.4 0.12
+      mag
+      ---- ----
+      3.53 0.12
 
 Note that model set is not supported.  Only one model can be initialized with
 the first set of valid parameters in the input `~sbpy.data.DataClass`.

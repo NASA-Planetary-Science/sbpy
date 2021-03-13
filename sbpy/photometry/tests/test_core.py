@@ -182,8 +182,8 @@ class TestHG:
         phys = Phys.from_sbdb('Ceres')
         m = HG.from_phys(phys)
         assert np.all(m.meta['targetname'] == phys['targetname'])
-        assert np.isclose(m.H.value, phys['H'])
-        assert np.isclose(m.G.value, phys['G'])
+        assert np.isclose(m.H.value, phys['H'][0].value)
+        assert np.isclose(m.G.value, phys['G'][0])
         assert np.isclose(m.radius.value, phys['diameter'].value/2)
         # test the case when target name is unknown
         phys.table.remove_column('targetname')

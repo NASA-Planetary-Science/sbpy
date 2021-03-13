@@ -304,11 +304,7 @@ Of course, everybody knows that Ceres' diameter is 945 km. But this is
 not clear from this definition:
 
     >>> ceres['diameter']
-    <QTable length=1>
-    targetname diameter
-       str5     int64  
-    ---------- --------
-	 Ceres      945   
+    945
 
 Any functionality in `sbpy` thus has to presume that diameters are
 always given in km. This makes sense for large objects - but what
@@ -325,10 +321,10 @@ defined:
     >>> ceres
     <QTable length=1>
     targetname diameter
-		  km   
+		          km   
        str5    float64 
     ---------- --------
-	 Ceres    945.0
+	 Ceres      945.0
 
 This way, units and dimensions are always available where they make
 sense and we can easily convert between different units:
