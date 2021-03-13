@@ -64,6 +64,7 @@ def data_path(filename):
     return os.path.join(data_dir, filename)
 
 
+@pytest.mark.slow
 @remote_data
 def test_remote_prodrate_simple_hcn():
 

@@ -69,3 +69,15 @@ in order to use `sbpy` in your default Python environment. If you plan to work o
 .. code-block:: bash
 
     $ python setup.py develop --user
+
+
+Running tests
+^^^^^^^^^^^^^
+
+To verify your installation is properly working, run `sbpy`'s testing suite:
+
+.. code-block:: bash
+
+    $ python3 setpy.py test
+
+Add the `--remote-data` option to include tests that require a network connection, and `-args="--run-slow"` to include any slow tests.
