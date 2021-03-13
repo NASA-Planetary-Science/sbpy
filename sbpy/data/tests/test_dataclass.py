@@ -1,12 +1,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import os
 from collections import OrderedDict
+from sbpy.data import dimensions
 import pytest
 from copy import deepcopy
-from numpy import array
 import astropy.units as u
+from astropy.coordinates import Angle
 from astropy.table import QTable, Column
-from ..core import DataClass, Conf, DataClassError
+from astropy.time import Time
+from ..core import DataClass, Conf, DataClassError, FieldError
 
 
 def data_path(filename):
@@ -337,11 +339,11 @@ def test_units():
 def test_verify_fields():
     data = DataClass.from_dict({
         'name': 'asdf',
-        'RA': 1 * u.deg,
+        'RA': Angle(1 * u.deg),
         'dRA': 1 * u.deg / u.day,
         'eup_J': 1 * u.J,
         'sband_3sigma': 1 * u.Hz,
-        #'lgint': 1 * u.Hz / u.m**2,
+        # 'lgint': 1 * u.Hz / u.m**2,
         'col_density': 1 * u.m**-2,
         'au': 1 * u.s**-1,
         'rh': 1 * u.m,
@@ -352,10 +354,12 @@ def test_verify_fields():
         'temperature': 273 * u.K,
         'period': 1 * u.s,
         'beta': 1 * u.s * u.m**2,
-        'delta-v': 1 * u.m / u.s
+        'delta-v': 1 * u.m / u.s,
+        'epoch': Time.now()
     })
     # explicitly call for verification
     data.verify_fields()
+
 
 @pytest.mark.parametrize(
     'field,quantity',
@@ -364,7 +368,7 @@ def test_verify_fields():
         ['dRA', 1 * u.m / u.day],
         ['eup_J', 1 * u.kg],
         ['sband_3sigma', 1 * u.s],
-        #['lgint', 1 * u.m],
+        # ['lgint', 1 * u.m],
         ['col_density', 1 * u.s],
         ['au', 1 * u.radian],
         ['rh', 1 * u.radian],
@@ -375,14 +379,16 @@ def test_verify_fields():
         ['temperature', 273 * u.s],
         ['period', 1 * u.radian],
         ['beta', 1 * u.s],
-        ['delta-v', 1 / u.s]
+        ['delta-v', 1 / u.s],
+        ['epoch', Time.now().jd]
     )
 )
 def test_verify_fields_error(field, quantity):
-    with pytest.raises(u.UnitsError):
+    with pytest.raises(FieldError):
         data = DataClass.from_dict({field: quantity})
         # explicitly call for verification
         data.verify_fields()
+
 
 def test_alternative_name_uniqueness():
     """test the uniqueness of alternative field names"""
@@ -408,11 +414,11 @@ def test_translate_columns(monkeypatch):
 
     new_fieldnames_info = [
         {
-            'fieldnames': ['z', 'a'],
-            'dimension': 'length'
+            'fieldnames': ['zz', 'aa'],
+            'dimension': dimensions.length
         }
     ]
-    new_fieldnames = [['z', 'a']]
+    new_fieldnames = [['zz', 'aa']]
     new_fieldname_idx = {}
     for idx, field in enumerate(new_fieldnames):
         for alt in field:
@@ -422,12 +428,12 @@ def test_translate_columns(monkeypatch):
     monkeypatch.setattr(Conf, "fieldname_idx", new_fieldname_idx)
 
     tab = DataClass.from_dict(
-        OrderedDict((('a', [1, 2, 3]*u.m),
-                     ('b', [4, 5, 6]*u.m/u.s),
-                     ('c', ['a', 'b', 'c']))))
+        OrderedDict((('aa', [1, 2, 3]*u.m),
+                     ('bb', [4, 5, 6]*u.m/u.s),
+                     ('cc', ['a', 'b', 'c']))))
 
-    assert tab._translate_columns(['a', 'b', 'c']) == ['a', 'b', 'c']
-    assert tab._translate_columns(['z', 'b', 'c']) == ['a', 'b', 'c']
+    assert tab._translate_columns(['aa', 'bb', 'cc']) == ['aa', 'bb', 'cc']
+    assert tab._translate_columns(['zz', 'bb', 'cc']) == ['aa', 'bb', 'cc']
 
     with pytest.raises(KeyError):
         tab._translate_columns(['x'])

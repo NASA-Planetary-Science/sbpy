@@ -81,7 +81,7 @@ for p in Conf.fieldnames_info:
                              'obs': '`~sbpy.data.Obs`',
                              'phys': '`~sbpy.data.Phys`'}[
                                  m.replace(',', '')] for m in p['provenance']]),
-                 p['dimension']])
+                 str(p['dimension'])])
 data = Table(array(data), names=('Description',
                                  'Field Names',
                                  'Provenance',

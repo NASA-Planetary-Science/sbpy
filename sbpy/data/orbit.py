@@ -9,6 +9,7 @@ Class for querying, manipulating, integrating, and fitting orbital elements.
 created on June 04, 2017
 """
 import os
+import numpy as np
 from numpy import array, ndarray, double, arange, rad2deg
 from astropy.time import Time
 from astropy.table import vstack, QTable
@@ -18,8 +19,13 @@ import astropy.units as u
 from warnings import warn
 
 from ..bib import cite
-from ..exceptions import SbpyException
+from ..exceptions import RequiredPackageUnavailable, SbpyException
 from . import Conf, DataClass, QueryError, TimeScaleWarning
+
+try:
+    import pyoorb
+except ImportError:
+    pyoorb = None
 
 __all__ = ['Orbit', 'OrbitError', 'OpenOrbError']
 
@@ -410,6 +416,34 @@ class Orbit(DataClass):
 
         return orbits
 
+    @staticmethod
+    def _from_oo(oo_orbits, orbittype, timescale):
+        """Convert openorb-compatible orbit array to ``Orbit``."""
+
+        # reorder data in Orbit object
+        field_names = Conf.oorb_orbit_fields[orbittype]
+
+        columns = []
+        for i, col in enumerate(oo_orbits.transpose()):
+            unit = Conf.oorb_orbit_units[orbittype][i]
+            if unit == 'deg':
+                # first, convert from radians
+                col = np.degrees(col)
+
+            column = Orbit._unit_apply(col, unit)
+
+            # convert epoch to Time object, and convert back to user's
+            # original time scale
+            if field_names[i] == 'epoch':
+                column = Time(
+                    Time(column, format='mjd', scale='tt'),
+                    scale=timescale.lower()
+                )
+
+            columns.append(column)
+
+        return Orbit.from_columns(columns, names=field_names)
+
     @cite({'method': '2009M&PS...44.1853G',
            'software': 'https://github.com/oorb/oorb'})
     def oo_transform(self, orbittype, ephfile='de430'):
@@ -471,7 +505,9 @@ class Orbit(DataClass):
         ------- ------------------ ------------------- ... ------- ------- ---------
         1 Ceres -1.967176101061908 -1.7891189971612211 ...    3.34    0.12        TT
         """
-        import pyoorb
+
+        if pyoorb is None:
+            raise RequiredPackageUnavailable('pyoorb')
 
         # initialize pyoorb
         if os.getenv('OORB_DATA') is None:
@@ -482,7 +518,7 @@ class Orbit(DataClass):
             pyoorb.pyoorb.oorb_init(ephfile)
 
         # extract time scale
-        timescale = self.table['epoch'][0].scale.upper()
+        timescale = self.table['epoch'].scale.upper()
 
         # derive and apply default units
         default_units = {}
@@ -510,31 +546,13 @@ class Orbit(DataClass):
         if err != 0:
             OpenOrbError('pyoorb failed with error code {:d}'.format(err))
 
-        # reorder data in Orbit object
-        field_names = Conf.oorb_orbit_fields[orbittype]
-
-        columns = []
-        for i, col in enumerate(oo_orbits.transpose()):
-            columns.append(Orbit._unit_apply(
-                col, Conf.oorb_orbit_units[orbittype][i]))
-        orbits = self.from_columns(columns, names=field_names)
-
-        for i, col in enumerate(orbits.field_names):
-            # convert from radians to degrees where unit == deg
-            if Conf.oorb_orbit_units[orbittype][i] == 'deg':
-                orbits._table[col] = rad2deg(orbits[col])
+        orbits = Orbit._from_oo(oo_orbits, orbittype, timescale)
 
         # replace id column with actual target names from original orbits
         orbits.table.replace_column('id', self['targetname'])
 
-        # epoch column into astropy.time.Time, original time scale, and JD
-        orbits.table['epoch'] = Time(
-            orbits['epoch'].to('d').value,
-            format='mjd', scale='tt').__getattr__(timescale.lower())
-
         # replace orbtype column
-        orbits.table.replace_column('orbtype',
-                                    [orbittype] * len(orbits.table))
+        orbits.table.replace_column('orbtype', [orbittype] * len(orbits.table))
 
         return orbits
 
@@ -605,7 +623,8 @@ class Orbit(DataClass):
         ------- ----------------- ------------------- ... ------- ------- ---------
         1 Ceres 2.769331727251861 0.07605371361208543 ...    3.34    0.12       UTC        """
 
-        import pyoorb
+        if pyoorb is None:
+            raise RequiredPackageUnavailable('pyoorb')
 
         # initialize pyoorb
         if os.getenv('OORB_DATA') is None:
@@ -661,30 +680,12 @@ class Orbit(DataClass):
         if err != 0:
             OpenOrbError('pyoorb failed with error code {:d}'.format(err))
 
-        # reorder data in Orbit object
-        field_names = Conf.oorb_orbit_fields[orbittype]
-
-        columns = []
-        for i, col in enumerate(oo_orbits.transpose()):
-            columns.append(Orbit._unit_apply(
-                col, Conf.oorb_orbit_units[orbittype][i]))
-        orbits = self.from_columns(columns, names=field_names)
-
-        for i, col in enumerate(orbits.field_names):
-            # convert from radians to degrees where unit == deg
-            if Conf.oorb_orbit_units[orbittype][i] == 'deg':
-                orbits._table[col] = rad2deg(orbits[col])
+        orbits = Orbit._from_oo(oo_orbits, orbittype, timescale)
 
         # replace id column with actual target names from original orbits
         orbits.table.replace_column('id', self.table['targetname'])
 
         orbits.meta['orbit_type'] = orbittype
         orbits.table.remove_column('epoch_scale'),
-
-        # adjust epochs to standard jd
-        orbits.table['epoch'] = Time(
-            Time(orbits.table['epoch'], format='mjd',
-                 scale='tt').__getattr__(timescale.lower()),
-            format='jd')
 
         return orbits

@@ -11,9 +11,10 @@ from copy import deepcopy
 from numpy import ndarray, array, hstack, iterable
 from astropy.table import QTable, Column
 from astropy.time import Time
+from astropy.coordinates import Angle
 import astropy.units as u
 
-from . import DIMENSION_SI_UNITS, Conf
+from . import Conf
 from ..exceptions import SbpyException, SbpyWarning
 
 __all__ = ['DataClass', 'DataClassError', 'QueryError', 'TimeScaleWarning']
@@ -28,6 +29,10 @@ class DataClassError(SbpyException):
 class QueryError(SbpyException):
     """Will be raised in case of query errors."""
     pass
+
+
+class FieldError(DataClassError):
+    """Field does not have correct units or type."""
 
 
 class TimeScaleWarning(SbpyWarning):
@@ -78,9 +83,6 @@ class DataClass():
         ----------
         val: `~astropy.units.Quantity` or unit-less type
             Input value.
-        unit: str or None
-            Unit into which ``val`` will be converted. If None, ``val`` is
-            considered not to be a `~astropy.units.Quantity`.
 
         Returns
         -------
@@ -888,35 +890,29 @@ class DataClass():
             if i is None:
                 continue
 
-            expected_unit = DIMENSION_SI_UNITS.get(
-                Conf.fieldnames_info[i]['dimension']
-            )
+            dim = Conf.fieldnames_info[i]['dimension']
 
-            equivalencies = Conf.fieldnames_info[i].get('equivalencies')
-
-            error = False
-            if expected_unit is None:
+            if dim is None:
                 # do not test
                 continue
-            elif expected_unit is Time:
-                # astropy.time.Time
-                if not isinstance(self[test_field], Time):
-                    is_time = [isinstance(x, Time) for x in self[test_field]]
-                    if not all(is_time):
-                        raise TypeError('Field {} is not a Time object.'
-                                        .format(test_field))
-            elif self[test_field].unit is None:
-                # allow None as a stand-in for dimensionless
-                if expected_unit is not u.dimensionless_unscaled:
-                    error = True
-            else:
-                is_equivalent = self[test_field].unit.is_equivalent(
-                    expected_unit, equivalencies)
-                if not is_equivalent:
-                    error = True
 
-            if error:
-                raise u.UnitsError(
-                    'Field {} is not equivalent to {}'
-                    .format(test_field, str(expected_unit))
+            if not isinstance(self[test_field], dim.object):
+                raise FieldError(
+                    'Field {} is not an instance of {}'
+                    .format(test_field, str(dim.object))
                 )
+
+            # for Quantity and subclasses, also test unit
+            if isinstance(self[test_field], u.Quantity):
+                valid = (
+                    self[test_field].unit
+                    .is_equivalent(dim.unit, dim.equivalencies)
+                )
+
+                # allow plain columns for dimensionless units
+                if not valid and not (
+                    self[test_field].unit is None
+                    and dim.unit == u.dimensionless_unscaled
+                ):
+                    raise FieldError('Field {} does not have units of {}'
+                                         .format(test_field, str(dim.unit)))
