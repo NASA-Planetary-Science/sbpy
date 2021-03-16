@@ -725,12 +725,14 @@ class VectorialModel(GasComa):
             # Default here is lower than parents because they are born farther from nucleus, tracking them too long will
             # stretch the radial grid a bit too much
             self.frag['DestructionLevel'] = 0.95
+        if 'MaxNumFragmentLifetimes' not in self.frag:
+            self.frag['MaxNumFragmentLifetimes'] = 8.0
 
         # Grid settings - set to defaults here unless passed in with the other parameters
         if 'Grid' not in self.vModelParams:
             self.vModelParams['Grid'] = {}
         if 'NumRadialGridpoints' not in self.vModelParams['Grid']:
-            self.vModelParams['Grid']['NumRadialGridpoints'] = 25
+            self.vModelParams['Grid']['NumRadialGridpoints'] = 50
         if 'NumAngularGridpoints' not in self.vModelParams['Grid']:
             self.vModelParams['Grid']['NumAngularGridpoints'] = 25
         if 'NumSubgridRadialSteps' not in self.vModelParams['Grid']:
@@ -776,8 +778,8 @@ class VectorialModel(GasComa):
             production rate has had enough time to reach a steady state before letting production vary with time.
             We also use that vtherm = 0.25 * outflow velocity
         """
-        # this factor comes from molecular flux of ideal gas moving through a surface, in our case the surface of the
-        # collision sphere
+        # this vtherm factor comes from molecular flux of ideal gas moving through a surface, in our case the surface
+        # of the collision sphere
         vtherm = self.par['Velocity']*0.25
         q = self.vModelParams['ProductionRates'][0]
         vp = self.par['Velocity']
@@ -855,7 +857,7 @@ class VectorialModel(GasComa):
         vf = self.frag['Velocity']
 
         # Follow fragments until they have been totally destroyed
-        timeLimit = 8.0 * self.frag['TotalLifetime']
+        timeLimit = self.frag['MaxNumFragmentLifetimes'] * self.frag['TotalLifetime']
         rComa = self.vModel['ComaRadius'].value
         rLimit = rComa
 
