@@ -392,3 +392,58 @@ class TestHaser:
             test._iK0(1)
         with pytest.raises(sbe.RequiredPackageUnavailable):
             test._K1(1)
+
+class TestVectorialModel:
+    def test_fragment_count(self):
+        """ Compute theoretical number of fragments vs. integrated value from grid """
+        """ Dependent on the default size of the grid - will fail if that is too small """
+        vmInput = {}
+
+        # 45 days ago until now, production has been 1e28 molecules/sec
+        vmInput['TimeAtProductions'] = [45] * u.day
+        vmInput['ProductionRates'] = [1.e28]
+
+        # Parent molecule is H2O
+        vmInput['Parent'] = {}
+        # A few values used in Festou's original fortran
+        vmInput['Parent']['TotalLifetime'] = 86430 * u.s
+        vmInput['Parent']['DissociativeLifetime'] = 101730 * u.s
+        vmInput['Parent']['Velocity'] = 0.85 * (u.km/u.s)
+
+        # Fragment molecule is OH
+        vmInput['Fragment'] = {}
+        vmInput['Fragment']['Velocity'] = 1.05 * u.km/u.s
+        vmInput['Fragment']['TotalLifetime'] = 129000 * u.s
+
+        coma = VectorialModel(0*(1/u.s), 0 * u.m/u.s, vmInput)
+
+        fragTheory = coma.vModel['NumFragmentsTheory']
+        fragGrid = coma.vModel['NumFragmentsFromGrid']
+        assert np.isclose(fragTheory, fragGrid, rtol=0.02)
+
+    def test_total_number_large_aperture(self):
+        """ Compare theoretical number of fragments vs. integration of column density over a large aperture """
+        """ Dependent on the default size of the grid - will fail if that is too small """
+        vmInput = {}
+
+        # 45 days ago until now, production has been 1e28 molecules/sec
+        vmInput['TimeAtProductions'] = [45] * u.day
+        vmInput['ProductionRates'] = [1.e28]
+
+        # Parent molecule is H2O
+        vmInput['Parent'] = {}
+        # A few values used in Festou's original fortran
+        vmInput['Parent']['TotalLifetime'] = 86430 * u.s
+        vmInput['Parent']['DissociativeLifetime'] = 101730 * u.s
+        vmInput['Parent']['Velocity'] = 0.85 * (u.km/u.s)
+
+        # Fragment molecule is OH
+        vmInput['Fragment'] = {}
+        vmInput['Fragment']['Velocity'] = 1.05 * u.km/u.s
+        vmInput['Fragment']['TotalLifetime'] = 129000 * u.s
+
+        coma = VectorialModel(0*(1/u.s), 0 * u.m/u.s, vmInput)
+
+        fragTheory = coma.vModel['NumFragmentsTheory']
+        ap = core.CircularAperture((coma.vModel['MaxRadiusOfGrid'].value) * u.m)
+        assert np.isclose(fragTheory, coma.total_number(ap), rtol=0.02)
