@@ -226,6 +226,10 @@ class DataClass():
                                      scale=val.scale)
                 else:
                     data[key] = [val]
+            elif not isinstance(val, Time) and isinstance(val[0], Time):
+                # val is iterable and not a time oboject, but first val is a Time
+                # object, so make it a Time array (rather than array of Time):
+                data[key] = Time(val)
 
         return cls.from_table(QTable(data, meta=meta, **kwargs))
 
