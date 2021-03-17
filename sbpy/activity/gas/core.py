@@ -675,6 +675,10 @@ class VectorialModel(GasComa):
             --- (Optional) Printing ---
             inputParameters['PrintDensityProgress']: Print progress while calculating volume density, if you're using a
                 large grid
+
+            References:
+                 The density distribution of neutral compounds in cometary atmospheres. I - Models and equations,
+                 Festou, M. C. 1981, Astronomy and Astrophysics, vol. 95, no. 1, Feb. 1981, p. 69-79.
     """
 
     """ NOTE: We allow Q to vary with time, so we pass it along to the base class but it is ultimately ignored in favor
@@ -684,6 +688,7 @@ class VectorialModel(GasComa):
     """
     # TODO: We would have to rewrite the time-varying production stuff to accept Q here and then let the param structure
     # define some variation of this initial production rate
+    @bib.cite({'model': '1981A&A....95...69F'})
     @u.quantity_input(Q=(u.s**-1, u.mol / u.s), v=u.m / u.s)
     def __init__(self, Q, v, inputParameters):
         super().__init__(Q, v)
@@ -1008,6 +1013,8 @@ class VectorialModel(GasComa):
         self.vModel['NumFragmentsFromGrid'] = self.calcNumFragmentsFromGrid()
 
     def _interpolateRadialDensity(self):
+        if not scipy:
+            raise RequiredPackageUnavailable('scipy')
         # Interpolate this radial density grid with a cubic spline for lookup at non-grid radii, input in m, out in 1/m^3
         self.vModel['rDensInterpolator'] = CubicSpline(self.vModel['FastRadialGrid'], self.vModel['FastRadialDensity'], bc_type='natural')
 
@@ -1038,6 +1045,9 @@ class VectorialModel(GasComa):
         """ computes the column density on a grid and produces an interpolation function based on it.
             The interpolator takes input in m from nucleus and return column density in m^-2
         """
+        if not scipy:
+            raise RequiredPackageUnavailable('scipy')
+
         cDensGrid = self._makeLogspaceGrid()
         cdVec = np.vectorize(self._calculateColumnDensity)
         columnDensities = cdVec(cDensGrid)
