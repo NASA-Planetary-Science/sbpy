@@ -14,7 +14,6 @@ __all__ = [
 from warnings import warn
 from abc import ABC, abstractmethod
 
-import copy
 import numpy as np
 import astropy.units as u
 
@@ -691,9 +690,7 @@ class VectorialModel(GasComa):
     def __init__(self, Q, v, inputParameters):
         super().__init__(Q, v)
 
-        # TODO: figure out if this is really necessary
-        # Deep copy so we can make changes without affecting data user passed in
-        self.vModelParams = copy.deepcopy(inputParameters)
+        self.vModelParams = inputParameters
 
         # Convert to seconds
         self.vModelParams['TimeAtProductions'] = self.vModelParams['TimeAtProductions'].to(u.s).value
