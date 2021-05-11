@@ -11,6 +11,7 @@ __all__ = [
     'VectorialModel'
 ]
 
+from copy import deepcopy
 from warnings import warn
 from abc import ABC, abstractmethod
 
@@ -695,7 +696,7 @@ class VectorialModel(GasComa):
     def __init__(self, Q, v, inputParameters):
         super().__init__(Q, v)
 
-        self.vModelParams = inputParameters
+        self.vModelParams = deepcopy(inputParameters)
 
         # Convert to seconds
         self.vModelParams['TimeAtProductions'] = self.vModelParams['TimeAtProductions'].to(u.s).value
