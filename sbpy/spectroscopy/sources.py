@@ -28,7 +28,6 @@ except ImportError:
 
 from ..exceptions import SbpyException
 from .. import bib
-from ..units import hundred_nm
 
 __doctest_requires__ = {
     'SpectralSource': ['synphot'],
