@@ -93,7 +93,6 @@ class TestBlackbodySource:
         assert np.allclose(test, f.value)
 
 
-
 class TestReddening:
     def test_init(self):
         S = SpectralGradient(14 * u.percent / hundred_nm, wave0=0.55 * u.um)

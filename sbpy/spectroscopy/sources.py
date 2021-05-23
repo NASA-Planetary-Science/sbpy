@@ -521,7 +521,6 @@ class BlackbodySource(SpectralSource):
         return self._T
 
 
-
 class Reddening(BaseUnitlessSpectrum):
     """Class to handle simple linear reddening.
 
