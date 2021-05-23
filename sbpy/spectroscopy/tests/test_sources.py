@@ -64,9 +64,13 @@ class TestSpectralSource:
 
     def test_redden(self):
         s = Star()
+        s._description = 'Test star spectrum'
         S = SpectralGradient(14 * u.percent / hundred_nm, wave0=0.55 * u.um)
         s_r = s.redden(S)
         assert u.isclose(s_r(0.65 * u.um), 1.14 * u.W / (u.m**2 * u.um))
+        assert s_r.description == 'Test star spectrum reddened by {} at {}'. \
+                    format(14 * u.percent / hundred_nm, 0.55 * u.um)
+
 
 class TestBlackbodySource:
     @pytest.mark.parametrize('T', (
