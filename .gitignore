@@ -61,6 +61,7 @@ distribute-*.tar.gz
 .settings
 *py#
 .firebase
+.tmp
 
 # Mac OSX
 .DS_Store
