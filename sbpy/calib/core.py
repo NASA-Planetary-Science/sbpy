@@ -621,10 +621,14 @@ class Sun(SpectralStandard):
     >>> import numpy as np
     >>> import astropy.units as u
     >>> import astropy.constants as const
-    >>> from astropy.modeling.blackbody import blackbody_lambda
+    >>> from astropy.modeling.models import BlackBody
+    >>> B = BlackBody(
+    ...     temperature=5770 * u.K,
+    ...     scale=((const.R_sun.to('au') / const.au)**2)
+    ...            * u.W / u.m**2 / u.um / u.sr)
+    ... )
     >>> wave = np.logspace(-1, 2, 300) * u.um
-    >>> fluxd = (blackbody_lambda(wave, 5770 * u.K) * np.pi * u.sr
-    ...          * (const.R_sun**2 / const.au**2).decompose())
+    >>> fluxd = B(wave) * np.pi * u.sr
     >>> sun = Sun.from_array(wave, fluxd, description='5770 K blackbody Sun')
 
     Interpolate to / evaluate at 0.62 μm:
