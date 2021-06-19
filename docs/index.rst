@@ -34,7 +34,7 @@ Current Status
     :alt: GitHub testing status
 
 .. image:: https://codecov.io/gh/NASA-Planetary-Science/sbpy/branch/master/graph/badge.svg
-    :target: https://app.codecov.io/gh/NASA-Planetary-Science/sbpy/branch/master/graph/badge.svg
+    :target: https://codecov.io/gh/NASA-Planetary-Science/sbpy
     :alt: codecov status
 
 	     
