@@ -8,19 +8,12 @@ sbpy.data
 
 ``Conf`` contains metadata for ``sbpy`` `~sbpy.DataClass` field names.
 
-``Conf.fieldnames_info`` is a list of dictionaries, one per field, with the
-keys: `'description'`, `'fieldnames'`, `'provenance'`, `'dimension'`, and
-`'equivalencies'`: 
-* description: text description of the field
-* provenance: list of `~sbpy.DataClass` objects which use the field
-* fieldnames: list of field names as strings, the first is considered the
-  primary, the remaining strings, if any, are alternates
-* dimension: English description of the field's dimension (e.g., length)
-* equivalencies: `~astropy.units` list of equivalencies for unit conversion
-  (optional)
-* 
-
-
+``Conf.fieldnames_info`` is a list of dictionaries, one per field, with the keys: `'description'`, `'fieldnames'`, `'provenance'`, `'dimension'`, and `'equivalencies'`:
+    * description: text description of the field
+    * provenance: list of `~sbpy.DataClass` objects which use the field
+    * fieldnames: list of field names as strings, the first is considered the primary, the remaining strings, if any, are alternates
+    * dimension: English description of the field's dimension (e.g., length)
+    * equivalencies: `~astropy.units` list of equivalencies for unit conversion (optional)
 
 """
 

@@ -320,7 +320,7 @@ total number of molecules and the number of molecules calculated from the data
 to scale the model Q and output the new production rate from the result. This
 LTE model does account for the effects of photolysis. For more information
 on the parameters that are needed for the function see
-`~sbpy.activity.LTE.from_Haser`.
+`~sbpy.activity.LTE.from_Haser()`.
 
 .. doctest-skip::
 
@@ -337,5 +337,5 @@ rate modules, please see notebook examples.
 
 Reference/API
 -------------
-.. automodapi:: sbpy.activity.gas
+.. automodapi:: sbpy.activity.gas.core
     :no-heading:
