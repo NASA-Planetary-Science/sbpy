@@ -26,6 +26,7 @@ class TestDiskIntegratedPhaseFunc():
     def test__unit(self):
         class TestClass(DiskIntegratedPhaseFunc):
             p = Parameter(default=1.)
+
             @staticmethod
             def evaluate(a, p):
                 return a * p
@@ -39,6 +40,7 @@ class TestDiskIntegratedPhaseFunc():
             _unit = 'ref'
             p = Parameter(default=0.1 / u.sr)
             nu = Parameter(default=0.1 / u.rad)
+
             @staticmethod
             def evaluate(a, p, nu):
                 return p * np.exp(-nu * a)
