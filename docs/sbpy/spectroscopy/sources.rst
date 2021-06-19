@@ -34,20 +34,20 @@ Observe the source through a fictitious 10-μm filter:
 Observe the source through a low-resolution spectrometer:
 
 
-.. doctest-requires:: synphot
-.. plot:: plot_rcparams={'backend': 'agg'} plot_include_source=True
+.. plot::
+  :include-source: True
 
-   import numpy as np
-   import matplotlib.pyplot as plt
-   import astropy.units as u
-   from sbpy.spectroscopy.sources import BlackbodySource
+  import numpy as np
+  import matplotlib.pyplot as plt
+  import astropy.units as u
+  from sbpy.spectroscopy.sources import BlackbodySource
 
-   B = BlackbodySource(T=278 * u.K)
-   wave = np.logspace(0.5, 1.5, 100) * u.um
-   fluxd = B.observe(wave, unit='MJy')
+  B = BlackbodySource(T=278 * u.K)
+  wave = np.logspace(0.5, 1.5, 100) * u.um
+  fluxd = B.observe(wave, unit='MJy')
   
-   plt.plot(wave, fluxd, drawstyle='steps-mid', label=str(B.T))
-   plt.setp(plt.gca(), xlabel='Wavelength (μm)', ylabel='$F_ν$ (MJy)')
+  plt.plot(wave, fluxd, drawstyle='steps-mid', label=str(B.T))
+  plt.setp(plt.gca(), xlabel='Wavelength (μm)', ylabel='$F_ν$ (MJy)')
 
 
 Developers' Notes

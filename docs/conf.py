@@ -29,6 +29,9 @@ import datetime
 import os
 import sys
 
+import matplotlib
+matplotlib.use('agg')
+
 try:
     from sphinx_astropy.conf.v1 import *
 except ImportError:
