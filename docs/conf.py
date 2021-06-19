@@ -29,6 +29,9 @@ import datetime
 import os
 import sys
 
+import matplotlib
+matplotlib.use('agg')
+
 try:
     from sphinx_astropy.conf.v1 import *
 except ImportError:
@@ -36,10 +39,7 @@ except ImportError:
     sys.exit(1)
 
 # Get configuration information from setup.cfg
-try:
-    from ConfigParser import ConfigParser
-except ImportError:
-    from configparser import ConfigParser
+from configparser import ConfigParser
 conf = ConfigParser()
 
 conf.read([os.path.join(os.path.dirname(__file__), '..', 'setup.cfg')])
@@ -65,6 +65,9 @@ exclude_patterns.append('_templates')
 # be used globally.
 rst_epilog += """
 """
+
+extensions += ['sphinx.ext.intersphinx',
+               'sphinx_automodapi.smart_resolver']
 
 # -- Project information ------------------------------------------------------
 
@@ -157,8 +160,7 @@ man_pages = [('index', project.lower(), project + u' Documentation',
 # -- Options for the edit_on_github extension ---------------------------------
 
 if eval(setup_cfg.get('edit_on_github')):
-    extensions += ['sphinx_astropy.ext.edit_on_github',
-                   'sphinx.ext.intersphinx']
+    extensions += ['sphinx_astropy.ext.edit_on_github']
 
     versionmod = __import__(setup_cfg['package_name'] + '.version')
     edit_on_github_project = setup_cfg['github_project']

@@ -82,7 +82,9 @@ def test_remote_prodrate_simple_hcn():
 
         time = Time(hcn['Time'][i], format='iso')
         integrated_flux = hcn['T_B'][i] * u.K * u.km / u.s
-        ephemobj = Ephem.from_horizons(target, epochs=time, id_type='id')
+        ephemobj = Ephem.from_horizons(
+            target, epochs=time, id_type='designation',
+            closest_apparition=True)
 
         lte = LTE()
 
@@ -124,7 +126,9 @@ def test_remote_prodrate_simple_ch3oh():
 
         time = Time(ch3oh['Time'][i], format='iso')
         integrated_flux = ch3oh['T_B'][i] * u.K * u.km / u.s
-        ephemobj = Ephem.from_horizons(target, epochs=time, id_type='id')
+        ephemobj = Ephem.from_horizons(target, epochs=time,
+                                       id_type='designation',
+                                       closest_apparition=True)
 
         lte = LTE()
 

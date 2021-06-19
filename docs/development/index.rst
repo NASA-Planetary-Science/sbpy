@@ -72,7 +72,7 @@ Technical requirements
 ^^^^^^^^^^^^^^^^^^^^^^
 
 * code must adhere to `astropy's contributing guidelines
-  <http://www.astropy.org/contribute.html>`__, the guidelines
+  <https://www.astropy.org/contribute.html>`__, the guidelines
   described in this document and `PEP8
   <https://www.python.org/dev/peps/pep-0008/>`_
 * code must be accompanied by corresponding tests; 100% of the
@@ -126,9 +126,9 @@ This is the proposed workflow for code contributions:
   member.
 
 Please also check out `astropy's contributing guidelines
-<http://www.astropy.org/contribute.html>`__ for a general introduction
+<https://www.astropy.org/contribute.html>`__ for a general introduction
 on coding techniques and additional hints.
 
 Please follow the `astropy code of conduct`_ at any time.
 
-.. _astropy code of conduct: http://docs.astropy.org/en/latest/development/codeguide.html
+.. _astropy code of conduct: https://docs.astropy.org/en/latest/development/codeguide.html

@@ -304,11 +304,7 @@ Of course, everybody knows that Ceres' diameter is 945 km. But this is
 not clear from this definition:
 
     >>> ceres['diameter']
-    <QTable length=1>
-    targetname diameter
-       str5     int64  
-    ---------- --------
-	 Ceres      945   
+    945
 
 Any functionality in `sbpy` thus has to presume that diameters are
 always given in km. This makes sense for large objects - but what
@@ -325,10 +321,10 @@ defined:
     >>> ceres
     <QTable length=1>
     targetname diameter
-		  km   
+		          km   
        str5    float64 
     ---------- --------
-	 Ceres    945.0
+	 Ceres      945.0
 
 This way, units and dimensions are always available where they make
 sense and we can easily convert between different units:
@@ -404,7 +400,7 @@ methods.
 .. _OpenOrb: https://github.com/oorb/oorb
 .. _SpiceyPy: https://github.com/AndrewAnnex/SpiceyPy
 .. _web-API: https://minorplanetcenter.net/search_db
-.. _Solar System Object Image Search function of the Canadian Astronomy Data Centre: http://goo.gl/2aGYsW
+.. _Solar System Object Image Search function of the Canadian Astronomy Data Centre: http://www.cadc-ccda.hia-iha.nrc-cnrc.gc.ca/en/ssois/
 .. _skybot: http://vo.imcce.fr/webservices/skybot/
 .. _small bodies data ferret: https://sbnapps.psi.edu/ferret
 .. _github wiki: https://github.com/mommermi/sbpy/wiki

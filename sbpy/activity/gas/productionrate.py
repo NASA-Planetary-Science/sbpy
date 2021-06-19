@@ -45,7 +45,7 @@ def intensity_conversion(mol_data):
             * Degrees of freedom (Dimensionless)
 
         Keywords that can be used for these values are found under
-        `~sbpy.data.conf.fieldnames` documentation. We recommend the use of the
+        `~sbpy.data.Conf.fieldnames` documentation. We recommend the use of the
         JPL Molecular Spectral Catalog and the use of
         `~sbpy.data.phys.from_jplspec` to obtain these values in order to
         maintain consistency and because all calculations can be handled within
@@ -122,7 +122,7 @@ def einstein_coeff(mol_data):
             * Degrees of freedom (Dimensionless)
 
         Keywords that can be used for these values are found under
-        `~sbpy.data.conf.fieldnames` documentation. We recommend the use of the
+        `~sbpy.data.Conf.fieldnames` documentation. We recommend the use of the
         JPL Molecular Spectral Catalog and the use of
         `~sbpy.data.phys.from_jplspec` to obtain these values in order to
         maintain consistency. Yet, if you wish to use your own molecular data,
@@ -204,7 +204,7 @@ def beta_factor(mol_data, ephemobj):
         will have to be provided by the user directly for calculations. The
         user can obtain the beta factor from the formula provided above.
         Keywords that can be used for these values are found under
-        `~sbpy.data.conf.fieldnames` documentation. We recommend the use of the
+        `~sbpy.data.Conf.fieldnames` documentation. We recommend the use of the
         JPL Molecular Spectral Catalog and the use of
         `~sbpy.data.Phys.from_jplspec` to obtain
         these values in order to maintain consistency. Yet, if you wish to
@@ -280,7 +280,7 @@ def total_number(mol_data, aper, b):
         functions `~sbpy.activity.gas.productionrate.einstein_coeff` and
         `~sbpy.activity.gas.productionrate.beta_factor`
         Keywords that can be used for these values are found under
-        `~sbpy.data.conf.fieldnames` documentation. We recommend the use of the
+        `~sbpy.data.Conf.fieldnames` documentation. We recommend the use of the
         JPL Molecular Spectral Catalog and the use of
         `~sbpy.data.phys.from_jplspec` to obtain
         these values in order to maintain consistency. Yet, if you wish to
@@ -338,7 +338,7 @@ def from_Haser(coma, mol_data, aper=25 * u.m):
         `~sbpy.activity.gas.productionrate.beta_factor`, and
         `~sbpy.activity.gas.productionrate.total_number`.
         Keywords that can be used for these values are found under
-        `~sbpy.data.conf.fieldnames` documentation. We recommend the use of the
+        `~sbpy.data.Conf.fieldnames` documentation. We recommend the use of the
         JPL Molecular Spectral Catalog and the use of
         `~sbpy.data.Phys.from_jplspec` to obtain
         these values in order to maintain consistency. Yet, if you wish to
@@ -470,7 +470,7 @@ class LTE():
             the functions `~sbpy.activity.gas.productionrate.einstein_coeff`
             and `~sbpy.activity.gas.productionrate.beta_factor`
             Keywords that can be used for these values are found under
-            `~sbpy.data.conf.fieldnames` documentation. We recommend the use of
+            `~sbpy.data.Conf.fieldnames` documentation. We recommend the use of
             the JPL Molecular Spectral Catalog and the use of
             `~sbpy.data.phys.from_jplspec` to obtain
             these values in order to maintain consistency. Yet, if you wish to
@@ -524,7 +524,7 @@ class LTE():
             `~sbpy.data.phys.from_jplspec`,
             `~sbpy.activity.gas.productionrate.einstein_coeff`,
             Keywords that can be used for these values are found under
-            `~sbpy.data.conf.fieldnames` documentation. We recommend the use of
+            `~sbpy.data.Conf.fieldnames` documentation. We recommend the use of
             the JPL Molecular Spectral Catalog and the use of
             `~sbpy.data.Phys.from_jplspec` to obtain
             these values in order to maintain consistency. Yet, if you wish to
@@ -570,8 +570,9 @@ class LTE():
         >>> integrated_flux = 1.22 * u.K * u.km / u.s
 
         >>> time = Time('2010-11-3 00:48:06', format='iso')
-        >>> ephemobj = Ephem.from_horizons(target, epochs=time,
-        ...                                id_type='id') # doctest: +REMOTE_DATA
+        >>> ephemobj = Ephem.from_horizons(
+        ...     target, epochs=time, closest_apparition=True,
+        ...     id_type='designation') # doctest: +REMOTE_DATA
 
         >>> mol_data = Phys.from_jplspec(temp_estimate, transition_freq,
         ...                              mol_tag) # doctest: +REMOTE_DATA
@@ -668,7 +669,7 @@ class NonLTE():
                     | lamda_name: (optional) LAMDA molecule identifier to avoid ambiguity. `Lamda.molecule_dict` provides list
 
             Keywords that can be used for these values are found under
-            `~sbpy.data.conf.fieldnames` documentation. Make sure to inform
+            `~sbpy.data.Conf.fieldnames` documentation. Make sure to inform
             yourself on the values needed for each function, their units, and
             their interchangeable keywords as part of the Phys data class.
 

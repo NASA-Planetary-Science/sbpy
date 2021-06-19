@@ -88,8 +88,8 @@ def bandpass(name):
 
     References
     ----------
-    .. [CDBS] Space Telescope Science Institute.  Calibration Database
-       System.  http://www.stsci.edu/hst/observatory/cdbs .
+    .. [CDBS] Space Telescope Science Institute.  HST Calibration Reference
+       Data System.  https://hst-crds.stsci.edu/ .
 
     .. [COH03] Cohen, M. et al. 2003.  Spectral Irradiance Calibration
        in the Infrared.  XIV.  The Absolute Calibration of 2MASS.  AJ
@@ -99,7 +99,7 @@ def bandpass(name):
        the Ecliptic Poles. ApJ 735, 112.
 
     .. [SDSS] Sloan Digital Sky Survey.  Camera.
-       https://www.sdss.org/instruments/camera .
+       www.sdss.org/instruments/camera .
 
     .. [TON12] Tonry, J. L. et al. 2012.  The Pan-STARRS1 Photometric
        System.  ApJ 750, 99.

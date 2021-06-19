@@ -26,6 +26,7 @@ class TestDiskIntegratedPhaseFunc():
     def test__unit(self):
         class TestClass(DiskIntegratedPhaseFunc):
             p = Parameter(default=1.)
+
             @staticmethod
             def evaluate(a, p):
                 return a * p
@@ -39,6 +40,7 @@ class TestDiskIntegratedPhaseFunc():
             _unit = 'ref'
             p = Parameter(default=0.1 / u.sr)
             nu = Parameter(default=0.1 / u.rad)
+
             @staticmethod
             def evaluate(a, p, nu):
                 return p * np.exp(-nu * a)
@@ -143,8 +145,8 @@ class TestLinear():
         assert np.isclose(linphase.phaseint, 0.36755394203990327)
 
     def test__distance_module(self):
-        r = [0.5, 1, 1.2, 2]
-        delta = [0.3, 1, 1, 2]
+        r = [0.5, 1, 1.2, 2] * u.au
+        delta = [0.3, 1, 1, 2] * u.au
         m = LinearPhaseFunc(5 * u.mag, 0.04 * u.mag / u.deg)
         module_test = [0.0225, 1., 1.44, 16.]
         module = m._distance_module(Ephem.from_dict({'r': r, 'delta': delta}))
@@ -182,8 +184,8 @@ class TestHG:
         phys = Phys.from_sbdb('Ceres')
         m = HG.from_phys(phys)
         assert np.all(m.meta['targetname'] == phys['targetname'])
-        assert np.isclose(m.H.value, phys['H'])
-        assert np.isclose(m.G.value, phys['G'])
+        assert np.isclose(m.H.value, phys['H'][0].value)
+        assert np.isclose(m.G.value, phys['G'][0])
         assert np.isclose(m.radius.value, phys['diameter'].value/2)
         # test the case when target name is unknown
         phys.table.remove_column('targetname')
@@ -198,7 +200,7 @@ class TestHG:
         m = HG(3.34 * u.mag, 0.12)
         p = m.to_phys()
         assert isinstance(p, Phys)
-        assert set(p.field_names.keys()) == {'H', 'G'}
+        assert set(p.field_names) == {'H', 'G'}
         assert np.isclose(p['H'].value, 3.34)
         assert p['H'].unit == u.mag
         assert np.isclose(p['G'], 0.12)

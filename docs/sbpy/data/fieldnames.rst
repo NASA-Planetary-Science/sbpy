@@ -43,7 +43,7 @@ The field name list is always up to date, but it might not be
 complete. If you think an important alternative name is missing,
 please suggest it by opening an issue. However, keep in mind that each
 alternative field name has to be **unique** and **unambiguous**. The
-source list is located as ``sbpy.data.conf.fieldnames`` in
+source list is located as ``sbpy.data.Conf.fieldnames`` in
 ``sbpy/data/__init__.py``.
 
 Special Case: Epoch

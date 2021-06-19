@@ -1,27 +1,19 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import pytest
-from copy import deepcopy
-from numpy import abs
-import warnings
 
-from numpy.testing import assert_allclose
 import astropy.units as u
 from astropy.time import Time
-from astropy.coordinates import EarthLocation
-from astropy.tests.helper import assert_quantity_allclose
 
 from ... import exceptions as sbe
 from ... import bib
-from ..core import conf
 from .. import ephem
-from .. import Ephem, Orbit, QueryError
+from .. import Ephem, Orbit
 
 try:
     import pyoorb
-    HAS_PYOORB = True
 except ImportError:
-    HAS_PYOORB = False
+    pyoorb = None
 
 # retreived from Horizons on 23 Apr 2020
 CERES = {
@@ -44,7 +36,7 @@ CERES = {
 }
 
 
-@pytest.mark.skipif('not HAS_PYOORB')
+@pytest.mark.skipif('pyoorb is None')
 class TestEphemFromOorb:
     def test_missing_pyoorb(self, monkeypatch):
         monkeypatch.setattr(ephem, 'pyoorb', None)
@@ -57,14 +49,14 @@ class TestEphemFromOorb:
 
         orbit2 = Orbit.from_dict({
             'targetname': orbit1['targetname'][0],
-            'a': orbit1['a'].value[0],
+            'a': orbit1['a'].value[0] * u.au,
             'e': orbit1['e'][0],
-            'i': orbit1['i'].value[0],
-            'w': orbit1['w'].value[0],
-            'Omega': orbit1['Omega'].value[0],
-            'epoch': orbit1['epoch'][0],
-            'M': orbit1['M'].value[0],
-            'H': orbit1['H'].value[0],
+            'i': orbit1['i'].value[0] * u.deg,
+            'w': orbit1['w'].value[0] * u.deg,
+            'Omega': orbit1['Omega'].value[0] * u.deg,
+            'epoch': Time(orbit1['epoch'][0], format='jd'),
+            'M': orbit1['M'].value[0] * u.deg,
+            'H': orbit1['H'].value[0] * u.mag,
             'G': orbit1['G'][0]
         })
         eph2 = Ephem.from_oo(orbit2)

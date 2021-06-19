@@ -5,7 +5,8 @@ import pytest
 import numpy as np
 import astropy.units as u
 from astropy.tests.helper import remote_data
-from astropy.modeling.blackbody import blackbody_nu, blackbody_lambda
+from astropy.modeling.models import BlackBody
+import astropy.constants as const
 import synphot
 from .. import sources
 from ..sources import (BlackbodySource, SinglePointSpectrumError,
@@ -77,10 +78,16 @@ class TestBlackbodySource:
         BB = BlackbodySource(278)
         assert repr(BB) == '<BlackbodySource: T=278.0 K>'
 
-    @pytest.mark.parametrize('B', (blackbody_nu, blackbody_lambda))
-    def test_call(self, B):
+    @pytest.mark.parametrize(
+        'unit', ('W / (m2 um sr)', 'erg / (s cm2 Hz sr)')
+    )
+    def test_call(self, unit):
+        B = BlackBody(
+            temperature=300 * u.K,
+            scale=((const.R_sun.to('au') / const.au)**2) * u.Unit(unit)
+        )
         w = np.logspace(-0.5, 3) * u.um
-        f = B(w, 300 * u.K) * np.pi * u.sr
+        f = B(w) * np.pi * u.sr
         BB = BlackbodySource(300 * u.K)
         test = BB(w, unit=f.unit).value
         assert np.allclose(test, f.value)

@@ -8,7 +8,6 @@ __all__ = [
     'OHFluorescenceSA88'
 ]
 
-import os
 from warnings import warn
 
 import numpy as np
