@@ -466,9 +466,5 @@ class Spectrum():
     def plot(self):
         """Plot spectrum
 
-        Returns
-        -------
-        `matplotlib.pyplot` instance
-
         not yet implemented
         """

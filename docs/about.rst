@@ -400,7 +400,7 @@ methods.
 .. _OpenOrb: https://github.com/oorb/oorb
 .. _SpiceyPy: https://github.com/AndrewAnnex/SpiceyPy
 .. _web-API: https://minorplanetcenter.net/search_db
-.. _Solar System Object Image Search function of the Canadian Astronomy Data Centre: http://goo.gl/2aGYsW
+.. _Solar System Object Image Search function of the Canadian Astronomy Data Centre: http://www.cadc-ccda.hia-iha.nrc-cnrc.gc.ca/en/ssois/
 .. _skybot: http://vo.imcce.fr/webservices/skybot/
 .. _small bodies data ferret: https://sbnapps.psi.edu/ferret
 .. _github wiki: https://github.com/mommermi/sbpy/wiki

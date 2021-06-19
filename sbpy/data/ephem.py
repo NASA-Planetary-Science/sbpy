@@ -333,10 +333,10 @@ class Ephem(DataClass):
         References
         ----------
         .. [MPES] Wiliams, G. The Minor Planet Ephemeris Service.
-           https://minorplanetcenter.org/iau/info/MPES.pdf
+           https://minorplanetcenter.net/iau/info/MPES.pdf
 
         .. [OBSCODES] IAU Minor Planet Center.  List of observatory
-           codes. https://minorplanetcenter.org/iau/lists/ObsCodesF.html
+           codes. https://minorplanetcenter.net/iau/lists/ObsCodesF.html
 
         """
 
