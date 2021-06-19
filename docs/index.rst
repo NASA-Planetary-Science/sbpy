@@ -35,10 +35,10 @@ Current Status
 .. image:: https://joss.theoj.org/papers/10.21105/joss.01426/status.svg
     :target: https://doi.org/10.21105/joss.01426
     :alt: JOSS documentation
-	  
-.. image:: https://api.travis-ci.org/NASA-Planetary-Science/sbpy.svg?branch=master
-    :target: https://travis-ci.org/NASA-Planetary-Science/sbpy
-    :alt: Travis-CI status
+
+.. image:: https://github.com/NASA-Planetary-Science/sbpy/workflows/CI/badge.svg
+    :target: https://github.com/NASA-Planetary-Science/sbpy/actions
+    :alt: GitHub testing status
 
 .. image:: https://codecov.io/gh/NASA-Planetary-Science/sbpy/branch/master/graph/badge.svg
     :target: https://app.codecov.io/gh/NASA-Planetary-Science/sbpy/branch/master/graph/badge.svg
