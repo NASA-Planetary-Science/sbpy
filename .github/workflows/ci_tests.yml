@@ -77,8 +77,9 @@ jobs:
         python -m pip install tox codecov
     - name: Test with tox
       run: |
-        echo `which gfortran`
         echo `which gfortran-11`
+        sudo ln -sfn /usr/local/bin/gfortran-11 /usr/local/bin/gfortran
+        echo `which gfortran`
         tox -e ${{ matrix.toxenv }}
     # This is an example of how to upload coverage to codecov
     # - name: Upload coverage to codecov
