@@ -77,8 +77,7 @@ jobs:
         python -m pip install tox codecov
     - name: Test with tox
       run: |
-        alias gfortran=gfortran-11
-        tox -e ${{ matrix.toxenv }}
+        FC_GFORTRAN=gfortran-11 tox -e ${{ matrix.toxenv }}
     # This is an example of how to upload coverage to codecov
     # - name: Upload coverage to codecov
     #   if: "contains(matrix.toxenv, '-cov')"
