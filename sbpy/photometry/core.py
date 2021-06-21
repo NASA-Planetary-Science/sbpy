@@ -1026,8 +1026,7 @@ class HG1G2(HG12BaseClass):
 
     @staticmethod
     def evaluate(ph, h, g1, g2):
-        if isinstance(ph, u.Quantity):
-            ph = ph.to('rad').value
+        ph = u.Quantity(ph, 'deg').to_value('rad')
         func = g1*HG1G2._phi1(ph)+g2*HG1G2._phi2(ph)+(1-g1-g2)*HG1G2._phi3(ph)
         if isinstance(func, u.Quantity):
             func = func.value
