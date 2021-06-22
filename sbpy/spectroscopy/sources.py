@@ -531,7 +531,7 @@ class Reddening(BaseUnitlessSpectrum):
     S : `~SpectralGradient`
         The spectral gradient to redden.
     """
-    @u.quantity_input(S = u.percent / u.um)
+    @u.quantity_input(S=u.percent / u.um)
     def __init__(self, S):
         if getattr(S, 'wave0', None) is None:
             raise ValueError("Normalization wavelength in `S` (.wave0) is "
