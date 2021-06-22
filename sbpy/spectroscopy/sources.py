@@ -481,8 +481,8 @@ class SpectralSource(ABC):
             Reddened spectrum
 
         """
-        r = Reddening(S)
         from copy import deepcopy
+        r = Reddening(S)
         red_spec = deepcopy(self)
         red_spec._source = red_spec.source * r
         if red_spec.description is not None:
@@ -531,7 +531,11 @@ class Reddening(BaseUnitlessSpectrum):
     S : `~SpectralGradient`
         The spectral gradient to redden.
     """
+    @u.quantity_input(S = u.percent / u.um)
     def __init__(self, S):
+        if getattr(S, 'wave0', None) is None:
+            raise ValueError("Normalization wavelength in `S` (.wave0) is "
+                "required by not available.")
         wv = [1, 2] * S.wave0
         df = (S.wave0 * S).to('').value
         super().__init__(

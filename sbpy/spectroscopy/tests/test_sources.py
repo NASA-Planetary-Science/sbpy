@@ -111,3 +111,10 @@ class TestReddening:
         assert np.isclose(r(0.45 * u.um), 1 - 0.14)
         assert np.isclose(r(0.55 * u.um), 1.)
         assert np.isclose(r(0.65 * u.um), 1 + 0.14)
+        # test exception
+        S = SpectralGradient(14 * u.percent / hundred_nm)
+        with pytest.raises(ValueError):
+            r = Reddening(S)
+        # test quantity input
+        with pytest.raises(u.UnitsError):
+            r = Reddening(14 * u.percent)
