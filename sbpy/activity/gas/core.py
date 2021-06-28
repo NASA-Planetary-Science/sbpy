@@ -10,7 +10,6 @@ __all__ = [
     'Haser'
 ]
 
-from warnings import warn
 from abc import ABC, abstractmethod
 
 import numpy as np
@@ -23,12 +22,11 @@ try:
 except ImportError:
     scipy = None
 
-from astropy.table import Table
 from ... import bib
 from ... import data as sbd
 from ... import units as sbu
 from ...exceptions import RequiredPackageUnavailable
-from .. core import (Aperture, RectangularAperture, GaussianAperture,
+from .. core import (RectangularAperture, GaussianAperture,
                      AnnularAperture, CircularAperture)
 
 
@@ -390,7 +388,7 @@ class GasComa(ABC):
 
         epsabs : float, int, optional
             Absolute and relative error tolerance for integrals.  See
-            `scipy.integrate.quad`.
+            `~scipy.integrate.quad`.
 
 
         Returns
@@ -435,7 +433,7 @@ class GasComa(ABC):
 
         epsabs : float, int, optional
             Absolute and relative error tolerance for integrals.  See
-            `scipy.integrate.quad` (circular, annular, Gaussian) and
+            `~scipy.integrate.quad` (circular, annular, Gaussian) and
             `~scipy.integrate.dblquad` (rectangular) for details.
 
 
@@ -529,7 +527,7 @@ class GasComa(ABC):
 class Haser(GasComa):
     """Haser coma model.
 
-    Some functions require `scipy`.
+    Some functions require ``scipy``.
 
 
     Parameters

@@ -1,6 +1,6 @@
 # GitHub Actions workflow that runs on a cron schedule.
 
-name: Cron Scheduled CI Tests
+name: Weekly CI Tests
 
 on:
   schedule:
