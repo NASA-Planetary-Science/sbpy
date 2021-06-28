@@ -36,7 +36,7 @@ Current Status
     :target: https://doi.org/10.21105/joss.01426
     :alt: JOSS documentation
 
-.. image:: https://github.com/NASA-Planetary-Science/sbpy/workflows/CI/badge.svg
+.. image:: https://github.com/NASA-Planetary-Science/sbpy/actions/workflows/ci_cron_weekly.yml/badge.svg
     :target: https://github.com/NASA-Planetary-Science/sbpy/actions
     :alt: GitHub testing status
 

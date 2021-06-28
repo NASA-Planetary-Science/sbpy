@@ -11,7 +11,7 @@ planetary astronomy.
     :target: http://www.astropy.org
     :alt: Powered by Astropy Badge
 
-.. image:: https://github.com/NASA-Planetary-Science/sbpy/workflows/CI/badge.svg
+.. image:: https://github.com/NASA-Planetary-Science/sbpy/actions/workflows/ci_cron_weekly.yml/badge.svg
     :target: https://github.com/NASA-Planetary-Science/sbpy/actions
     :alt: GitHub testing status
 
