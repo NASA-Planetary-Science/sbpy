@@ -1,18 +1,15 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import sys
 import pytest
 import numpy as np
 import astropy.units as u
-from astropy.tests.helper import remote_data
 from astropy.modeling.models import BlackBody
 import astropy.constants as const
 import synphot
 from .. import sources
-from ..sources import (BlackbodySource, SinglePointSpectrumError,
-                       SpectralSource, SynphotRequired, Reddening)
+from ..sources import (BlackbodySource, SpectralSource, SynphotRequired,
+                       Reddening)
 from ..core import SpectralGradient
-from ... import bib, units
 from ...photometry import bandpass
 from ...units import hundred_nm
 
@@ -69,8 +66,10 @@ class TestSpectralSource:
         S = SpectralGradient(14 * u.percent / hundred_nm, wave0=0.55 * u.um)
         s_r = s.redden(S)
         assert u.isclose(s_r(0.65 * u.um), 1.14 * u.W / (u.m**2 * u.um))
-        assert s_r.description == 'Test star spectrum reddened by {} at {}'. \
-                    format(14 * u.percent / hundred_nm, 0.55 * u.um)
+        assert s_r.description == (
+            'Test star spectrum reddened by {} at {}'
+            .format(14 * u.percent / hundred_nm, 0.55 * u.um)
+        )
 
 
 class TestBlackbodySource:

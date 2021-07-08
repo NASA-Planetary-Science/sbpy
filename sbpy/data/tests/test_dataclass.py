@@ -26,7 +26,8 @@ def test_creation_single_row():
                             names=('aa', 'bb', 'cc'))
     ground_truth_3 = QTable([[1]*u.m, [2], [3]*u.kg], names=('aa', 'bb', 'cc'))
     ground_truth_4 = QTable([[1], ['stuff'], [3]], names=('aa', 'bb', 'cc'))
-    ground_truth_5 = QTable([[1]*u.km, [2], ['test']], names=('aa', 'bb', 'cc'))
+    ground_truth_5 = QTable([[1]*u.km, [2], ['test']],
+                            names=('aa', 'bb', 'cc'))
 
     # test DataClass.from_dict for different cases
     test_dict_1 = DataClass.from_dict(OrderedDict([('aa', 1), ('bb', 2),
@@ -236,8 +237,8 @@ def test_creation_multi_column():
     assert all(test_dict_5.table == ground_truth_5)
 
     # test DataClass.from_columns for different cases
-    test_array_1 = DataClass.from_columns([[1, 2, 3], [4, 5, 6],
-                                           [7, 8, 9]], names=('aa', 'bb', 'cc'))
+    test_array_1 = DataClass.from_columns(
+        [[1, 2, 3], [4, 5, 6], [7, 8, 9]], names=('aa', 'bb', 'cc'))
     test_array_2 = DataClass.from_columns([[1, 2, 3]*u.kg, [4, 5, 6]*u.m/u.s],
                                           names=('aa', 'bb'))
     test_array_3 = DataClass.from_columns([[1, 2, 3], [4, 5, 6]*u.m/u.s],

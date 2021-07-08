@@ -27,7 +27,6 @@ except ImportError:
         pass
 
 from ..exceptions import SbpyException
-from .. import bib
 
 __doctest_requires__ = {
     'SpectralSource': ['synphot'],
@@ -535,7 +534,7 @@ class Reddening(BaseUnitlessSpectrum):
     def __init__(self, S):
         if getattr(S, 'wave0', None) is None:
             raise ValueError("Normalization wavelength in `S` (.wave0) is "
-                "required by not available.")
+                             "required by not available.")
         wv = [1, 2] * S.wave0
         df = (S.wave0 * S).to('').value
         super().__init__(
