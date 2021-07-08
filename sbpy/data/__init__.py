@@ -755,10 +755,10 @@ class Conf():
 # clean namespace
 del u, Time
 
-from .core import DataClass, DataClassError, QueryError, TimeScaleWarning
-from .decorators import quantity_to_dataclass, dataclass_input
-from .ephem import Ephem
-from .orbit import Orbit
-from .phys import Phys
-from .obs import Obs
-from .names import Names, natural_sort_key
+from .core import DataClass, DataClassError, QueryError, TimeScaleWarning  # noqa: E402, E501
+from .decorators import quantity_to_dataclass, dataclass_input  # noqa: E402
+from .ephem import Ephem  # noqa: E402
+from .orbit import Orbit  # noqa: E402
+from .phys import Phys  # noqa: E402
+from .obs import Obs  # noqa: E402
+from .names import Names, natural_sort_key  # noqa: E402

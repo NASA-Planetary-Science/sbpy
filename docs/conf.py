@@ -35,11 +35,12 @@ matplotlib.use('agg')
 try:
     from sphinx_astropy.conf.v1 import *
 except ImportError:
-    print('ERROR: the documentation requires the sphinx-astropy package to be installed')
+    print('ERROR: the documentation requires the sphinx-astropy package to be'
+          ' installed')
     sys.exit(1)
 
 # Get configuration information from setup.cfg
-from configparser import ConfigParser
+from configparser import ConfigParser  # noqa: E402
 conf = ConfigParser()
 
 conf.read([os.path.join(os.path.dirname(__file__), '..', 'setup.cfg')])
@@ -51,7 +52,7 @@ setup_cfg = dict(conf.items('metadata'))
 highlight_language = 'python3'
 
 # If your documentation needs a minimal Sphinx version, state it here.
-#needs_sphinx = '1.2'
+# needs_sphinx = '1.2'
 
 # To perform a Sphinx version check that needs to be more specific than
 # major.minor, call `check_sphinx_version("x.y.z")` here.
@@ -177,7 +178,7 @@ github_issues_url = 'https://github.com/{0}/issues/'.format(
     setup_cfg['github_project'])
 
 # -- compile list of field names
-#import compile_fieldnames
+# import compile_fieldnames
 
 # --- intersphinx setup
 intersphinx_mapping['astroquery'] = (

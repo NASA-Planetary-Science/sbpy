@@ -378,7 +378,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
                              km    mag
         ----------------- -------- ---- ---- ------------------- --------------------
         1 Ceres (A801 AA)    939.4 3.53 0.12 0.07695019128044604 0.028036846480119768
-        """
+        """  # noqa: E501
         cols = {}
         if (self.meta is not None) and ('targetname' in self.meta.keys()):
             val = self.meta['targetname']
@@ -459,7 +459,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
             if isinstance(mag, u.Quantity):
                 dist_corr = u.Quantity(dist_corr).to(u.mag, u.logarithmic())
             else:
-                dist_corr = -2.5 * alog10(dist_corr)
+                dist_corr = -2.5 * np.log10(dist_corr)
             mag0 = mag + dist_corr
             if init is None:
                 m0 = cls()
@@ -473,15 +473,15 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
                 if sz1 != sz2:
                     raise ValueError('`init` must have a shape of ({}, {}),'
                                      ' shape {} is given.'.format(sz2[0],
-                                     sz2[1], sz1))
+                                                                  sz2[1], sz1))
             par = np.zeros((len(cls.param_names), n_models))
             for i in range(n_models):
                 mag = obs[fields[i]]
                 if isinstance(mag, u.Quantity):
                     dist_corr1 = u.Quantity(dist_corr).to(u.mag,
-                            u.logarithmic())
+                                                          u.logarithmic())
                 else:
-                    dist_corr1 = -2.5 * alog10(dist_corr)
+                    dist_corr1 = -2.5 * np.log10(dist_corr)
                 mag0 = mag + dist_corr1
                 if init is None:
                     m0 = cls()
@@ -610,8 +610,10 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
                     ' size of object is unknown.')
             if self.wfb is None:
                 raise ValueError('Wavelength/Frequency/Band is unknown.')
-            out = out.to(unit, reflectance(self.wfb,
-                    cross_section=np.pi * self.radius**2))
+            out = out.to(
+                unit,
+                reflectance(self.wfb, cross_section=np.pi * self.radius**2)
+            )
         dist_corr = self._distance_module(eph)
         dist_corr = u.Quantity(dist_corr).to(u.mag, u.logarithmic())
         out = out - dist_corr
@@ -700,8 +702,10 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
                         ' phase function can be calculated.')
                 if self.wfb is None:
                     raise ValueError('Wavelength/Frequency/Band is unknown.')
-                out = out.to('1/sr', reflectance(self.wfb,
-                        cross_section=np.pi*self.radius**2))
+                out = out.to(
+                    '1/sr',
+                    reflectance(self.wfb, cross_section=np.pi*self.radius**2)
+                )
             else:
                 out = out - norm
                 out = out.to('', u.logarithmic())
