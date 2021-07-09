@@ -9,7 +9,7 @@ Requires synphot.
 """
 
 __all__ = [
-    'BlackbodySource'
+    'BlackbodySource', 'Reddening'
 ]
 
 import numpy as np
@@ -19,7 +19,7 @@ from astropy.utils.data import download_file, _is_url
 
 try:
     import synphot
-    from synphot import SpectralElement
+    from synphot import SpectralElement, BaseUnitlessSpectrum
 except ImportError:
     synphot = None
 
@@ -467,6 +467,29 @@ class SpectralSource(ABC):
 
         return u.Quantity(eff_wave), ci
 
+    def redden(self, S):
+        """Redden the spectrum.
+
+        Parameters
+        ----------
+        S : `~SpectralGradient`
+            The spectral gradient to redden.
+
+        Returns
+        -------
+        spec : `~SpectralSource`
+            Reddened spectrum
+
+        """
+        from copy import deepcopy
+        r = Reddening(S)
+        red_spec = deepcopy(self)
+        red_spec._source = red_spec.source * r
+        if red_spec.description is not None:
+            red_spec._description = '{} reddened by {} at {}'.format(
+                    red_spec.description, S, S.wave0)
+        return red_spec
+
 
 class BlackbodySource(SpectralSource):
     """Blackbody sphere.
@@ -498,3 +521,23 @@ class BlackbodySource(SpectralSource):
     @property
     def T(self):
         return self._T
+
+
+class Reddening(BaseUnitlessSpectrum):
+    """Class to handle simple linear reddening.
+
+    Parameters
+    ----------
+    S : `~SpectralGradient`
+        The spectral gradient to redden.
+    """
+    @u.quantity_input(S=u.percent / u.um)
+    def __init__(self, S):
+        if getattr(S, 'wave0', None) is None:
+            raise ValueError("Normalization wavelength in `S` (.wave0) is "
+                "required by not available.")
+        wv = [1, 2] * S.wave0
+        df = (S.wave0 * S).to('').value
+        super().__init__(
+            synphot.Empirical1D, points=wv, lookup_table=[1, 1+df],
+            fill_value=None)

@@ -8,7 +8,7 @@ is expected to conclude in 2021.
 
 The current development version is **v0.2dev**; its status is as follows:
 
-.. image:: https://github.com/NASA-Planetary-Science/sbpy/workflows/CI/badge.svg
+.. image:: https://github.com/NASA-Planetary-Science/sbpy/actions/workflows/ci_cron_weekly.yml/badge.svg
     :target: https://github.com/NASA-Planetary-Science/sbpy/actions
     :alt: GitHub testing status
 

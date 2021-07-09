@@ -58,6 +58,84 @@ Renormalize to 1.0 μm:
   <SpectralGradient 6.89655172 % / 100 nm>
 
 
+Spectral Reddening
+------------------
+
+Linear spectral reddening is enabled by class `~sbpy.spectroscopy.Reddening`,
+which is based on `~synphot.spectrum.BaseUnitlessSpectrum`.
+
+Initialize a `~sbpy.spectroscopy.Reddening` class from a spectral gradient:
+
+
+.. plot::
+  :include-source: True
+
+  import matplotlib.pyplot as plt
+  import astropy.units as u
+  from sbpy.spectroscopy import SpectralGradient, Reddening
+  from sbpy.units import hundred_nm
+
+  S = SpectralGradient(10 * u.percent / hundred_nm, wave0=0.55 * u.um)
+  linear_reddening = Reddening(S)
+  linear_reddening.plot()
+  plt.gca().grid()
+
+
+This class can then be used to linearly redden a spectrum as a
+`~synphot.SourceSpectrum` class instance:
+
+
+.. plot::
+  :include-source: True
+
+  import numpy as np
+  import matplotlib.pyplot as plt
+  import astropy.units as u
+  from synphot import SourceSpectrum
+  from synphot.models import BlackBodyNorm1D
+  from sbpy.spectroscopy import SpectralGradient, Reddening
+  from sbpy.units import hundred_nm
+
+  S = SpectralGradient(10 * u.percent / hundred_nm, wave0=0.55 * u.um)
+  linear_reddening = Reddening(S)
+  spec = SourceSpectrum(BlackBodyNorm1D, temperature=5500 * u.K)
+  reddened = spec * linear_reddening
+  wv = np.linspace(0.3, 1, 100) * u.um
+
+  plt.plot(wv, spec(wv))
+  plt.plot(wv, reddened(wv))
+  plt.legend(['Original', 'Reddened'])
+  plt.setp(plt.gca(), xlabel='Wavelength (um)', ylabel='Flux (PHOTLAM)')
+  plt.tight_layout()
+
+``sbpy`` ``SpectralSource`` objects have a ``redden()`` method for reddening.
+The following example reddens a solar spectrum:
+
+
+.. plot::
+  :include-source: True
+
+  import numpy as np
+  import matplotlib.pyplot as plt
+  import astropy.units as u
+  from sbpy.calib import Sun
+  from sbpy.spectroscopy import SpectralGradient
+  from sbpy.units import hundred_nm
+
+  sun = Sun.from_builtin('E490_2014LR') # low-resolution solar spectrum
+  S = SpectralGradient(10 * u.percent / hundred_nm, wave0=0.55 * u.um)
+  red_sun = sun.redden(S)
+
+  wv = np.linspace(0.3, 1, 100) * u.um
+  fluxd_unit = u.Unit('W/(m2 um)')
+
+  plt.plot(wv, sun.observe(wv, unit=fluxd_unit))
+  plt.plot(wv, red_sun.observe(wv, unit=fluxd_unit))
+  plt.legend(['Original', 'Reddened'])
+  plt.setp(plt.gca(), xlabel='Wavelength (um)',
+      ylabel='Flux density ({})'.format(fluxd_unit))
+  plt.tight_layout()
+
 
 Reference/API
 -------------
