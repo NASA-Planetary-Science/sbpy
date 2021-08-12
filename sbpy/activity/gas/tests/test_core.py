@@ -6,6 +6,7 @@ import astropy.units as u
 from .. import core
 from .. import *
 from .... import exceptions as sbe
+from ....data import Phys
 
 
 def test_photo_lengthscale():
@@ -397,53 +398,55 @@ class TestVectorialModel:
     def test_fragment_count(self):
         """ Compute theoretical number of fragments vs. integrated value from grid """
         """ Dependent on the default size of the grid - will fail if that is too small """
-        vmInput = {}
 
-        # 45 days ago until now, production has been 1e28 molecules/sec
-        vmInput['TimeAtProductions'] = [45] * u.day
-        vmInput['ProductionRates'] = [1.e28]
+        # Production has been 1e28 parents per second for 50 days, time enough to reach steady state
+        times_at_production = [50] * u.day
+        production_rates = [1.e28] * (1/u.s)
 
         # Parent molecule is H2O
-        vmInput['Parent'] = {}
-        # A few values used in Festou's original fortran
-        vmInput['Parent']['TotalLifetime'] = 86430 * u.s
-        vmInput['Parent']['DissociativeLifetime'] = 101730 * u.s
-        vmInput['Parent']['Velocity'] = 0.85 * (u.km/u.s)
-
+        parent = Phys.from_dict({
+            'tau_T': 86430 * u.s,
+            'tau_d': 101730 * u.s,
+            'v': 1 * u.km/u.s,
+            'sigma': 3e-16 * u.cm**2
+            })
         # Fragment molecule is OH
-        vmInput['Fragment'] = {}
-        vmInput['Fragment']['Velocity'] = 1.05 * u.km/u.s
-        vmInput['Fragment']['TotalLifetime'] = 129000 * u.s
+        fragment = Phys.from_dict({
+            'tau_T': photo_timescale('OH') * 0.93,
+            'v': 1.05 * u.km/u.s
+            })
 
-        coma = VectorialModel(0*(1/u.s), 0 * u.m/u.s, vmInput)
+        coma = VectorialModel(Q=production_rates, dt=times_at_production,
+                                  parent=parent, fragment=fragment, print_progress=True)
 
-        fragTheory = coma.vModel['NumFragmentsTheory']
-        fragGrid = coma.vModel['NumFragmentsFromGrid']
-        assert np.isclose(fragTheory, fragGrid, rtol=0.02)
+        fragment_theory = coma.vModel['NumFragmentsTheory']
+        fragment_grid = coma.vModel['NumFragmentsFromGrid']
+        assert np.isclose(fragment_theory, fragment_grid, rtol=0.02)
 
     def test_total_number_large_aperture(self):
         """ Compare theoretical number of fragments vs. integration of column density over a large aperture """
         """ Dependent on the default size of the grid - will fail if that is too small """
-        vmInput = {}
 
-        # 45 days ago until now, production has been 1e28 molecules/sec
-        vmInput['TimeAtProductions'] = [45] * u.day
-        vmInput['ProductionRates'] = [1.e28]
+        # Production has been 1e28 parents per second for 50 days, time enough to reach steady state
+        times_at_production = [50] * u.day
+        production_rates = [1.e28] * (1/u.s)
 
         # Parent molecule is H2O
-        vmInput['Parent'] = {}
-        # A few values used in Festou's original fortran
-        vmInput['Parent']['TotalLifetime'] = 86430 * u.s
-        vmInput['Parent']['DissociativeLifetime'] = 101730 * u.s
-        vmInput['Parent']['Velocity'] = 0.85 * (u.km/u.s)
-
+        parent = Phys.from_dict({
+            'tau_T': 86430 * u.s,
+            'tau_d': 101730 * u.s,
+            'v': 1 * u.km/u.s,
+            'sigma': 3e-16 * u.cm**2
+            })
         # Fragment molecule is OH
-        vmInput['Fragment'] = {}
-        vmInput['Fragment']['Velocity'] = 1.05 * u.km/u.s
-        vmInput['Fragment']['TotalLifetime'] = 129000 * u.s
+        fragment = Phys.from_dict({
+            'tau_T': photo_timescale('OH') * 0.93,
+            'v': 1.05 * u.km/u.s
+            })
 
-        coma = VectorialModel(0*(1/u.s), 0 * u.m/u.s, vmInput)
+        coma = VectorialModel(Q=production_rates, dt=times_at_production,
+                                  parent=parent, fragment=fragment, print_progress=True)
 
-        fragTheory = coma.vModel['NumFragmentsTheory']
+        fragment_theory = coma.vModel['NumFragmentsTheory']
         ap = core.CircularAperture((coma.vModel['MaxRadiusOfGrid'].value) * u.m)
-        assert np.isclose(fragTheory, coma.total_number(ap), rtol=0.02)
+        assert np.isclose(fragment_theory, coma.total_number(ap), rtol=0.02)
