@@ -656,9 +656,9 @@ class Ephem(DataClass):
               orbit) in degrees or y-component of velocity vector (``'vy'``,
               for cartesian orbit) in au/day
             * mean anomaly (``'M'``, for Keplerian orbits) in degrees or
-              perihelion epoch (``'Tp_jd'``, for cometary orbits) in JD or
-              z-component of velocity vector (``'vz'``, for cartesian orbit)
-              in au/day
+              perihelion epoch (``'Tp'``, for cometary orbits) as astropy Time
+              object or z-component of velocity vector (``'vz'``, for cartesian
+              orbit) in au/day
             * epoch (``'epoch'``) as `~astropy.time.Time`
             * absolute magnitude (``'H'``) in mag
             * photometric phase slope (``'G'``)

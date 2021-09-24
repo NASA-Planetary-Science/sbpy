@@ -84,8 +84,6 @@ class TestOOTransform:
         assert u.isclose(orbit['epoch'][0].utc.jd,
                          kep_orbit['epoch'][0].utc.jd)
 
-        assert kep_orbit['epoch'].scale == 'tdb'
-
 
 @pytest.mark.skipif('not HAS_PYOORB')
 class TestOOPropagate:

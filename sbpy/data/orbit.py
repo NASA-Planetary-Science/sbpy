@@ -371,8 +371,7 @@ class Orbit(DataClass):
                                   self['i'].to('radian').value,
                                   self['Omega'].to('radian').value,
                                   self['w'].to('radian').value,
-                                  (self['Tp_jd'].to('d').value -
-                                   2400000.5),
+                                  self['Tp_mjd'],
                                   [Conf.oorb_elemType[orbittype]] *
                                   len(self.table),
                                   self['epoch'].mjd,
@@ -473,9 +472,9 @@ class Orbit(DataClass):
           orbit) in degrees or y-component of velocity vector (``'vy'``,
           for cartesian orbit) in au/day
         * mean anomaly (``'M'``, for Keplerian orbits) in degrees or
-          perihelion epoch (``'Tp_jd'``, for cometary orbits) in JD or
-          z-component of velocity vector (``'vz'``, for cartesian orbit)
-          in au/day
+          perihelion epoch (``'Tp'``, for cometary orbits) as astropy Time
+          object or z-component of velocity vector (``'vz'``, for cartesian
+          orbit) in au/day
         * epoch (``'epoch'``) as `~astropy.time.Time` object
         * absolute magnitude (``'H'``) in mag
         * photometric phase slope (``'G'``)
@@ -584,9 +583,9 @@ class Orbit(DataClass):
           orbit) in degrees or y-component of velocity vector (``'vy'``,
           for cartesian orbit) in au/day
         * mean anomaly (``'M'``, for Keplerian orbits) in degrees or
-          perihelion epoch (``'Tp_jd'``, for cometary orbits) in JD or
-          z-component of velocity vector (``'vz'``, for cartesian orbit)
-          in au/day
+          perihelion epoch (``'Tp'``, for cometary orbits) as astropy Time
+          object or z-component of velocity vector (``'vz'``, for cartesian
+          orbit) in au/day
         * epoch (``'epoch'``) as `~astropy.time.Time` object
         * absolute magnitude (``'H'``) in mag
         * photometric phase slope (``'G'``)

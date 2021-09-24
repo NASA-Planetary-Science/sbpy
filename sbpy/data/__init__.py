@@ -677,7 +677,7 @@ class Conf():
     oorb_elemType = {'CART': 1, 'COM': 2, 'KEP': 3, 'DEL': 4, 'EQX': 5}
 
     oorb_orbit_fields = {'COM': ['id', 'q', 'e', 'incl', 'Omega',
-                                 'w', 'Tp_jd', 'orbtype', 'epoch',
+                                 'w', 'Tp_mjd', 'orbtype', 'epoch',
                                  'epoch_scale', 'H', 'G'],
                          'KEP': ['id', 'a', 'e', 'incl', 'Omega', 'w', 'M',
                                  'orbtype', 'epoch', 'epoch_scale', 'H',
