@@ -2,19 +2,15 @@
 
 import pytest
 
-from numpy.testing import assert_allclose
 import astropy.units as u
 from astropy.time import Time
-import warnings
 
 from ... import exceptions as sbe
 from .. import orbit as sbo
-from ..orbit import Orbit, QueryError
-from ..names import TargetNameParseError
-from ... import bib
+from ..orbit import Orbit
 
 try:
-    import pyoorb
+    import pyoorb  # noqa
     HAS_PYOORB = True
 except ImportError:
     HAS_PYOORB = False
@@ -58,13 +54,15 @@ class TestOOTransform:
         kep_orbit = cart_orbit.oo_transform('KEP')
         elements = ['a', 'e', 'i', 'Omega', 'w', 'M']
         assert all([u.isclose(orbit[k][0], kep_orbit[k][0]) for k in elements])
-        assert u.isclose(orbit['epoch'][0].utc.jd, kep_orbit['epoch'][0].utc.jd)
+        assert u.isclose(orbit['epoch'][0].utc.jd,
+                         kep_orbit['epoch'][0].utc.jd)
 
         # transform to com and back
         com_orbit = orbit.oo_transform('COM')
         kep_orbit = com_orbit.oo_transform('KEP')
         assert all([u.isclose(orbit[k][0], kep_orbit[k][0]) for k in elements])
-        assert u.isclose(orbit['epoch'][0].utc.jd, kep_orbit['epoch'][0].utc.jd)
+        assert u.isclose(orbit['epoch'][0].utc.jd,
+                         kep_orbit['epoch'][0].utc.jd)
 
     def test_timescales(self):
         """ test with input in UTC scale """
@@ -76,13 +74,15 @@ class TestOOTransform:
         kep_orbit = cart_orbit.oo_transform('KEP')
         elements = ['a', 'e', 'i', 'Omega', 'w', 'M']
         assert all([u.isclose(orbit[k][0], kep_orbit[k][0]) for k in elements])
-        assert u.isclose(orbit['epoch'][0].utc.jd, kep_orbit['epoch'][0].utc.jd)
+        assert u.isclose(orbit['epoch'][0].utc.jd,
+                         kep_orbit['epoch'][0].utc.jd)
 
         # transform to com and back
         com_orbit = orbit.oo_transform('COM')
         kep_orbit = com_orbit.oo_transform('KEP')
         assert all([u.isclose(orbit[k][0], kep_orbit[k][0]) for k in elements])
-        assert u.isclose(orbit['epoch'][0].utc.jd, kep_orbit['epoch'][0].utc.jd)
+        assert u.isclose(orbit['epoch'][0].utc.jd,
+                         kep_orbit['epoch'][0].utc.jd)
 
         assert kep_orbit['epoch'].scale == 'tdb'
 

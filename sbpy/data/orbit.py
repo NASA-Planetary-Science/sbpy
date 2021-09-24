@@ -10,7 +10,7 @@ created on June 04, 2017
 """
 import os
 import numpy as np
-from numpy import array, ndarray, double, arange, rad2deg
+from numpy import array, ndarray, double, arange
 from astropy.time import Time
 from astropy.table import vstack, QTable
 from astroquery.jplhorizons import Horizons
@@ -626,7 +626,9 @@ class Orbit(DataClass):
                         AU                            ...   mag
           str7       float64            float64       ... float64 float64    str3
         ------- ----------------- ------------------- ... ------- ------- ---------
-        1 Ceres 2.769331727251861 0.07605371361208543 ...    3.34    0.12       UTC        """
+        1 Ceres 2.769331727251861 0.07605371361208543 ...    3.34    0.12       UTC
+
+        """
 
         if pyoorb is None:
             raise RequiredPackageUnavailable('pyoorb')
