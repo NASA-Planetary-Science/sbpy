@@ -67,7 +67,7 @@ distribute-*.tar.gz
 .DS_Store
 
 # common virtual environment path
-.venv
+.venv*
 
 # visual studio code settings
 .vscode

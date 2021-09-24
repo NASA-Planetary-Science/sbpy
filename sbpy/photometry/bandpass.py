@@ -41,6 +41,10 @@ def bandpass(name):
     +-------------+---------------------------+
     | 2MASS Ks    | Cohen et al. 2003         |
     +-------------+---------------------------+
+    | ATLAS c     | Tonry et al. 2018         |
+    +-------------+---------------------------+
+    | ATLAS o     | Tonry et al. 2018         |
+    +-------------+---------------------------+
     | Cousins R   | STScI CDBS, v4            |
     +-------------+---------------------------+
     | Cousins I   | STScI CDBS, v4            |
@@ -104,6 +108,9 @@ def bandpass(name):
     .. [TON12] Tonry, J. L. et al. 2012.  The Pan-STARRS1 Photometric
        System.  ApJ 750, 99.
 
+    .. [TON18] Tonry, J. L. et al. 2018.  ATLAS: A High-cadence All-sky
+       Survey System.  PASP 130, 064505.
+
     """
 
     try:
@@ -115,6 +122,8 @@ def bandpass(name):
         '2mass j': '2mass-j-rsr.txt',
         '2mass h': '2mass-h-rsr.txt',
         '2mass ks': '2mass-ks-rsr.txt',
+        'atlas c': 'atlas-c.txt',
+        'atlas o': 'atlas-o.txt',
         'cousins r': 'cousins_r_004_syn.fits',
         'cousins i': 'cousins_i_004_syn.fits',
         'johnson u': 'johnson_u_004_syn.fits',
@@ -138,8 +147,17 @@ def bandpass(name):
         'wise w3': 'WISE-RSR-W3.EE.txt',
         'wise w4': 'WISE-RSR-W4.EE.txt',
     }
+    wave_unit = {
+        'ps1 g': 'nm',
+        'ps1 r': 'nm',
+        'ps1 i': 'nm',
+        'ps1 w': 'nm',
+        'ps1 y': 'nm',
+        'ps1 z': 'nm',
+    }
 
     fn = get_pkg_data_filename(os.path.join(
         '..', 'photometry', 'data', name2file[name.lower()]))
-    bp = synphot.SpectralElement.from_file(fn)
+    bp = synphot.SpectralElement.from_file(
+        fn, wave_unit=wave_unit.get(name.lower(), 'AA'))
     return bp

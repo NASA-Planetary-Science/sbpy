@@ -8,12 +8,16 @@ sbpy.data
 
 ``Conf`` contains metadata for ``sbpy`` `~sbpy.DataClass` field names.
 
-``Conf.fieldnames_info`` is a list of dictionaries, one per field, with the keys: `'description'`, `'fieldnames'`, `'provenance'`, `'dimension'`, and `'equivalencies'`:
+``Conf.fieldnames_info`` is a list of dictionaries, one per field, with the
+keys: `'description'`, `'fieldnames'`, `'provenance'`, `'dimension'`, and
+`'equivalencies'`:
     * description: text description of the field
     * provenance: list of `~sbpy.DataClass` objects which use the field
-    * fieldnames: list of field names as strings, the first is considered the primary, the remaining strings, if any, are alternates
+    * fieldnames: list of field names as strings, the first is considered the
+      primary, the remaining strings, if any, are alternates
     * dimension: English description of the field's dimension (e.g., length)
-    * equivalencies: `~astropy.units` list of equivalencies for unit conversion (optional)
+    * equivalencies: `~astropy.units` list of equivalencies for unit
+      conversion (optional)
 
 """
 
@@ -751,10 +755,10 @@ class Conf():
 # clean namespace
 del u, Time
 
-from .core import DataClass, DataClassError, QueryError, TimeScaleWarning
-from .decorators import quantity_to_dataclass, dataclass_input
-from .ephem import Ephem
-from .orbit import Orbit
-from .phys import Phys
-from .obs import Obs
-from .names import Names, natural_sort_key
+from .core import DataClass, DataClassError, QueryError, TimeScaleWarning  # noqa: E402, E501
+from .decorators import quantity_to_dataclass, dataclass_input  # noqa: E402
+from .ephem import Ephem  # noqa: E402
+from .orbit import Orbit  # noqa: E402
+from .phys import Phys  # noqa: E402
+from .obs import Obs  # noqa: E402
+from .names import Names, natural_sort_key  # noqa: E402

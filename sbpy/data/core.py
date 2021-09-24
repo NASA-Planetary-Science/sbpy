@@ -227,8 +227,9 @@ class DataClass():
                 else:
                     data[key] = [val]
             elif not isinstance(val, Time) and isinstance(val[0], Time):
-                # val is iterable and not a time oboject, but first val is a Time
-                # object, so make it a Time array (rather than array of Time):
+                # val is iterable and not a time oboject, but first val is a
+                # Time # object, so make it a Time array (rather than array
+                # of Time):
                 data[key] = Time(val)
 
         return cls.from_table(QTable(data, meta=meta, **kwargs))
@@ -919,4 +920,4 @@ class DataClass():
                     and dim.unit == u.dimensionless_unscaled
                 ):
                     raise FieldError('Field {} does not have units of {}'
-                                         .format(test_field, str(dim.unit)))
+                                     .format(test_field, str(dim.unit)))
