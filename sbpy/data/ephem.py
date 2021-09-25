@@ -547,11 +547,11 @@ class Ephem(DataClass):
             if 'number' in _epochs:
                 # turn interval/number into step size based on full minutes
                 _epochs['step'] = int((Time(_epochs['stop']) -
-                                      Time(_epochs['start'])).jd *
+                                       Time(_epochs['start'])).jd *
                                       86400 / (_epochs['number']-1)) * u.s
             elif 'step' in _epochs:
                 _epochs['number'] = ((Time(_epochs['stop']) -
-                                     Time(_epochs['start'])).jd *
+                                      Time(_epochs['start'])).jd *
                                      86400 / _epochs['step'].to('s').value) + 1
             if 'step' in _epochs:
                 _epochs['step'] = '{:f}{:s}'.format(
@@ -656,9 +656,9 @@ class Ephem(DataClass):
               orbit) in degrees or y-component of velocity vector (``'vy'``,
               for cartesian orbit) in au/day
             * mean anomaly (``'M'``, for Keplerian orbits) in degrees or
-              perihelion epoch (``'Tp_jd'``, for cometary orbits) in JD or
-              z-component of velocity vector (``'vz'``, for cartesian orbit)
-              in au/day
+              perihelion epoch (``'Tp'``, for cometary orbits) as astropy Time
+              object or z-component of velocity vector (``'vz'``, for cartesian
+              orbit) in au/day
             * epoch (``'epoch'``) as `~astropy.time.Time`
             * absolute magnitude (``'H'``) in mag
             * photometric phase slope (``'G'``)
@@ -742,9 +742,11 @@ class Ephem(DataClass):
         # identify orbit type based on available table columns
         orbittype = None
         for testtype in ['KEP', 'COM', 'CART']:
+            field_names = [
+                field[0] for field in Conf.oorb_orbit_fields[testtype]
+            ]
             try:
-                orb._translate_columns(
-                    Conf.oorb_orbit_fields[testtype][1:6])
+                orb._translate_columns(field_names[1:6])
                 orbittype = testtype
                 break
             except KeyError:
@@ -759,12 +761,15 @@ class Ephem(DataClass):
 
         # derive and apply default units
         default_units = {}
-        for idx, field in enumerate(Conf.oorb_orbit_fields[orbittype]):
+        for field_name, field_unit in Conf.oorb_orbit_fields[orbittype]:
             try:
-                default_units[orb._translate_columns(
-                    field)[0]] = Conf.oorb_orbit_units[orbittype][idx]
+                # use the primary field name
+                primary_field_name = orb._translate_columns(field_name)[0]
             except KeyError:
-                pass
+                continue
+
+            default_units[primary_field_name] = field_unit
+
         for colname in orb.field_names:
             if (colname in default_units.keys() and
                 not isinstance(orb[colname],
