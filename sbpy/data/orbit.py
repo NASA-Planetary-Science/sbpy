@@ -338,7 +338,7 @@ class Orbit(DataClass):
                     field[0] for field in Conf.oorb_orbit_fields[testtype]
                 ]
                 try:
-                    for field in fields_names[1:6]:
+                    for field in field_names[1:6]:
                         self.__getitem__(field)
                     orbittype = testtype
                     break
@@ -424,7 +424,7 @@ class Orbit(DataClass):
 
         return orbits
 
-    @ staticmethod
+    @staticmethod
     def _from_oo(oo_orbits, orbittype, timescale):
         """Convert openorb-compatible orbit array to ``Orbit``."""
 
@@ -437,10 +437,8 @@ class Orbit(DataClass):
             column = Orbit._unit_apply(col, field_unit)
 
             # return units as degrees, not radians
-            print(i, col, column, field_name, field_unit)
             if field_unit == 'rad':
                 column = np.degrees(column)
-                print(i, column)
 
             # convert epoch and Tp to Time object, and convert back to user's
             # original time scale
@@ -454,6 +452,24 @@ class Orbit(DataClass):
             field_names.append(field_name)
 
         return Orbit.from_columns(columns, names=field_names)
+
+    @staticmethod
+    def _from_oo_propagatation(oo_orbits, orbittype, timescale):
+        """Convert openorb orbit array from oorb_propagation to ``Orbit``.
+
+        pyoorb.oorb_propagation returns degrees, but elsewhere pyoorb returns
+        radians.
+
+        """
+
+        # convert columns of degrees to radians, then _from_oo will convert
+        # back to degrees
+        fields = Conf.oorb_orbit_fields[orbittype]
+        for i, (field_name, field_unit) in enumerate(fields):
+            if field_unit == 'rad':
+                oo_orbits[:, i] = np.radians(oo_orbits[:, i])
+
+        return Orbit._from_oo(oo_orbits, orbittype, timescale)
 
     @cite({'method': '2009M&PS...44.1853G',
            'software': 'https://github.com/oorb/oorb'})
@@ -533,13 +549,13 @@ class Orbit(DataClass):
 
         # derive and apply default units
         default_units = {}
-        for field, unit in Conf.oorb_orbit_fields[orbittype]:
+        for field_name, field_unit in Conf.oorb_orbit_fields[orbittype]:
             try:
                 # use the primary field name
-                primary_field = self._translate_columns(field)[0]
+                primary_field_name = self._translate_columns(field_name)[0]
             except KeyError:
                 continue
-            default_units[primary_field] = unit
+            default_units[primary_field_name] = field_unit
 
         for colname in self.field_names:
             if (colname in default_units.keys() and
@@ -671,14 +687,14 @@ class Orbit(DataClass):
 
         # derive and apply default units
         default_units = {}
-        for field, unit in Conf.oorb_orbit_fields[orbittype]:
+        for field_name, field_unit in Conf.oorb_orbit_fields[orbittype]:
             try:
                 # use the primary field name
-                primary_field = self._translate_columns(field)[0]
+                primary_field_name = self._translate_columns(field_name)[0]
             except KeyError:
                 continue
 
-            default_units[primary_field] = unit
+            default_units[primary_field_name] = field_unit
 
         for colname in self.field_names:
             if (colname in default_units.keys() and
@@ -700,9 +716,7 @@ class Orbit(DataClass):
         if err != 0:
             OpenOrbError('pyoorb failed with error code {:d}'.format(err))
 
-        orbits = Orbit._from_oo(oo_orbits, orbittype, timescale)
-        import pdb
-        pdb.set_trace()
+        orbits = Orbit._from_oo_propagatation(oo_orbits, orbittype, timescale)
 
         # replace id column with actual target names from original orbits
         orbits.table.replace_column('id', self.table['targetname'])

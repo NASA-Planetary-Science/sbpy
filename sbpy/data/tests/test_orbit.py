@@ -62,7 +62,7 @@ class TestOOTransform:
         with pytest.raises(sbe.RequiredPackageUnavailable):
             Orbit.from_dict(CERES).oo_transform('CART')
 
-    def test_oo_transform(self):
+    def test_oo_transform_kep(self):
         """ test oo_transform method"""
 
         orbit = Orbit.from_dict(CERES)
@@ -75,12 +75,48 @@ class TestOOTransform:
         assert u.isclose(orbit['epoch'][0].utc.jd,
                          kep_orbit['epoch'][0].utc.jd)
 
-        # transform to com and back
+        # transform to com
         com_orbit = orbit.oo_transform('COM')
+        assert u.isclose(CERES['q'], com_orbit['q'])
+        assert u.isclose(CERES['Tp'].utc.jd, com_orbit['Tp'].utc.jd)
+
+        # and back
         kep_orbit = com_orbit.oo_transform('KEP')
         assert all([u.isclose(orbit[k][0], kep_orbit[k][0]) for k in elements])
         assert u.isclose(orbit['epoch'][0].utc.jd,
                          kep_orbit['epoch'][0].utc.jd)
+        assert kep_orbit['epoch'].scale == 'tdb'
+
+    def test_oo_transform_com(self):
+        """ test oo_transform method"""
+
+        orbit = Orbit.from_dict(CERES)
+
+        # transform to cart and back
+        cart_orbit = orbit.oo_transform('CART')
+        com_orbit = cart_orbit.oo_transform('COM')
+        elements = ['q', 'e', 'i', 'Omega', 'w']
+        assert all([u.isclose(orbit[k][0], com_orbit[k][0]) for k in elements])
+        assert u.isclose(orbit['epoch'][0].utc.jd,
+                         com_orbit['epoch'][0].utc.jd)
+        assert u.isclose(orbit['Tp'][0].utc.jd,
+                         com_orbit['Tp'][0].utc.jd)
+
+        # transform to kep
+        kep_orbit = orbit.oo_transform('KEP')
+        assert u.isclose(CERES['a'], kep_orbit['a'])
+        assert u.isclose(CERES['M'], kep_orbit['M'])
+
+        # and back
+        com_orbit = kep_orbit.oo_transform('COM')
+        assert all([u.isclose(orbit[k][0], com_orbit[k][0]) for k in elements])
+        assert u.isclose(orbit['epoch'][0].utc.jd,
+                         com_orbit['epoch'][0].utc.jd)
+        assert u.isclose(orbit['Tp'][0].utc.jd,
+                         com_orbit['Tp'][0].utc.jd)
+
+        assert com_orbit['epoch'].scale == 'tdb'
+        assert com_orbit['Tp'].scale == 'tdb'
 
     def test_timescales(self):
         """ test with input in UTC scale """
@@ -101,6 +137,7 @@ class TestOOTransform:
         assert all([u.isclose(orbit[k][0], kep_orbit[k][0]) for k in elements])
         assert u.isclose(orbit['epoch'][0].utc.jd,
                          kep_orbit['epoch'][0].utc.jd)
+        assert kep_orbit['epoch'].scale == 'utc'
 
 
 @pytest.mark.skipif('pyoorb is None')
@@ -123,4 +160,4 @@ class TestOOPropagate:
                    for k in elements])
         assert u.isclose(oo_orbit['epoch'][0].utc.jd,
                          future_orbit['epoch'][0].utc.jd)
-        assert oo_orbit['epoch'].scale == 'utc'
+        assert oo_orbit['epoch'].scale == 'tdb'
