@@ -547,11 +547,11 @@ class Ephem(DataClass):
             if 'number' in _epochs:
                 # turn interval/number into step size based on full minutes
                 _epochs['step'] = int((Time(_epochs['stop']) -
-                                      Time(_epochs['start'])).jd *
+                                       Time(_epochs['start'])).jd *
                                       86400 / (_epochs['number']-1)) * u.s
             elif 'step' in _epochs:
                 _epochs['number'] = ((Time(_epochs['stop']) -
-                                     Time(_epochs['start'])).jd *
+                                      Time(_epochs['start'])).jd *
                                      86400 / _epochs['step'].to('s').value) + 1
             if 'step' in _epochs:
                 _epochs['step'] = '{:f}{:s}'.format(
@@ -742,9 +742,11 @@ class Ephem(DataClass):
         # identify orbit type based on available table columns
         orbittype = None
         for testtype in ['KEP', 'COM', 'CART']:
+            field_names = [
+                field[0] for field in Conf.oorb_orbit_fields[testtype]
+            ]
             try:
-                orb._translate_columns(
-                    Conf.oorb_orbit_fields[testtype][1:6])
+                orb._translate_columns(field_names[1:6])
                 orbittype = testtype
                 break
             except KeyError:
@@ -758,15 +760,12 @@ class Ephem(DataClass):
         orb['orbittype'] = [orbittype] * len(orb)
 
         # derive and apply default units
-        default_units = {}
-        for idx, field in enumerate(Conf.oorb_orbit_fields[orbittype]):
-            try:
-                default_units[orb._translate_columns(
-                    field)[0]] = Conf.oorb_orbit_units[orbittype][idx]
-            except KeyError:
-                pass
+        default_units = {
+            field: unit
+            for field, unit in Conf.oorb_orbit_fields[orbittype].items()
+        }
         for colname in orb.field_names:
-            if (colname in default_units.keys() and
+            if (colname in default_units and
                 not isinstance(orb[colname],
                                (u.Quantity, u.CompositeUnit, Time))):
                 orb[colname].unit = default_units[colname]

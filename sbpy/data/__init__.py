@@ -676,22 +676,53 @@ class Conf():
     oorb_timeScales = {'UTC': 1, 'UT1': 2, 'TT': 3, 'TAI': 4}
     oorb_elemType = {'CART': 1, 'COM': 2, 'KEP': 3, 'DEL': 4, 'EQX': 5}
 
-    oorb_orbit_fields = {'COM': ['id', 'q', 'e', 'incl', 'Omega',
-                                 'w', 'Tp_mjd', 'orbtype', 'epoch',
-                                 'epoch_scale', 'H', 'G'],
-                         'KEP': ['id', 'a', 'e', 'incl', 'Omega', 'w', 'M',
-                                 'orbtype', 'epoch', 'epoch_scale', 'H',
-                                 'G'],
-                         'CART': ['id', 'x', 'y', 'z', 'vx', 'vy', 'vz',
-                                  'orbtype', 'epoch', 'epoch_scale', 'H',
-                                  'G']}
-    oorb_orbit_units = {'COM': [None, 'au', '', 'deg', 'deg',
-                                'deg', 'd', None, 'd',
-                                None, 'mag', ''],
-                        'KEP': [None, 'au', '', 'deg', 'deg', 'deg', 'deg',
-                                None, 'd', None, 'mag', ''],
-                        'CART': [None, 'au', 'au', 'au', 'au/d', 'au/d',
-                                 'au/d', None, 'd', None, 'mag', '']}
+    # field name, unit; in order as returned from oorb
+    # However, in propagate, angular units are returned as deg.  This is
+    # accounted for in Orbit.oo_propagate().
+    oorb_orbit_fields = {
+        'COM': (
+            ('id', None),
+            ('q', 'au'),
+            ('e', ''),
+            ('incl', 'rad'),
+            ('Omega', 'rad'),
+            ('w', 'rad'),
+            ('Tp', 'd'),
+            ('orbtype', None),
+            ('epoch', 'd'),
+            ('epoch_scale', None),
+            ('H', 'mag'),
+            ('G', ''),
+        ),
+        'KEP': (
+            ('id', None),
+            ('a', 'au'),
+            ('e', ''),
+            ('incl', 'rad'),
+            ('Omega', 'rad'),
+            ('w', 'rad'),
+            ('M', 'rad'),
+            ('orbtype', None),
+            ('epoch', 'd'),
+            ('epoch_scale', None),
+            ('H', 'mag'),
+            ('G', ''),
+        ),
+        'CART': (
+            ('id', None),
+            ('x', 'au'),
+            ('y', 'au'),
+            ('z', 'au'),
+            ('vx', 'au/d'),
+            ('vy', 'au/d'),
+            ('vz', 'au/d'),
+            ('orbtype', None),
+            ('epoch', 'd'),
+            ('epoch_scale', None),
+            ('H', 'mag'),
+            ('G', ''),
+        )
+    }
 
     oorb_ephem_full_fields = [
         'MJD', 'RA', 'DEC', 'RA*cos(Dec)_rate', 'DEC_rate',
