@@ -7,8 +7,6 @@ import astropy.units as u
 from astropy.time import Time
 import warnings
 
-from ... import exceptions as sbe
-from .. import orbit as sbo
 from ..orbit import Orbit, QueryError
 from ..names import TargetNameParseError
 from ... import bib
@@ -190,6 +188,6 @@ class TestOOPropagate:
         elements = ['a', 'e', 'i', 'Omega', 'w', 'M']
         assert all([u.isclose(oo_orbit[k][0], future_orbit[k][0])
                    for k in elements])
-        assert u.isclose(orbit['epoch'][0].utc.jd,
-                         kep_orbit['epoch'][0].utc.jd)
+        assert u.isclose(oo_orbit['epoch'][0].utc.jd,
+                         future_orbit['epoch'][0].utc.jd)
         assert oo_orbit['epoch'].scale == 'utc'

@@ -11,33 +11,51 @@ from ..orbit import Orbit
 
 try:
     import pyoorb  # noqa
-    HAS_PYOORB = True
 except ImportError:
-    HAS_PYOORB = False
+    pyoorb = None
 
-# retreived from Horizons on 23 Apr 2020
+# CERES and CERES2 retrieved from Horizons on 24 Sep 2021
 CERES = {
-    'targetname': '1 Ceres',
-    'H': u.Quantity(3.4, 'mag'),
+    'targetname': '1 Ceres (A801 AA)',
+    'H': u.Quantity(3.53, 'mag'),
     'G': 0.12,
-    'e': 0.07741102040801928,
-    'q': u.Quantity(2.55375156, 'au'),
-    'incl': u.Quantity(10.58910839, 'deg'),
-    'Omega': u.Quantity(80.29081558, 'deg'),
-    'w': u.Quantity(73.7435117, 'deg'),
-    'n': u.Quantity(0.21401711, 'deg / d'),
-    'M': u.Quantity(154.70418799, 'deg'),
-    'nu': u.Quantity(158.18663933, 'deg'),
-    'a': u.Quantity(2.76802739, 'AU'),
-    'Q': u.Quantity(2.98230321, 'AU'),
-    'P': u.Quantity(1682.10848349, 'd'),
-    'epoch': Time(2458963.26397076, scale='tdb', format='jd'),
-    'Tp': Time(2458240.40500675, scale='tdb', format='jd'),
+    'e': 0.07842518340409492,
+    'q': u.Quantity(2.548847914875325, 'au'),
+    'incl': u.Quantity(10.58812123343471, 'deg'),
+    'Omega': u.Quantity(80.26788752671405, 'deg'),
+    'w': u.Quantity(73.70547052298863, 'deg'),
+    'n': u.Quantity(0.21428120879034, 'deg / d'),
+    'M': u.Quantity(266.0066794881785, 'deg'),
+    'nu': u.Quantity(257.137950098325, 'deg'),
+    'a': u.Quantity(2.765752567209041, 'AU'),
+    'Q': u.Quantity(2.982657219542757, 'AU'),
+    'P': u.Quantity(1680.035323826441, 'd'),
+    'epoch': Time(2459482.454237461, scale='tdb', format='jd'),
+    'Tp': Time(2459921.098955971, scale='tdb', format='jd'),
     'orbtype': 'KEP',
 }
 
+CERES2 = {  # CERES epoch + 100 days
+    'targetname': "1 Ceres (A801 AA)",
+    'H': u.Quantity('3.53 mag'),
+    'G': 0.12,
+    'e': 0.0784882058716986,
+    'q': u.Quantity('2.54890665 AU'),
+    'incl': u.Quantity('10.58775349 deg'),
+    'Omega': u.Quantity('80.26856263 deg'),
+    'w': u.Quantity('73.64403121 deg'),
+    'n': u.Quantity('0.21425182 deg / d'),
+    'M': u.Quantity('287.5012003 deg'),
+    'nu': u.Quantity('278.6978862 deg'),
+    'a': u.Quantity('2.76600546 AU'),
+    'Q': u.Quantity('2.98310427 AU'),
+    'P': u.Quantity('1680.26575599 d'),
+    'epoch': Time(2459582.45425436, scale='tdb', format='jd'),
+    'Tp': Time(2459920.8355057, scale='tdb', format='jd')
+}
 
-@pytest.mark.skipif('not HAS_PYOORB')
+
+@pytest.mark.skipif('pyoorb is None')
 class TestOOTransform:
     def test_missing_pyoorb(self, monkeypatch):
         monkeypatch.setattr(sbo, 'pyoorb', None)
@@ -85,9 +103,24 @@ class TestOOTransform:
                          kep_orbit['epoch'][0].utc.jd)
 
 
-@pytest.mark.skipif('not HAS_PYOORB')
+@pytest.mark.skipif('pyoorb is None')
 class TestOOPropagate:
     def test_missing_pyoorb(self, monkeypatch):
         monkeypatch.setattr(sbo, 'pyoorb', None)
         with pytest.raises(sbe.RequiredPackageUnavailable):
             Orbit.from_dict(CERES).oo_transform('CART')
+
+    def test_oo_propagate(self):
+        """ test oo_propagate method"""
+
+        orbit = Orbit.from_dict(CERES)
+        future_orbit = Orbit.from_dict(CERES2)
+
+        oo_orbit = orbit.oo_propagate(CERES2['epoch'])
+
+        elements = ['a', 'e', 'i', 'Omega', 'w', 'M']
+        assert all([u.isclose(oo_orbit[k][0], future_orbit[k][0])
+                   for k in elements])
+        assert u.isclose(oo_orbit['epoch'][0].utc.jd,
+                         future_orbit['epoch'][0].utc.jd)
+        assert oo_orbit['epoch'].scale == 'utc'
