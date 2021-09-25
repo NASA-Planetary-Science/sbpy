@@ -760,12 +760,18 @@ class Ephem(DataClass):
         orb['orbittype'] = [orbittype] * len(orb)
 
         # derive and apply default units
-        default_units = {
-            field: unit
-            for field, unit in Conf.oorb_orbit_fields[orbittype].items()
-        }
+        default_units = {}
+        for field_name, field_unit in Conf.oorb_orbit_fields[orbittype]:
+            try:
+                # use the primary field name
+                primary_field_name = orb._translate_columns(field_name)[0]
+            except KeyError:
+                continue
+
+            default_units[primary_field_name] = field_unit
+
         for colname in orb.field_names:
-            if (colname in default_units and
+            if (colname in default_units.keys() and
                 not isinstance(orb[colname],
                                (u.Quantity, u.CompositeUnit, Time))):
                 orb[colname].unit = default_units[colname]
