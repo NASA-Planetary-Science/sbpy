@@ -35,12 +35,18 @@ jobs:
           - name: Python 3.8 with all optional dependencies and coverage checking
             os: ubuntu-latest
             python: 3.8
-            toxenv: py38-test-alldeps-cov
+            toxenv: py38-test-alldeps
 
           - name: OS X - Python 3.8 with all optional dependencies
             os: macos-latest
             python: 3.8
             toxenv: py38-test-alldeps
+
+          - name: Python 3.8 with all optional dependencies, remote tests, and coverage checking
+            os: ubuntu-latest
+            python: 3.8
+            toxenv: py38-test-alldeps-cov
+            toxposargs: --remote-data
 
           # - name: Windows - Python 3.8 with all optional dependencies
           #   os: windows-latest
