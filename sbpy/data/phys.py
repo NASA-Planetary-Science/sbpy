@@ -169,10 +169,11 @@ class Phys(DataClass):
                             for x in data
                         ], unit))
                     except u.UnitConversionError:
-                        # but this method can still fail if there are incompatible
-                        # units in the column, such as the case for 'density_sig'
-                        # which SBDB can return percent or physical units.
-                        # In this case, preserve the heterogeneous data array
+                        # but this method can still fail if there are
+                        # incompatible units in the column, such as the case
+                        # for 'density_sig' which SBDB can return percent or
+                        # physical units.  In this case, preserve the
+                        # heterogeneous data array
                         coldata.append(data)
             else:
                 coldata.append(data)
