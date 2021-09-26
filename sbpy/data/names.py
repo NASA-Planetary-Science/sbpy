@@ -11,8 +11,6 @@ created on August 28, 2017
 """
 
 from ..exceptions import SbpyException
-from .core import DataClass
-from numpy import ndarray
 
 __all__ = ['Names', 'TargetNameParseError', 'natural_sort_key']
 
