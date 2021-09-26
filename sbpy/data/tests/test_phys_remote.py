@@ -3,12 +3,11 @@
 import pytest
 
 from sbpy.data import Phys
-from sbpy import bib
 
 
 @pytest.mark.remote_data
 def test_from_sbdb():
-    """ test from_horizons method"""
+    """ test from_sbdb method"""
 
     # query one object
     data = Phys.from_sbdb('Ceres')
