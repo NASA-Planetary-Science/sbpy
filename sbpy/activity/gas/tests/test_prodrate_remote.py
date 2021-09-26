@@ -324,7 +324,7 @@ def test_intensity_conversion():
     # test untested case for intensity conversion function
 
     temp_estimate = 47. * u.K
-    #vgas = 0.8 * u.km / u.s
+    # vgas = 0.8 * u.km / u.s
     mol_tag = 27001
     transition_freq = (265.886434 * u.GHz).to('MHz')
     mol_data = Phys.from_jplspec(temp_estimate, transition_freq, mol_tag)
@@ -340,7 +340,7 @@ def test_einsteincoeff_case():
     # test untested case for einstein coefficient
 
     temp_estimate = 47. * u.K
-    #vgas = 0.8 * u.km / u.s
+    # vgas = 0.8 * u.km / u.s
     mol_tag = 27001
     transition_freq = (265.886434 * u.GHz).to('MHz')
     mol_data = Phys.from_jplspec(temp_estimate, transition_freq, mol_tag)
