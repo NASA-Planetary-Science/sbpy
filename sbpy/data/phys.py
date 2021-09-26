@@ -10,7 +10,6 @@ created on June 04, 2017
 """
 
 from collections import OrderedDict
-from astropy.units.quantity import Quantity
 
 import numpy as np
 import astropy.units as u
@@ -209,7 +208,8 @@ class Phys(DataClass):
         Returns
         -------
         Molecular data : `~sbpy.data.Phys` instance
-            Quantities in the following order from JPL Spectral Molecular Catalog:
+            Quantities in the following order from JPL Spectral Molecular
+            Catalog:
                 | Transition frequency
                 | Temperature
                 | Integrated line intensity at 300 K

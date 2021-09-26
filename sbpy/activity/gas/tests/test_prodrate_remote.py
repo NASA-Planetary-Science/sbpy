@@ -401,6 +401,7 @@ def test_pyradex_case():
     assert np.isclose(cdensity.value[0], 1.134e14)
 
 
+@pytest.mark.skipif('pyradex is None')
 @remote_data
 def test_Haser_prodrate_pyradex(mock_nonlte):
 
