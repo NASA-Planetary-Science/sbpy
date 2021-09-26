@@ -16,9 +16,8 @@ from .. import Ephem, Orbit, QueryError
 
 try:
     import pyoorb
-    HAS_PYOORB = True
 except ImportError:
-    HAS_PYOORB = False
+    pyoorb = None
 
 # retreived from Horizons on 23 Apr 2020
 CERES = {
@@ -399,7 +398,7 @@ class TestEphemFromMiriade:
 
 
 @pytest.mark.remote_data
-@pytest.mark.skipif('not HAS_PYOORB')
+@pytest.mark.skipif('pyoorb is None')
 class TestEphemFromOorb:
     def test_by_comparison(self):
         """test from_oo method"""

@@ -11,6 +11,11 @@ from astroquery.lamda import Lamda
 from astroquery.jplspec import JPLSpec
 import pytest
 
+try:
+    import pyradex
+except ImportError:
+    pyradex = None
+
 from .. import (Haser, photo_timescale, LTE, NonLTE, einstein_coeff,
                 intensity_conversion, beta_factor, total_number, from_Haser)
 from ....data import Ephem, Phys
@@ -146,6 +151,9 @@ def test_remote_prodrate_simple_ch3oh():
     assert np.all(err < 0.35)
 
 
+# Issue #296
+# MSK: disabling test as CO and HCN are no longer present in LAMDA database(?)
+@pytest.mark.skip
 @remote_data
 def test_einstein():
 
@@ -159,7 +167,7 @@ def test_einstein():
 
     cat = JPLSpec.get_species_table()
 
-    for i in range(0, 2):
+    for i in range(2):
 
         transition_freq = transition_freq_list[i]
         mol_tag = mol_tag_list[i]
@@ -257,14 +265,9 @@ See https://github.com/keflavich/pyradex for installment
 '''
 
 
+@pytest.mark.skipif('pyradex is None')
 @remote_data
 def test_Haser_pyradex():
-
-    try:
-        import pyradex
-    except ImportError:
-        return None
-
     co = Table.read(data_path('CO.csv'), format="ascii.csv")
 
     nonlte = NonLTE()
@@ -321,7 +324,7 @@ def test_intensity_conversion():
     # test untested case for intensity conversion function
 
     temp_estimate = 47. * u.K
-    vgas = 0.8 * u.km / u.s
+    # vgas = 0.8 * u.km / u.s
     mol_tag = 27001
     transition_freq = (265.886434 * u.GHz).to('MHz')
     mol_data = Phys.from_jplspec(temp_estimate, transition_freq, mol_tag)
@@ -337,7 +340,7 @@ def test_einsteincoeff_case():
     # test untested case for einstein coefficient
 
     temp_estimate = 47. * u.K
-    vgas = 0.8 * u.km / u.s
+    # vgas = 0.8 * u.km / u.s
     mol_tag = 27001
     transition_freq = (265.886434 * u.GHz).to('MHz')
     mol_data = Phys.from_jplspec(temp_estimate, transition_freq, mol_tag)
@@ -377,14 +380,9 @@ See https://github.com/keflavich/pyradex for installment
 '''
 
 
+@pytest.mark.skipif('pyradex is None')
 @remote_data
 def test_pyradex_case():
-    # test untested case for Pyradex
-    try:
-        import pyradex
-    except ImportError:
-        return None
-
     transition_freq = (177.196 * u.GHz).to(u.MHz)
     mol_tag = 29002
     cdensity_guess = (1.89*10.**(14) / (u.cm * u.cm))
@@ -403,6 +401,7 @@ def test_pyradex_case():
     assert np.isclose(cdensity.value[0], 1.134e14)
 
 
+@pytest.mark.skipif('pyradex is None')
 @remote_data
 def test_Haser_prodrate_pyradex(mock_nonlte):
 
