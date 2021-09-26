@@ -11,8 +11,6 @@ created on August 28, 2017
 """
 
 from ..exceptions import SbpyException
-from .core import DataClass
-from numpy import ndarray
 
 __all__ = ['Names', 'TargetNameParseError', 'natural_sort_key']
 
@@ -68,11 +66,11 @@ class Names():
 
     # packed numbers translation string
     pkd = ('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-           'abcdefghifklmnopqrstuvwxyz')
+           'abcdefghijklmnopqrstuvwxyz')
 
     @staticmethod
     def to_packed(s):
-        """Convert asteroid designation/number to packed identifier.
+        """Convert designation or number to packed identifier.
 
         Parameters
         ----------
@@ -91,37 +89,74 @@ class Names():
         'J95A01A'
         """
 
-        if s.isdigit() and not s.isalpha():
+        if s.isdigit():
             # number
             s = int(s)
             if s < 100000:
-                return ('{:05d}'.format(s))
+                return '{:05d}'.format(s)
             elif s > 619999:
                 raise TargetNameParseError(
-                    ('{} cannot be turned into a '
-                     'packed number').format(s))
+                    '{} cannot be turned into a packed number'.format(s)
+                )
             else:
                 mod = (s % 10000)
-                return ('{}{:04d}'.format(
-                    Names.pkd[int((s-mod)/10000)],
-                    mod))
-        elif s.isalnum and not s.isdigit() and not s.isalpha():
-            # designation
-            yr = s.strip()[:4]
-            yr = Names.pkd[int(float(yr[:2]))]+yr[2:]
-            let = s.strip()[4:7].strip()
-            num = s.strip()[7:].strip()
-            if num == '':
-                num = '00'
-            elif len(num) == 1:
-                num = '0' + num
-            elif len(num) > 2:
-                try:
-                    num = Names.pkd[int(float(num[:-1]))]+num[-1]
-                except (IndexError, ValueError):
-                    raise TargetNameParseError(
-                        ('{} cannot be turned into a '
-                         'packed designation').format(s))
+                return '{}{:04d}'.format(
+                    Names.pkd[int((s - mod) / 10000)], mod)
+        elif s.endswith('P-L'):
+            return 'PLS{}'.format(s[:4])
+        elif s[-3:] in ['T-1', 'T-2', 'T-3']:
+            return 'T{}S{}'.format(s[-1], s[:4])
+        elif s[:4].isdigit() and (s[5:].isalnum() or s[5:s.find('-')].isalnum()):
+            # cometary or minor planet temporary designation
+
+            # when the half-month and number are two digits: cometary
+            # when there is a trailing fragment designation: cometary
+            # otherwise: minor planet
+            if (
+                (s[5].isalpha() and s[6:].isdigit())
+                or (s[-2] == '-' and s[-1].isalpha())
+            ):
+                if s[-2] == '-':
+                    frag = s[-1]
+                    num = s[6:-2]
+                else:
+                    frag = '0'
+                    num = s[6:]
+
+                if num == '':
+                    num = '00'
+                elif len(num) == 1:
+                    num = '0' + num
+                elif len(num) > 2:
+                    try:
+                        num = Names.pkd[int(num[:-1])]+num[-1]
+                    except (IndexError, ValueError):
+                        raise TargetNameParseError(
+                            ('{} cannot be turned into a '
+                             'packed designation').format(s))
+                return '{}{}{}{}{}'.format(
+                    Names.pkd[int(float(s[:2]))],
+                    s[2:4],
+                    s[5],
+                    num,
+                    frag.lower()
+                )
+            else:
+                yr = s.strip()[:4]
+                yr = Names.pkd[int(yr[:2])] + yr[2:]
+                let = s.strip()[4:7].strip()
+                num = s.strip()[7:].strip()
+                if num == '':
+                    num = '00'
+                elif len(num) == 1:
+                    num = '0' + num
+                elif len(num) > 2:
+                    try:
+                        num = Names.pkd[int(num[:-1])]+num[-1]
+                    except (IndexError, ValueError):
+                        raise TargetNameParseError(
+                            ('{} cannot be turned into a '
+                             'packed designation').format(s))
             return (yr + let[0] + num + let[1])
 
         else:
@@ -156,33 +191,33 @@ class Names():
             return int(str(Names.pkd.find(p[0])) + p[1:])
 
         # old designation style, e.g.: 1989AB
-        if (len(p.strip()) < 7 and p[:4].isdigit() and
-                p[4:6].isalpha()):
+        if (len(p.strip()) < 7 and p[:4].isdigit() and p[4:6].isalpha()):
             return p[:4]+' '+p[4:6]
         # Palomar Survey
-        elif p.find("PLS") == 0:
+        elif p.startswith("PLS"):
             return p[3:] + " P-L"
         # Trojan Surveys
-        elif p.find("T1S") == 0:
+        elif p.startswith("T1S"):
             return p[3:] + " T-1"
-        elif p.find("T2S") == 0:
+        elif p.startswith("T2S"):
             return p[3:] + " T-2"
-        elif p.find("T3S") == 0:
+        elif p.startswith("T3S"):
             return p[3:] + " T-3"
         # insert blank in designations
-        elif (p[0:4].isdigit() and p[4:6].isalpha() and
-              p[4] != ' '):
-            return p[:4]+" "+p[4:]
+        elif (p[0:4].isdigit() and p[4:6].isalpha() and p[4] != ' '):
+            return p[:4] + " " + p[4:]
         # MPC packed 7-digit designation
-        elif (p[0].isalpha() and p[1:3].isdigit() and
-              p[-1].isalpha() and p[-2].isdigit()):
-            yr = str(Names.pkd.find(p[0]))+p[1:3]
-            let = p[3]+p[-1]
-            num = str(Names.pkd.find(p[4]))+p[5]
-            num = num.lstrip("0")
-            return yr+' '+let+num
-        # nothing to do
+        elif (p[0].isalpha() and p[1:3].isdigit() and p[-2].isdigit()):
+            return '{}{} {}{}{}{}'.format(
+                str(Names.pkd.find(p[0])),
+                p[1:3],
+                p[3],
+                p[6] if (p[6].isalpha() and p[6].isupper()) else '',
+                (str(Names.pkd.find(p[4])) + p[5]).lstrip('0'),
+                '-{}'.format(p[6].upper()) if p[6].islower() else ''
+            )
         else:
+            # nothing to do
             return p
 
     @staticmethod
