@@ -36,6 +36,24 @@ will indicate which functions are ready to be tested on this dedicated
 :doc:`/status`. Keep in mind that there might be issues, so feel free to
 compare the function results with your own results.
 
+`sbpy` tests are run with `pytest`.  To install `pytest` and all
+requirements for testing:
+```
+pip install sbpy[test]
+```
+or install `sbpy` from the source tree in editable mode:
+```
+pip install -e .[test]
+```
+Then the tests may be run
+```
+import sbpy
+sbpy.test()
+# use test(remote_data=True) to enable tests requiring an internet connection
+```
+
+For more testing options, including testing multiple dependency versions,
+see `astropy`'s `testing guidelines <https://docs.astropy.org/en/latest/development/testguide.html>`__.
 
 Reporting Problems
 ------------------
