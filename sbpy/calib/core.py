@@ -622,9 +622,10 @@ class Sun(SpectralStandard):
     >>> import astropy.units as u
     >>> import astropy.constants as const
     >>> from astropy.modeling.models import BlackBody
+    >>> from sbpy.calib import Sun
     >>> B = BlackBody(
     ...     temperature=5770 * u.K,
-    ...     scale=((const.R_sun.to('au') / const.au)**2)
+    ...     scale=((const.R_sun / const.au)**2
     ...            * u.W / u.m**2 / u.um / u.sr)
     ... )
     >>> wave = np.logspace(-1, 2, 300) * u.um
@@ -634,7 +635,7 @@ class Sun(SpectralStandard):
     Interpolate to / evaluate at 0.62 μm:
 
     >>> print(sun(0.62 * u.um))                # doctest: +FLOAT_CMP
-    1611.7057927532567 W / (m2 um)
+    1611.7080046473307 W / (m2 um)
 
     Observe as through a spectrometer:
 
