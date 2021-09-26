@@ -56,7 +56,9 @@ class Phys(DataClass):
         Examples
         --------
         >>> from sbpy.data import Phys
-        >>> phys = Phys.from_sbdb(['Ceres', '12893', '3552']) # doctest: +REMOTE_DATA
+        >>> phys = Phys.from_sbdb(
+        ...    ['Ceres', '12893', '3552']
+        ... ) # doctest: +REMOTE_DATA
         >>> print(phys['targetname', 'H', 'diameter'])  # doctest: +SKIP
                 targetname                 H          diameter
                                           mag            km

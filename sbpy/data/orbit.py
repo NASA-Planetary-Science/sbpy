@@ -116,9 +116,8 @@ class Orbit(DataClass):
         --------
         >>> from sbpy.data import Orbit
         >>> from astropy.time import Time
-        >>> epoch = Time('2018-05-14', scale='tdb')
-        # doctest: +REMOTE_DATA
-        >>> eph = Orbit.from_horizons('Ceres', epochs=epoch)
+        >>> epoch = Time('2018-05-14', scale='tdb')  # doctest: +REMOTE_DATA
+        >>> eph = Orbit.from_horizons('Ceres', epochs=epoch)  # doctest: +REMOTE_DATA
         """
 
         # modify epoch input to make it work with astroquery.jplhorizons
