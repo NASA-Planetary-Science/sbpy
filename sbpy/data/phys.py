@@ -162,11 +162,18 @@ class Phys(DataClass):
                     # If the array is mixed Quantities and NaNs, then the
                     # above fails.  Instead apply units element by element,
                     # as needed.
-                    coldata.append(u.Quantity([
-                        x if isinstance(x, u.Quantity)
-                        else u.Quantity(x, unit)
-                        for x in data
-                    ], unit))
+                    try:
+                        coldata.append(u.Quantity([
+                            x if isinstance(x, u.Quantity)
+                            else u.Quantity(x, unit)
+                            for x in data
+                        ], unit))
+                    except u.UnitConversionError:
+                        # but this method can still fail if there are incompatible
+                        # units in the column, such as the case for 'density_sig'
+                        # which SBDB can return percent or physical units.
+                        # In this case, preserve the heterogeneous data array
+                        coldata.append(data)
             else:
                 coldata.append(data)
 
