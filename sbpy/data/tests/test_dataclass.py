@@ -356,7 +356,7 @@ def test_verify_fields():
         'period': 1 * u.s,
         'beta': 1 * u.s * u.m**2,
         'delta-v': 1 * u.m / u.s,
-        'epoch': Time.now()
+        'epoch': Time('2021-09-25')
     })
     # explicitly call for verification
     data.verify_fields()
@@ -381,7 +381,7 @@ def test_verify_fields():
         ['period', 1 * u.radian],
         ['beta', 1 * u.s],
         ['delta-v', 1 / u.s],
-        ['epoch', Time.now().jd]
+        ['epoch', Time('2021-09-25').jd]
     )
 )
 def test_verify_fields_error(field, quantity):
