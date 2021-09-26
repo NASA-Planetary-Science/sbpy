@@ -72,6 +72,15 @@ def test_natural_sort_key():
     assert all([i == t for i, t in zip(items, test)])
 
 
+def test_pkd():
+    """Regression test for #270.
+
+    Verify that all letters and numbers appear just once.
+
+    """
+    assert len(set(Names.pkd)) == len(Names.pkd)
+
+
 def test_asteroid_or_comet():
     """Test target name identification."""
     for comet in comets:
@@ -159,8 +168,8 @@ def test_to_packed():
     assert Names.to_packed('50000') == '50000'
     assert Names.to_packed('100345') == 'A0345'
     assert Names.to_packed('360017') == 'a0017'
-    assert Names.to_packed('1989 AB') == '1989AB'
-    assert Names.to_packed('2000AA') == '2000AA'
+    assert Names.to_packed('1989 AB') == 'J89A00B'
+    assert Names.to_packed('2000AA') == 'K00A00A'
 
 
 def test_parse_comet():
