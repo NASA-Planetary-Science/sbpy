@@ -10,11 +10,11 @@ comets = {
     'P/Encke': {'type': 'P', 'name': 'Encke'},
     '6P/d\'Arrest': {'type': 'P', 'number': 6, 'name': 'd\'Arrest'},
     '9P/Tempel 1': {'type': 'P', 'number': 9, 'name': 'Tempel 1'},
-    '73P/Schwassmann Wachmann 3 C': {'type': 'P', 'number': 73,
-                                     'name': 'Schwassmann Wachmann 3 C'},
-    '73P-C/Schwassmann Wachmann 3 C': {'type': 'P', 'number': 73,
+    '73P/Schwassmann-Wachmann 3 C': {'type': 'P', 'number': 73,
+                                     'name': 'Schwassmann-Wachmann 3 C'},
+    '73P-C/Schwassmann-Wachmann 3 C': {'type': 'P', 'number': 73,
                                        'fragment': 'C',
-                                       'name': 'Schwassmann Wachmann 3 C'},
+                                       'name': 'Schwassmann-Wachmann 3 C'},
     '73P-BB': {'type': 'P', 'number': 73, 'fragment': 'BB'},
     '122P/de Vico': {'type': 'P', 'number': 122, 'name': 'de Vico'},
     '322P': {'type': 'P', 'number': 322},
@@ -25,10 +25,15 @@ comets = {
                               'name': 'LINEAR'},
     'C/-146 P1': {'type': 'C', 'desig': '-146 P1'},
     'C/2001 A2-A (LINEAR)': {'type': 'C', 'desig': '2001 A2',
-                             'fragm': 'A', 'name': 'LINEAR'},
+                             'fragment': 'A', 'name': 'LINEAR'},
     'P/2010 WK (LINEAR}': {'type': 'P', 'desig': '2010 WK', 'name': 'LINEAR'},
     'C/2013 US10': {'type': 'C', 'desig': '2013 US10'},
-    'C/2015 V2 (Johnson)': {'type': 'C', 'desig': '2015 V2', 'name': 'Johnson'}
+    'C/2015 V2 (Johnson)': {'type': 'C', 'desig': '2015 V2',
+                            'name': 'Johnson'},
+    'C/2014 S2 (Pan-STARRS)': {'type': 'C', 'desig': '2014 S2',
+                               'name': 'Pan-STARRS'},
+    'C/2014 S2 (PanSTARRS)': {'type': 'C', 'desig': '2014 S2',
+                              'name': 'PanSTARRS'}
 }
 
 # name: expected result from parse_asteroid()
