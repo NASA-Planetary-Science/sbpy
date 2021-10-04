@@ -11,6 +11,7 @@ sbpy.data
 ``Conf.fieldnames_info`` is a list of dictionaries, one per field, with the
 keys: `'description'`, `'fieldnames'`, `'provenance'`, `'dimension'`, and
 `'equivalencies'`:
+
     * description: text description of the field
     * provenance: list of `~sbpy.DataClass` objects which use the field
     * fieldnames: list of field names as strings, the first is considered the
