@@ -394,59 +394,129 @@ class TestHaser:
         with pytest.raises(sbe.RequiredPackageUnavailable):
             test._K1(1)
 
-class TestVectorialModel:
-    def test_fragment_count(self):
-        """ Compute theoretical number of fragments vs. integrated value from grid """
-        """ Dependent on the default size of the grid - will fail if that is too small """
 
-        # Production has been 1e28 parents per second for 50 days, time enough to reach steady state
-        times_at_production = [50] * u.day
-        production_rates = [1.e28] * (1/u.s)
+class TestVectorialModel:
+    def test_grid_count(self):
+        """
+            Compute theoretical number of fragments vs. integrated value from
+            grid. This is currently only a good estimate for steady production
+            due to our method for determining the theoretical count of
+            fragments
+        """
+
+        base_q = 1.e28 * 1/u.s
 
         # Parent molecule is H2O
         parent = Phys.from_dict({
             'tau_T': 86430 * u.s,
             'tau_d': 101730 * u.s,
-            'v': 1 * u.km/u.s,
+            'v_outflow': 1 * u.km/u.s,
             'sigma': 3e-16 * u.cm**2
             })
         # Fragment molecule is OH
         fragment = Phys.from_dict({
             'tau_T': photo_timescale('OH') * 0.93,
-            'v': 1.05 * u.km/u.s
+            'v_photo': 1.05 * u.km/u.s
             })
 
-        coma = VectorialModel(Q=production_rates, dt=times_at_production,
-                                  parent=parent, fragment=fragment, print_progress=True)
+        coma = VectorialModel(base_q=base_q,
+                              parent=parent,
+                              fragment=fragment)
 
-        fragment_theory = coma.vModel['NumFragmentsTheory']
-        fragment_grid = coma.vModel['NumFragmentsFromGrid']
+        fragment_theory = coma.vmodel['num_fragments_theory']
+        fragment_grid = coma.vmodel['num_fragments_grid']
         assert np.isclose(fragment_theory, fragment_grid, rtol=0.02)
 
     def test_total_number_large_aperture(self):
-        """ Compare theoretical number of fragments vs. integration of column density over a large aperture """
-        """ Dependent on the default size of the grid - will fail if that is too small """
+        """
+            Compare theoretical number of fragments vs. integration of column
+            density over a large aperture
+        """
 
-        # Production has been 1e28 parents per second for 50 days, time enough to reach steady state
-        times_at_production = [50] * u.day
-        production_rates = [1.e28] * (1/u.s)
+        base_q = 1e28 * 1/u.s
 
         # Parent molecule is H2O
         parent = Phys.from_dict({
             'tau_T': 86430 * u.s,
             'tau_d': 101730 * u.s,
-            'v': 1 * u.km/u.s,
+            'v_outflow': 1 * u.km/u.s,
             'sigma': 3e-16 * u.cm**2
             })
         # Fragment molecule is OH
         fragment = Phys.from_dict({
             'tau_T': photo_timescale('OH') * 0.93,
-            'v': 1.05 * u.km/u.s
+            'v_photo': 1.05 * u.km/u.s
             })
 
-        coma = VectorialModel(Q=production_rates, dt=times_at_production,
-                                  parent=parent, fragment=fragment, print_progress=True)
+        coma = VectorialModel(base_q=base_q,
+                              parent=parent,
+                              fragment=fragment)
 
-        fragment_theory = coma.vModel['NumFragmentsTheory']
-        ap = core.CircularAperture((coma.vModel['MaxRadiusOfGrid'].value) * u.m)
+        fragment_theory = coma.vmodel['num_fragments_theory']
+        ap = core.CircularAperture((coma.vmodel['max_grid_radius'].value) * u.m)
         assert np.isclose(fragment_theory, coma.total_number(ap), rtol=0.02)
+
+    def test_model_symmetry(self):
+        """
+            The symmetry of the model allows the parent production to be
+            treated as an overall scaling factor, and does not affect the
+            features of the calculated densities.
+
+            If we assume an arbitrary fixed count inside an aperture, we can
+            use this to calculate what the production would need to be to
+            produce this count after running the model with a 'dummy' value for
+            the production.
+
+            If we then run another model at this calculated production and use
+            the same aperture, we should recover the number of counts assumed
+            in the paragraph above.  If we do not, we have broken our model
+            somehow and lost the symmetry during our calculations.
+        """
+
+        base_production = 1e26
+
+        # # 100,000 x 100,000 km aperture
+        ap = core.RectangularAperture((1.0e5, 1.0e5) * u.km)
+        # assumed fragment count inside this aperture
+        assumed_count = 1e30
+
+        # Parent molecule is H2O
+        parent = Phys.from_dict({
+            'tau_T': 86430 * u.s,
+            'tau_d': 101730 * u.s,
+            'v_outflow': 1 * u.km/u.s,
+            'sigma': 3e-16 * u.cm**2
+            })
+        # Fragment molecule is OH
+        fragment = Phys.from_dict({
+            'tau_T': photo_timescale('OH') * 0.93,
+            'v_photo': 1.05 * u.km/u.s
+            })
+
+        coma = VectorialModel(base_q=base_production*(1/u.s),
+                              parent=parent,
+                              fragment=fragment)
+        # mgr = coma.vmodel['max_grid_radius']
+        # ap = core.RectangularAperture((mgr, mgr))
+        model_count = coma.total_number(ap)
+        calculated_q = (assumed_count/model_count)*base_production
+        print("Calculated: ", calculated_q)
+
+        # Parent molecule is H2O
+        parent_check = Phys.from_dict({
+            'tau_T': 86430 * u.s,
+            'tau_d': 101730 * u.s,
+            'v_outflow': 1 * u.km/u.s,
+            'sigma': 3e-16 * u.cm**2
+            })
+        # Fragment molecule is OH
+        fragment_check = Phys.from_dict({
+            'tau_T': photo_timescale('OH') * 0.93,
+            'v_photo': 1.05 * u.km/u.s
+            })
+        coma_check = VectorialModel(base_q=calculated_q*(1/u.s),
+                                    parent=parent_check,
+                                    fragment=fragment_check)
+        count_check = coma_check.total_number(ap)
+        print("Count/assumed: ", count_check/assumed_count)
+        assert np.isclose(count_check, assumed_count, rtol=0.001)
