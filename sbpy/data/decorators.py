@@ -15,6 +15,7 @@ from functools import wraps
 from astropy.table import Table, QTable
 from astropy.time import Time
 import astropy.units as u
+from astropy.units.decorators import _get_allowed_units, _validate_arg_value
 from .core import DataClass, DataClassError
 from . import Conf
 
@@ -103,77 +104,15 @@ def quantity_to_dataclass(**kwargs):
                         'quantity_to_dataclass decorator requires a '
                         'DataClass object and a field name as a string.')
 
-                field_idx = [field in x for x in Conf.fieldnames]
-                if not any(field_idx):
+                # check field name
+                if field not in Conf.fieldname_idx:
                     raise DataClassError("argument '{}' to function '{}' has"
                         " an invalid field name '{}' for {}"
                         " object".format(param.name, wrapped_function.__name__,
                         field, dataclass))
-                units = [x['dimension'] for x in [Conf.fieldnames_info[i] for
-                    i, x in enumerate(field_idx) if x]]
-                if isinstance(units, str) or (not hasattr(units, '__iter__')):
-                    units = [units]
-                for i in range(len(units)):
-                    # translate the dimension as listed in sbpy Field Name List
-                    # to astropy-recognizable unit strings
-                    if units[i] is None:
-                        units[i] = ''
-                    elif units[i] in ['angle', 'deg']:
-                        equivalencies.extend(u.dimensionless_angles())
-                    elif units[i] == 'angular velocity':
-                        units[i] = '1/s'
-                        equivalencies.extend(u.dimensionless_angles())
-                    elif units[i] == 'velocity':
-                        units[i] = 'm/s'
-                    elif units[i] == 'magnitude':
-                        units[i] = 'mag'
-                    elif units[i] == 'angular area':
-                        units[i] = 'sr'
-                        equivalencies.extend(u.dimensionless_angles())
-                    elif units[i] == 'intensity':
-                        units[i] = 'W/(m**2 sr)'   # is this correct?
-                    elif units[i] == '1/time':
-                        units[i] = '1/s'
-                    elif units[i] == 'time * length^2':
-                        units[i] = 's * m**2'
-                    elif units[i] == '1/length^2':
-                        units[i] = '1/m**2'
-                    elif units[i] == 'temperature':
-                        equivalencies.extend(u.temperature())
-                if any([x == '' for x in units]):
-                    # dimensionless unit
-                    if not hasattr(arg, 'unit'):
-                        arg = arg * u.dimensionless_unscaled
-                if any([x == '`~astropy.time.Time`' for x in units]):
-                    # astropy.time.Time type
-                    units = []
-                    raiseError = False
-                    if isinstance(arg, Time):
-                        pass
-                    else:
-                        try:
-                            if all([isinstance(x, Time) for x in arg]):
-                                pass
-                            else:
-                                raiseError = True
-                        except TypeError:
-                            raiseError = True
-                    if raiseError:
-                        raise TypeError("Argument '{}' to function '{}' must"
-                            " be a `~astropy.time.Time` instance or an array"
-                            " thereof".format(param.name,
-                                wrapped_function.__name__))
-
-                from astropy.units.decorators import (_get_allowed_units,
-                     _validate_arg_value)
-                units = _get_allowed_units(units)
 
                 if not isinstance(arg, dataclass):
                     # Argument is not a DataClass.  Make it so.
-                    if units:
-                        _validate_arg_value(param.name,
-                            wrapped_function.__name__, arg, units,
-                            equivalencies)
                     new_arg = dataclass.from_dict({field: arg})
                     bound_args.arguments[param.name] = new_arg
 

@@ -8,12 +8,12 @@ is expected to conclude in 2021.
 
 The current development version is **v0.2dev**; its status is as follows:
 
-.. image:: https://api.travis-ci.org/NASA-Planetary-Science/sbpy.svg?branch=master
-    :target: https://travis-ci.org/NASA-Planetary-Science/sbpy
-    :alt: Travis-CI status
+.. image:: https://github.com/NASA-Planetary-Science/sbpy/actions/workflows/ci_cron_weekly.yml/badge.svg
+    :target: https://github.com/NASA-Planetary-Science/sbpy/actions
+    :alt: GitHub testing status
 
 .. image:: https://codecov.io/gh/NASA-Planetary-Science/sbpy/branch/master/graph/badge.svg
-    :target: https://codecov.io/gh/NASA-Planetary-Science/sbpy
+    :target: https://app.codecov.io/gh/NASA-Planetary-Science/sbpy
     :alt: codecov status
 
 .. image:: https://readthedocs.org/projects/sbpy/badge/?version=latest

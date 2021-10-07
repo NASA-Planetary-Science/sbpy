@@ -2,11 +2,6 @@
 Installation
 ------------
 
-We recommend that you install the latest version of
-`Anaconda Python 3.x <https://www.anaconda.com/download/>`__ on your
-system before installing `sbpy`. Make sure that Anaconda Python is
-your default Python (this will be asked during the installation process).
-
 Requirements
 ^^^^^^^^^^^^
 
@@ -14,13 +9,12 @@ Requirements
 care of with installation using pip:
 
 * Python 3.6 or later
-* `numpy <https://www.numpy.org/>`__ 1.13.0 or later
+* `numpy <https://numpy.org/>`__ 1.16.0 or later
 * pytest 3.1 or later
 * `astropy <https://www.astropy.org/>`__
 * `astroquery <https://astroquery.readthedocs.io/en/latest/>`__ 0.4.1.dev5892 or later: For retrieval of online data, e.g., ephemerides and orbits.
-* `scipy <https://scipy.org/>`__: For numerical integrations in `sbpy.activity.gas` and `sbpy.photometry`, among others.
+* `scipy <https://www.scipy.org/>`__: For numerical integrations in `sbpy.activity.gas` and `sbpy.photometry`, among others.
 * `synphot <https://github.com/spacetelescope/synphot_refactor>`__ 0.1.3 or later: For calibration with respect to the Sun and Vega, filtering spectra through bandpasses.
-* `ginga <https://ejeschke.github.io/ginga/>`__ and `photutils <https://photutils.readthedocs.io/en/stable/>`__: To interactively enhance images of comets with the `~sbpy.imageanalysis.CometaryEnhancement` Ginga plugin.
 
 The following packages will have to be installed manually, if the user
 wants to use them:
@@ -32,6 +26,7 @@ wants to use them:
 * `pyradex <https://github.com/keflavich/pyradex>`__: For non-LTE
   production rate calculation related to cometary activity
   (`~sbpy.activity.gas.NonLTE`).
+* `ginga <https://ejeschke.github.io/ginga/>`__ and `photutils <https://photutils.readthedocs.io/en/stable/>`__: To interactively enhance images of comets with the `~sbpy.imageanalysis.CometaryEnhancement` Ginga plugin.
   
 
 Using pip

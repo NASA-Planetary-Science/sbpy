@@ -13,7 +13,8 @@ from warnings import warn
 
 from numpy import ndarray, hstack, iterable
 from astropy.time import Time
-from astropy.table import vstack, Column
+from astropy.table import vstack, Column, QTable
+from astropy.coordinates import Angle
 import astropy.units as u
 from astroquery.jplhorizons import Horizons
 from astroquery.mpc import MPC
@@ -27,11 +28,16 @@ except ImportError:
     pyoorb = None
 
 from ..bib import cite
-from .core import DataClass, conf, QueryError, TimeScaleWarning
-from ..exceptions import SbpyException, RequiredPackageUnavailable
+from .core import DataClass, Conf, QueryError, TimeScaleWarning
+from ..exceptions import RequiredPackageUnavailable
 from .orbit import Orbit, OpenOrbError
 
 __all__ = ['Ephem']
+
+
+__doctest_requires__ = {
+    ('Ephem.from_oo',): ['pyoorb']
+}
 
 
 class Ephem(DataClass):
@@ -92,7 +98,8 @@ class Ephem(DataClass):
         -----
         * For detailed explanations of the queried fields, refer to
           `astroquery.jplhorizons.HorizonsClass.ephemerides` and the
-          `JPL Horizons documentation <https://ssd.jpl.nasa.gov/?horizons_doc>`_.
+          `JPL Horizons documentation
+          <https://ssd.jpl.nasa.gov/?horizons_doc>`_.
         * By default, all properties are provided in the J2000.0 reference
           system. Different settings can be chosen using
           additional keyword arguments as used by
@@ -209,13 +216,23 @@ class Ephem(DataClass):
         all_eph.remove_column('datetime_jd')
         all_eph.remove_column('datetime_str')
 
+        # convert solartime and hour angle into Quantity
+        if 'solartime' in all_eph.colnames:
+            all_eph['solartime'] = Angle(
+                all_eph['solartime'], 'hr').hourangle * u.hr
+
+        if 'locapp_hourangle' in all_eph.colnames:
+            all_eph['locapp_hourangle'] = u.Quantity(Angle(
+                all_eph['locapp_hourangle'], 'hr'), u.hourangle)
+
         return cls.from_table(all_eph)
 
     @classmethod
     @cite({'data source':
            'https://minorplanetcenter.net/iau/MPEph/MPEph.html'})
     @cite({'software: astroquery': '2019AJ....157...98G'})
-    def from_mpc(cls, targetids, epochs=None, location='500', **kwargs):
+    def from_mpc(cls, targetids, epochs=None, location='500', ra_format=None,
+                 dec_format=None, **kwargs):
         """Load ephemerides from the
         `Minor Planet Center <https://minorplanetcenter.net>`_.
 
@@ -263,11 +280,21 @@ class Ephem(DataClass):
             length).  If ``None``, then the geocenter (code 500) is
             used.
 
+        ra_format : dict, optional
+            Format the RA column with
+            `~astropy.coordinates.Angle.to_string` using these keyword
+            arguments, e.g.,
+            ``{'sep': ':', 'unit': 'hourangle', 'precision': 1}``.
+
+        dec_format : dict, optional
+            Format the Dec column with
+            `~astropy.coordinates.Angle.to_string` using these keyword
+            arguments, e.g., ``{'sep': ':', 'precision': 0}``.
+
         **kwargs
             Additional keyword arguments are passed to
             `~astroquery.mpc.MPC.get_ephemerides`: ``eph_type``,
-            ``ra_format``, ``dec_format``, ``proper_motion``,
-            ``proper_motion_unit``, ``suppress_daytime``,
+            ``proper_motion``, ``proper_motion_unit``, ``suppress_daytime``,
             ``suppress_set``, ``perturbed``, ``unc_links``, ``cache``.
 
         Returns
@@ -306,10 +333,10 @@ class Ephem(DataClass):
         References
         ----------
         .. [MPES] Wiliams, G. The Minor Planet Ephemeris Service.
-           https://minorplanetcenter.org/iau/info/MPES.pdf
+           https://minorplanetcenter.net/iau/info/MPES.pdf
 
         .. [OBSCODES] IAU Minor Planet Center.  List of observatory
-           codes. https://minorplanetcenter.org/iau/lists/ObsCodesF.html
+           codes. https://minorplanetcenter.net/iau/lists/ObsCodesF.html
 
         """
 
@@ -385,7 +412,7 @@ class Ephem(DataClass):
                                               number=1, **kwargs)
                         e['Date'] = e['Date'].iso  # for vstack to work
                         eph.append(e)
-                    eph = vstack(eph)
+                    eph = QTable(vstack(eph))
                     eph['Date'] = Time(eph['Date'], scale='utc')
                 else:
                     eph = MPC.get_ephemeris(targetid, location=location,
@@ -404,13 +431,17 @@ class Ephem(DataClass):
             else:
                 all_eph = vstack([all_eph, eph])
 
-        # if ra_format or dec_format is defined, then units must be
-        # dropped or else QTable will raise an exception because
-        # strings cannot have units
-        if 'ra_format' in kwargs:
-            all_eph['RA'].unit = None
-        if 'dec_format' in kwargs:
-            all_eph['Dec'].unit = None
+        all_eph = QTable(all_eph)
+
+        # convert RA and Dec to Angle
+        all_eph['RA'] = Angle(all_eph['RA'], all_eph['RA'].unit)
+        all_eph['Dec'] = Angle(all_eph['Dec'], all_eph['Dec'].unit)
+
+        if ra_format is not None:
+            all_eph['RA'].info.format = lambda x: x.to_string(**ra_format)
+
+        if dec_format is not None:
+            all_eph['Dec'].info.format = lambda x: x.to_string(**dec_format)
 
         return cls.from_table(all_eph)
 
@@ -516,12 +547,12 @@ class Ephem(DataClass):
             if 'number' in _epochs:
                 # turn interval/number into step size based on full minutes
                 _epochs['step'] = int((Time(_epochs['stop']) -
-                                      Time(_epochs['start'])).jd *
-                                     86400/(_epochs['number']-1))*u.s
+                                       Time(_epochs['start'])).jd *
+                                      86400 / (_epochs['number']-1)) * u.s
             elif 'step' in _epochs:
                 _epochs['number'] = ((Time(_epochs['stop']) -
-                                     Time(_epochs['start'])).jd *
-                                    86400/_epochs['step'].to('s').value)+1
+                                      Time(_epochs['start'])).jd *
+                                     86400 / _epochs['step'].to('s').value) + 1
             if 'step' in _epochs:
                 _epochs['step'] = '{:f}{:s}'.format(
                     _epochs['step'].value,
@@ -560,17 +591,15 @@ class Ephem(DataClass):
                         # multiple epochs
                         eph = []
                         for i in range(len(_epochs['start'])):
-                            e = query.get_ephemerides(targetname=targetid,
-                                                      objtype=objtype,
-                                                      location=location,
-                                                      epoch=_epochs['start'][i],
-                                                      **kwargs)
-                            e['epoch'] = Time(e['epoch'], format='jd',
-                                              scale='utc').iso
+                            e = query.get_ephemerides(
+                                targetname=targetid,
+                                objtype=objtype,
+                                location=location,
+                                epoch=_epochs['start'][i],
+                                **kwargs
+                            )
                             eph.append(e)
                         eph = vstack(eph)
-                        eph['epoch'] = Time(eph['epoch'], scale='utc',
-                                            format='iso')
                 else:
                     # dictionary
                     eph = query.get_ephemerides(
@@ -590,13 +619,9 @@ class Ephem(DataClass):
             else:
                 all_eph = vstack([all_eph, eph])
 
-        self = cls.from_table(all_eph)
-
-        # turn epochs into astropy.time.Time and apply timescale
-        self.table['epoch'] = Time(self.table['epoch'],
-                                   format='jd', scale='utc')
-
-        return self
+        all_eph = QTable(all_eph)
+        all_eph['epoch'] = Time(all_eph['epoch'], scale='utc', format='jd')
+        return cls.from_table(all_eph)
 
     @classmethod
     @cite({'method': '2009M&PS...44.1853G',
@@ -631,9 +656,9 @@ class Ephem(DataClass):
               orbit) in degrees or y-component of velocity vector (``'vy'``,
               for cartesian orbit) in au/day
             * mean anomaly (``'M'``, for Keplerian orbits) in degrees or
-              perihelion epoch (``'Tp_jd'``, for cometary orbits) in JD or
-              z-component of velocity vector (``'vz'``, for cartesian orbit)
-              in au/day
+              perihelion epoch (``'Tp'``, for cometary orbits) as astropy Time
+              object or z-component of velocity vector (``'vz'``, for cartesian
+              orbit) in au/day
             * epoch (``'epoch'``) as `~astropy.time.Time`
             * absolute magnitude (``'H'``) in mag
             * photometric phase slope (``'G'``)
@@ -717,9 +742,11 @@ class Ephem(DataClass):
         # identify orbit type based on available table columns
         orbittype = None
         for testtype in ['KEP', 'COM', 'CART']:
+            field_names = [
+                field[0] for field in Conf.oorb_orbit_fields[testtype]
+            ]
             try:
-                orb._translate_columns(
-                    conf.oorb_orbit_fields[testtype][1:6])
+                orb._translate_columns(field_names[1:6])
                 orbittype = testtype
                 break
             except KeyError:
@@ -734,12 +761,15 @@ class Ephem(DataClass):
 
         # derive and apply default units
         default_units = {}
-        for idx, field in enumerate(conf.oorb_orbit_fields[orbittype]):
+        for field_name, field_unit in Conf.oorb_orbit_fields[orbittype]:
             try:
-                default_units[orb._translate_columns(
-                    field)[0]] = conf.oorb_orbit_units[orbittype][idx]
+                # use the primary field name
+                primary_field_name = orb._translate_columns(field_name)[0]
             except KeyError:
-                pass
+                continue
+
+            default_units[primary_field_name] = field_unit
+
         for colname in orb.field_names:
             if (colname in default_units.keys() and
                 not isinstance(orb[colname],
@@ -752,9 +782,9 @@ class Ephem(DataClass):
 
         try:
             epochs = list(zip(epochs.mjd,
-                              [conf.oorb_timeScales['TT']]*len(epochs)))
+                              [Conf.oorb_timeScales['TT']]*len(epochs)))
         except TypeError:
-            epochs = [(epochs.mjd, conf.oorb_timeScales['TT'])]
+            epochs = [(epochs.mjd, Conf.oorb_timeScales['TT'])]
 
         if scope == 'full':
             oo_eph, err = pyoorb.pyoorb.oorb_ephemeris_full(
@@ -779,15 +809,15 @@ class Ephem(DataClass):
         if scope == 'full':
             for i, col in enumerate(oo_eph_col):
                 oo_eph_col_u.append(Ephem._unit_apply(
-                    col, conf.oorb_ephem_full_units[i]))
+                    col, Conf.oorb_ephem_full_units[i]))
             ephem = cls.from_columns(oo_eph_col_u,
-                                     names=conf.oorb_ephem_full_fields)
+                                     names=Conf.oorb_ephem_full_fields)
         elif scope == 'basic':
             for i, col in enumerate(oo_eph_col):
                 oo_eph_col_u.append(Ephem._unit_apply(
-                    col, conf.oorb_ephem_basic_units[i]))
+                    col, Conf.oorb_ephem_basic_units[i]))
             ephem = cls.from_columns(oo_eph_col_u,
-                                     names=conf.oorb_ephem_basic_fields)
+                                     names=Conf.oorb_ephem_basic_fields)
 
         # add targetname column
         ephem.table.add_column(Column(data=sum([[orb['targetname'][i]] *

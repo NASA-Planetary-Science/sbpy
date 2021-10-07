@@ -11,7 +11,7 @@ created on June 04, 2017
 
 from collections import OrderedDict
 
-from numpy import ndarray, array, isnan, nan, interp, log, exp
+import numpy as np
 import astropy.units as u
 from astroquery.jplsbdb import SBDB
 from astroquery.jplspec import JPLSpec
@@ -56,7 +56,9 @@ class Phys(DataClass):
         Examples
         --------
         >>> from sbpy.data import Phys
-        >>> phys = Phys.from_sbdb(['Ceres', '12893', '3552']) # doctest: +REMOTE_DATA
+        >>> phys = Phys.from_sbdb(
+        ...    ['Ceres', '12893', '3552']
+        ... ) # doctest: +REMOTE_DATA
         >>> print(phys['targetname', 'H', 'diameter'])  # doctest: +SKIP
                 targetname                 H          diameter
                                           mag            km
@@ -67,7 +69,7 @@ class Phys(DataClass):
 
         """
 
-        if not isinstance(targetids, (list, ndarray, tuple)):
+        if not isinstance(targetids, (list, np.ndarray, tuple)):
             targetids = [targetids]
 
         alldata = []
@@ -81,7 +83,7 @@ class Phys(DataClass):
             data = OrderedDict([('targetname', sbdb['object']['fullname'])])
             for key, val in sbdb['phys_par'].items():
                 if val is None or val == 'None':
-                    val = nan
+                    val = np.nan
                 if '_note' in key:
                     if notes:
                         data[key] = val
@@ -90,8 +92,8 @@ class Phys(DataClass):
                         data[key] = val
                 else:
                     try:
-                        if isnan(val):
-                            val = nan
+                        if np.isnan(val):
+                            val = np.nan
                     except TypeError:
                         pass
                 data[key] = val
@@ -107,6 +109,9 @@ class Phys(DataClass):
                 elif isinstance(val, u.CompositeUnit):
                     for unit in val.bases:
                         columnunits[key].add(unit)
+                elif key == 'H':
+                    # fix for astroquery <0.4.2
+                    columnunits[key].add(u.mag)
 
             alldata.append(data)
 
@@ -119,7 +124,7 @@ class Phys(DataClass):
                 try:
                     data.append(obj[col])
                 except KeyError:
-                    data.append(nan)
+                    data.append(np.nan)
 
             # identify common unit (or at least any unit)
             try:
@@ -144,13 +149,31 @@ class Phys(DataClass):
 
             # convert lists of strings to floats, where possible
             try:
-                data = array(newdata).astype(float)
+                data = np.array(newdata).astype(float)
             except (ValueError, TypeError):
                 data = newdata
 
             # apply unit, if available
             if unit != 1:
-                coldata.append(data*unit)
+                try:
+                    coldata.append(u.Quantity(data, unit))
+                except TypeError:
+                    # If the array is mixed Quantities and NaNs, then the
+                    # above fails.  Instead apply units element by element,
+                    # as needed.
+                    try:
+                        coldata.append(u.Quantity([
+                            x if isinstance(x, u.Quantity)
+                            else u.Quantity(x, unit)
+                            for x in data
+                        ], unit))
+                    except u.UnitConversionError:
+                        # but this method can still fail if there are
+                        # incompatible units in the column, such as the case
+                        # for 'density_sig' which SBDB can return percent or
+                        # physical units.  In this case, preserve the
+                        # heterogeneous data array
+                        coldata.append(data)
             else:
                 coldata.append(data)
 
@@ -185,7 +208,8 @@ class Phys(DataClass):
         Returns
         -------
         Molecular data : `~sbpy.data.Phys` instance
-            Quantities in the following order from JPL Spectral Molecular Catalog:
+            Quantities in the following order from JPL Spectral Molecular
+            Catalog:
                 | Transition frequency
                 | Temperature
                 | Integrated line intensity at 300 K
@@ -266,10 +290,10 @@ class Phys(DataClass):
 
         temp = temp_estimate
 
-        f = interp(log(temp.value), log(
-            temp_list.value[::-1]), log(part[::-1]))
+        f = np.interp(np.log(temp.value), np.log(
+            temp_list.value[::-1]), np.log(part[::-1]))
 
-        f = exp(f)
+        f = np.exp(f)
 
         partition = 10**(f)
 

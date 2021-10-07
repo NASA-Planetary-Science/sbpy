@@ -29,17 +29,18 @@ import datetime
 import os
 import sys
 
+import matplotlib
+matplotlib.use('agg')
+
 try:
     from sphinx_astropy.conf.v1 import *
 except ImportError:
-    print('ERROR: the documentation requires the sphinx-astropy package to be installed')
+    print('ERROR: the documentation requires the sphinx-astropy package to be'
+          ' installed')
     sys.exit(1)
 
 # Get configuration information from setup.cfg
-try:
-    from ConfigParser import ConfigParser
-except ImportError:
-    from configparser import ConfigParser
+from configparser import ConfigParser  # noqa: E402
 conf = ConfigParser()
 
 conf.read([os.path.join(os.path.dirname(__file__), '..', 'setup.cfg')])
@@ -51,7 +52,7 @@ setup_cfg = dict(conf.items('metadata'))
 highlight_language = 'python3'
 
 # If your documentation needs a minimal Sphinx version, state it here.
-#needs_sphinx = '1.2'
+# needs_sphinx = '1.2'
 
 # To perform a Sphinx version check that needs to be more specific than
 # major.minor, call `check_sphinx_version("x.y.z")` here.
@@ -65,6 +66,9 @@ exclude_patterns.append('_templates')
 # be used globally.
 rst_epilog += """
 """
+
+extensions += ['sphinx.ext.intersphinx',
+               'sphinx_automodapi.smart_resolver']
 
 # -- Project information ------------------------------------------------------
 
@@ -157,8 +161,7 @@ man_pages = [('index', project.lower(), project + u' Documentation',
 # -- Options for the edit_on_github extension ---------------------------------
 
 if eval(setup_cfg.get('edit_on_github')):
-    extensions += ['sphinx_astropy.ext.edit_on_github',
-                   'sphinx.ext.intersphinx']
+    extensions += ['sphinx_astropy.ext.edit_on_github']
 
     versionmod = __import__(setup_cfg['package_name'] + '.version')
     edit_on_github_project = setup_cfg['github_project']
@@ -175,7 +178,7 @@ github_issues_url = 'https://github.com/{0}/issues/'.format(
     setup_cfg['github_project'])
 
 # -- compile list of field names
-#import compile_fieldnames
+# import compile_fieldnames
 
 # --- intersphinx setup
 intersphinx_mapping['astroquery'] = (

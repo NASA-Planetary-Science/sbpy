@@ -167,10 +167,11 @@ with a single orbit, the most convenient solution might be to use a
 dictionary to build your object:
 
     >>> from sbpy.data import Orbit
+    >>> from astropy.time import Time
     >>> import astropy.units as u
     >>> elements = {'a':1.234*u.au, 'e':0.1234, 'i':12.34*u.deg,
     ...             'argper': 123.4*u.deg, 'node': 45.2*u.deg,
-    ...             'epoch': 2451200.5*u.d, 'true_anom':23.1*u.deg}
+    ...             'epoch': Time(2451200.5, format='jd'), 'true_anom':23.1*u.deg}
     >>> orb = Orbit.from_dict(elements)
     >>> orb  # doctest: +SKIP
     <QTable length=1>
@@ -292,7 +293,7 @@ In order to obtain a list of field names in a `~sbpy.data.DataClass`
 object, you can use `~sbpy.data.DataClass.field_names`:
 
     >>> obs.field_names
-    <TableColumns names=('ra','dec','t')>
+    ['ra', 'dec', 't']
 
 Each of these columns can be accessed easily, for instance:
 
@@ -503,7 +504,7 @@ Note that the radius is not explicitly defined in ``data``, but
 derived internally upon querying it and added to the internal data table:
 
     >>> print(data.field_names)
-    <TableColumns names=('d','radius')>
+    ['d', 'radius']
     
 
 .. _epochs:

@@ -36,6 +36,24 @@ will indicate which functions are ready to be tested on this dedicated
 :doc:`/status`. Keep in mind that there might be issues, so feel free to
 compare the function results with your own results.
 
+`sbpy` tests are run with `pytest`.  To install `pytest` and all
+requirements for testing:
+```
+pip install sbpy[test]
+```
+or install `sbpy` from the source tree in editable mode:
+```
+pip install -e .[test]
+```
+Then the tests may be run
+```
+import sbpy
+sbpy.test()
+# use test(remote_data=True) to enable tests requiring an internet connection
+```
+
+For more testing options, including testing multiple dependency versions,
+see `astropy`'s `testing guidelines <https://docs.astropy.org/en/latest/development/testguide.html>`__.
 
 Reporting Problems
 ------------------
@@ -72,7 +90,7 @@ Technical requirements
 ^^^^^^^^^^^^^^^^^^^^^^
 
 * code must adhere to `astropy's contributing guidelines
-  <http://www.astropy.org/contribute.html>`__, the guidelines
+  <https://www.astropy.org/contribute.html>`__, the guidelines
   described in this document and `PEP8
   <https://www.python.org/dev/peps/pep-0008/>`_
 * code must be accompanied by corresponding tests; 100% of the
@@ -126,9 +144,9 @@ This is the proposed workflow for code contributions:
   member.
 
 Please also check out `astropy's contributing guidelines
-<http://www.astropy.org/contribute.html>`__ for a general introduction
+<https://www.astropy.org/contribute.html>`__ for a general introduction
 on coding techniques and additional hints.
 
 Please follow the `astropy code of conduct`_ at any time.
 
-.. _astropy code of conduct: http://docs.astropy.org/en/latest/development/codeguide.html
+.. _astropy code of conduct: https://docs.astropy.org/en/latest/development/codeguide.html

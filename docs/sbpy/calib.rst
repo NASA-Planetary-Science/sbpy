@@ -12,7 +12,7 @@ The spectrum of `Bohlin (2014) <https://dx.doi.org/10.1088/0004-6256/147/6/127>`
   * E490_2014LR - A low resolution version of the E490 standard.
   * Kurucz1993 - Kurucz (1993) model.
 
-The E490 spectra are included with sbpy, and the Kurucz and Castelli spectra are downloaded as needed from `STScI's reference data system <http://www.stsci.edu/hst/observatory/crds/astronomical_catalogs.html>`_.
+The E490 spectra are included with sbpy, and the Kurucz and Castelli spectra are downloaded as needed from `STScI's astronomical catalog <https://www.stsci.edu/hst/instrumentation/reference-data-for-calibration-and-tools/astronomical-catalogs>`_.
 
 Each star has a class for use within sbpy.  The classes can be initialized with the default spectrum using :func:`~sbpy.calib.SpectralStandard.from_default`:
 

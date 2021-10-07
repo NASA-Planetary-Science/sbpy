@@ -39,7 +39,7 @@ With the synphot package, sbpy has the capability to convert between flux densit
 
 sbpy defines two new spectral flux density units: ``VEGA`` and ``JM``.  ``VEGA`` represents the flux density of Vega.  ``JM`` represents the flux density zeropoint of the Johnson-Morgan system, assuming Vega has a magnitude of 0.03 at all wavelengths (`Johnson et al. 1966 <https://ui.adsabs.harvard.edu/abs/1966CoLPL...4...99J>`_, `Bessell & Murphy 2012 <https://ui.adsabs.harvard.edu/abs/2012PASP..124..140B>`_).  Two magnitude units are also defined: ``VEGAmag`` and ``JMmag``.
 
-Unit conversions between flux density and Vega-based magnitudes use the `astropy.units equivalency system <http://docs.astropy.org/en/stable/units/equivalencies.html#unit-equivalencies>`_.  sbpy's :func:`~sbpy.units.spectral_density_vega` provides the equivalencies, which astropy would use to convert the units.  The function requires a wavelength, frequency, or bandpass:
+Unit conversions between flux density and Vega-based magnitudes use the `astropy.units equivalency system <https://docs.astropy.org/en/stable/units/equivalencies.html#unit-equivalencies>`_.  sbpy's :func:`~sbpy.units.spectral_density_vega` provides the equivalencies, which astropy would use to convert the units.  The function requires a wavelength, frequency, or bandpass:
 
   >>> import astropy.units as u
   >>> from sbpy.units import VEGAmag, spectral_density_vega

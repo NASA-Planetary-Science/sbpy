@@ -1,13 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+from sbpy.data.core import FieldError
 import pytest
 import numpy as np
 import astropy.units as u
 from astropy.table import Table, QTable
 from astropy.time import Time
-import pytest
 from ... import data as sbd
-from ..decorators import *
+from ..decorators import quantity_to_dataclass, dataclass_input
 
 
 def test_quantity_to_dataclass_single():
@@ -19,9 +19,9 @@ def test_quantity_to_dataclass_single():
     eph = sbd.Ephem.from_dict({'rh': 1 * u.au})
     assert temperature(rh, 1, 2, 3) == temperature(eph, 7, 8, 9, d=10)
     assert np.isclose(temperature(rh, 4, 5, 6).value, 278.0)
-    with pytest.raises(TypeError):
+    with pytest.raises(FieldError):
         temperature(1, 1, 2, 3)
-    with pytest.raises(u.UnitsError):
+    with pytest.raises(FieldError):
         temperature(1 * u.s, 1, 2, 3)
 
 
@@ -33,9 +33,9 @@ def test_quantity_to_dataclass_multiple():
     rh = 1 * u.au
     a = 2 * u.au
     assert np.isclose(contrived(rh, a).value, 0.5)
-    with pytest.raises(TypeError):
+    with pytest.raises(FieldError):
         contrived(1, a)
-    with pytest.raises(u.UnitsError):
+    with pytest.raises(FieldError):
         contrived(rh, 2 * u.s)
 
 
@@ -51,16 +51,16 @@ def test_quantity_to_dataclass_stacked():
     a = 2 * u.au
     R = 100 * u.km
     assert np.isclose(contrived(rh, a, R).value, 50)
-    with pytest.raises(TypeError):
+    with pytest.raises(FieldError):
         contrived(1, a, R)
-    with pytest.raises(u.UnitsError):
+    with pytest.raises(FieldError):
         contrived(rh, 2 * u.s, R)
 
 
 u.imperial.enable()
 
 
-@pytest.mark.parametrize('field, arg, test_unit', (
+@pytest.mark.parametrize('field, arg, test_invalid_unit', (
     ('a', 1 * u.au, 's'),
     ('e', 0.5, 's'),
     ('inc', 10 * u.deg, 's'),
@@ -74,27 +74,25 @@ u.imperial.enable()
     ('sband_3sigma', 5 * u.GHz, 's'),
     ('temp', 300 * u.K, 'm'),  # looks like astropy has problem handling
     # temperature units
-    ('lgint300', 300 * u.Unit('W/(m**2 sr)'), 'm/s'),
+    # ('lgint300', 300 * u.Unit('W/(m**2 sr)'), 'm/s'),
     ('eup_j', 1 * u.J, 'm'),
     ('eup_j', 1 * u.eV, 'm')
 ))
-def test_quantity_to_dataclass_dimensions(field, arg, test_unit):
+def test_quantity_to_dataclass_dimensions(field, arg, test_invalid_unit):
     @quantity_to_dataclass(x=(field, sbd.DataClass))
     def test(x):
         return x[field]
 
     assert all(test(arg) == arg)
-    if isinstance(arg, u.Quantity):
-        with pytest.raises((TypeError, AttributeError)):
-            test(1)
-    with pytest.raises(u.UnitsError):
-        test(1 * u.Unit(test_unit))
+    with pytest.raises(FieldError):
+        test(1 * u.Unit(test_invalid_unit))
 
 
 @pytest.mark.parametrize('arg, test_arg', (
     (Time('2019-01-01'), Time('2019-01-01')),
     (Time(['2019-01-01', '2019-01-02']), Time(['2019-01-01', '2019-01-02'])),
-    ([Time('2019-01-01'), Time('2019-01-02')], Time(['2019-01-01', '2019-01-02']))
+    ([Time('2019-01-01'), Time('2019-01-02')],
+     Time(['2019-01-01', '2019-01-02']))
 ))
 def test_quantity_to_dataclass_timetype(arg, test_arg):
     @quantity_to_dataclass(x=('epoch', sbd.Obs))
@@ -105,23 +103,25 @@ def test_quantity_to_dataclass_timetype(arg, test_arg):
 
 
 @pytest.mark.parametrize('arg', (
-    (1),
-    ('2015-01-01'),
-    (1 * u.s),
-    ([1, 2]),
-    ([1, 2] * u.s)
+    [1],
+    ['2015-01-01'],
+    [1 * u.s],
+    [1, 2],
+    [1, 2] * u.s
 ))
 def test_quantity_to_dataclass_timetype_error(arg):
     @quantity_to_dataclass(x=('epoch', sbd.Obs))
     def test(x):
         return x['epoch']
 
-    with pytest.raises(TypeError):
+    with pytest.raises(FieldError):
         test(arg)
 
 
 def test_quantity_to_dataclass_equivalencies():
-    @quantity_to_dataclass(x=('sband_3sigma', sbd.Obs), equivalencies=u.spectral())
+    @quantity_to_dataclass(
+        x=('sband_3sigma', sbd.Obs), equivalencies=u.spectral()
+    )
     def test(x):
         return x['sband_3sigma']
 
@@ -178,7 +178,7 @@ def test_dataclass_input_annotation():
 
 def test_quantity_input_optional():
     @dataclass_input
-    def temperature(eph: sbd.Ephem=None):
+    def temperature(eph: sbd.Ephem = None):
         if eph is None:
             rh = 1 * u.au
         else:

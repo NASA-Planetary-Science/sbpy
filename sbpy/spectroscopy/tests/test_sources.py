@@ -1,17 +1,17 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import sys
 import pytest
 import numpy as np
 import astropy.units as u
-from astropy.tests.helper import remote_data
-from astropy.modeling.blackbody import blackbody_nu, blackbody_lambda
+from astropy.modeling.models import BlackBody
+import astropy.constants as const
 import synphot
 from .. import sources
-from ..sources import (BlackbodySource, SinglePointSpectrumError,
-                       SpectralSource, SynphotRequired)
-from ... import bib, units
+from ..sources import (BlackbodySource, SpectralSource, SynphotRequired,
+                       Reddening)
+from ..core import SpectralGradient
 from ...photometry import bandpass
+from ...units import hundred_nm
 
 V = bandpass('johnson v')
 I = bandpass('cousins i')
@@ -60,6 +60,17 @@ class TestSpectralSource:
         with pytest.raises(TypeError):
             s.color_index(np.arange(2), unit=u.ABmag)
 
+    def test_redden(self):
+        s = Star()
+        s._description = 'Test star spectrum'
+        S = SpectralGradient(14 * u.percent / hundred_nm, wave0=0.55 * u.um)
+        s_r = s.redden(S)
+        assert u.isclose(s_r(0.65 * u.um), 1.14 * u.W / (u.m**2 * u.um))
+        assert s_r.description == (
+            'Test star spectrum reddened by {} at {}'
+            .format(14 * u.percent / hundred_nm, 0.55 * u.um)
+        )
+
 
 class TestBlackbodySource:
     @pytest.mark.parametrize('T', (
@@ -77,10 +88,32 @@ class TestBlackbodySource:
         BB = BlackbodySource(278)
         assert repr(BB) == '<BlackbodySource: T=278.0 K>'
 
-    @pytest.mark.parametrize('B', (blackbody_nu, blackbody_lambda))
-    def test_call(self, B):
+    @pytest.mark.parametrize(
+        'unit', ('W / (m2 um sr)', 'erg / (s cm2 Hz sr)')
+    )
+    def test_call(self, unit):
+        B = BlackBody(
+            temperature=300 * u.K,
+            scale=((const.R_sun.to('au') / const.au)**2) * u.Unit(unit)
+        )
         w = np.logspace(-0.5, 3) * u.um
-        f = B(w, 300 * u.K) * np.pi * u.sr
+        f = B(w) * np.pi * u.sr
         BB = BlackbodySource(300 * u.K)
         test = BB(w, unit=f.unit).value
         assert np.allclose(test, f.value)
+
+
+class TestReddening:
+    def test_init(self):
+        S = SpectralGradient(14 * u.percent / hundred_nm, wave0=0.55 * u.um)
+        r = Reddening(S)
+        assert np.isclose(r(0.45 * u.um), 1 - 0.14)
+        assert np.isclose(r(0.55 * u.um), 1.)
+        assert np.isclose(r(0.65 * u.um), 1 + 0.14)
+        # test exception
+        S = SpectralGradient(14 * u.percent / hundred_nm)
+        with pytest.raises(ValueError):
+            r = Reddening(S)
+        # test quantity input
+        with pytest.raises(u.UnitsError):
+            r = Reddening(14 * u.percent)

@@ -14,7 +14,7 @@ from sbpy.exceptions import SbpyWarning
 warnings.simplefilter('ignore', SbpyWarning)
 ```
 
-See the `Astropy documentation <http://docs.astropy.org/en/stable/warnings.html>`_ for more ways to suppress warnings.
+See the `Astropy documentation <https://docs.astropy.org/en/stable/warnings.html>`_ for more ways to suppress warnings.
 
 
 Reference/API

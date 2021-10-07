@@ -12,13 +12,12 @@ __all__ = ['DiskIntegratedPhaseFunc', 'LinearPhaseFunc', 'HG', 'HG12BaseClass',
 from collections import OrderedDict
 import warnings
 import numpy as np
-from numbers import Number
 from scipy.integrate import quad
 from astropy.modeling import (Fittable1DModel, Parameter)
 from astropy.table import Column
 import astropy.units as u
 from astropy import log
-from ..data import (DataClass, Phys, Obs, Ephem, dataclass_input,
+from ..data import (Phys, Obs, Ephem, dataclass_input,
                     quantity_to_dataclass)
 from ..bib import cite
 from ..units import reflectance
@@ -153,9 +152,10 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
     >>> print(phys['targetname','H','G'])    # doctest: +REMOTE_DATA
     <QTable length=1>
         targetname       H       G
+                        mag
           str17       float64 float64
     ----------------- ------- -------
-    1 Ceres (A801 AA)     3.4    0.12
+    1 Ceres (A801 AA)    3.53    0.12
     >>> m = HG.from_phys(phys)                  # doctest: +REMOTE_DATA
     INFO: Model initialized for 1 Ceres (A801 AA). [sbpy.photometry.core]
     >>> print(m)                             # doctest: +REMOTE_DATA
@@ -164,9 +164,10 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
     Outputs: ('y',)
     Model set size: 1
     Parameters:
-         H    G
-        --- ----
-        3.4 0.12
+         H     G
+        mag
+        ---- ----
+        3.53 0.12
     >>> print(m.meta['targetname'])          # doctest: +REMOTE_DATA
     1 Ceres (A801 AA)
     >>> print(m.radius)                      # doctest: +REMOTE_DATA
@@ -181,7 +182,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
                         mag
           str17       float64 float64
     ----------------- ------- -------
-    1 Ceres (A801 AA)     3.4    0.12
+    1 Ceres (A801 AA)    3.53    0.12
     >>> m = HG.from_phys(elem)                    # doctest: +REMOTE_DATA
     INFO: Model initialized for 1 Ceres (A801 AA). [sbpy.photometry.core]
     >>>
@@ -280,9 +281,10 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         >>> print(phys['targetname','H','G'])   # doctest: +REMOTE_DATA
         <QTable length=1>
             targetname       H       G
+                            mag
               str17       float64 float64
         ----------------- ------- -------
-        1 Ceres (A801 AA)     3.4    0.12
+        1 Ceres (A801 AA)    3.53    0.12
         >>> m = HG.from_phys(phys)              # doctest: +REMOTE_DATA
         INFO: Model initialized for 1 Ceres (A801 AA). [sbpy.photometry.core]
         >>> print(m)                            # doctest: +REMOTE_DATA
@@ -291,9 +293,10 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         Outputs: ('y',)
         Model set size: 1
         Parameters:
-             H    G
-            --- ----
-            3.4 0.12
+             H     G
+            mag
+            ---- ----
+            3.53 0.12
         >>> print(m.meta['targetname'])         # doctest: +REMOTE_DATA
         1 Ceres (A801 AA)
         >>> print(m.radius)                     # doctest: +REMOTE_DATA
@@ -359,26 +362,23 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         >>> print(phys['targetname','radius','H','G']) # doctest: +REMOTE_DATA
         <QTable length=1>
             targetname     radius    H       G
-                             km
+                             km     mag
               str17       float64 float64 float64
         ----------------- ------- ------- -------
-        1 Ceres (A801 AA)   469.7     3.4    0.12
+        1 Ceres (A801 AA)   469.7    3.53   0.12
         >>> m = HG.from_phys(phys)   # doctest: +REMOTE_DATA
         INFO: Model initialized for 1 Ceres (A801 AA). [sbpy.photometry.core]
         >>> m.wfb = 'V'              # doctest: +REMOTE_DATA
-        >>> m.H = m.H * u.mag        # doctest: +REMOTE_DATA
         >>> with solar_fluxd.set({'V': -26.77 * u.mag}):
         ...     p = m.to_phys()      # doctest: +REMOTE_DATA
         >>> print(type(p))           # doctest: +REMOTE_DATA
         <class 'sbpy.data.phys.Phys'>
-        >>> print(p)                 # doctest: +REMOTE_DATA
-        <QTable length=1>
-            targetname    diameter    H       G            pv                 A
-                             km      mag
-              str17       float64  float64 float64      float64            float64
-        ----------------- -------- ------- ------- ----------------- -------------------
-        1 Ceres (A801 AA)    939.4     3.4    0.12 0.086738059863538 0.03160306203157442
-        """
+        >>> p.table.pprint(max_width=-1)  # doctest: +REMOTE_DATA
+            targetname    diameter  H    G            pv                  A
+                             km    mag
+        ----------------- -------- ---- ---- ------------------- --------------------
+        1 Ceres (A801 AA)    939.4 3.53 0.12 0.07695019128044604 0.028036846480119768
+        """  # noqa: E501
         cols = {}
         if (self.meta is not None) and ('targetname' in self.meta.keys()):
             val = self.meta['targetname']
@@ -459,7 +459,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
             if isinstance(mag, u.Quantity):
                 dist_corr = u.Quantity(dist_corr).to(u.mag, u.logarithmic())
             else:
-                dist_corr = -2.5 * alog10(dist_corr)
+                dist_corr = -2.5 * np.log10(dist_corr)
             mag0 = mag + dist_corr
             if init is None:
                 m0 = cls()
@@ -473,15 +473,15 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
                 if sz1 != sz2:
                     raise ValueError('`init` must have a shape of ({}, {}),'
                                      ' shape {} is given.'.format(sz2[0],
-                                     sz2[1], sz1))
+                                                                  sz2[1], sz1))
             par = np.zeros((len(cls.param_names), n_models))
             for i in range(n_models):
                 mag = obs[fields[i]]
                 if isinstance(mag, u.Quantity):
                     dist_corr1 = u.Quantity(dist_corr).to(u.mag,
-                            u.logarithmic())
+                                                          u.logarithmic())
                 else:
-                    dist_corr1 = -2.5 * alog10(dist_corr)
+                    dist_corr1 = -2.5 * np.log10(dist_corr)
                 mag0 = mag + dist_corr1
                 if init is None:
                     m0 = cls()
@@ -610,8 +610,10 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
                     ' size of object is unknown.')
             if self.wfb is None:
                 raise ValueError('Wavelength/Frequency/Band is unknown.')
-            out = out.to(unit, reflectance(self.wfb,
-                    cross_section=np.pi * self.radius**2))
+            out = out.to(
+                unit,
+                reflectance(self.wfb, cross_section=np.pi * self.radius**2)
+            )
         dist_corr = self._distance_module(eph)
         dist_corr = u.Quantity(dist_corr).to(u.mag, u.logarithmic())
         out = out - dist_corr
@@ -700,8 +702,10 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
                         ' phase function can be calculated.')
                 if self.wfb is None:
                     raise ValueError('Wavelength/Frequency/Band is unknown.')
-                out = out.to('1/sr', reflectance(self.wfb,
-                        cross_section=np.pi*self.radius**2))
+                out = out.to(
+                    '1/sr',
+                    reflectance(self.wfb, cross_section=np.pi*self.radius**2)
+                )
             else:
                 out = out - norm
                 out = out.to('', u.logarithmic())
@@ -1026,6 +1030,7 @@ class HG1G2(HG12BaseClass):
 
     @staticmethod
     def evaluate(ph, h, g1, g2):
+        ph = u.Quantity(ph, 'rad').to_value('rad')
         func = g1*HG1G2._phi1(ph)+g2*HG1G2._phi2(ph)+(1-g1-g2)*HG1G2._phi3(ph)
         if isinstance(func, u.Quantity):
             func = func.value

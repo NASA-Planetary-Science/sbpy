@@ -20,7 +20,11 @@ import abc
 
 import numpy as np
 import astropy.units as u
-from astropy.utils.misc import InheritDocstrings
+import astropy.version as astropy_version
+try:
+    from astropy.utils.misc import InheritDocstrings
+except ImportError:
+    InheritDocstrings = None
 
 from .. import bib
 from ..calib import Sun
@@ -165,8 +169,7 @@ def phase_HalleyMarcus(phase):
 
 
 # checks if the installed astropy version is up-to-date
-if isinstance(u.SpecificTypeQuantity, InheritDocstrings):
-    # astropy < 4.0
+if astropy_version.major < 4:
     class DustComaQuantityMeta(InheritDocstrings, abc.ABCMeta):
         pass
 else:

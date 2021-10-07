@@ -9,7 +9,8 @@ Class for querying, manipulating, integrating, and fitting orbital elements.
 created on June 04, 2017
 """
 import os
-from numpy import array, ndarray, double, arange, rad2deg
+import numpy as np
+from numpy import array, ndarray, double, arange
 from astropy.time import Time
 from astropy.table import vstack, QTable
 from astroquery.jplhorizons import Horizons
@@ -17,9 +18,19 @@ from astroquery.mpc import MPC
 import astropy.units as u
 from warnings import warn
 
+try:
+    import pyoorb
+except ImportError:
+    pyoorb = None
+
 from ..bib import cite
-from ..exceptions import SbpyException
-from . import conf, DataClass, QueryError, TimeScaleWarning
+from ..exceptions import RequiredPackageUnavailable, SbpyException
+from . import Conf, DataClass, QueryError, TimeScaleWarning
+
+try:
+    import pyoorb
+except ImportError:
+    pyoorb = None
 
 __all__ = ['Orbit', 'OrbitError', 'OpenOrbError']
 
@@ -105,7 +116,7 @@ class Orbit(DataClass):
         --------
         >>> from sbpy.data import Orbit
         >>> from astropy.time import Time
-        >>> epoch = Time('2018-05-14', scale='tdb')
+        >>> epoch = Time('2018-05-14', scale='tdb')  # doctest: +REMOTE_DATA
         >>> eph = Orbit.from_horizons('Ceres', epochs=epoch)  # doctest: +REMOTE_DATA
         """
 
@@ -267,11 +278,11 @@ class Orbit(DataClass):
             # parse results from MPC.query_object
             results = {}
             for key, val in e[0].items():
-                # skip if key not in conf.mpc_orbit_fields
-                if key not in conf.mpc_orbit_fields:
+                # skip if key not in Conf.mpc_orbit_fields
+                if key not in Conf.mpc_orbit_fields:
                     continue
 
-                fieldname, fieldunit = conf.mpc_orbit_fields[key]
+                fieldname, fieldunit = Conf.mpc_orbit_fields[key]
                 # try to convert to float
                 try:
                     val = float(val)
@@ -322,8 +333,11 @@ class Orbit(DataClass):
             orbittype = None
 
             for testtype in ['KEP', 'COM', 'CART']:
+                field_names = [
+                    field[0] for field in Conf.oorb_orbit_fields[testtype]
+                ]
                 try:
-                    for field in conf.oorb_orbit_fields[testtype][1:6]:
+                    for field in field_names[1:6]:
                         self.__getitem__(field)
                     orbittype = testtype
                     break
@@ -357,15 +371,14 @@ class Orbit(DataClass):
             orbits = array(array([arange(0, len(self.table), 1),
                                   self['q'].to('au').value,
                                   self['e'].data,
-                                  self['i'].to('radian').value,
-                                  self['Omega'].to('radian').value,
-                                  self['w'].to('radian').value,
-                                  (self['Tp_jd'].to('d').value -
-                                   2400000.5),
-                                  [conf.oorb_elemType[orbittype]] *
+                                  self['i'].to_value('radian'),
+                                  self['Omega'].to_value('radian'),
+                                  self['w'].to_value('radian'),
+                                  self['Tp'].mjd,
+                                  [Conf.oorb_elemType[orbittype]] *
                                   len(self.table),
                                   self['epoch'].mjd,
-                                  ([conf.oorb_timeScales
+                                  ([Conf.oorb_timeScales
                                     [self['epoch'][0].scale.upper()]] *
                                    len(self.table)),
                                   self['H'].value,
@@ -376,14 +389,14 @@ class Orbit(DataClass):
             orbits = array(array([arange(0, len(self.table), 1),
                                   self['a'].to('au').value,
                                   self['e'].data,
-                                  self['incl'].to('radian').value,
-                                  self['Omega'].to('radian').value,
-                                  self['w'].to('radian').value,
-                                  self['M'].to('radian').value,
-                                  [conf.oorb_elemType[orbittype]] *
+                                  self['incl'].to_value('radian'),
+                                  self['Omega'].to_value('radian'),
+                                  self['w'].to_value('radian'),
+                                  self['M'].to_value('radian'),
+                                  [Conf.oorb_elemType[orbittype]] *
                                   len(self.table),
                                   self['epoch'].mjd,
-                                  ([conf.oorb_timeScales
+                                  ([Conf.oorb_timeScales
                                     [self['epoch'][0].scale.upper()]] *
                                    len(self.table)),
                                   self['H'].value,
@@ -398,10 +411,10 @@ class Orbit(DataClass):
                                   self['dx'].to('au/d').value,
                                   self['dy'].to('au/d').value,
                                   self['dz'].to('au/d').value,
-                                  [conf.oorb_elemType[orbittype]] *
+                                  [Conf.oorb_elemType[orbittype]] *
                                   len(self.table),
                                   self['epoch'].mjd,
-                                  ([conf.oorb_timeScales
+                                  ([Conf.oorb_timeScales
                                     [self['epoch'][0].scale.upper()]] *
                                    len(self.table)),
                                   self['H'].data,
@@ -409,6 +422,53 @@ class Orbit(DataClass):
                            dtype=double, order='F')
 
         return orbits
+
+    @staticmethod
+    def _from_oo(oo_orbits, orbittype, timescale):
+        """Convert openorb-compatible orbit array to ``Orbit``."""
+
+        # reorder data in Orbit object
+        fields = Conf.oorb_orbit_fields[orbittype]
+        columns = []
+        field_names = []
+        for i, col in enumerate(oo_orbits.transpose()):
+            field_name, field_unit = fields[i]
+            column = Orbit._unit_apply(col, field_unit)
+
+            # return units as degrees, not radians
+            if field_unit == 'rad':
+                column = np.degrees(column)
+
+            # convert epoch and Tp to Time object, and convert back to user's
+            # original time scale
+            if field_name in ['epoch', 'Tp']:
+                column = Time(
+                    Time(column, format='mjd', scale='tt'),
+                    scale=timescale.lower()
+                )
+
+            columns.append(column)
+            field_names.append(field_name)
+
+        return Orbit.from_columns(columns, names=field_names)
+
+    @staticmethod
+    def _from_oo_propagatation(oo_orbits, orbittype, timescale):
+        """Convert openorb orbit array from oorb_propagation to ``Orbit``.
+
+        pyoorb.oorb_propagation returns degrees, but elsewhere pyoorb returns
+        radians.
+
+        """
+
+        # convert columns of degrees to radians, then _from_oo will convert
+        # back to degrees
+        fields = Conf.oorb_orbit_fields[orbittype]
+        for i, (field_name, field_unit) in enumerate(fields):
+            if field_unit == 'rad':
+                oo_orbits[:, i] = np.radians(oo_orbits[:, i])
+
+        return Orbit._from_oo(oo_orbits, orbittype, timescale)
 
     @cite({'method': '2009M&PS...44.1853G',
            'software': 'https://github.com/oorb/oorb'})
@@ -434,9 +494,9 @@ class Orbit(DataClass):
           orbit) in degrees or y-component of velocity vector (``'vy'``,
           for cartesian orbit) in au/day
         * mean anomaly (``'M'``, for Keplerian orbits) in degrees or
-          perihelion epoch (``'Tp_jd'``, for cometary orbits) in JD or
-          z-component of velocity vector (``'vz'``, for cartesian orbit)
-          in au/day
+          perihelion epoch (``'Tp'``, for cometary orbits) as astropy Time
+          object or z-component of velocity vector (``'vz'``, for cartesian
+          orbit) in au/day
         * epoch (``'epoch'``) as `~astropy.time.Time` object
         * absolute magnitude (``'H'``) in mag
         * photometric phase slope (``'G'``)
@@ -471,7 +531,9 @@ class Orbit(DataClass):
         ------- ------------------ ------------------- ... ------- ------- ---------
         1 Ceres -1.967176101061908 -1.7891189971612211 ...    3.34    0.12        TT
         """
-        import pyoorb
+
+        if pyoorb is None:
+            raise RequiredPackageUnavailable('pyoorb')
 
         # initialize pyoorb
         if os.getenv('OORB_DATA') is None:
@@ -482,16 +544,18 @@ class Orbit(DataClass):
             pyoorb.pyoorb.oorb_init(ephfile)
 
         # extract time scale
-        timescale = self.table['epoch'][0].scale.upper()
+        timescale = self.table['epoch'].scale.upper()
 
         # derive and apply default units
         default_units = {}
-        for idx, field in enumerate(conf.oorb_orbit_fields[orbittype]):
+        for field_name, field_unit in Conf.oorb_orbit_fields[orbittype]:
             try:
-                default_units[self._translate_columns(
-                    field)[0]] = conf.oorb_orbit_units[orbittype][idx]
+                # use the primary field name
+                primary_field_name = self._translate_columns(field_name)[0]
             except KeyError:
-                pass
+                continue
+            default_units[primary_field_name] = field_unit
+
         for colname in self.field_names:
             if (colname in default_units.keys() and
                 not isinstance(self[colname],
@@ -510,31 +574,13 @@ class Orbit(DataClass):
         if err != 0:
             OpenOrbError('pyoorb failed with error code {:d}'.format(err))
 
-        # reorder data in Orbit object
-        field_names = conf.oorb_orbit_fields[orbittype]
-
-        columns = []
-        for i, col in enumerate(oo_orbits.transpose()):
-            columns.append(Orbit._unit_apply(
-                col, conf.oorb_orbit_units[orbittype][i]))
-        orbits = self.from_columns(columns, names=field_names)
-
-        for i, col in enumerate(orbits.field_names):
-            # convert from radians to degrees where unit == deg
-            if conf.oorb_orbit_units[orbittype][i] == 'deg':
-                orbits._table[col] = rad2deg(orbits[col])
+        orbits = Orbit._from_oo(oo_orbits, orbittype, timescale)
 
         # replace id column with actual target names from original orbits
         orbits.table.replace_column('id', self['targetname'])
 
-        # epoch column into astropy.time.Time, original time scale, and JD
-        orbits.table['epoch'] = Time(
-            orbits['epoch'].to('d').value,
-            format='mjd', scale='tt').__getattr__(timescale.lower())
-
         # replace orbtype column
-        orbits.table.replace_column('orbtype',
-                                    [orbittype] * len(orbits.table))
+        orbits.table.replace_column('orbtype', [orbittype] * len(orbits.table))
 
         return orbits
 
@@ -561,9 +607,9 @@ class Orbit(DataClass):
           orbit) in degrees or y-component of velocity vector (``'vy'``,
           for cartesian orbit) in au/day
         * mean anomaly (``'M'``, for Keplerian orbits) in degrees or
-          perihelion epoch (``'Tp_jd'``, for cometary orbits) in JD or
-          z-component of velocity vector (``'vz'``, for cartesian orbit)
-          in au/day
+          perihelion epoch (``'Tp'``, for cometary orbits) as astropy Time
+          object or z-component of velocity vector (``'vz'``, for cartesian
+          orbit) in au/day
         * epoch (``'epoch'``) as `~astropy.time.Time` object
         * absolute magnitude (``'H'``) in mag
         * photometric phase slope (``'G'``)
@@ -603,9 +649,12 @@ class Orbit(DataClass):
                         AU                            ...   mag
           str7       float64            float64       ... float64 float64    str3
         ------- ----------------- ------------------- ... ------- ------- ---------
-        1 Ceres 2.769331727251861 0.07605371361208543 ...    3.34    0.12       UTC        """
+        1 Ceres 2.769331727251861 0.07605371361208543 ...    3.34    0.12       UTC
 
-        import pyoorb
+        """
+
+        if pyoorb is None:
+            raise RequiredPackageUnavailable('pyoorb')
 
         # initialize pyoorb
         if os.getenv('OORB_DATA') is None:
@@ -621,9 +670,11 @@ class Orbit(DataClass):
         # identify orbit type based on available table columns
         orbittype = None
         for testtype in ['KEP', 'COM', 'CART']:
+            field_names = [
+                field[0] for field in Conf.oorb_orbit_fields[testtype]
+            ]
             try:
-                self._translate_columns(
-                    conf.oorb_orbit_fields[testtype][1:6])
+                self._translate_columns(field_names[1:6])
                 orbittype = testtype
                 break
             except KeyError:
@@ -635,19 +686,22 @@ class Orbit(DataClass):
 
         # derive and apply default units
         default_units = {}
-        for idx, field in enumerate(conf.oorb_orbit_fields[orbittype]):
+        for field_name, field_unit in Conf.oorb_orbit_fields[orbittype]:
             try:
-                default_units[self._translate_columns(
-                    field)[0]] = conf.oorb_orbit_units[orbittype][idx]
+                # use the primary field name
+                primary_field_name = self._translate_columns(field_name)[0]
             except KeyError:
-                pass
+                continue
+
+            default_units[primary_field_name] = field_unit
+
         for colname in self.field_names:
             if (colname in default_units.keys() and
                 not isinstance(self[colname],
                                (u.Quantity, u.CompositeUnit))):
                 self[colname].unit = default_units[colname]
 
-        ooepoch = [epochs.tt.mjd, conf.oorb_timeScales['TT']]
+        ooepoch = [epochs.tt.mjd, Conf.oorb_timeScales['TT']]
 
         # convert epochs to TT and MJD
         in_orbits = Orbit.from_table(self.table)
@@ -661,30 +715,12 @@ class Orbit(DataClass):
         if err != 0:
             OpenOrbError('pyoorb failed with error code {:d}'.format(err))
 
-        # reorder data in Orbit object
-        field_names = conf.oorb_orbit_fields[orbittype]
-
-        columns = []
-        for i, col in enumerate(oo_orbits.transpose()):
-            columns.append(Orbit._unit_apply(
-                col, conf.oorb_orbit_units[orbittype][i]))
-        orbits = self.from_columns(columns, names=field_names)
-
-        for i, col in enumerate(orbits.field_names):
-            # convert from radians to degrees where unit == deg
-            if conf.oorb_orbit_units[orbittype][i] == 'deg':
-                orbits._table[col] = rad2deg(orbits[col])
+        orbits = Orbit._from_oo_propagatation(oo_orbits, orbittype, timescale)
 
         # replace id column with actual target names from original orbits
         orbits.table.replace_column('id', self.table['targetname'])
 
         orbits.meta['orbit_type'] = orbittype
         orbits.table.remove_column('epoch_scale'),
-
-        # adjust epochs to standard jd
-        orbits.table['epoch'] = Time(
-            Time(orbits.table['epoch'], format='mjd',
-                 scale='tt').__getattr__(timescale.lower()),
-            format='jd')
 
         return orbits

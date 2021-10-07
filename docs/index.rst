@@ -35,13 +35,13 @@ Current Status
 .. image:: https://joss.theoj.org/papers/10.21105/joss.01426/status.svg
     :target: https://doi.org/10.21105/joss.01426
     :alt: JOSS documentation
-	  
-.. image:: https://api.travis-ci.org/NASA-Planetary-Science/sbpy.svg?branch=master
-    :target: https://travis-ci.org/NASA-Planetary-Science/sbpy
-    :alt: Travis-CI status
+
+.. image:: https://github.com/NASA-Planetary-Science/sbpy/actions/workflows/ci_cron_weekly.yml/badge.svg
+    :target: https://github.com/NASA-Planetary-Science/sbpy/actions
+    :alt: GitHub testing status
 
 .. image:: https://codecov.io/gh/NASA-Planetary-Science/sbpy/branch/master/graph/badge.svg
-    :target: https://codecov.io/gh/NASA-Planetary-Science/sbpy
+    :target: https://app.codecov.io/gh/NASA-Planetary-Science/sbpy/branch/master/graph/badge.svg
     :alt: codecov status
 
 	     
@@ -138,7 +138,7 @@ Acknowledgments
 
 If you use `sbpy` in your work, please acknowledge it by citing
 
-    `Mommert, Kelley, de-Val Borro, Li et al., (2019). sbpy: A Python module for small-body planetary astronomy. Journal of Open Source Software, 4(38), 1426 <https://joss.theoj.org/papers/8b8e7bb15fb4a14f80f2afd06b6ce060>`_
+    `Mommert, Kelley, de-Val Borro, Li et al., (2019). sbpy: A Python module for small-body planetary astronomy. Journal of Open Source Software, 4(38), 1426 <https://joss.theoj.org/papers/10.21105/joss.01426>`_
 
 and also please consider using the `~sbpy.bib` reference tracking
 system to properly acknowledge and reference the methods you used in

@@ -1,27 +1,23 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import pytest
-from copy import deepcopy
 from numpy import abs
 import warnings
 
 from numpy.testing import assert_allclose
 import astropy.units as u
+from astropy.io import ascii
 from astropy.time import Time
 from astropy.coordinates import EarthLocation
 from astropy.tests.helper import assert_quantity_allclose
 
-from ... import exceptions as sbe
 from ... import bib
-from ..core import conf
-from .. import ephem
 from .. import Ephem, Orbit, QueryError
 
 try:
     import pyoorb
-    HAS_PYOORB = True
 except ImportError:
-    HAS_PYOORB = False
+    pyoorb = None
 
 # retreived from Horizons on 23 Apr 2020
 CERES = {
@@ -273,8 +269,18 @@ class TestEphemFromMPC:
         dec_format = {'sep': ':', 'precision': 1}
         eph = Ephem.from_mpc('Ceres', epochs=epochs, ra_format=ra_format,
                              dec_format=dec_format)
-        assert isinstance(eph['RA'][0], str)
-        assert isinstance(eph['Dec'][0], str)
+
+        # round-trip through a string, then inspect RA, Dec
+        tab = ascii.read(
+            '\n'.join(eph.table.pformat(
+                show_unit=False,
+                max_lines=-1,
+                max_width=-1
+            )),
+            format='fixed_width_two_line'
+        )
+        assert isinstance(tab['RA'][0], str)
+        assert isinstance(tab['Dec'][0], str)
 
     def test_multiple_targets(self):
         eph = Ephem.from_mpc(['Ceres', 'Pallas', 'Vesta'])
@@ -286,7 +292,7 @@ class TestEphemFromMPC:
 
     def test_bib(self):
         with bib.Tracking():
-            data = Ephem.from_mpc(['Ceres', 'Pallas'])
+            Ephem.from_mpc(['Ceres', 'Pallas'])
             assert 'sbpy.data.ephem.Ephem.from_mpc' in bib.show()
         bib.reset()
 
@@ -392,7 +398,7 @@ class TestEphemFromMiriade:
 
 
 @pytest.mark.remote_data
-@pytest.mark.skipif('not HAS_PYOORB')
+@pytest.mark.skipif('pyoorb is None')
 class TestEphemFromOorb:
     def test_by_comparison(self):
         """test from_oo method"""

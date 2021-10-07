@@ -1,10 +1,10 @@
-"""This script will take sbpy.data.conf.fieldnames and turn it into a
+"""This script will take sbpy.data.Conf.fieldnames and turn it into a
    human-readable table
 """
 import sys
 from io import TextIOWrapper, BytesIO
 from numpy import array
-from sbpy.data import conf
+from sbpy.data import Conf
 from astropy.table import Table
 from astropy.io import ascii
 
@@ -53,7 +53,7 @@ The field name list is always up to date, but it might not be
 complete. If you think an important alternative name is missing,
 please suggest it by opening an issue. However, keep in mind that each
 alternative field name has to be **unique** and **unambiguous**. The
-source list is located as ``sbpy.data.conf.fieldnames`` in
+source list is located as ``sbpy.data.Conf.fieldnames`` in
 ``sbpy/data/__init__.py``.
 
 Special Case: Epoch
@@ -73,7 +73,7 @@ Field Name List
 
 # build table
 data = []
-for p in conf.fieldnames_info:
+for p in Conf.fieldnames_info:
     data.append(['**'+p['description']+'**',
                  ', '.join(['``'+str(f)+'``' for f in p['fieldnames']]),
                  ', '.join([{'orbit': '`~sbpy.data.Orbit`',
@@ -81,7 +81,7 @@ for p in conf.fieldnames_info:
                              'obs': '`~sbpy.data.Obs`',
                              'phys': '`~sbpy.data.Phys`'}[
                                  m.replace(',', '')] for m in p['provenance']]),
-                 p['dimension']])
+                 str(p['dimension'])])
 data = Table(array(data), names=('Description',
                                  'Field Names',
                                  'Provenance',

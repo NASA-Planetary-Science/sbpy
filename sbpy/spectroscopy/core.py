@@ -22,8 +22,6 @@ except ImportError:
         pass
 
 
-conf.horizons_server = 'https://ssd.jpl.nasa.gov/horizons_batch.cgi'
-
 __all__ = ['Spectrum', 'SpectralModel', 'SpectralGradient']
 
 
@@ -465,10 +463,6 @@ class Spectrum():
 
     def plot(self):
         """Plot spectrum
-
-        Returns
-        -------
-        `matplotlib.pyplot` instance
 
         not yet implemented
         """
