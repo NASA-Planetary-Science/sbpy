@@ -534,6 +534,9 @@ class TestVectorialModel:
 
         IUE observations of OH(0-0) band.
 
+        The table appears to have a typo in the Q column for the 1.32 au
+        observation: using 2.025 instead of 3.025.
+
         """
 
         # Table 2
@@ -542,40 +545,41 @@ class TestVectorialModel:
         flux = ([337e-14, 280e-14, 480e-14, 522e-14, 560e-14]
                 * u.erg / u.cm**2 / u.s)
         g = [2.33e-4, 2.60e-4, 3.36e-4, 3.73e-4, 4.03e-4] / u.s
-        Q = [1.451e28, 1.228e28, 1.967e28, 3.025e28, 2.035e28] / u.s
+        Q = [1.451e28, 1.228e28, 1.967e28, 2.025e28, 2.035e28] / u.s
 
         # OH (0-0) luminosity per molecule
         L_N = g / (rh / u.au)**2 * const.h * const.c / (3086 * u.AA)
 
+        # Parent molecule is H2O
+        parent = Phys.from_dict({
+            'tau_T': np.ones(len(rh)) * 65000 * u.s,
+            'tau_d': 72500 * (rh / u.au)**2 * u.s,
+            'v_outflow': np.ones(len(rh)) * 0.85 * u.km / u.s,
+            'sigma': np.ones(len(rh)) * 3e-16 * u.cm**2,
+
+        })
+        # Fragment molecule is OH
+        fragment = Phys.from_dict({
+            'tau_T': 160000 * u.s,
+            'v_photo': 1.05 * u.km / u.s
+        })
+
+        # https://pds.nasa.gov/ds-view/pds/viewInstrumentProfile.jsp?INSTRUMENT_ID=LWP&INSTRUMENT_HOST_ID=IUE
+        # Large-Aperture Length(arcsec)   22.51+/-0.40
+        # Large-Aperture Width(arcsec)     9.91+/-0.17
+        #
+        # 10x20 quoted by Festou et al.
+        # effective circle is 8.0 radius
+        # half geometric mean is 7.07
+        # lwp = core.CircularAperture(7.07 * u.arcsec)  # geometric mean
+        lwp = core.RectangularAperture((20, 10) * u.arcsec)
+
         Q0 = 1e28 / u.s
         N = []
         for i in range(len(rh)):
-            # Parent molecule is H2O
-            parent = Phys.from_dict({
-                'tau_T': 65000 * (rh[i] / u.au)**2 * u.s,
-                'tau_d': 72500 * (rh[i] / u.au)**2 * u.s,
-                'v_outflow': 0.85 * u.km / u.s,
-                'sigma': 3e-16 * u.cm**2
-            })
-
-            # Fragment molecule is OH
-            fragment = Phys.from_dict({
-                'tau_T': 160000 * (rh[i] / u.au)**2 * u.s,
-                'v_photo': 1.05 * u.km/u.s
-            })
-
             coma = VectorialModel(base_q=Q0,
-                                  parent=parent,
+                                  parent=parent[i],
                                   fragment=fragment)
-
-            # https://pds.nasa.gov/ds-view/pds/viewInstrumentProfile.jsp?INSTRUMENT_ID=LWP&INSTRUMENT_HOST_ID=IUE
-            # Large-Aperture Length(arcsec)   22.51+/-0.40
-            # Large-Aperture Width(arcsec)     9.91+/-0.17
-            #
-            # 10x20 quoted by Festou et al.
-            # effective circle is 8.0 radius
-            # half geometric mean is 7.07
-            lwp = core.CircularAperture(7.07 * u.arcsec)  # geometric mean
             N.append(coma.total_number(lwp, eph=delta[i]))
 
         N = u.Quantity(N)
