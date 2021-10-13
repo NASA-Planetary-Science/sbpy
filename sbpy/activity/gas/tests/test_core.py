@@ -3,6 +3,7 @@
 import pytest
 import numpy as np
 import astropy.units as u
+import astropy.constants as const
 from .. import core
 from .. import *
 from .... import exceptions as sbe
@@ -127,9 +128,11 @@ class TestHaser:
         eph = dict(delta=1 * u.au)
         parent = 1e4 * u.km
         N_avg = 2 * Haser(Q, v, parent).column_density(rho, eph)
-        rho_km = (rho * eph['delta'] * 725.24 * u.km / u.arcsec / u.au).to('km')
+        rho_km = (rho * eph['delta'] * 725.24 * u.km / u.arcsec / u.au
+                  ).to('km')
         ideal = Q / v / 2 / rho_km
-        assert np.isclose(N_avg.to_value('1/m2'), ideal.to_value('1/m2'), rtol=0.001)
+        assert np.isclose(N_avg.to_value('1/m2'),
+                          ideal.to_value('1/m2'), rtol=0.001)
 
     def test_column_density(self):
         """
@@ -412,12 +415,12 @@ class TestVectorialModel:
             'tau_d': 101730 * u.s,
             'v_outflow': 1 * u.km/u.s,
             'sigma': 3e-16 * u.cm**2
-            })
+        })
         # Fragment molecule is OH
         fragment = Phys.from_dict({
             'tau_T': photo_timescale('OH') * 0.93,
             'v_photo': 1.05 * u.km/u.s
-            })
+        })
 
         coma = VectorialModel(base_q=base_q,
                               parent=parent,
@@ -441,19 +444,19 @@ class TestVectorialModel:
             'tau_d': 101730 * u.s,
             'v_outflow': 1 * u.km/u.s,
             'sigma': 3e-16 * u.cm**2
-            })
+        })
         # Fragment molecule is OH
         fragment = Phys.from_dict({
             'tau_T': photo_timescale('OH') * 0.93,
             'v_photo': 1.05 * u.km/u.s
-            })
+        })
 
         coma = VectorialModel(base_q=base_q,
                               parent=parent,
                               fragment=fragment)
 
         fragment_theory = coma.vmodel['num_fragments_theory']
-        ap = core.CircularAperture((coma.vmodel['max_grid_radius'].value) * u.m)
+        ap = core.CircularAperture(coma.vmodel['max_grid_radius'])
         assert np.isclose(fragment_theory, coma.total_number(ap), rtol=0.02)
 
     def test_model_symmetry(self):
@@ -486,12 +489,12 @@ class TestVectorialModel:
             'tau_d': 101730 * u.s,
             'v_outflow': 1 * u.km/u.s,
             'sigma': 3e-16 * u.cm**2
-            })
+        })
         # Fragment molecule is OH
         fragment = Phys.from_dict({
             'tau_T': photo_timescale('OH') * 0.93,
             'v_photo': 1.05 * u.km/u.s
-            })
+        })
 
         coma = VectorialModel(base_q=base_production*(1/u.s),
                               parent=parent,
@@ -508,15 +511,73 @@ class TestVectorialModel:
             'tau_d': 101730 * u.s,
             'v_outflow': 1 * u.km/u.s,
             'sigma': 3e-16 * u.cm**2
-            })
+        })
         # Fragment molecule is OH
         fragment_check = Phys.from_dict({
             'tau_T': photo_timescale('OH') * 0.93,
             'v_photo': 1.05 * u.km/u.s
-            })
+        })
         coma_check = VectorialModel(base_q=calculated_q*(1/u.s),
                                     parent=parent_check,
                                     fragment=fragment_check)
         count_check = coma_check.total_number(ap)
         print("Count/assumed: ", count_check/assumed_count)
         assert np.isclose(count_check, assumed_count, rtol=0.001)
+
+    def test_festou92(self):
+        """Compare to Festou et al. 1992 production rates of comet 6P/d'Arrest.
+
+        Festou et al. 1992. The Gas Production Rate of Periodic Comet d'Arrest.
+        Asteroids, Comets, Meteors 1991, 177.
+
+        https://ui.adsabs.harvard.edu/abs/1992acm..proc..177F/abstract
+
+        IUE observations of OH(0-0) band.
+
+        """
+
+        # Table 2
+        rh = [1.2912, 1.2949, 1.3089, 1.3200, 1.3366] * u.au
+        delta = [0.7410, 0.7651, 0.8083, 0.8353, 0.8720] * u.au
+        flux = ([337e-14, 280e-14, 480e-14, 522e-14, 560e-14]
+                * u.erg / u.cm**2 / u.s)
+        g = [2.33e-4, 2.60e-4, 3.36e-4, 3.73e-4, 4.03e-4] / u.s
+        Q = [1.451e28, 1.228e28, 1.967e28, 3.025e28, 2.035e28] / u.s
+
+        # OH (0-0) luminosity per molecule
+        L_N = g / (rh / u.au)**2 * const.h * const.c / (3086 * u.AA)
+
+        Q0 = 1e28 / u.s
+        N = []
+        for i in range(len(rh)):
+            # Parent molecule is H2O
+            parent = Phys.from_dict({
+                'tau_T': 65000 * (rh[i] / u.au)**2 * u.s,
+                'tau_d': 72500 * (rh[i] / u.au)**2 * u.s,
+                'v_outflow': 0.85 * u.km / u.s,
+                'sigma': 3e-16 * u.cm**2
+            })
+
+            # Fragment molecule is OH
+            fragment = Phys.from_dict({
+                'tau_T': 160000 * (rh[i] / u.au)**2 * u.s,
+                'v_photo': 1.05 * u.km/u.s
+            })
+
+            coma = VectorialModel(base_q=Q0,
+                                  parent=parent,
+                                  fragment=fragment)
+
+            # https://pds.nasa.gov/ds-view/pds/viewInstrumentProfile.jsp?INSTRUMENT_ID=LWP&INSTRUMENT_HOST_ID=IUE
+            # Large-Aperture Length(arcsec)   22.51+/-0.40
+            # Large-Aperture Width(arcsec)     9.91+/-0.17
+            #
+            # 10x20 quoted by Festou et al.
+            # effective circle is 8.0 radius
+            # half geometric mean is 7.07
+            lwp = core.CircularAperture(7.07 * u.arcsec)  # geometric mean
+            N.append(coma.total_number(lwp, eph=delta[i]))
+
+        N = u.Quantity(N)
+        Q_model = (Q0 * flux / (L_N * N) * 4 * np.pi * delta**2).to(Q.unit)
+        assert u.allclose(Q, Q_model)
