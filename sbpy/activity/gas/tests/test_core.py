@@ -664,11 +664,11 @@ class TestVectorialModel:
 
         # test values are copy-pasted from wm.f output
         collision_sphere_radius = 0.14E+07 * u.cm
-        collision_sphere_radius_atol = 0.01e7 * u.cm
+        collision_sphere_radius_atol = 0.011e7 * u.cm
         N_fragments_theory = 0.668E+33
-        N_fragments_theory_atol = 0.001e33
+        N_fragments_theory_atol = 0.0011e33
         N_fragments = 0.657E+33
-        N_fragments_atol = 0.001e33
+        N_fragments_atol = 0.0011e33
 
         fragment_volume_density = '''
 0.97E+03  0.43E+03    0.68E+04  0.59E+02    0.13E+05  0.31E+02    0.18E+05  0.21E+02
@@ -710,17 +710,17 @@ class TestVectorialModel:
         n0_rho = x[::2] * u.km
         n0 = x[1::2] / u.cm**3
         # absolute tolerance: 2 significant figures
-        n0_atol = 1.01 * 10**(np.floor(np.log10(n0.value)) - 1) * n0.unit
+        n0_atol = 1.1 * 10**(np.floor(np.log10(n0.value)) - 1) * n0.unit
 
         x = np.fromstring(fragment_column_density, sep=' ')
         sigma0_rho = x[::2] * u.km
         sigma0 = x[1::2] / u.cm**2
         # absolute tolerance: 3 significant figures
-        sigma0_atol = (1.01 * 10**(np.floor(np.log10(sigma0.value)) - 2)
+        sigma0_atol = (1.1 * 10**(np.floor(np.log10(sigma0.value)) - 2)
                        * n0.unit)
 
         # evaluate the model
-        Q0 = 1e28 / u.s
+        Q0 = 1e27 / u.s
         coma = VectorialModel(base_q=Q0, parent=parent, fragment=fragment)
         n = coma.volume_density(n0_rho)
         sigma = coma.column_density(sigma0_rho)
