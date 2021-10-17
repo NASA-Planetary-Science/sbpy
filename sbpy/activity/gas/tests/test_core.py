@@ -525,8 +525,14 @@ class TestVectorialModel:
         print("Count/assumed: ", count_check/assumed_count)
         assert np.isclose(count_check, assumed_count, rtol=0.001)
 
-    @pytest.mark.skip
-    def test_festou92(self):
+    @pytest.mark.parametrize("rh,delta,flux,g,Q", (
+        [1.2912, 0.7410, 337e-14, 2.33e-4, 1.451e28],
+        [1.2949, 0.7651, 280e-14, 2.60e-4, 1.228e28],
+        [1.3089, 0.8083, 480e-14, 3.36e-4, 1.967e28],
+        [1.3200, 0.8353, 522e-14, 3.73e-4, 2.025e28],
+        [1.3366, 0.8720, 560e-14, 4.03e-4, 2.035e28],
+    ))
+    def test_festou92(self, rh, delta, flux, g, Q):
         """Compare to Festou et al. 1992 production rates of comet 6P/d'Arrest.
 
         Festou et al. 1992. The Gas Production Rate of Periodic Comet d'Arrest.
@@ -541,13 +547,12 @@ class TestVectorialModel:
 
         """
 
-        # Table 2
-        rh = [1.2912, 1.2949, 1.3089, 1.3200, 1.3366] * u.au
-        delta = [0.7410, 0.7651, 0.8083, 0.8353, 0.8720] * u.au
-        flux = ([337e-14, 280e-14, 480e-14, 522e-14, 560e-14]
-                * u.erg / u.cm**2 / u.s)
-        g = [2.33e-4, 2.60e-4, 3.36e-4, 3.73e-4, 4.03e-4] / u.s
-        Q = [1.451e28, 1.228e28, 1.967e28, 2.025e28, 2.035e28] / u.s
+        # add units
+        rh = rh * u.au
+        delta = delta * u.au
+        flux = flux * u.erg / u.s / u.cm**2
+        g = g / u.s
+        Q = Q / u.s
 
         # OH (0-0) luminosity per molecule
         L_N = g / (rh / u.au)**2 * const.h * const.c / (3086 * u.AA)
@@ -556,14 +561,14 @@ class TestVectorialModel:
         parent = Phys.from_dict({
             'tau_T': 65000 * (rh / u.au)**2 * u.s,
             'tau_d': 72500 * (rh / u.au)**2 * u.s,
-            'v_outflow': np.ones(len(rh)) * 0.85 * u.km / u.s,
-            'sigma': np.ones(len(rh)) * 3e-16 * u.cm**2,
+            'v_outflow': 0.85 * u.km / u.s,
+            'sigma': 3e-16 * u.cm**2,
 
         })
         # Fragment molecule is OH
         fragment = Phys.from_dict({
             'tau_T': 160000 * (rh / u.au)**2 * u.s,
-            'v_photo': np.ones(len(rh)) * 1.05 * u.km / u.s
+            'v_photo': 1.05 * u.km / u.s
         })
 
         # https://pds.nasa.gov/ds-view/pds/viewInstrumentProfile.jsp?INSTRUMENT_ID=LWP&INSTRUMENT_HOST_ID=IUE
@@ -578,17 +583,14 @@ class TestVectorialModel:
         lwp = core.RectangularAperture((9.1, 15.3) * u.arcsec)
 
         Q0 = 1e28 / u.s
-        N = []
-        for i in range(len(rh)):
-            coma = VectorialModel(base_q=Q0,
-                                  parent=parent[i],
-                                  fragment=fragment[i])
-            N.append(coma.total_number(lwp, eph=delta[i]))
+        coma = VectorialModel(base_q=Q0, parent=parent, fragment=fragment)
+        N = coma.total_number(lwp, eph=delta)
 
-        N = u.Quantity(N)
         Q_model = (Q0 * flux / (L_N * N) * 4 * np.pi * delta**2).to(Q.unit)
-        # require 14% agreement or better
-        assert u.allclose(Q, Q_model, rtol=0.14)
+
+        # absolute tolerance: Table 2 has 3 significant figures
+        atol = 1.01 * 10**(np.floor(np.log10(Q0.value)) - 2) * Q.unit
+        assert u.allclose(Q, Q_model, atol=atol)
 
     def test_vm_fortran(self):
         """Compare to results from vm.f.
@@ -660,13 +662,29 @@ class TestVectorialModel:
             'v_photo': 1.05 * u.km / u.s
         })
 
-        Q0 = 1e27 / u.s
-        coma = VectorialModel(base_q=Q0,
-                              parent=parent,
-                              fragment=fragment)
+        # test values are copy-pasted from wm.f output
+        collision_sphere_radius = 0.14E+07 * u.cm
+        collision_sphere_radius_atol = 0.01e7 * u.cm
+        N_fragments_theory = 0.668E+33
+        N_fragments_theory_atol = 0.001e33
+        N_fragments = 0.657E+33
+        N_fragments_atol = 0.001e33
 
-        # copy-paste from wm.f output
-        x = np.fromstring('''
+        fragment_volume_density = '''
+0.97E+03  0.43E+03    0.68E+04  0.59E+02    0.13E+05  0.31E+02    0.18E+05  0.21E+02
+0.24E+05  0.15E+02    0.31E+05  0.11E+02    0.43E+05  0.79E+01    0.54E+05  0.59E+01
+0.66E+05  0.46E+01    0.78E+05  0.38E+01    0.90E+05  0.31E+01    0.11E+06  0.24E+01
+0.13E+06  0.19E+01    0.14E+06  0.16E+01    0.16E+06  0.13E+01    0.18E+06  0.11E+01
+0.21E+06  0.87E+00    0.24E+06  0.69E+00    0.27E+06  0.56E+00    0.30E+06  0.46E+00
+0.33E+06  0.38E+00    0.37E+06  0.29E+00    0.42E+06  0.23E+00    0.47E+06  0.18E+00
+0.51E+06  0.14E+00    0.56E+06  0.11E+00    0.63E+06  0.85E-01    0.70E+06  0.65E-01
+0.77E+06  0.50E-01    0.84E+06  0.39E-01    0.92E+06  0.30E-01    0.10E+07  0.21E-01
+0.11E+07  0.16E-01    0.12E+07  0.12E-01    0.13E+07  0.86E-02    0.14E+07  0.64E-02
+0.16E+07  0.44E-02    0.17E+07  0.31E-02    0.19E+07  0.23E-02    0.20E+07  0.17E-02
+0.22E+07  0.12E-02    0.24E+07  0.78E-03    0.27E+07  0.51E-03    0.29E+07  0.34E-03
+0.31E+07  0.23E-03    0.34E+07  0.15E-03    0.37E+07  0.90E-04    0.41E+07  0.53E-04
+0.44E+07  0.32E-04    0.48E+07  0.20E-04'''
+        fragment_column_density = '''
 0.970E+03   4.77E+11    1.088E+03   4.69E+11    1.221E+03   4.61E+11    1.370E+03   4.53E+11
 1.537E+03   4.44E+11    1.724E+03   4.34E+11    1.935E+03   4.22E+11    2.171E+03   4.15E+11
 2.436E+03   4.00E+11    2.733E+03   3.85E+11    3.066E+03   3.74E+11    3.441E+03   3.67E+11
@@ -685,9 +703,39 @@ class TestVectorialModel:
 9.697E+05   4.25E+09    1.088E+06   3.19E+09    1.221E+06   2.34E+09    1.370E+06   1.68E+09
 1.537E+06   1.19E+09    1.724E+06   8.29E+08    1.935E+06   5.67E+08    2.171E+06   3.78E+08
 2.436E+06   2.45E+08    2.733E+06   1.54E+08    3.066E+06   9.34E+07    3.441E+06   5.39E+07
-''', sep=' ')
-        rho = x[::2] * u.km
-        sigma0 = x[1::2] / u.cm**2
+'''
 
-        sigma = coma.column_density(rho, eph)
-        assert u.allclose(sigma, sigma0, rtol=0.01)
+        # convert strings to arrays
+        x = np.fromstring(fragment_volume_density, sep=' ')
+        n0_rho = x[::2] * u.km
+        n0 = x[1::2] / u.cm**3
+        # absolute tolerance: 2 significant figures
+        n0_atol = 1.01 * 10**(np.floor(np.log10(n0.value)) - 1) * n0.unit
+
+        x = np.fromstring(fragment_column_density, sep=' ')
+        sigma0_rho = x[::2] * u.km
+        sigma0 = x[1::2] / u.cm**2
+        # absolute tolerance: 3 significant figures
+        sigma0_atol = (1.01 * 10**(np.floor(np.log10(sigma0.value)) - 2)
+                       * n0.unit)
+
+        # evaluate the model
+        Q0 = 1e28 / u.s
+        coma = VectorialModel(base_q=Q0, parent=parent, fragment=fragment)
+        n = coma.volume_density(n0_rho)
+        sigma = coma.column_density(sigma0_rho)
+
+        # compare results
+        assert u.isclose(coma.vmodel['collision_sphere_radius'],
+                         collision_sphere_radius,
+                         atol=collision_sphere_radius_atol)
+
+        assert np.isclose(coma.calc_num_fragments_theory(),
+                          N_fragments_theory, atol=N_fragments_theory_atol)
+
+        assert np.isclose(coma.calc_num_fragments_grid(),
+                          N_fragments, atol=N_fragments_atol)
+
+        assert u.allclose(n, n0, atol=n0_atol)
+
+        assert u.allclose(sigma, sigma0, atol=sigma0_atol)
