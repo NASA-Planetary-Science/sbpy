@@ -584,13 +584,59 @@ class TestVectorialModel:
 
         Q0 = 1e28 / u.s
         coma = VectorialModel(base_q=Q0, parent=parent, fragment=fragment)
-        N = coma.total_number(lwp, eph=delta)
+        N0 = coma.total_number(lwp, eph=delta)
 
-        Q_model = (Q0 * flux / (L_N * N) * 4 * np.pi * delta**2).to(Q.unit)
+        Q_model = (Q0 * flux / (L_N * N0) * 4 * np.pi * delta**2).to(Q.unit)
 
         # absolute tolerance: Table 2 has 3 significant figures
         atol = 1.01 * 10**(np.floor(np.log10(Q0.value)) - 2) * Q.unit
         assert u.allclose(Q, Q_model, atol=atol)
+
+    @pytest.mark.parametrize("rh,delta,N,Q_vect,Q_dyn", (
+        [1.8662, 0.9683, 0.2424e32, 1.048e29, 0.7658e29],
+        [0.8855, 0.9906, 3.819e32, 5.548e29, 5.728e29],
+        [0.9787, 0.8337, 1.63e32, 3.69e29, 3.38e29],
+        [1.0467, 0.7219, 0.8703e32, 2.813e29, 2.411e29],
+        [2.0715, 1.7930, 1.01e32, 1.88e29, 1.27e29]
+    ))
+    def test_combi93(self, rh, delta, N, Q_vect, Q_dyn):
+        """Compare to results of Combi et al. 1993.
+
+        Combi et al. 1993 compared a Monte Carlo approach to the Vectorial model
+        for OH.  They find best agreement between the two models near 1 au,
+        likely due to the assumption that the water outflow speed is constant in
+        the VM runs, but the MC model only has 1 km/s speeds near 1 au.
+
+        """
+
+        # assign units
+        rh = rh * u.au
+        delta = delta * u.au
+        Q_vect = Q_vect / u.s  # Vectorial model run by Roettger
+        Q_dyn = Q_dyn / u.s  # MC model of Combi et al.
+        aper = core.RectangularAperture((10, 15) * u.arcsec)
+
+        # Parent molecule is H2O
+        parent = Phys.from_dict({
+            'tau_T': 8.2e4 * 0.88 * (rh / u.au)**2 * u.s,
+            'tau_d': 8.2e4 * (rh / u.au)**2 * u.s,
+            'v_outflow': 1 * u.km / u.s,
+            'sigma': 3e-16 * u.cm**2,
+        })
+
+        # Fragment molecule is OH
+        fragment = Phys.from_dict({
+            'tau_T': 2.0e5 * (rh / u.au)**2 * u.s,
+            'v_photo': 1.05 * u.km / u.s
+        })
+
+        Q0 = 2e29 / u.s
+        coma = VectorialModel(base_q=Q0, parent=parent, fragment=fragment)
+        N0 = coma.total_number(aper, eph=delta)
+
+        Q_model = (Q0 * N / N0).to(Q_vect.unit)
+
+        assert u.allclose(Q_vect, Q_model, rtol=0.01)
 
     def test_vm_fortran(self):
         """Compare to results from vm.f.
