@@ -631,14 +631,15 @@ class TestVectorialModel:
         Q_model = (Q0 * N / N0).to(Q.unit)
         assert u.allclose(Q, Q_model, rtol=0.13)
 
-    @pytest.mark.parametrize("rh,delta,N,Q_vect,Q_dyn", (
-        [1.8662, 0.9683, 0.2424e32, 1.048e29, 0.7658e29],
-        [0.8855, 0.9906, 3.819e32, 5.548e29, 5.728e29],
-        [0.9787, 0.8337, 1.63e32, 3.69e29, 3.38e29],
-        [1.0467, 0.7219, 0.8703e32, 2.813e29, 2.411e29],
-        [2.0715, 1.7930, 1.01e32, 1.88e29, 1.27e29]
+    @pytest.mark.parametrize("rh,delta,N,Q", (
+        [1.8662, 0.9683, 0.2424e32, 1.048e29],
+        [0.8855, 0.9906, 3.819e32, 5.548e29],
+        [0.9787, 0.8337, 1.63e32, 3.69e29],
+        [1.0467, 0.7219, 0.8703e32, 2.813e29],
+        [1.9059, 1.4031, 1.07e32, 2.76e29],
+        [2.0715, 1.7930, 1.01e32, 1.88e29]
     ))
-    def test_combi93(self, rh, delta, N, Q_vect, Q_dyn):
+    def test_combi93(self, rh, delta, N, Q):
         """Compare to results of Combi et al. 1993.
 
         Combi et al. 1993 compared a Monte Carlo approach to the Vectorial model
@@ -651,8 +652,7 @@ class TestVectorialModel:
         # assign units
         rh = rh * u.au
         delta = delta * u.au
-        Q_vect = Q_vect / u.s  # Vectorial model run by Roettger
-        Q_dyn = Q_dyn / u.s  # MC model of Combi et al.
+        Q = Q / u.s  # Vectorial model run by Roettger
         aper = core.RectangularAperture((10, 15) * u.arcsec)
 
         # Parent molecule is H2O
@@ -673,9 +673,9 @@ class TestVectorialModel:
         coma = VectorialModel(base_q=Q0, parent=parent, fragment=fragment)
         N0 = coma.total_number(aper, eph=delta)
 
-        Q_model = (Q0 * N / N0).to(Q_vect.unit)
+        Q_model = (Q0 * N / N0).to(Q.unit)
 
-        assert u.allclose(Q_vect, Q_model, rtol=0.01)
+        assert u.allclose(Q, Q_model, rtol=0.01)
 
     def test_vm_fortran(self):
         """Compare to results from vm.f.
