@@ -669,22 +669,16 @@ class VectorialModel(GasComa):
                     Velocity of fragment resulting
                     from photodissociation of parent
 
-        q_t : function, optional
-            Parameters
-            ----------
-            t : float
-                Time, in seconds ago (no astropy units)
+        q_t : callable, optional
+            Function yielding additional production beyond base_q at the
+            given time in units of inverse seconds:
 
-            Returns
-            -------
-            numpy.float64
-                Additional production beyond base_q at the given time, per
-                second, no astropy units
+                ``q_t(t) -> float``
 
-            Notes
-            -----
+            where ``t`` is lookback time in seconds as a float.
+
             If no time-dependence function is given, the model will run with
-            steady production at base_q stretching infinitely far into the
+            steady production at ``base_q`` stretching infinitely far into the
             past.
 
         radial_points: int, optional
@@ -794,9 +788,9 @@ class VectorialModel(GasComa):
         # Make array of angles adjusted up away from zero, to keep from
         # calculating a radial line's contribution to itself
         self.vmodel['angular_grid'] = np.linspace(
-                0, self.vmodel['epsilon_max'], num=self.angular_points,
-                endpoint=False
-                )
+            0, self.vmodel['epsilon_max'], num=self.angular_points,
+            endpoint=False
+        )
         # This maps addition over the whole array automatically
         self.vmodel['angular_grid'] += self.vmodel['d_alpha']/2
 
@@ -968,8 +962,8 @@ class VectorialModel(GasComa):
 
         # Eq. 5 of Festou 1981
         self.vmodel['collision_sphere_radius'] = (
-                (self.parent['sigma'] * q * v_therm)/(vp * vp)
-                ) * u.m
+            (self.parent['sigma'] * q * v_therm)/(vp * vp)
+        ) * u.m
 
         # Calculates the radius of the coma (parents only), given our input
         # parameters
@@ -984,15 +978,15 @@ class VectorialModel(GasComa):
         fragment_beta_r = -np.log(1.0 - self.fragment_destruction_level)
 
         perm_flow_radius = (
-                    self.vmodel['coma_radius'].value +
-                    ((vp + vf) * fragment_beta_r * self.fragment['tau_T'])
-                    )
+            self.vmodel['coma_radius'].value +
+            ((vp + vf) * fragment_beta_r * self.fragment['tau_T'])
+        )
 
         t_secs = (
-                     self.vmodel['coma_radius'].value/vp +
-                     (perm_flow_radius - self.vmodel['coma_radius'].value)
-                     / (vp + vf)
-                     )
+            self.vmodel['coma_radius'].value/vp +
+            (perm_flow_radius - self.vmodel['coma_radius'].value)
+            / (vp + vf)
+        )
         self.vmodel['t_perm_flow'] = (t_secs * u.s).to(u.day)
 
         # This is the total radial size that parents & fragments occupy, beyond
@@ -1041,13 +1035,13 @@ class VectorialModel(GasComa):
             badly so don't do it, dear reader
         """
         start_power = np.log10(
-                self.vmodel['collision_sphere_radius'].value * 2
-                )
+            self.vmodel['collision_sphere_radius'].value * 2
+        )
         end_power = np.log10(self.vmodel['max_grid_radius'].value)
         return np.logspace(
-                start_power, end_power,
-                num=self.radial_points, endpoint=True
-                )
+            start_power, end_power,
+            num=self.radial_points, endpoint=True
+        )
 
     def _compute_fragment_density(self):
         """ Computes the density of fragments as a function of radius
@@ -1089,9 +1083,9 @@ class VectorialModel(GasComa):
         # Compute this once ahead of time
         # More factors to fill out integral similar to eq. (36) Festou 1981
         integration_factor = (
-                            (1/(4 * np.pi * p_tau_d)) *
-                            self.vmodel['d_alpha']/(4.0 * np.pi)
-                            )
+            (1/(4 * np.pi * p_tau_d)) *
+            self.vmodel['d_alpha']/(4.0 * np.pi)
+        )
 
         # Calculate the density contributions over the volume of the comet
         # atmosphere due to one ejection axis
@@ -1108,8 +1102,8 @@ class VectorialModel(GasComa):
                 d_epsilon_steps = len(ejection_radii)
                 d_epsilon = (
                             (self.vmodel['epsilon_max'] - cur_angle)
-                            / d_epsilon_steps
-                            )
+                    / d_epsilon_steps
+                )
 
                 # Maximum radius that contributes to point x,y when there is a
                 # a max ejection angle
@@ -1122,9 +1116,9 @@ class VectorialModel(GasComa):
                 # above, so it's d_epsilon_steps - 1
                 for dE in range(0, d_epsilon_steps-1):
                     ejection_radii[dE] = (
-                                        y -
-                                        x/np.tan((dE+1)*d_epsilon + cur_angle)
-                                        )
+                        y -
+                        x/np.tan((dE+1)*d_epsilon + cur_angle)
+                    )
 
                 ejection_radii_start = 0
                 # Number of slices along the contributing axis for each step
@@ -1136,8 +1130,8 @@ class VectorialModel(GasComa):
                     # We are slicing up this axis into pieces
                     dr = (
                          (ejection_radii_end - ejection_radii_start) /
-                         num_slices
-                         )
+                        num_slices
+                    )
 
                     # Loop over tiny slices along this chunk
                     for m in range(0, num_slices):
@@ -1180,9 +1174,9 @@ class VectorialModel(GasComa):
                         # given by eq. 32, Festou 1981
                         prod_one = self.production_at_time(t_total_one)/vp
                         q_r_eps_one = (
-                                (v_one * v_one * prod_one) /
-                                (vf * np.abs(v_one - vp*cos_eject))
-                                )
+                            (v_one * v_one * prod_one) /
+                            (vf * np.abs(v_one - vp*cos_eject))
+                        )
 
                         # Parent extinction when traveling along to the
                         # dissociation site
@@ -1194,15 +1188,15 @@ class VectorialModel(GasComa):
                         # integrating along dr, similar to eq. (36) Festou
                         # 1981, due to the first velocity
                         n_r_one = (
-                                (p_extinction*f_extinction_one*q_r_eps_one) /
-                                (sep_dist**2 * v_one)
-                                )
+                            (p_extinction*f_extinction_one*q_r_eps_one) /
+                            (sep_dist**2 * v_one)
+                        )
 
                         # Add this contribution to the density grid
                         self.vmodel['density_grid'][i][j] = (
-                                self.vmodel['density_grid'][i][j] +
-                                n_r_one * dr
-                                )
+                            self.vmodel['density_grid'][i][j] +
+                            n_r_one * dr
+                        )
 
                         # Check if there is a second solution for the velocity
                         if vf > vp:
@@ -1217,18 +1211,18 @@ class VectorialModel(GasComa):
                         t_total_two = (cur_r/vp) + t_frag_two
                         prod_two = self.production_at_time(t_total_two)/vp
                         q_r_eps_two = (
-                                (v_two * v_two * prod_two) /
-                                (vf * np.abs(v_two - vp*cos_eject))
-                                )
+                            (v_two * v_two * prod_two) /
+                            (vf * np.abs(v_two - vp*cos_eject))
+                        )
                         f_extinction_two = np.e**(-t_frag_two/f_tau_T)
                         n_r_two = (
-                                (p_extinction*f_extinction_two*q_r_eps_two) /
-                                (v_two * sep_dist**2)
-                                )
+                            (p_extinction*f_extinction_two*q_r_eps_two) /
+                            (v_two * sep_dist**2)
+                        )
                         self.vmodel['density_grid'][i][j] = (
-                                self.vmodel['density_grid'][i][j] +
-                                n_r_two * dr
-                                )
+                            self.vmodel['density_grid'][i][j] +
+                            n_r_two * dr
+                        )
 
                     # Next starting radial point is the current end point
                     ejection_radii_start = ejection_radii_end
@@ -1265,15 +1259,15 @@ class VectorialModel(GasComa):
                 # Integration factors from angular part of integral, similar to
                 # eq. (36) Festou 1981
                 dens_contribution = (
-                        2.0 * np.pi * np.sin(theta) *
-                        self.vmodel['density_grid'][i][j]
-                        )
+                    2.0 * np.pi * np.sin(theta) *
+                    self.vmodel['density_grid'][i][j]
+                )
                 self.vmodel['fast_radial_density'][i] += dens_contribution
 
         # Tag with proper units
         self.vmodel['radial_density'] = (
-                self.vmodel['fast_radial_density'] / (u.m**3)
-                )
+            self.vmodel['fast_radial_density'] / (u.m**3)
+        )
 
     def _interpolate_radial_density(self):
         """ Interpolate the radial density.
@@ -1287,10 +1281,10 @@ class VectorialModel(GasComa):
         # Interpolate this radial density grid with a cubic spline for lookup
         # at non-grid radii, input in m, output in 1/m^3
         self.vmodel['r_dens_interpolation'] = (
-                CubicSpline(self.vmodel['fast_radial_grid'],
-                            self.vmodel['fast_radial_density'],
-                            bc_type='natural')
-                )
+            CubicSpline(self.vmodel['fast_radial_grid'],
+                        self.vmodel['fast_radial_density'],
+                        bc_type='natural')
+        )
 
     def _column_density_at_rho(self, rho):
         """ Calculate the column density of fragments at a given impact parameter
@@ -1330,14 +1324,14 @@ class VectorialModel(GasComa):
 
         if rho < (60 * self.vmodel['collision_sphere_radius'].value):
             c_dens = (
-                     quad(column_density_integrand,
-                          -z_max, z_max, limit=3000)
-                     )[0]
+                quad(column_density_integrand,
+                     -z_max, z_max, limit=3000)
+            )[0]
         else:
             c_dens = (
-                     2 * romberg(column_density_integrand,
-                                 0, z_max, rtol=0.0001, divmax=20)
-                     )
+                2 * romberg(column_density_integrand,
+                            0, z_max, rtol=0.0001, divmax=20)
+            )
 
         # result is in 1/m^2
         return c_dens
@@ -1369,12 +1363,12 @@ class VectorialModel(GasComa):
         self.vmodel['column_densities'] = column_densities/(u.m**2)
         # Interpolation gives column density in m^-2
         self.vmodel['column_density_interpolation'] = (
-                CubicSpline(
-                    column_density_grid,
-                    column_densities,
-                    bc_type='natural'
-                    )
-                )
+            CubicSpline(
+                column_density_grid,
+                column_densities,
+                bc_type='natural'
+            )
+        )
 
     def calc_num_fragments_theory(self):
         """ The total number of fragment species we expect in the coma
@@ -1407,9 +1401,9 @@ class VectorialModel(GasComa):
         max_r = self.vmodel['max_grid_radius'].value
         last_density_element = len(self.vmodel['fast_radial_density'])-1
         edge_adjust = (
-                (np.pi * max_r * max_r * (vf + vp) *
-                    self.vmodel['fast_radial_density'][last_density_element])
-                )
+            (np.pi * max_r * max_r * (vf + vp) *
+             self.vmodel['fast_radial_density'][last_density_element])
+        )
 
         num_time_slices = 10000
         # array starting at tperm (farthest back in time we expect something to
@@ -1463,9 +1457,9 @@ class VectorialModel(GasComa):
             return (r_func(r) * r**2)
 
         r_int = romberg(
-                vol_integrand, 0, max_r,
-                args=(self.vmodel['r_dens_interpolation'], ),
-                rtol=0.0001, divmax=20)
+            vol_integrand, 0, max_r,
+            args=(self.vmodel['r_dens_interpolation'], ),
+            rtol=0.0001, divmax=20)
         return 4 * np.pi * r_int
 
     def _column_density(self, rho):
