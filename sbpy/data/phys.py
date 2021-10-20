@@ -207,18 +207,19 @@ class Phys(DataClass):
 
         Returns
         -------
-        Molecular data : `~sbpy.data.Phys` instance
+        data : `~sbpy.data.Phys`
             Quantities in the following order from JPL Spectral Molecular
             Catalog:
-                | Transition frequency
-                | Temperature
-                | Integrated line intensity at 300 K
-                | Partition function at 300 K
-                | Partition function at designated temperature
-                | Upper state degeneracy
-                | Upper level energy in Joules
-                | Lower level energy in Joules
-                | Degrees of freedom
+
+                * Transition frequency
+                * Temperature
+                * Integrated line intensity at 300 K
+                * Partition function at 300 K
+                * Partition function at designated temperature
+                * Upper state degeneracy
+                * Upper level energy in Joules
+                * Lower level energy in Joules
+                * Degrees of freedom
 
         """
 
