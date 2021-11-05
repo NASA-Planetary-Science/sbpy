@@ -294,7 +294,8 @@ classes.
                 MSK
             </td>
             <td>
-                Sun and Vega spectra built in; Calibration system (photometric and spectrosopic) fully implemented.
+                Sun and Vega spectra built in; Calibration system
+                (photometric and spectroscopic) fully implemented.
             </td>
         </tr>
    </table>
