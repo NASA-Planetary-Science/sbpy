@@ -27,7 +27,7 @@ asteroids nor comets. That's because we equally like both!
 
 `sbpy` is motivated by the idea to provide a basis of well-tested and
 well-documented methods to planetary astronomers in order to boost
-productivity and reproduceability. Python has been chosen as the
+productivity and reproducibility. Python has been chosen as the
 language of choice as it is highly popular especially among
 early-career researchers and it enables the integration of `sbpy` into
 the `Astropy`_ ecosystem.
