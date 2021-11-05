@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from attr import s
 import pytest
 import numpy as np
 import astropy.units as u
@@ -674,8 +673,7 @@ class TestVectorialModel:
         N0 = coma.total_number(aper, eph=delta)
 
         Q_model = (Q0 * N / N0).to(Q.unit)
-
-        assert u.allclose(Q, Q_model, rtol=0.01)
+        assert u.allclose(Q, Q_model, rtol=0.13)
 
     def test_vm_fortran(self):
         """Compare to results from vm.f.
