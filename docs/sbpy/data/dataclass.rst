@@ -214,9 +214,9 @@ here:
     >>> obs = Obs.from_columns([ra, dec, epoch], names=['ra', 'dec', 't'])
     >>> obs
     <QTable length=3>
-	ra       dec         t      
+        ra       dec         t      
        deg       deg                
-     float64   float64     object   
+     float64   float64      Time    
     --------- --------- ------------
     10.223423 -12.42123 2451523.6234
     10.233453 -12.41562 2451523.7345
@@ -390,9 +390,9 @@ object:
     >>> obs.table.add_row([10.255460*u.deg, -12.39460*u.deg, 2451523.94653*u.d])
     >>> obs
     <QTable length=4>
-	ra       dec          t      
+        ra       dec          t      
        deg       deg      
-     float64   float64      object
+     float64   float64      Time
     --------- --------- -------------
     10.323423 -12.42123  2451523.6234
     10.333453 -12.41562  2451523.7345
@@ -406,9 +406,9 @@ or if you want to add a column to your object:
     >>> obs.table.add_column(Column(['V', 'V', 'R', 'i'], name='filter'))
     >>> obs  # doctest: +SKIP
     <QTable length=4>
-	ra       dec          t       filter
-       deg       deg          d             
-     float64   float64     float64     str1 
+        ra       dec          t       filter
+       deg       deg                        
+     float64   float64       Time      str1 
     --------- --------- ------------- ------
     10.223423 -12.42123  2451523.6234      V
     10.233453 -12.41562  2451523.7345      V
@@ -420,9 +420,9 @@ The same result can be achieved using the following syntax:
     >>> obs['filter2'] = ['V', 'V', 'R', 'i']  # doctest: +SKIP
     >>> obs  # doctest: +SKIP
     <QTable length=4>
-	ra       dec          t       filter filter2
-       deg       deg          d                     
-     float64   float64     float64     str1    str1 
+        ra       dec          t       filter filter2
+       deg       deg                                
+     float64   float64       Time      str1    str1 
     --------- --------- ------------- ------ -------
     10.223423 -12.42123  2451523.6234      V       V
     10.233453 -12.41562  2451523.7345      V       V
@@ -544,9 +544,9 @@ straightforward. The following example builds a simple
     >>> obs = Obs.from_dict({'epoch': Time(times), 'mag': [10, 12, 14]*u.mag})
     >>> obs # doctest: +SKIP
     <QTable length=3>
-	     epoch            mag  
-			      mag  
-	     object         float64
+         epoch            mag  
+                          mag  
+         object         float64
     ----------------------- -------
     2018-10-01 00:00:00.000    10.0
     2018-11-01 00:00:00.000    12.0
