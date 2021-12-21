@@ -11,23 +11,19 @@ __all__ = [
     'VectorialModel'
 ]
 
-from warnings import warn
 from abc import ABC, abstractmethod
 
 import numpy as np
 import astropy.units as u
 
-# import matplotlib.pyplot as plt
-
 try:
     import scipy
     from scipy import special
-    from scipy.integrate import quad, dblquad, romberg, odeint
+    from scipy.integrate import quad, dblquad, romberg
     from scipy.interpolate import CubicSpline
 except ImportError:
     scipy = None
 
-from astropy.table import Table
 from ... import bib
 from ... import data as sbd
 from ... import units as sbu
@@ -340,8 +336,29 @@ class GasComa(ABC):
 
         """
 
+        if not isinstance(aper, Aperture):
+            aper = CircularAperture(aper)
+
         if eph is not None:
             aper = aper.as_length(eph)
+
+        return self._total_number(aper)
+
+    def _total_number(self, aper):
+        """Total number of molecules in aperture.
+
+        Sub-classes of ``GasComa`` may override this method, instead of
+        ``total_number``, which avoids reusing the boiler plate aperture
+        conversions.
+
+
+        Parameters
+        ----------
+        aper : `~sbpy.activity.Aperture`
+            Observation aperture in units of length.
+
+        """
+
         return self._integrate_column_density(aper)[0]
 
     @abstractmethod
@@ -604,21 +621,13 @@ class Haser(GasComa):
                       * (self._iK0(rho / daughter) - self._iK0(rho / parent)))
         return sigma
 
-    @sbd.dataclass_input(eph=sbd.Ephem)
-    @sbd.quantity_to_dataclass(eph=(sbd.Ephem, 'delta'))
-    def total_number(self, aper, eph=None):
-        if isinstance(aper, u.Quantity):
-            aper = CircularAperture(aper)
-
-        if eph is not None:
-            aper = aper.as_length(eph)
-
+    def _total_number(self, aper):
         # Inspect aper and handle as appropriate
         if isinstance(aper, (RectangularAperture, GaussianAperture)):
-            return super().total_number(aper)
+            return self._integrate_column_density(aper)[0]
         elif isinstance(aper, AnnularAperture):
-            N0 = self.total_number(aper.shape[0])
-            N1 = self.total_number(aper.shape[1])
+            N0 = self._total_number(CircularAperture(aper.shape[0]))
+            N1 = self._total_number(CircularAperture(aper.shape[1]))
             return N1 - N0
 
         # Solution for the circular aperture of radius rho:
@@ -638,7 +647,6 @@ class Haser(GasComa):
                      + self._K1(y) - self._K1(x)))
 
         return N
-    total_number.__doc__ = GasComa.total_number.__doc__
 
 
 class VectorialModel(GasComa):
@@ -796,7 +804,7 @@ class VectorialModel(GasComa):
 
         # Makes a 2d array full of zero values
         self.vmodel['density_grid'] = np.zeros((self.radial_points,
-                                               self.angular_points))
+                                                self.angular_points))
 
         # Do the main computation
         self._compute_fragment_density()
