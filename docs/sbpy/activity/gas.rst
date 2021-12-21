@@ -1,6 +1,11 @@
 Gas Comae (`sbpy.activity.gas`)
 ===============================
 
+`sbpy.activity.gas` provides models and reference data for cometary gases and gas comae.
+
+.. toctree::
+   :maxdepth: 2
+
 Photolysis
 ----------
 
@@ -68,7 +73,15 @@ Reference data for fluorescence band emission is available via :func:`~sbpy.acti
 Gas coma models
 ---------------
 
-The Haser (1957) model for parent and daughter species is included, with some calculation enhancements based on Newburn and Johnson (1978).  With `~sbpy.activity.gas.Haser`, we may compute the column density and total number of molecules within aperture:
+Haser Model
+^^^^^^^^^^^
+
+The `Haser (1957)
+<https://ui.adsabs.harvard.edu/abs/1957BSRSL..43..740H/abstract>`_ model is an
+analytical approach to solving for the spatial distribution of parent and
+daughter species.  It is included with some calculation enhancements based on
+Newburn and Johnson (1978).  With `~sbpy.activity.gas.Haser`, we may compute the
+column density and total number of molecules within an aperture:
 
   >>> Q = 1e28 / u.s        # production rate
   >>> v = 0.8 * u.km / u.s  # expansion speed
@@ -87,6 +100,48 @@ The gas coma models work with sbpy's apertures:
   >>> print(coma.total_number(ap))    # doctest: +FLOAT_CMP
   3.8133654170856037e+31
 
+Vectorial Model
+^^^^^^^^^^^^^^^
+
+The Vectorial model (`Festou 1981
+<https://ui.adsabs.harvard.edu/abs/1981A%26A....95...69F/abstract>`_) describes
+the spatial distribution of coma photolysis products.  Unlike the Haser model,
+daughter products in the Vectorial model may receive an additional velocity
+component from the excess energy after photodissociation.  With
+`~sbpy.activity.gas.Vectorial`, we may compute the column density and total
+number of molecules within an aperture.  Parent and daughter data is provided
+via `~sbpy.data.Phys` objects, required parameters are:
+
++------------------+-----------+------+-------------------------------------------------------+
+|     Species      | Parameter | Unit |        Description (and Festou 1981 variable)         |
++==================+===========+======+=======================================================+
+| parent           | v_outflow | m/s  | outflow velocity (u)                                  |
++------------------+-----------+------+-------------------------------------------------------+
+| parent           | sigma     | m**2 | collisional cross-sectional area                      |
++------------------+-----------+------+-------------------------------------------------------+
+| parent           | tau_d     | s    | photodissociation lifetime                            |
++------------------+-----------+------+-------------------------------------------------------+
+| parent, daughter | tau_T     | s    | total lifetime considering all destruction mechanisms |
++------------------+-----------+------+-------------------------------------------------------+
+| daughter         | v_photo   | m/s  | photodissociation velocity (v_R)                      |
++------------------+-----------+------+-------------------------------------------------------+
+
+  >>> water = Phys.from_dict({
+  ...     'tau_T': gas.photo_lengthscale('H2O') * 0.8,  # approximate
+  ...     'tau_d': gas.photo_lengthscale('H2O'),
+  ...     'v_outflow': 0.85 * u.km / u.s,
+  ...     'sigma': 3e-16 * u.cm**2
+  ... })
+  >>> hydroxyl = Phys.from_dict({
+  ...     'tau_T': gas.photo_lengthscale('OH') * 0.8,  # approximate
+  ...     'v_photo': 1.05 * u.km / u.s
+  ... })
+  >>> Q = 1e28 / u.s        # water production rate
+  >>> coma = gas.Vectorial(Q, water, hydroxyl)
+  >>> print(coma.column_density(10 * u.km))    # doctest: +FLOAT_CMP
+  7.099280153851781e+17 1 / m2
+  >>> print(coma.total_number(1000 * u.km))    # doctest: +FLOAT_CMP
+  1.161357452192558e+30
 
 Production Rate calculations
 ----------------------------

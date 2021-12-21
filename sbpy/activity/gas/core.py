@@ -28,7 +28,7 @@ from ... import bib
 from ... import data as sbd
 from ... import units as sbu
 from ...exceptions import RequiredPackageUnavailable
-from .. core import (Aperture, RectangularAperture, GaussianAperture,
+from .. core import (RectangularAperture, GaussianAperture,
                      AnnularAperture, CircularAperture)
 
 
@@ -292,7 +292,7 @@ class GasComa(ABC):
             Projected distance to the region of interest on the plane
             of the sky in units of length or angle.
 
-        eph : dictionary-like, `~sbpy.data.Ephem`, `~astropy.units.Quantity`. optional
+        eph : dictionary-like, `~sbpy.data.Ephem`, `~astropy.units.Quantity`, optional
             Target-observer distance, or ephemeris with ``'delta'``
             field.  Required to convert rho to a projected size.
 
@@ -660,30 +660,23 @@ class VectorialModel(GasComa):
 
         parent: `~sbpy.data.Phys`
             Object with the following physical property fields:
-                tau_T: `~astropy.units.Quantity`
-                    Total lifetime of the parent molecule
-                tau_d: `~astropy.units.Quantity`
-                    Photodissociative lifetime of the parent molecule
-                v_outflow: `~astropy.units.Quantity`
-                    Outflow velocity of the parent molecule
-                sigma: `~astropy.units.Quantity`
-                    Cross section of parent molecule
+                * ``tau_T``: total lifetime of the parent molecule
+                * ``tau_d``: photodissociative lifetime of the parent molecule
+                * ``v_outflow``: outflow velocity of the parent molecule
+                * ``sigma``: cross-sectional area of the parent molecule
 
         fragment: `~sbpy.data.Phys`
             Object with the following physical property fields:
-                tau_T: `~astropy.units.Quantity`
-                    Total lifetime of the fragment molecule
-                v_photo: `~astropy.units.Quantity`
-                    Velocity of fragment resulting
-                    from photodissociation of parent
+                * ``tau_T``: total lifetime of the fragment molecule
+                * ``v_photo``: velocity of fragment resulting from
+                    photodissociation of the parent
 
-        q_t : callable, optional
-            Function yielding additional production beyond base_q at the
-            given time in units of inverse seconds:
-
-                ``q_t(t) -> float``
-
-            where ``t`` is lookback time in seconds as a float.
+        q_t: callable, optional
+            Calculates the parent production rate as a function of time:
+            ``q_t(t)``. The argument ``t`` is the look-back time as a float
+            in units of seconds.  The return value is the production rate in
+            units of inverse seconds.  If provided, this value is added to
+            ``base_q``.
 
             If no time-dependence function is given, the model will run with
             steady production at ``base_q`` stretching infinitely far into the
