@@ -36,7 +36,7 @@ class Phys(DataClass):
     @cite({'software: astroquery': '2019AJ....157...98G'})
     def from_sbdb(cls, targetids, references=False, notes=False):
         """Load physical properties from `JPL Small-Body Database (SBDB)
-        <https://ssd.jpl.nasa.gov/sbdb.cgi>`_ using
+        <https://ssd.jpl.nasa.gov/tools/sbdb_lookup.html>`_ using
         `~astroquery.jplsbdb` for one or more targets. Builds a
         `~Phys` object from the output of `'phys_par'` from
         SBDB. Units are applied, where available. Missing data are

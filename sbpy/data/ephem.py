@@ -49,7 +49,7 @@ class Ephem(DataClass):
     def from_horizons(cls, targetids, id_type='smallbody',
                       epochs=None, location='500', **kwargs):
         """Load target ephemerides from
-        `JPL Horizons <https://ssd.jpl.nasa.gov/horizons.cgi>`_ using
+        `JPL Horizons <https://ssd.jpl.nasa.gov/horizons/app.html>`_ using
         `astroquery.jplhorizons.HorizonsClass.ephemerides`
 
         Parameters
@@ -99,7 +99,7 @@ class Ephem(DataClass):
         * For detailed explanations of the queried fields, refer to
           `astroquery.jplhorizons.HorizonsClass.ephemerides` and the
           `JPL Horizons documentation
-          <https://ssd.jpl.nasa.gov/?horizons_doc>`_.
+          <https://ssd.jpl.nasa.gov/horizons/manual.html>`_.
         * By default, all properties are provided in the J2000.0 reference
           system. Different settings can be chosen using
           additional keyword arguments as used by
@@ -201,7 +201,7 @@ class Ephem(DataClass):
 
         # turn epochs into astropy.time.Time and apply timescale
         # convert ut1 epochs to utc
-        # https://ssd.jpl.nasa.gov/?horizons_doc
+        # https://ssd.jpl.nasa.gov/horizons/manual.html
         if any(all_eph['datetime_jd'] < 2437665.5):
             all_eph['datetime_jd'][all_eph['datetime_jd'] <
                                    2437665.5] = Time(
