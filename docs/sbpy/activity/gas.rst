@@ -126,20 +126,21 @@ via `~sbpy.data.Phys` objects, required parameters are:
 | daughter         | v_photo   | m/s  | photodissociation velocity (v_R)                      |
 +------------------+-----------+------+-------------------------------------------------------+
 
+  >>> from sbpy.data import Phys
   >>> water = Phys.from_dict({
-  ...     'tau_T': gas.photo_lengthscale('H2O') * 0.8,  # approximate
-  ...     'tau_d': gas.photo_lengthscale('H2O'),
+  ...     'tau_T': gas.photo_timescale('H2O') * 0.8,  # approximate
+  ...     'tau_d': gas.photo_timescale('H2O'),
   ...     'v_outflow': 0.85 * u.km / u.s,
   ...     'sigma': 3e-16 * u.cm**2
   ... })
   >>> hydroxyl = Phys.from_dict({
-  ...     'tau_T': gas.photo_lengthscale('OH') * 0.8,  # approximate
+  ...     'tau_T': gas.photo_timescale('OH') * 0.8,  # approximate
   ...     'v_photo': 1.05 * u.km / u.s
   ... })
   >>> Q = 1e28 / u.s        # water production rate
-  >>> coma = gas.Vectorial(Q, water, hydroxyl)
+  >>> coma = gas.VectorialModel(Q, water, hydroxyl)
   >>> print(coma.column_density(10 * u.km))    # doctest: +FLOAT_CMP
-  7.099280153851781e+17 1 / m2
+  2.951278139718558e+17 1 / m2
   >>> print(coma.total_number(1000 * u.km))    # doctest: +FLOAT_CMP
   1.161357452192558e+30
 
