@@ -176,7 +176,7 @@ dictionary to build your object:
     >>> orb  # doctest: +SKIP
     <QTable length=1>
        a       e       i     argper   node    epoch   true_anom
-       AU             deg     deg     deg       d        deg
+       AU             deg     deg     deg      Time      deg
     float64 float64 float64 float64 float64  float64   float64
     ------- ------- ------- ------- ------- --------- ---------
       1.234  0.1234   12.34   123.4    45.2 2451200.5      23.1
@@ -212,7 +212,7 @@ here:
     >>> dec = [-12.42123, -12.41562, -12.40435]*u.deg
     >>> epoch = Time(2451523.5 + array([0.1234, 0.2345, 0.3525]), format='jd')
     >>> obs = Obs.from_columns([ra, dec, epoch], names=['ra', 'dec', 't'])
-    >>> obs
+    >>> obs  # doctest: +SKIP
     <QTable length=3>
         ra       dec         t      
        deg       deg                
@@ -309,7 +309,7 @@ Similarly, if you are interested in the first set of observations in
 
     >>> obs[0]  # doctest: +SKIP
         ra       dec         t
-       deg       deg         d
+       deg       deg        Time
     --------- --------- ------------
     10.223423 -12.42123 2451523.6234
 
@@ -337,14 +337,14 @@ for instance:
 
     >>> obs[:2] # doctest: +SKIP
         ra       dec         t
-       deg       deg         d
+       deg       deg        Time
     --------- --------- ------------
     10.223423 -12.42123 2451523.6234
     10.233453 -12.41562 2451523.7345
 
     >>> obs[obs['ra'] <= 10.233453*u.deg] # doctest: +SKIP
         ra       dec         t
-       deg       deg         d
+       deg       deg        Time
     --------- --------- ------------
     10.223423 -12.42123 2451523.6234
     10.233453 -12.41562 2451523.7345
@@ -388,7 +388,7 @@ Let's assume you want to add some more observations to your ``obs``
 object:
 
     >>> obs.table.add_row([10.255460*u.deg, -12.39460*u.deg, 2451523.94653*u.d])
-    >>> obs
+    >>> obs  # doctest: +SKIP
     <QTable length=4>
         ra       dec          t      
        deg       deg      
@@ -544,9 +544,9 @@ straightforward. The following example builds a simple
     >>> obs = Obs.from_dict({'epoch': Time(times), 'mag': [10, 12, 14]*u.mag})
     >>> obs # doctest: +SKIP
     <QTable length=3>
-         epoch            mag  
-                          mag  
-         object         float64
+             epoch            mag  
+                              mag  
+             object         float64
     ----------------------- -------
     2018-10-01 00:00:00.000    10.0
     2018-11-01 00:00:00.000    12.0
