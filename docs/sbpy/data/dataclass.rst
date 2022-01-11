@@ -576,7 +576,15 @@ Writing object data to a file
 `~sbpy.data.DataClass` objects can be written to files using
 `~sbpy.data.DataClass.to_file`:
 
-    >>> obs.to_file('observations.dat')  # doctest: +SKIP
+    .. testsetup:: obs.to_file
+        >>> import os
+        >>> assert not os.path.exists('observations.dat')
+
+    .. doctest:: obs.to_file
+        >>> obs.to_file('observations.dat')
+
+    .. testcleanup:: obs.to_file
+        >>> os.unlink('observations.dat')
 
 By default, the data are written in ASCII format, but other formats
 are available, too (`list of file formats
