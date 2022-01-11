@@ -184,7 +184,7 @@ class DustComaQuantity(u.SpecificTypeQuantity,
     _equivalent_unit = u.meter
     _include_easy_conversion_members = False
 
-    def __new__(cls, value, unit=None, dtype=None, copy=None):
+    def __new__(cls, value, unit=None, dtype=None, copy=True):
         return super().__new__(cls, value, unit=unit, dtype=dtype,
                                copy=copy)
 
