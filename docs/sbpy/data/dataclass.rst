@@ -166,6 +166,8 @@ propagate this orbit and obtain ephemerides. Since you are dealing
 with a single orbit, the most convenient solution might be to use a
 dictionary to build your object:
 
+.. doctest-requires:: astropy>=5
+
     >>> from sbpy.data import Orbit
     >>> from astropy.time import Time
     >>> import astropy.units as u
@@ -173,11 +175,11 @@ dictionary to build your object:
     ...             'argper': 123.4*u.deg, 'node': 45.2*u.deg,
     ...             'epoch': Time(2451200.5, format='jd'), 'true_anom':23.1*u.deg}
     >>> orb = Orbit.from_dict(elements)
-    >>> orb  # doctest: +SKIP
+    >>> orb
     <QTable length=1>
        a       e       i     argper   node    epoch   true_anom
-       AU             deg     deg     deg      Time      deg
-    float64 float64 float64 float64 float64  float64   float64
+       AU             deg     deg     deg                deg
+    float64 float64 float64 float64 float64    Time    float64
     ------- ------- ------- ------- ------- --------- ---------
       1.234  0.1234   12.34   123.4    45.2 2451200.5      23.1
 
@@ -204,6 +206,8 @@ RA, Dec, and observation midtime for some target that you observed. In
 this case, you can use `~sbpy.data.DataClass.from_columns` as shown
 here:
 
+.. doctest-requires:: astropy>=5
+
     >>> from sbpy.data import Obs
     >>> import astropy.units as u
     >>> from astropy.time import Time
@@ -212,7 +216,7 @@ here:
     >>> dec = [-12.42123, -12.41562, -12.40435]*u.deg
     >>> epoch = Time(2451523.5 + array([0.1234, 0.2345, 0.3525]), format='jd')
     >>> obs = Obs.from_columns([ra, dec, epoch], names=['ra', 'dec', 't'])
-    >>> obs  # doctest: +SKIP
+    >>> obs
     <QTable length=3>
         ra       dec         t      
        deg       deg                
@@ -292,13 +296,27 @@ Accessing data
 In order to obtain a list of field names in a `~sbpy.data.DataClass`
 object, you can use `~sbpy.data.DataClass.field_names`:
 
+.. testsetup::
+
+    >>> # in case requirements for tests above are not met
+    >>> from sbpy.data import Obs
+    >>> import astropy.units as u
+    >>> from astropy.time import Time
+    >>> from numpy import array
+    >>> ra = [10.223423, 10.233453, 10.243452]*u.deg
+    >>> dec = [-12.42123, -12.41562, -12.40435]*u.deg
+    >>> epoch = Time(2451523.5 + array([0.1234, 0.2345, 0.3525]), format='jd')
+    >>> obs = Obs.from_columns([ra, dec, epoch], names=['ra', 'dec', 't'])
+
+.. doctest::
+
     >>> obs.field_names
     ['ra', 'dec', 't']
 
 Each of these columns can be accessed easily, for instance:
 
-    >>> obs['ra']  # doctest: +SKIP
-    [10.223423 10.233453 10.243452] deg
+    >>> obs['ra']
+    <Quantity [10.223423, 10.233453, 10.243452] deg>
 
 which will return an `~astropy.units.quantity.Quantity` object if that
 column has a `~astropy.units.Unit` attached to it or a `~astropy.table.Column`
@@ -307,9 +325,13 @@ otherwise.
 Similarly, if you are interested in the first set of observations in
 ``obs``, you can use:
 
-    >>> obs[0]  # doctest: +SKIP
+.. doctest-requires:: astropy>=5
+
+    >>> obs[0]
+    <QTable length=1>
         ra       dec         t
-       deg       deg        Time
+       deg       deg
+     float64   float64      Time
     --------- --------- ------------
     10.223423 -12.42123 2451523.6234
 
@@ -318,33 +340,40 @@ objet with only the requested subset of the
 data. In order to retrieve RA from the second observation, you can
 combine both examples and do:
 
-    >>> obs[1]['ra'] # doctest: +SKIP
-    10.233453 deg
+    >>> obs[1]['ra']
+    <Quantity [10.233453] deg>
 
 
 Just like in any `~astropy.table.Table` or `~astropy.table.QTable`
 object, you can use slicing to obtain subset tables from your data,
 for instance:
 
-    >>> obs['ra', 'dec']  # doctest: +SKIP
+.. doctest-requires:: astropy>=5
+
+    >>> obs['ra', 'dec']
     <QTable length=3>
-	ra       dec
+        ra       dec
        deg       deg
+     float64   float64
     --------- ---------
     10.223423 -12.42123
     10.233453 -12.41562
     10.243452 -12.40435
-
-    >>> obs[:2] # doctest: +SKIP
+    <BLANKLINE>
+    >>> obs[:2]
+    <QTable length=2>
         ra       dec         t
-       deg       deg        Time
+       deg       deg
+     float64   float64     Time
     --------- --------- ------------
     10.223423 -12.42123 2451523.6234
     10.233453 -12.41562 2451523.7345
-
-    >>> obs[obs['ra'] <= 10.233453*u.deg] # doctest: +SKIP
+    <BLANKLINE>
+    >>> obs[obs['ra'] <= 10.233453 * u.deg]
+    <QTable length=2>
         ra       dec         t
-       deg       deg        Time
+       deg       deg
+     float64   float64     Time
     --------- --------- ------------
     10.223423 -12.42123 2451523.6234
     10.233453 -12.41562 2451523.7345
@@ -367,13 +396,11 @@ Modifying an object
 Individual elements, entire rows, and columns can be modified by
 directly addressing them:
 
-    >>> obs['ra'] # doctest: +SKIP
-    [10.223423 10.233453 10.243452 10.25546  10.265425 10.25546  10.4545
-     10.5656  ] deg
-    >>> obs['ra'] = obs['ra'] + 0.1*u.deg
-    >>> obs['ra'] # doctest: +SKIP
-    [10.323423 10.333453 10.343452 10.35546  10.365425 10.35546  10.5545
-     10.6656  ] deg
+    >>> obs['ra']
+    <Quantity [10.223423, 10.233453, 10.243452] deg>
+    >>> obs['ra'] = obs['ra'] + 0.1 * u.deg
+    >>> obs['ra']
+    <Quantity [10.323423, 10.333453, 10.343452] deg>
 
 More complex data table modifications are possible by directly
 accessing the underlying `~astropy.table.QTable` object as shown below.
@@ -387,8 +414,10 @@ additional rows and columns to these objects.
 Let's assume you want to add some more observations to your ``obs``
 object:
 
-    >>> obs.table.add_row([10.255460*u.deg, -12.39460*u.deg, 2451523.94653*u.d])
-    >>> obs  # doctest: +SKIP
+.. doctest-requires:: astropy>=5
+
+    >>> obs.table.add_row([10.255460 * u.deg, -12.39460 * u.deg, 2451523.94653 * u.d])
+    >>> obs
     <QTable length=4>
         ra       dec          t      
        deg       deg      
@@ -402,37 +431,50 @@ object:
 
 or if you want to add a column to your object:
 
+.. doctest-requires:: astropy>=5
+
     >>> from astropy.table import Column
     >>> obs.table.add_column(Column(['V', 'V', 'R', 'i'], name='filter'))
-    >>> obs  # doctest: +SKIP
+    >>> obs
     <QTable length=4>
         ra       dec          t       filter
        deg       deg                        
      float64   float64       Time      str1 
     --------- --------- ------------- ------
-    10.223423 -12.42123  2451523.6234      V
-    10.233453 -12.41562  2451523.7345      V
-    10.243452 -12.40435  2451523.8525      R
+    10.323423 -12.42123  2451523.6234      V
+    10.333453 -12.41562  2451523.7345      V
+    10.343452 -12.40435  2451523.8525      R
      10.25546  -12.3946 2451523.94653      i
 
 The same result can be achieved using the following syntax:
 
-    >>> obs['filter2'] = ['V', 'V', 'R', 'i']  # doctest: +SKIP
-    >>> obs  # doctest: +SKIP
+.. doctest-requires:: astropy>=5
+
+    >>> obs['filter2'] = ['V', 'V', 'R', 'i']
+    >>> obs
     <QTable length=4>
         ra       dec          t       filter filter2
        deg       deg                                
      float64   float64       Time      str1    str1 
     --------- --------- ------------- ------ -------
-    10.223423 -12.42123  2451523.6234      V       V
-    10.233453 -12.41562  2451523.7345      V       V
-    10.243452 -12.40435  2451523.8525      R       R
+    10.323423 -12.42123  2451523.6234      V       V
+    10.333453 -12.41562  2451523.7345      V       V
+    10.343452 -12.40435  2451523.8525      R       R
      10.25546  -12.3946 2451523.94653      i       i
 
 Similarly, existing columns can be modified using:
 
-    >>> obs['filter'] = ['g', 'i', 'R', 'V']  # doctest: +SKIP
-    
+.. testsetup::
+
+    >>> from astropy.table import Column
+    >>> if len(obs) < 4:  # then this is astropy<5
+    ...     obs.table.add_row([10.255460 * u.deg, -12.39460 * u.deg, 2451523.94653 * u.d])
+    ...     obs.table.add_column(Column(['V', 'V', 'R', 'i'], name='filter'))
+
+.. doctest::
+
+    >>> obs['filter'] = ['g', 'i', 'R', 'V']
+
 Note how the `~astropy.table.Table.add_column` and
 `~astropy.table.Table.add_row` functions are called from
 ``obs.table``. `~sbpy.data.DataClass.table` is a property that exposes
@@ -472,8 +514,8 @@ existing field name, a ``KeyError`` will be raised.
 
     >>> from sbpy.data import Orbit
     >>> orb = Orbit.from_dict({'incl': [1, 2, 3]*u.deg})
-    >>> orb['i']) # doctest: +SKIP
-    [1. 2. 3.] deg
+    >>> orb['i']
+    <Quantity [1., 2., 3.] deg>
 
 The definition of alternative field names is done in the file
 ``sbpy/data/__init__.py``, using the list ``fieldnames``. This list is
@@ -517,14 +559,14 @@ provided as `~astropy.time.Time` objects. The advantage of these
 objects is their flexibility in terms of format and time
 scale. `~astropy.time.Time` objects can be readily transformed into a
 wide range of formats; for instance, ``Time('2019-07-23 10:49').jd``
-can be used to convert an ISO epoch to a Julian Date.
+can be used to convert an ISO epoch to a Julian date.
 
 More importantly, `~astropy.time.Time` provides functionality to
 transform epochs between different time scales. Hence, every
 `~astropy.time.Time` object comes with a time scale (UTC is used
 by default) and can be easily transformed into a different time
 scale. The following example defines an epoch in UTC and as a Julian
-Date and transforms it to TDB:
+date and transforms it to TDB:
 
     >>> from astropy.time import Time
     >>> epoch = Time(2451200, format='jd')
@@ -539,24 +581,32 @@ Using `~astropy.time.Time` in `~sbpy.data.DataClass` objects is
 straightforward. The following example builds a simple
 `~sbpy.data.Obs` object from a dictionary:
 
+.. doctest-requires:: astropy>=5
+
     >>> from sbpy.data import Obs
     >>> times = ['2018-10-01', '2018-11-01', '2018-12-01']
     >>> obs = Obs.from_dict({'epoch': Time(times), 'mag': [10, 12, 14]*u.mag})
-    >>> obs # doctest: +SKIP
+    >>> obs
     <QTable length=3>
              epoch            mag  
                               mag  
-             object         float64
+              Time          float64
     ----------------------- -------
     2018-10-01 00:00:00.000    10.0
     2018-11-01 00:00:00.000    12.0
     2018-12-01 00:00:00.000    14.0
 
+.. doctest-requires:: astropy<5
+
+    >>> from sbpy.data import Obs
+    >>> times = ['2018-10-01', '2018-11-01', '2018-12-01']
+    >>> obs = Obs.from_dict({'epoch': Time(times), 'mag': [10, 12, 14]*u.mag})
+
 The ``'epoch'`` column in ``obs`` can be used like any other field or
 `~astropy.time.Time` object. The following example converts the epoch
-to TAI and Julian Date:
+to TAI and Julian date:
 
-    >>> obs['epoch'].tai.jd  # doctest: +SKIP
+    >>> obs['epoch'].tai.jd
     array([2458392.50042824, 2458423.50042824, 2458453.50042824])
 
 Note that different functions in `sbpy` have different requirements on
@@ -576,15 +626,18 @@ Writing object data to a file
 `~sbpy.data.DataClass` objects can be written to files using
 `~sbpy.data.DataClass.to_file`:
 
-    .. testsetup:: obs.to_file
-        >>> import os
-        >>> assert not os.path.exists('observations.dat')
+.. testsetup::
 
-    .. doctest:: obs.to_file
-        >>> obs.to_file('observations.dat')
+    >>> import os
+    >>> assert not os.path.exists('observations.dat')
 
-    .. testcleanup:: obs.to_file
-        >>> os.unlink('observations.dat')
+.. doctest::
+
+    >>> obs.to_file('observations.dat')
+
+.. testcleanup::
+
+    >>> os.unlink('observations.dat')
 
 By default, the data are written in ASCII format, but other formats
 are available, too (`list of file formats
