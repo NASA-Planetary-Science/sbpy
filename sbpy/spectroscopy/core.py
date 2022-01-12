@@ -98,7 +98,7 @@ class SpectralGradient(u.SpecificTypeQuantity):
     _include_easy_conversion_members = False
 
     def __new__(cls, value, unit=None, wave=None, wave0=None,
-                dtype=None, copy=None):
+                dtype=None, copy=True):
         S = super().__new__(cls, value, unit=unit, dtype=dtype,
                             copy=copy)
 
