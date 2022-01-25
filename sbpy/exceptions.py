@@ -22,3 +22,7 @@ class SbpyWarning(Warning):
 
 class OptionalPackageUnavailable(SbpyWarning):
     "Optional package is not available."
+
+
+class TestingNeeded(SbpyWarning):
+    "More testing is needed to understand the issue."
