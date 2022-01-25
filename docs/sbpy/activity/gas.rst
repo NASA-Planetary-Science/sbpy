@@ -103,14 +103,20 @@ The gas coma models work with sbpy's apertures:
 Vectorial Model
 ^^^^^^^^^^^^^^^
 
+.. warning::
+
+  Literature tests with the Vectorial model are generally in agreement at the
+  20% level or better.  The cause for the differences with the Festou FORTRAN
+  code are not yet precisely known.  Help testing this feature is appreciated.
+
 The Vectorial model (`Festou 1981
 <https://ui.adsabs.harvard.edu/abs/1981A%26A....95...69F/abstract>`_) describes
 the spatial distribution of coma photolysis products.  Unlike the Haser model,
 daughter products in the Vectorial model may receive an additional velocity
-component from the excess energy after photodissociation.  With
-`~sbpy.activity.gas.Vectorial`, we may compute the column density and total
-number of molecules within an aperture.  Parent and daughter data is provided
-via `~sbpy.data.Phys` objects, required parameters are:
+component from the excess energy after photodissociation.  With the
+`~sbpy.activity.gas.Vectorial` class we may compute the column density and total
+number of molecules in an aperture.  Parent and daughter data is provided via
+`~sbpy.data.Phys` objects, with the following required parameters:
 
 +------------------+-----------+------+-------------------------------------------------------+
 |     Species      | Parameter | Unit |        Description (and Festou 1981 variable)         |
@@ -142,7 +148,7 @@ via `~sbpy.data.Phys` objects, required parameters are:
   >>> print(coma.column_density(10 * u.km))    # doctest: +FLOAT_CMP
   2.951278139718558e+17 1 / m2
   >>> print(coma.total_number(1000 * u.km))    # doctest: +FLOAT_CMP
-  1.161357452192558e+30
+  6.96687966256294e+29
 
 Production Rate calculations
 ----------------------------
