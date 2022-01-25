@@ -55,7 +55,7 @@ def test_fluorescence_band_strength_OH_SA88(band, test):
         'rdot': [-1, -1] * u.km / u.s
     }
     LN = fluorescence_band_strength(band, eph, 'SA88').to(test.unit)
-    assert np.allclose(LN.value, test.value / np.r_[1, 2]**2)
+    assert np.allclose(LN.value, test.value / np.r_[1, 2] ** 2)
 
 
 def test_fluorescence_band_strength_error():
@@ -78,6 +78,7 @@ def test_gascoma_scipy_error(monkeypatch):
 
 
 class TestHaser:
+
     def test_volume_density(self):
         """Test a set of dummy values."""
         Q = 1e28 / u.s
@@ -90,14 +91,14 @@ class TestHaser:
                * (np.exp(-r / parent) - np.exp(-r / daughter)))
         # test radial profile
         assert np.allclose((n / n[0]).value,
-                           (rel / rel[0] * (r[0] / r)**2).value)
+                           (rel / rel[0] * (r[0] / r) ** 2).value)
 
         # test parent-only coma near nucleus against that expected for
         # a long-lived species; will be close, but not exact
         n = Haser(Q, v, parent).volume_density(10 * u.km)
         assert np.isclose(
             n.decompose().value,
-            (Q / v / 4 / np.pi / (10 * u.km)**2).decompose().value,
+            (Q / v / 4 / np.pi / (10 * u.km) ** 2).decompose().value,
             rtol=0.001)
 
     def test_column_density_small_aperture(self):
@@ -235,7 +236,7 @@ class TestHaser:
             if NC2 > 0:
                 parent = 1.0e4 * u.km
                 daughter = 6.61e4 * u.km
-                Q = 10**QC2 / u.s
+                Q = 10 ** QC2 / u.s
                 coma = Haser(Q, 1 * u.km / u.s, parent, daughter)
                 N = coma.total_number(rho * u.km)
                 assert np.isclose(NC2, N, rtol=0.01)
@@ -243,7 +244,7 @@ class TestHaser:
             if NCN > 0:
                 parent = 1.3e4 * u.km
                 daughter = 1.48e5 * u.km
-                Q = 10**QCN / u.s
+                Q = 10 ** QCN / u.s
                 coma = Haser(Q, 1 * u.km / u.s, parent, daughter)
                 N = coma.total_number(rho * u.km)
                 assert np.isclose(NCN, N, rtol=0.01)
@@ -251,7 +252,7 @@ class TestHaser:
             if NC3 > 0:
                 parent = 0 * u.km
                 daughter = 4.0e4 * u.km
-                Q = 10**QC3 / u.s
+                Q = 10 ** QC3 / u.s
                 coma = Haser(Q, 1 * u.km / u.s, parent, daughter)
                 N = coma.total_number(rho * u.km)
                 assert np.isclose(NC3, N, rtol=0.01)
@@ -390,6 +391,7 @@ class TestHaser:
 
 
 class TestVectorialModel:
+
     def test_grid_count(self):
         """
             Compute theoretical number of fragments vs. integrated value from
@@ -398,19 +400,19 @@ class TestVectorialModel:
             fragments
         """
 
-        base_q = 1.e28 * 1/u.s
+        base_q = 1.e28 * 1 / u.s
 
         # Parent molecule is H2O
         parent = Phys.from_dict({
             'tau_T': 86430 * u.s,
             'tau_d': 101730 * u.s,
-            'v_outflow': 1 * u.km/u.s,
-            'sigma': 3e-16 * u.cm**2
+            'v_outflow': 1 * u.km / u.s,
+            'sigma': 3e-16 * u.cm ** 2
         })
         # Fragment molecule is OH
         fragment = Phys.from_dict({
             'tau_T': photo_timescale('OH') * 0.93,
-            'v_photo': 1.05 * u.km/u.s
+            'v_photo': 1.05 * u.km / u.s
         })
 
         coma = VectorialModel(base_q=base_q,
@@ -427,19 +429,19 @@ class TestVectorialModel:
             density over a large aperture
         """
 
-        base_q = 1e28 * 1/u.s
+        base_q = 1e28 * 1 / u.s
 
         # Parent molecule is H2O
         parent = Phys.from_dict({
             'tau_T': 86430 * u.s,
             'tau_d': 101730 * u.s,
-            'v_outflow': 1 * u.km/u.s,
-            'sigma': 3e-16 * u.cm**2
+            'v_outflow': 1 * u.km / u.s,
+            'sigma': 3e-16 * u.cm ** 2
         })
         # Fragment molecule is OH
         fragment = Phys.from_dict({
             'tau_T': photo_timescale('OH') * 0.93,
-            'v_photo': 1.05 * u.km/u.s
+            'v_photo': 1.05 * u.km / u.s
         })
 
         coma = VectorialModel(base_q=base_q,
@@ -478,41 +480,41 @@ class TestVectorialModel:
         parent = Phys.from_dict({
             'tau_T': 86430 * u.s,
             'tau_d': 101730 * u.s,
-            'v_outflow': 1 * u.km/u.s,
-            'sigma': 3e-16 * u.cm**2
+            'v_outflow': 1 * u.km / u.s,
+            'sigma': 3e-16 * u.cm ** 2
         })
         # Fragment molecule is OH
         fragment = Phys.from_dict({
             'tau_T': photo_timescale('OH') * 0.93,
-            'v_photo': 1.05 * u.km/u.s
+            'v_photo': 1.05 * u.km / u.s
         })
 
-        coma = VectorialModel(base_q=base_production*(1/u.s),
+        coma = VectorialModel(base_q=base_production * (1 / u.s),
                               parent=parent,
                               fragment=fragment)
         # mgr = coma.vmodel['max_grid_radius']
         # ap = core.RectangularAperture((mgr, mgr))
         model_count = coma.total_number(ap)
-        calculated_q = (assumed_count/model_count)*base_production
+        calculated_q = (assumed_count / model_count) * base_production
         print("Calculated: ", calculated_q)
 
         # Parent molecule is H2O
         parent_check = Phys.from_dict({
             'tau_T': 86430 * u.s,
             'tau_d': 101730 * u.s,
-            'v_outflow': 1 * u.km/u.s,
-            'sigma': 3e-16 * u.cm**2
+            'v_outflow': 1 * u.km / u.s,
+            'sigma': 3e-16 * u.cm ** 2
         })
         # Fragment molecule is OH
         fragment_check = Phys.from_dict({
             'tau_T': photo_timescale('OH') * 0.93,
-            'v_photo': 1.05 * u.km/u.s
+            'v_photo': 1.05 * u.km / u.s
         })
-        coma_check = VectorialModel(base_q=calculated_q*(1/u.s),
+        coma_check = VectorialModel(base_q=calculated_q * (1 / u.s),
                                     parent=parent_check,
                                     fragment=fragment_check)
         count_check = coma_check.total_number(ap)
-        print("Count/assumed: ", count_check/assumed_count)
+        print("Count/assumed: ", count_check / assumed_count)
         assert np.isclose(count_check, assumed_count, rtol=0.001)
 
     @pytest.mark.parametrize("rh,delta,flux,g,Q", (
@@ -540,24 +542,24 @@ class TestVectorialModel:
         # add units
         rh = rh * u.au
         delta = delta * u.au
-        flux = flux * u.erg / u.s / u.cm**2
+        flux = flux * u.erg / u.s / u.cm ** 2
         g = g / u.s
         Q = Q / u.s
 
         # OH (0-0) luminosity per molecule
-        L_N = g / (rh / u.au)**2 * const.h * const.c / (3086 * u.AA)
+        L_N = g / (rh / u.au) ** 2 * const.h * const.c / (3086 * u.AA)
 
         # Parent molecule is H2O
         parent = Phys.from_dict({
-            'tau_T': 65000 * (rh / u.au)**2 * u.s,
-            'tau_d': 72500 * (rh / u.au)**2 * u.s,
+            'tau_T': 65000 * (rh / u.au) ** 2 * u.s,
+            'tau_d': 72500 * (rh / u.au) ** 2 * u.s,
             'v_outflow': 0.85 * u.km / u.s,
-            'sigma': 3e-16 * u.cm**2,
+            'sigma': 3e-16 * u.cm ** 2,
 
         })
         # Fragment molecule is OH
         fragment = Phys.from_dict({
-            'tau_T': 160000 * (rh / u.au)**2 * u.s,
+            'tau_T': 160000 * (rh / u.au) ** 2 * u.s,
             'v_photo': 1.05 * u.km / u.s
         })
 
@@ -576,13 +578,13 @@ class TestVectorialModel:
         coma = VectorialModel(base_q=Q0, parent=parent, fragment=fragment)
         N0 = coma.total_number(lwp, eph=delta)
 
-        Q_model = (Q0 * flux / (L_N * N0) * 4 * np.pi * delta**2).to(Q.unit)
+        Q_model = (Q0 * flux / (L_N * N0) * 4 * np.pi * delta ** 2).to(Q.unit)
 
         # absolute tolerance: Table 2 has 3 significant figures
         #
         # relative tolerance: actual agreement is 14%, future updates should
         # improve this or else explain the difference
-        atol = 1.01 * 10**(np.floor(np.log10(Q0.value)) - 2) * Q.unit
+        atol = 1.01 * 10 ** (np.floor(np.log10(Q0.value)) - 2) * Q.unit
         assert u.allclose(Q, Q_model, atol=atol, rtol=0.14)
 
     @pytest.mark.parametrize("rh,delta,N,Q", (
@@ -611,15 +613,15 @@ class TestVectorialModel:
 
         # Parent molecule is H2O
         parent = Phys.from_dict({
-            'tau_T': 8.2e4 * 0.88 * (rh / u.au)**2 * u.s,
-            'tau_d': 8.2e4 * (rh / u.au)**2 * u.s,
+            'tau_T': 8.2e4 * 0.88 * (rh / u.au) ** 2 * u.s,
+            'tau_d': 8.2e4 * (rh / u.au) ** 2 * u.s,
             'v_outflow': 1 * u.km / u.s,
-            'sigma': 3e-16 * u.cm**2,
+            'sigma': 3e-16 * u.cm ** 2,
         })
 
         # Fragment molecule is OH
         fragment = Phys.from_dict({
-            'tau_T': 2.0e5 * (rh / u.au)**2 * u.s,
+            'tau_T': 2.0e5 * (rh / u.au) ** 2 * u.s,
             'v_photo': 1.05 * u.km / u.s
         })
 
@@ -656,15 +658,15 @@ class TestVectorialModel:
 
         # Parent molecule is H2O
         parent = Phys.from_dict({
-            'tau_T': 8.2e4 * 0.88 * (rh / u.au)**2 * u.s,
-            'tau_d': 8.2e4 * (rh / u.au)**2 * u.s,
+            'tau_T': 8.2e4 * 0.88 * (rh / u.au) ** 2 * u.s,
+            'tau_d': 8.2e4 * (rh / u.au) ** 2 * u.s,
             'v_outflow': 1 * u.km / u.s,
-            'sigma': 3e-16 * u.cm**2,
+            'sigma': 3e-16 * u.cm ** 2,
         })
 
         # Fragment molecule is OH
         fragment = Phys.from_dict({
-            'tau_T': 2.0e5 * (rh / u.au)**2 * u.s,
+            'tau_T': 2.0e5 * (rh / u.au) ** 2 * u.s,
             'v_photo': 1.05 * u.km / u.s
         })
 
@@ -682,8 +684,8 @@ class TestVectorialModel:
 
             WRITTEN BY M. C. FESTOU
             (Minor modifications were made by MF on 8 Nov. 1988 on the Tempe version)
-            Some unused variables removed on 6 June 1995 in Baltimore when adapting 
-            the code to run on a unix machine. A little bit of additional trimming 
+            Some unused variables removed on 6 June 1995 in Baltimore when adapting
+            the code to run on a unix machine. A little bit of additional trimming
             on 27 June 1995. New printing formats.
             Few printing format changes made on 27 Sept. 96.
             Formula on the collision radius added on 1 April 1997.
@@ -733,15 +735,15 @@ class TestVectorialModel:
 
         # Parent molecule is H2O
         parent = Phys.from_dict({
-            'tau_T': 86430 * (eph['rh'] / u.au)**2 * u.s,
-            'tau_d': 101730 * (eph['rh'] / u.au)**2 * u.s,
+            'tau_T': 86430 * (eph['rh'] / u.au) ** 2 * u.s,
+            'tau_d': 101730 * (eph['rh'] / u.au) ** 2 * u.s,
             'v_outflow': 0.514 * u.km / u.s,
-            'sigma': 3e-16 * u.cm**2,
+            'sigma': 3e-16 * u.cm ** 2,
 
         })
         # Fragment molecule is OH
         fragment = Phys.from_dict({
-            'tau_T': 129000 * (eph['rh'] / u.au)**2 * u.s,
+            'tau_T': 129000 * (eph['rh'] / u.au) ** 2 * u.s,
             'v_photo': 1.05 * u.km / u.s
         })
 
@@ -791,15 +793,15 @@ class TestVectorialModel:
         # convert strings to arrays
         x = np.fromstring(fragment_volume_density, sep=' ')
         n0_rho = x[::2] * u.km
-        n0 = x[1::2] / u.cm**3
+        n0 = x[1::2] / u.cm ** 3
         # absolute tolerance: 2 significant figures
-        n0_atol = 1.1 * 10**(np.floor(np.log10(n0.value)) - 1) * n0.unit
+        n0_atol = 1.1 * 10 ** (np.floor(np.log10(n0.value)) - 1) * n0.unit
 
         x = np.fromstring(fragment_column_density, sep=' ')
         sigma0_rho = x[::2] * u.km
-        sigma0 = x[1::2] / u.cm**2
+        sigma0 = x[1::2] / u.cm ** 2
         # absolute tolerance: 3 significant figures
-        sigma0_atol = (1.1 * 10**(np.floor(np.log10(sigma0.value)) - 2)
+        sigma0_atol = (1.1 * 10 ** (np.floor(np.log10(sigma0.value)) - 2)
                        * n0.unit)
 
         # evaluate the model
