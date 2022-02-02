@@ -464,14 +464,7 @@ The same result can be achieved using the following syntax:
 
 Similarly, existing columns can be modified using:
 
-.. testsetup::
-
-    >>> from astropy.table import Column
-    >>> if len(obs) < 4:  # then this is astropy<5
-    ...     obs.table.add_row([10.255460 * u.deg, -12.39460 * u.deg, 2451523.94653 * u.d])
-    ...     obs.table.add_column(Column(['V', 'V', 'R', 'i'], name='filter'))
-
-.. doctest::
+.. doctest-requires:: astropy>=5
 
     >>> obs['filter'] = ['g', 'i', 'R', 'V']
 
