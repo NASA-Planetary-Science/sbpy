@@ -5,19 +5,16 @@ With sbpy installed, this plugin should be automatically discovered by
 Ginga and available in the Operations menu.
 
 """
-import os
-from warnings import warn
 
-import numpy as np
-from astropy.utils.exceptions import AstropyWarning
+from warnings import warn
+from sbpy.exceptions import OptionalPackageUnavailable
 
 try:
     from ginga.GingaPlugin import LocalPlugin
     from ginga.gw import Widgets
 except ImportError:
-    warn(AstropyWarning(
-        'ginga is not present: CometaryEnhancements will not run.'
-    ))
+    warn('ginga is not present: CometaryEnhancements will not run.',
+         OptionalPackageUnavailable)
 
     class LocalPlugin:
         pass
@@ -26,9 +23,8 @@ except ImportError:
 try:
     import photutils
 except ImportError:
-    warn(AstropyWarning(
-        'photutils is not present: CometaryEnhancements centroiding disabled.'
-    ))
+    warn('photutils is not present: CometaryEnhancements centroiding disabled.',
+         OptionalPackageUnavailable)
     photutils = None
 
 from sbpy.imageanalysis import CometaryEnhancement
@@ -198,7 +194,7 @@ class CometaryEnhancements(LocalPlugin):
         x0 = xc - box // 2
         y0 = yc - box // 2
 
-        subim = im[y0:y0+box+1, x0:x0+box+1]
+        subim = im[y0:y0 + box + 1, x0:x0 + box + 1]
         cxy = photutils.centroid_2dg(subim)
         self.w.x_center.set_text('{:.2f}'.format(cxy[0] + x0))
         self.w.y_center.set_text('{:.2f}'.format(cxy[1] + y0))
