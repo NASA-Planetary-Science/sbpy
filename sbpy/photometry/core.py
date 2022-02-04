@@ -149,7 +149,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
     >>>
     >>> # Initialize from physical parameters pulled from JPL SBDB
     >>> phys = Phys.from_sbdb('Ceres')       # doctest: +REMOTE_DATA
-    >>> print(phys['targetname','H','G'])    # doctest: +REMOTE_DATA +NORMALIZE_WHITESPACE
+    >>> print(phys['targetname','H','G'])    # doctest: +REMOTE_DATA
     <QTable length=1>
         targetname       H       G
                         mag
@@ -158,7 +158,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
     1 Ceres (A801 AA)    3.54    0.12
     >>> m = HG.from_phys(phys)                  # doctest: +REMOTE_DATA
     INFO: Model initialized for 1 Ceres (A801 AA). [sbpy.photometry.core]
-    >>> print(m)                             # doctest: +REMOTE_DATA +NORMALIZE_WHITESPACE
+    >>> print(m)                             # doctest: +REMOTE_DATA
     Model: HG
     Inputs: ('x',)
     Outputs: ('y',)
@@ -176,7 +176,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
     >>> # Initialize from orbital elements pulled from JPL Horizons that also
     >>> # contain the H and G parameters
     >>> elem = Orbit.from_horizons('Ceres')  # doctest: +REMOTE_DATA
-    >>> print(elem['targetname','H','G'])    # doctest: +REMOTE_DATA +NORMALIZE_WHITESPACE
+    >>> print(elem['targetname','H','G'])    # doctest: +REMOTE_DATA
     <QTable length=1>
         targetname       H       G
                         mag
