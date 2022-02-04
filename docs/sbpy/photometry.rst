@@ -94,7 +94,7 @@ model parameters:
        H    G 
       mag
       ---- ----
-      3.53 0.12
+      3.54 0.12
 
 Note that model set is not supported.  Only one model can be initialized with
 the first set of valid parameters in the input `~sbpy.data.DataClass`.
