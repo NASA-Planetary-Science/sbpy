@@ -11,6 +11,7 @@ created on June 04, 2017
 import os
 from warnings import warn
 
+import numpy as np
 from numpy import ndarray, hstack, iterable
 from astropy.time import Time
 from astropy.table import vstack, Column, QTable
@@ -127,6 +128,7 @@ class Ephem(DataClass):
         # modify epoch input to make it work with astroquery.jplhorizons
         # maybe this stuff should really go into that module....
         _epochs = None  # avoid modifying epochs in-place
+        _sorted = False
         if epochs is None:
             _epochs = [Time.now().utc.jd]
         elif isinstance(epochs, Time):
@@ -134,7 +136,18 @@ class Ephem(DataClass):
                 warn(('converting {} epochs to utc for use in '
                       'astroquery.jplhorizons').format(epochs.scale),
                      TimeScaleWarning)
-            _epochs = epochs.utc.jd
+            _epochs = epochs.utc.jd  # might this lose some precision?
+
+            # 2022 Feb 04: JPL Horizons API v1.1 will return sorted dates, but
+            # we want to preserve the user's requested order.  Sort them, send
+            # that to Horizons, then unsort the result.  See sbpy GitHub issue
+            # #317.
+            if epochs.size > 1:
+                _sort = np.argsort(_epochs)
+                _unsort = np.argsort(_sort)
+                _epochs = _epochs[_sort]
+                _sorted = True
+
         elif isinstance(epochs, dict):
             _epochs = epochs.copy()
             if 'start' in _epochs and 'stop' in _epochs and 'number' in epochs:
@@ -179,6 +192,10 @@ class Ephem(DataClass):
                     ('Error raised by astroquery.jplhorizons: {:s}\n'
                      'The following query was attempted: {:s}').format(
                          str(e), obj.uri))
+
+            if _sorted:
+                # restore user's original order
+                eph = eph[_unsort]
 
             # workaround for current version of astroquery to make
             # column units compatible with astropy.table.QTable
