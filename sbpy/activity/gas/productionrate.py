@@ -11,6 +11,7 @@ created on June 26, 2019
 
 import tempfile
 import numpy as np
+import astropy
 import astropy.constants as con
 import astropy.units as u
 from astroquery.jplspec import JPLSpec
@@ -21,6 +22,9 @@ from ...data import Phys
 __all__ = ['LTE', 'NonLTE', 'einstein_coeff',
            'intensity_conversion', 'beta_factor', 'total_number',
            'from_Haser']
+
+if astropy.__version__ < '5':
+    __doctest_skip__ = ['LTE.from_Drahus']
 
 
 def intensity_conversion(mol_data):
@@ -489,7 +493,8 @@ class LTE():
         if not isinstance(mol_data, Phys):
             raise ValueError('mol_data must be a `sbpy.data.phys` instance.')
 
-        register('Spectroscopy', {'Total Number (eq. 10)': '2004come.book..391B'})
+        register('Spectroscopy', {
+                 'Total Number (eq. 10)': '2004come.book..391B'})
 
         cdensity = (8*np.pi*con.k_B*mol_data['t_freq'][0]**2 /
                     (con.h*con.c**3 * mol_data['eincoeff'][0])).decompose()
@@ -590,7 +595,7 @@ class LTE():
         ...                     ephemobj, vgas, aper, b=b) # doctest: +REMOTE_DATA
 
         >>> q  # doctest: +REMOTE_DATA +FLOAT_CMP
-        <Quantity 1.09899965e+25 1 / s>
+        <MaskedQuantity 1.09899965e+25 1 / s>
 
 
         References
@@ -847,11 +852,13 @@ class NonLTE():
 
         fluxes = np.array(fluxes)
 
-        index_flux = (np.abs(fluxes-integrated_flux.to(u.K * u.km / u.s).value)).argmin()
+        index_flux = (
+            np.abs(fluxes-integrated_flux.to(u.K * u.km / u.s).value)).argmin()
 
         # corresponding column density in 1/cm^2
         column_density = column_density[index_flux]
-        print('Closest Integrated Flux:{}'.format(fluxes[index_flux] * u.K * u.km / u.s))
+        print('Closest Integrated Flux:{}'.format(
+            fluxes[index_flux] * u.K * u.km / u.s))
         print('Given Integrated Flux: {}'.format(integrated_flux))
 
         return column_density
