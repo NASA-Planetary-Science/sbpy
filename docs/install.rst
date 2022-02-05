@@ -5,28 +5,34 @@ Installation
 Requirements
 ^^^^^^^^^^^^
 
-`sbpy` has the following requirements that will be automatically taken
-care of with installation using pip:
+`sbpy` has the following requirements that will be automatically taken care of
+with installation using pip:
 
 * Python 3.6 or later
 * `numpy <https://numpy.org/>`__ 1.16.0 or later
 * pytest 3.1 or later
 * `astropy <https://www.astropy.org/>`__
-* `astroquery <https://astroquery.readthedocs.io/en/latest/>`__ 0.4.1.dev5892 or later: For retrieval of online data, e.g., ephemerides and orbits.
-* `scipy <https://www.scipy.org/>`__: For numerical integrations in `sbpy.activity.gas` and `sbpy.photometry`, among others.
-* `synphot <https://github.com/spacetelescope/synphot_refactor>`__ 0.1.3 or later: For calibration with respect to the Sun and Vega, filtering spectra through bandpasses.
+* `astroquery <https://astroquery.readthedocs.io/en/latest/>`__ 0.4.1.dev5892 or
+  later: For retrieval of online data, e.g., ephemerides and orbits.
+* `scipy <https://www.scipy.org/>`__: For numerical integrations in
+  `sbpy.activity.gas` and `sbpy.photometry`, among others.
+* `synphot <https://github.com/spacetelescope/synphot_refactor>`__ 0.1.3 or
+  later: For calibration with respect to the Sun and Vega, filtering spectra
+  through bandpasses.
 
-The following packages will have to be installed manually, if the user
-wants to use them:
+The following packages will have to be installed manually, if the user wants to
+use them:
 
-* `oorb <https://github.com/oorb/oorb/tree/master/python>`__: For
-  orbit transformations (`~sbpy.data.Orbit.oo_transform`) and
-  propagations (`~sbpy.data.Orbit.oo_propagate`), as well as
-  ephemerides calculations (`~sbpy.data.Ephem.from_oo`).
-* `pyradex <https://github.com/keflavich/pyradex>`__: For non-LTE
-  production rate calculation related to cometary activity
-  (`~sbpy.activity.gas.NonLTE`).
-* `ginga <https://ejeschke.github.io/ginga/>`__ and `photutils <https://photutils.readthedocs.io/en/stable/>`__: To interactively enhance images of comets with the `~sbpy.imageanalysis.CometaryEnhancement` Ginga plugin.
+* `oorb <https://github.com/oorb/oorb/tree/master/python>`__: For orbit
+  transformations (`~sbpy.data.Orbit.oo_transform`) and propagations
+  (`~sbpy.data.Orbit.oo_propagate`), as well as ephemerides calculations
+  (`~sbpy.data.Ephem.from_oo`).
+* `pyradex <https://github.com/keflavich/pyradex>`__: For non-LTE production
+  rate calculation related to cometary activity (`~sbpy.activity.gas.NonLTE`).
+* `ginga <https://ejeschke.github.io/ginga/>`__ and `photutils
+  <https://photutils.readthedocs.io/en/stable/>`__: To interactively enhance
+  images of comets with the `~sbpy.imageanalysis.CometaryEnhancement` Ginga
+  plugin.
   
 
 Using pip
@@ -49,9 +55,9 @@ The latest development version of `sbpy` can be easily installed using
 Using GitHub
 ^^^^^^^^^^^^
 
-This way of installing `sbpy` is recommended if you plan to contribute
-to the module. The current development version of `sbpy` can be
-obtained from `GitHub <https://github.com/NASA-Planetary-Science/sbpy>`__ using
+This way of installing `sbpy` is recommended if you plan to contribute to the
+module. The current development version of `sbpy` can be obtained from `GitHub
+<https://github.com/NASA-Planetary-Science/sbpy>`__ using
 
 .. code-block:: bash
 
@@ -63,7 +69,9 @@ This will create a new directory (``sbpy/``). In this directory, run
 
     $ python setup.py install --user
 
-in order to use `sbpy` in your default Python environment. If you plan to work on the code and always want to use the latest version of your code, you can install it with
+in order to use `sbpy` in your default Python environment. If you plan to work
+on the code and always want to use the latest version of your code, you can
+install it with
 
 
 .. code-block:: bash
@@ -74,10 +82,28 @@ in order to use `sbpy` in your default Python environment. If you plan to work o
 Running tests
 ^^^^^^^^^^^^^
 
-To verify your installation is properly working, run `sbpy`'s testing suite:
+To verify your installation is properly working, run `sbpy`'s testing suite.
+
+First, install the required testing packages by using the "test" option, e.g.,
+`sbpy[test]`:
 
 .. code-block:: bash
 
-    $ python3 setpy.py test
+    # for testing a stable package
+    $ pip install sbpy[test]
 
-Add the `--remote-data` option to include tests that require a network connection, and `-args="--run-slow"` to include any slow tests.
+    # for testing a development packge from a GitHub
+    $ pip install sbpy[test]@git+https://github.com/NASA-Planetary-Science/sbpy.git
+
+Next, test with pytest:
+
+.. code-block:: bash
+
+    $ pytest --pyargs sbpy
+
+Add the `--remote-data` option to aslo run tests that require a network
+connection, and `-m "not slow"` to skip any tests marked as slow.
+
+It is recommended that developers use `tox` for testing in order to use
+controlled environments.  See the ``astropy` testing guidelines
+<https://docs.astropy.org/en/latest/development/testguide.html>`__ for more.
