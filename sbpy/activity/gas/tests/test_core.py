@@ -127,9 +127,11 @@ class TestHaser:
         eph = dict(delta=1 * u.au)
         parent = 1e4 * u.km
         N_avg = 2 * Haser(Q, v, parent).column_density(rho, eph)
-        rho_km = (rho * eph['delta'] * 725.24 * u.km / u.arcsec / u.au).to('km')
+        rho_km = (rho * eph['delta'] * 725.24 *
+                  u.km / u.arcsec / u.au).to('km')
         ideal = Q / v / 2 / rho_km
-        assert np.isclose(N_avg.to_value('1/m2'), ideal.to_value('1/m2'), rtol=0.001)
+        assert np.isclose(N_avg.to_value('1/m2'),
+                          ideal.to_value('1/m2'), rtol=0.001)
 
     def test_column_density(self):
         """
@@ -412,12 +414,12 @@ class TestVectorialModel:
             'tau_d': 101730 * u.s,
             'v_outflow': 1 * u.km/u.s,
             'sigma': 3e-16 * u.cm**2
-            })
+        })
         # Fragment molecule is OH
         fragment = Phys.from_dict({
             'tau_T': photo_timescale('OH') * 0.93,
             'v_photo': 1.05 * u.km/u.s
-            })
+        })
 
         coma = VectorialModel(base_q=base_q,
                               parent=parent,
@@ -441,21 +443,23 @@ class TestVectorialModel:
             'tau_d': 101730 * u.s,
             'v_outflow': 1 * u.km/u.s,
             'sigma': 3e-16 * u.cm**2
-            })
+        })
         # Fragment molecule is OH
         fragment = Phys.from_dict({
             'tau_T': photo_timescale('OH') * 0.93,
             'v_photo': 1.05 * u.km/u.s
-            })
+        })
 
         coma = VectorialModel(base_q=base_q,
                               parent=parent,
                               fragment=fragment)
 
         fragment_theory = coma.vmodel['num_fragments_theory']
-        ap = core.CircularAperture((coma.vmodel['max_grid_radius'].value) * u.m)
+        ap = core.CircularAperture(
+            (coma.vmodel['max_grid_radius'].value) * u.m)
         assert np.isclose(fragment_theory, coma.total_number(ap), rtol=0.02)
 
+    @pytest.mark.slow
     def test_model_symmetry(self):
         """
             The symmetry of the model allows the parent production to be
@@ -486,12 +490,12 @@ class TestVectorialModel:
             'tau_d': 101730 * u.s,
             'v_outflow': 1 * u.km/u.s,
             'sigma': 3e-16 * u.cm**2
-            })
+        })
         # Fragment molecule is OH
         fragment = Phys.from_dict({
             'tau_T': photo_timescale('OH') * 0.93,
             'v_photo': 1.05 * u.km/u.s
-            })
+        })
 
         coma = VectorialModel(base_q=base_production*(1/u.s),
                               parent=parent,
@@ -508,12 +512,12 @@ class TestVectorialModel:
             'tau_d': 101730 * u.s,
             'v_outflow': 1 * u.km/u.s,
             'sigma': 3e-16 * u.cm**2
-            })
+        })
         # Fragment molecule is OH
         fragment_check = Phys.from_dict({
             'tau_T': photo_timescale('OH') * 0.93,
             'v_photo': 1.05 * u.km/u.s
-            })
+        })
         coma_check = VectorialModel(base_q=calculated_q*(1/u.s),
                                     parent=parent_check,
                                     fragment=fragment_check)

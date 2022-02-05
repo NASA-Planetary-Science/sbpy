@@ -49,6 +49,10 @@ def pytest_configure(config):
         packagename = os.path.basename(os.path.dirname(__file__))
         TESTED_VERSIONS[packagename] = __version__
 
+    config.addinivalue_line(
+        "markers", "slow: marks tests as slow (deselect with '-m \"not slow\"')"
+    )
+
 # Uncomment the last two lines in this block to treat all DeprecationWarnings
 # as exceptions. For Astropy v2.0 or later, there are 2 additional keywords,
 # as follow (although default should work for most cases).

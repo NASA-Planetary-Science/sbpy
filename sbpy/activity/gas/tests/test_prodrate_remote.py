@@ -152,9 +152,7 @@ def test_remote_prodrate_simple_ch3oh():
     assert np.all(err < 0.35)
 
 
-# Issue #296
-# MSK: disabling test as CO and HCN are no longer present in LAMDA database(?)
-@pytest.mark.skip
+@pytest.mark.slow
 @remote_data
 def test_einstein():
 
@@ -185,7 +183,7 @@ def test_einstein():
 
         mol_name = mol['NAME'].data[0]
 
-        lam_search = Lamda.query(mol=mol_name.lower())
+        lam_search = Lamda().query(mol=mol_name.lower())
 
         lam_result = lam_search[1]
 

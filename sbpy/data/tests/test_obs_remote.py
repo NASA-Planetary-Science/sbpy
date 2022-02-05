@@ -14,6 +14,7 @@ from ..core import QueryError
 @pytest.mark.remote_data
 class TestObsfromMPC:
 
+    @pytest.mark.slow
     def test_simple(self):
         # asteroid
         data = Obs.from_mpc('12893')
