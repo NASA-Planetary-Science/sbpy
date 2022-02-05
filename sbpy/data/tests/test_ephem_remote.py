@@ -77,6 +77,15 @@ class TestEphemFromHorizons:
         data = Ephem.from_horizons('Ceres', epochs=epochs)
         assert len(data.table) == 2
 
+    def test_epochs_order(self):
+        """sbpy GitHub issue #317: Horizons returns sorted dates."""
+        epochs = Time(['2010-01-02', '2010-01-01'])
+        assert epochs[0] > epochs[1]
+        data = Ephem.from_horizons('Ceres', epochs=epochs)
+        # verify that from_horizons returns the dates in the order they were
+        # requested
+        assert_allclose(epochs.mjd, data['date'].mjd)
+
     def test_multiple_objects(self):
         data = Ephem.from_horizons(['Ceres', 'Pallas'])
         assert len(data.table) == 2
