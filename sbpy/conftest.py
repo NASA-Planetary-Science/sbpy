@@ -50,7 +50,8 @@ def pytest_configure(config):
         TESTED_VERSIONS[packagename] = __version__
 
     config.addinivalue_line(
-        "markers", "slow: marks tests as slow (deselect with '-m \"not slow\"')"
+        "markers",
+        "slow: marks tests as slow (deselect with '-m \"not slow\"')"
     )
 
 # Uncomment the last two lines in this block to treat all DeprecationWarnings
