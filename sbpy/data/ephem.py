@@ -136,7 +136,7 @@ class Ephem(DataClass):
                 warn(('converting {} epochs to utc for use in '
                       'astroquery.jplhorizons').format(epochs.scale),
                      TimeScaleWarning)
-            _epochs = epochs.utc.jd
+            _epochs = epochs.utc.jd  # ~1 ms precision for modern dates
 
             # 2022 Feb 04: JPL Horizons API v1.1 will return sorted dates, but
             # we want to preserve the user's requested order.  Sort them, send
