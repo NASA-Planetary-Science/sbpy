@@ -2,7 +2,6 @@
 
 import pytest
 
-from numpy.testing import assert_allclose
 from astropy.time import Time
 import astropy.units as u
 
