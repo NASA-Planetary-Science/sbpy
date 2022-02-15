@@ -183,8 +183,7 @@ class Phys(DataClass):
     @classmethod
     @cite({'software: astroquery': '2019AJ....157...98G'})
     def from_jplspec(cls, temp_estimate, transition_freq, mol_tag):
-        """Returns relevant constants from JPLSpec catalog and energy
-        calculations
+        """Constants from JPLSpec catalog and energy calculations
 
         Parameters
         ----------
@@ -200,7 +199,7 @@ class Phys(DataClass):
             it will return an error if there is ambiguity on what the
             molecule of interest is. The function
             `~astroquery.jplspec.JPLSpec.query_lines_async`
-            with the option `parse_name_locally=True` can be used to parse
+            with the option ``parse_name_locally=True`` can be used to parse
             for the exclusive identifier of a molecule you might be
             interested in. For more information, visit
             `astroquery.jplspec` documentation.
