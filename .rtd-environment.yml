@@ -4,16 +4,17 @@ channels:
     - astropy
 
 dependencies:
-    - python>=3.6
-    - numpy>=1.4.0
-    - astropy>=3.0,<4.0
+    - python>=3.7
+    - numpy>=1.17.0
+    - astropy>=5.0
     - Cython
-    - matplotlib
+    - matplotlib>=3.0
     - scipy
     - pip
+    - pytest
     - pip:
-      - "git+https://github.com/astropy/astroquery.git"
+      - astroquery>=0.4.5
       - ads
-      - synphot>=0.1.2<0.2
+      - synphot>=1.0.0
       - Sphinx==2.2.1
-      - sphinx-astropy
+      - sphinx-astropy>=1.3
