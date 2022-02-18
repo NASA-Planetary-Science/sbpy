@@ -13,9 +13,10 @@ astronomy. It is meant to supplement functionality provided by
 context of planetary astronomy with a clear focus on asteroids and
 comets.
 
-As such, `sbpy` is open source and freely available to everyone. The
-development of `sbpy` is funded through NASA PDART Grant
-No. 80NSSC18K0987, but contributions are welcome by everyone!
+As such, `sbpy` is open source and freely available to everyone. The development
+of `sbpy` is funded through NASA Planetary Data Archiving, Restoration, and
+Tools (PDART) Grant Numbers 80NSSC18K0987 and 80NSSC22K0143, but contributions
+are welcome from everyone!
 
 
 Why sbpy?
@@ -51,7 +52,7 @@ has been completed:
 * access tools for various databases for orbital and physical data, as
   well as ephemerides services
 
-The development is expected to be completed in 2021. For an overview
+The development is expected to be completed in 2024. For an overview
 of the progress of development, please have a look at the :ref:`status
 page`.
   
@@ -77,7 +78,7 @@ sketch.
    functionality. Colored symbols match the colors and symbols of
    classes and modules they are using.
 
-The functionality of version 1.0, which will be finalized in 2021, is
+The functionality of version 1.0, which will be finalized in 2024, is
 detailed below. Please refer to the :ref:`status page` to inquire the
 current status of each module.
 
