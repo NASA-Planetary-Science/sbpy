@@ -10,7 +10,6 @@ care of with installation using pip:
 
 * Python 3.7 or later
 * `numpy <https://numpy.org/>`__ 1.17.0 or later
-* pytest 4.6 or later
 * `astropy <https://www.astropy.org/>`__ 4.0 or later
 * `astroquery <https://astroquery.readthedocs.io/en/latest/>`__ 0.4.5 or later: For retrieval of online data, e.g., ephemerides and orbits.
 * `scipy <https://www.scipy.org/>`__: For numerical integrations in `sbpy.activity.gas` and `sbpy.photometry`, among others.
