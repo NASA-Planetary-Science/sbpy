@@ -68,7 +68,15 @@ rst_epilog += """
 """
 
 extensions += ['sphinx.ext.intersphinx',
-               'sphinx_automodapi.smart_resolver']
+               'sphinx_automodapi.smart_resolver',
+               'sphinx.ext.autosectionlabel']
+
+# For example, index:Introduction for a section called Introduction that appears
+# in document index.rst.
+autosectionlabel_prefix_document = True
+
+# Chooses the sections for labeling by its depth
+autosectionlabel_maxdepth = 2
 
 # -- Project information ------------------------------------------------------
 
