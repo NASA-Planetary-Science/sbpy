@@ -109,8 +109,9 @@ class TestLinear():
         pha_test = np.linspace(0, 180, 10) * u.deg
         eph = linphase.to_ref(pha_test, append_results=True)
         ref_test = [1.55045242e-02, 7.42093183e-03, 3.55188129e-03,
-                    1.70003727e-03, 8.13688994e-04, 3.89456039e-04, 1.86405380e-04,
-                    8.92192241e-05, 4.27030055e-05, 2.04389434e-05] / u.sr
+                    1.70003727e-03, 8.13688994e-04, 3.89456039e-04,
+                    1.86405380e-04, 8.92192241e-05, 4.27030055e-05,
+                    2.04389434e-05] / u.sr
         ref_norm_test = np.array(
             [1., 0.47863009, 0.22908677, 0.10964782, 0.05248075,
              0.02511886, 0.01202264, 0.0057544, 0.00275423,
@@ -321,8 +322,9 @@ class TestHG:
                     'delta': np.repeat(1.8*u.au, 10)}
         eph_test = Ephem.from_dict(eph_dict)
         ref1_test = [2.79394901e-02, 1.14014480e-02, 6.86111195e-03,
-                     4.26478439e-03, 2.56294353e-03, 1.39916471e-03, 6.32141181e-04,
-                     1.98694761e-04, 3.03518927e-05, 5.78010611e-07] / u.sr
+                     4.26478439e-03, 2.56294353e-03, 1.39916471e-03,
+                     6.32141181e-04, 1.98694761e-04, 3.03518927e-05,
+                     5.78010611e-07] / u.sr
         eph1 = ceres.to_ref(eph_test, append_results=True)
         assert set(eph1.field_names) == {'alpha', 'delta', 'ref', 'r'}
         assert u.allclose(eph1['ref'], ref1_test)
@@ -446,8 +448,9 @@ class TestHG1G2:
         themis = HG1G2(7.063 * u.mag, 0.62, 0.14, radius=100 * u.km, wfb='V')
         pha_test = np.linspace(0, np.pi, 10)*u.rad
         ref_test = [2.08689669e-02, 8.22159390e-03, 4.70442623e-03,
-                    2.66294623e-03, 1.44013284e-03, 7.18419542e-04, 3.43108196e-04,
-                    1.92452033e-04, 4.82195204e-07, 4.82106912e-07] / u.sr
+                    2.66294623e-03, 1.44013284e-03, 7.18419542e-04,
+                    3.43108196e-04, 1.92452033e-04, 4.82195204e-07,
+                    4.82106912e-07] / u.sr
         assert u.allclose(themis.to_ref(pha_test), ref_test)
 
     def test_g1g2_validator(self):
@@ -542,8 +545,9 @@ class TestHG12:
     def test_to_ref(self):
         pha_test = np.linspace(0, np.pi, 10) * u.rad
         ref_test = [1.97834009e-02, 8.23548424e-03, 4.71126618e-03,
-                    2.66039298e-03, 1.43691333e-03, 7.18378086e-04, 3.46630119e-04,
-                    1.96703860e-04, 4.59397839e-07, 4.59313722e-07] / u.sr
+                    2.66039298e-03, 1.43691333e-03, 7.18378086e-04,
+                    3.46630119e-04, 1.96703860e-04, 4.59397839e-07,
+                    4.59313722e-07] / u.sr
         themis = HG12(7.121 * u.mag, 0.68, radius=100 * u.km, wfb='V')
         assert u.allclose(themis.to_ref(pha_test), ref_test)
 
@@ -635,8 +639,9 @@ class TestHG12_Pen16:
     def test_to_ref(self):
         pha_test = np.linspace(0, np.pi, 10) * u.rad
         ref_test = [1.97834009e-02, 7.85236516e-03, 4.54188647e-03,
-                    2.59652934e-03, 1.41153731e-03, 6.97923066e-04, 3.19213708e-04,
-                    1.69983395e-04, 5.59122499e-07, 5.59020121e-07] / u.sr
+                    2.59652934e-03, 1.41153731e-03, 6.97923066e-04,
+                    3.19213708e-04, 1.69983395e-04, 5.59122499e-07,
+                    5.59020121e-07] / u.sr
         themis = HG12_Pen16(7.121 * u.mag, 0.68, radius=100 * u.km, wfb='V')
         assert u.allclose(themis.to_ref(pha_test), ref_test)
 
