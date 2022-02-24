@@ -82,8 +82,8 @@ class Obs(Ephem):
                 id_type += ' designation'
 
         try:
-            results = MPC().get_observations(targetid, id_type=id_type,
-                                             **kwargs)
+            results = MPC.get_observations(targetid, id_type=id_type,
+                                           **kwargs)
         except (RuntimeError, ValueError) as e:
             raise QueryError(
                 ('Error raised by '

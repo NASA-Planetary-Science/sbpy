@@ -423,18 +423,18 @@ class Ephem(DataClass):
                 if start is None:
                     eph = []
                     for i in range(len(_epochs)):
-                        e = MPC().get_ephemeris(targetid, location=location,
-                                                start=Time(_epochs[i],
-                                                           scale='utc'),
-                                                number=1, **kwargs)
+                        e = MPC.get_ephemeris(targetid, location=location,
+                                              start=Time(_epochs[i],
+                                                         scale='utc'),
+                                              number=1, **kwargs)
                         e['Date'] = e['Date'].iso  # for vstack to work
                         eph.append(e)
                     eph = QTable(vstack(eph))
                     eph['Date'] = Time(eph['Date'], scale='utc')
                 else:
-                    eph = MPC().get_ephemeris(targetid, location=location,
-                                              start=start, step=step,
-                                              number=number, **kwargs)
+                    eph = MPC.get_ephemeris(targetid, location=location,
+                                            start=start, step=step,
+                                            number=number, **kwargs)
             except InvalidQueryError as e:
                 raise QueryError(
                     'Error raised by astroquery.mpc: {:s}'.format(str(e)))
