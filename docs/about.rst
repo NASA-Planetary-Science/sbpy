@@ -1,5 +1,3 @@
-.. doctest-skip-all
-
 About sbpy
 ==========
 
@@ -7,9 +5,9 @@ What is sbpy?
 -------------
 
 
-`sbpy` is an `Astropy`_ affiliated package for small-body planetary
+`sbpy` is an `~astropy` affiliated package for small-body planetary
 astronomy. It is meant to supplement functionality provided by
-`Astropy`_ with functions and methods that are frequently used in the
+`~astropy` with functions and methods that are frequently used in the
 context of planetary astronomy with a clear focus on asteroids and
 comets.
 
@@ -31,7 +29,7 @@ well-documented methods to planetary astronomers in order to boost
 productivity and reproducibility. Python has been chosen as the
 language of choice as it is highly popular especially among
 early-career researchers and it enables the integration of `sbpy` into
-the `Astropy`_ ecosystem.
+the `~astropy` ecosystem.
 
 
 What is implemented in sbpy?
@@ -300,16 +298,16 @@ define a `~sbpy.data.Phys` object with a diameter for asteroid Ceres:
     >>> from sbpy.data import Phys
     >>> ceres = Phys.from_dict({'targetname': 'Ceres',
     ...                         'diameter': 945})
+    Traceback (most recent call last):
+      ...
+    sbpy.data.core.FieldError: Field diameter is not an instance of <class 'astropy.units.quantity.Quantity'>
 
-Of course, everybody knows that Ceres' diameter is 945 km. But this is
-not clear from this definition:
-
-    >>> ceres['diameter']
-    945
-
-Any functionality in `sbpy` thus has to presume that diameters are
-always given in km. This makes sense for large objects - but what
-about meter-sized objects like Near-Earth asteroids?
+`Phys.from_dict` raised an exception (`FieldError`) on 'diameter' because was
+not an `astropy.units.Quantity` object, i.e., it did not have units of length.
+Of course, we know that Ceres' diameter is 945 km, but it was not clear from our
+definition.  Any functionality in `sbpy` would have to presume that diameters
+are always given in km. This makes sense for large objects - but what about
+meter-sized objects like near-Earth asteroids?
 
 Following the
 `Zen of Python <https://www.python.org/dev/peps/pep-0020/>`_ (explicit
@@ -322,19 +320,17 @@ defined:
     >>> ceres
     <QTable length=1>
     targetname diameter
-		          km   
+                  km   
        str5    float64 
     ---------- --------
-	 Ceres      945.0
+         Ceres    945.0
 
-This way, units and dimensions are always available where they make
-sense and we can easily convert between different units:
+This way, units and dimensions are always available where they make sense and we
+can easily convert between different units:
 
-    >>> ceres['diameter'].to('m')
+    >>> print(ceres['diameter'].to('m'))
     [945000.] m
 
-    
-	 
 Epochs must be Time objects
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -354,27 +350,27 @@ defined as `~astropy.time.Time` objects, which resolve this confusion:
     >>> obs = Obs.from_dict({'epoch': Time(['2018-01-12', '2018-01-13']),
     ...                      'mag': [12.3, 12.6]*u.mag})
     >>> obs['epoch']
-    ['2018-01-12 00:00:00.000' '2018-01-13 00:00:00.000']
+    <Time object: scale='utc' format='iso' value=['2018-01-12 00:00:00.000' '2018-01-13 00:00:00.000']>
 
 `~astropy.time.Time` objects can be readily converted into other formats:
 
     >>> obs['epoch'].jd
-    [2458130.5 2458131.5]
+    array([2458130.5, 2458131.5])
     >>> obs['epoch'].mjd
-    [58130. 58131.]
+    array([58130., 58131.])
     >>> obs['epoch'].decimalyear
-    [2018.03013699 2018.03287671]
+    array([2018.03013699, 2018.03287671])
     >>> obs['epoch'].iso
-    ['2018-01-12 00:00:00.000' '2018-01-13 00:00:00.000']
+    array(['2018-01-12 00:00:00.000', '2018-01-13 00:00:00.000'], dtype='<U23')
 
-... as well as other time scales:
+as well as other time scales:
 
     >>> obs['epoch'].utc.iso
-    ['2018-01-12 00:00:00.000' '2018-01-13 00:00:00.000']
+    array(['2018-01-12 00:00:00.000', '2018-01-13 00:00:00.000'], dtype='<U23')
     >>> obs['epoch'].tdb.iso
-    ['2018-01-12 00:01:09.184' '2018-01-13 00:01:09.184']
+    array(['2018-01-12 00:01:09.184', '2018-01-13 00:01:09.184'], dtype='<U23')
     >>> obs['epoch'].tai.iso
-    ['2018-01-12 00:00:37.000' '2018-01-13 00:00:37.000']
+    array(['2018-01-12 00:00:37.000', '2018-01-13 00:00:37.000'], dtype='<U23')
 
 See :ref:`epochs` and `~astropy.time.Time` for additional information.
     
