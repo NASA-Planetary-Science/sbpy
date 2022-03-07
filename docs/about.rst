@@ -141,7 +141,8 @@ reflectance (I/F) models of particulate surfaces, and phase functions
 of dust grains in cometary comae. The disk-integrated phase function
 models of asteroids include the IAU adopted (H, G1 , G2) system
 (Muinonen et al. 2010), the simplified (H, G12) system (Muinonen et
-al. 2010), as well as the classic IAU (H, G) system. The
+al. 2010) and the revised (H, G12) system (Penttila et al. 2016), as
+well as the classic IAU (H, G) system. The
 disk-resolved bidirectional reflectance model includes a number of
 models that have been widely used in the small bodies community, such
 as the Lommel-Seeliger model, Lambert model, Lunar-Lambert model,
@@ -302,7 +303,7 @@ define a `~sbpy.data.Phys` object with a diameter for asteroid Ceres:
       ...
     sbpy.data.core.FieldError: Field diameter is not an instance of <class 'astropy.units.quantity.Quantity'>
 
-`Phys.from_dict` raised an exception (`FieldError`) on 'diameter' because was
+`Phys.from_dict` raised an exception (`FieldError`) on 'diameter' because it was
 not an `astropy.units.Quantity` object, i.e., it did not have units of length.
 Of course, we know that Ceres' diameter is 945 km, but it was not clear from our
 definition.  Any functionality in `sbpy` would have to presume that diameters
