@@ -758,3 +758,36 @@ class Orbit(DataClass):
             t = t[0]
         return t
 
+    @cite({'method': '1993Icar..106..603J '})
+    def d_criterion(self, obj):
+        """Evaluate orbit similarity d-criterion
+
+        Parameters
+        ----------
+        obj : `~Orbit` object
+            Object(s) against which to calculate d-criterion
+
+        Returns
+        -------
+        float or numpy.ndarray
+
+        Examples
+        --------
+        >>> from sbpy.data import Orbit
+        >>> comets = Orbit.from_horizons(['90001184', 'P/2016 BA14']) # doctest: +REMOTE_DATA
+        >>> D = comets[0].d_criterion(comets[1]) # doctest: +REMOTE_DATA
+        """
+
+        sin_i2 = np.sin((obj['i'] - self['i']) / 2)**2 \
+                + np.sin(self['i']) * np.sin(obj['i']) \
+                    * np.sin((obj['Omega'] - self['Omega']) / 2)**2
+        cos_i = np.sqrt(1 - sin_i2)
+        pi_ba = obj['w'] - self['w'] + 2 * np.arcsin(
+                    (np.cos(self['i'] + obj['i']) / 2) \
+                        * np.sin((obj['Omega'] - self['Omega']) / 2) / cos_i)
+        d2 = (self['e'] - obj['e'])**2 + (self['q'].value - obj['q'].value)**2 \
+                + 4 * sin_i2 + ((self['e'] + obj['e']) * np.sin(pi_ba / 2))**2
+        d2 = u.Quantity(d2)
+        if len(d2) == 1:
+            d2 = d2[0]
+        return np.sqrt(d2)
