@@ -724,3 +724,37 @@ class Orbit(DataClass):
         orbits.table.remove_column('epoch_scale'),
 
         return orbits
+
+    @cite({'method': '1997Icar..127...13L'})
+    def tisserand(self, planet):
+        """Tisserand parameter with respect to a planet
+
+        Parameters
+        ----------
+        planet : `~Orbit` object
+            Planet(s) against which the Tisserand parameter is calculated.
+            If `self` and/or `planet` contains more than one object, then
+            numpy broadcasting rules apply.
+
+        Returns
+        -------
+        float or numpy.ndarray
+            The Tisserand parameter(s)
+
+        Examples
+        --------
+        >>> from sbpy.data import Orbit
+        >>> comets = Orbit.from_horizons(['90001184', 'P/2016 BA14']) # doctest: +REMOTE_DATA
+        >>> Jupiter = Orbit.from_horizons(599, id_type='majorbody') # doctest: +REMOTE_DATA
+        >>> T_J = comets.tisserand(Jupiter) # doctest: +REMOTE_DATA
+        """
+        a_p = planet['a']
+        t = a_p / self['a'] + \
+                2 * np.cos(self['i']) * \
+                np.sqrt((1 - self['e']**2) * self['a'] / a_p)
+
+        t = np.asarray(t)
+        if len(t) == 1:
+            t = t[0]
+        return t
+
