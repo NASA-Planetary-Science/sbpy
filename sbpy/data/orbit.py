@@ -748,12 +748,12 @@ class Orbit(DataClass):
         >>> Jupiter = Orbit.from_horizons(599, id_type='majorbody') # doctest: +REMOTE_DATA
         >>> T_J = comets.tisserand(Jupiter) # doctest: +REMOTE_DATA
         """
+
         a_p = planet['a']
         t = a_p / self['a'] + \
                 2 * np.cos(self['i']) * \
                 np.sqrt((1 - self['e']**2) * self['a'] / a_p)
-
-        t = np.asarray(t)
+        t = u.Quantity(t, '')
         if len(t) == 1:
             t = t[0]
         return t
