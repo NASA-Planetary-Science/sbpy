@@ -200,15 +200,15 @@ COMETS = {
     'w': u.Quantity([343.32963355, 351.92333244], 'deg'),
     'n': u.Quantity([0.18503493, 0.18727854], 'deg / d'),
     'M': u.Quantity([53.61784042, 58.76185268], 'deg'),
-    'nu': u.Quantity([133.73260496, 136.4433599 ], 'deg'),
+    'nu': u.Quantity([133.73260496, 136.4433599], 'deg'),
     'a': u.Quantity([3.05000283, 3.02559439], 'au'),
     'Q': u.Quantity([5.09903563, 5.03773413], 'au'),
-    'P': u.Quantity([1945.5786428 , 1922.27043206],'d'),
+    'P': u.Quantity([1945.5786428, 1922.27043206], 'd'),
     'M2': u.Quantity([np.nan, 23.1], 'mag'),
     'k2': [np.nan, 5.0],
     'phasecoeff': u.Quantity([np.nan, 0.03], 'mag / deg'),
     'epoch': Time([2459696.55177132, 2459696.55177132], scale='tdb',
-                    format='jd'),
+                  format='jd'),
     'Tp': Time([2459406.78031243, 2459382.78462704], scale='tdb', format='jd'),
     'orbtype': ['KEP', 'KEP']
  }
@@ -242,16 +242,16 @@ class TestOrbitTisserandDCriterion:
         assert u.isclose(halley.tisserand(jupiter), u.Quantity(-0.61659744))
         comets = Orbit.from_dict(COMETS)
         assert u.allclose(comets.tisserand(jupiter),
-                u.Quantity([2.82130706, 2.79709686]))
+                          u.Quantity([2.82130706, 2.79709686]))
 
     def testDCriterion(self):
         """ test d_criterion method"""
 
         comets = Orbit.from_dict(COMETS)
         assert u.isclose(comets[0].d_criterion(comets[1]),
-                    u.Quantity(0.15598291))
+                         u.Quantity(0.15598291))
         assert u.allclose(comets[0].d_criterion(comets),
-                    u.Quantity([0., 0.15598291]))
+                          u.Quantity([0., 0.15598291]))
         halley = Orbit.from_dict(HALLEY)
         assert u.allclose(halley.d_criterion(comets),
-                    u.Quantity([2.24077662, 2.50705989]))
+                          u.Quantity([2.24077662, 2.50705989]))

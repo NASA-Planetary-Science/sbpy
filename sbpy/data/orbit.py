@@ -750,9 +750,8 @@ class Orbit(DataClass):
         """
 
         a_p = planet['a']
-        t = a_p / self['a'] + \
-                2 * np.cos(self['i']) * \
-                np.sqrt((1 - self['e']**2) * self['a'] / a_p)
+        t = a_p / self['a'] + 2 * np.cos(self['i']) * \
+            np.sqrt((1 - self['e']**2) * self['a'] / a_p)
         t = u.Quantity(t, '')
         if len(t) == 1:
             t = t[0]
@@ -779,17 +778,17 @@ class Orbit(DataClass):
         """
 
         sin_i2 = np.sin((obj['i'] - self['i']) / 2)**2 \
-                + np.sin(self['i']) * np.sin(obj['i']) \
-                    * np.sin((obj['Omega'] - self['Omega']) / 2)**2
+            + np.sin(self['i']) * np.sin(obj['i']) \
+            * np.sin((obj['Omega'] - self['Omega']) / 2)**2
         cos_i = np.sqrt(1 - sin_i2)
         delta_Omega = obj['Omega'] - self['Omega']
         sign = (abs(delta_Omega) <= u.Quantity(180, 'deg')).astype(int) * 2 - 1
         pi_ba = obj['w'] - self['w'] + 2 * sign * np.arcsin(
-                            np.cos((self['i'] + obj['i']) / 2) \
-                            * np.sin(delta_Omega / 2) \
-                            / cos_i)
-        d2 = (self['e'] - obj['e'])**2 + (self['q'].value - obj['q'].value)**2 \
-                + 4 * sin_i2 + ((self['e'] + obj['e']) * np.sin(pi_ba / 2))**2
+            np.cos((self['i'] + obj['i']) / 2) * np.sin(delta_Omega / 2) \
+            / cos_i)
+        d2 = (self['e'] - obj['e'])**2 \
+            + (self['q'].value - obj['q'].value)**2 + 4 * sin_i2 \
+            + ((self['e'] + obj['e']) * np.sin(pi_ba / 2))**2
         d2 = u.Quantity(d2)
         if len(d2) == 1:
             d2 = d2[0]
