@@ -782,9 +782,12 @@ class Orbit(DataClass):
                 + np.sin(self['i']) * np.sin(obj['i']) \
                     * np.sin((obj['Omega'] - self['Omega']) / 2)**2
         cos_i = np.sqrt(1 - sin_i2)
-        pi_ba = obj['w'] - self['w'] + 2 * np.arcsin(
-                    (np.cos(self['i'] + obj['i']) / 2) \
-                        * np.sin((obj['Omega'] - self['Omega']) / 2) / cos_i)
+        delta_Omega = obj['Omega'] - self['Omega']
+        sign = (abs(delta_Omega) <= u.Quantity(180, 'deg')).astype(int) * 2 - 1
+        pi_ba = obj['w'] - self['w'] + 2 * sign * np.arcsin(
+                            np.cos((self['i'] + obj['i']) / 2) \
+                            * np.sin(delta_Omega / 2) \
+                            / cos_i)
         d2 = (self['e'] - obj['e'])**2 + (self['q'].value - obj['q'].value)**2 \
                 + 4 * sin_i2 + ((self['e'] + obj['e']) * np.sin(pi_ba / 2))**2
         d2 = u.Quantity(d2)
