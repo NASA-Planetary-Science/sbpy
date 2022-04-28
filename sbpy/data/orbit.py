@@ -273,7 +273,7 @@ class Orbit(DataClass):
 
             # get elements
             kwargs[id_type] = targetid
-            e = MPC().query_object(target_type, **kwargs)
+            e = MPC.query_object(target_type, **kwargs)
 
             # parse results from MPC.query_object
             results = {}

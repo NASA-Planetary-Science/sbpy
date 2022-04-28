@@ -264,7 +264,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
             `astropy.modeling.Model.__init__()`
 
         Returns
-        ------
+        -------
         Object of `DiskIntegratedPhaseFunc` subclass
             The phase function model object
 

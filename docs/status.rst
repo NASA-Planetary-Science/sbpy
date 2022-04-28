@@ -133,10 +133,10 @@ classes.
                 <span class="stable"></span>
             </td>
             <td align='center'>
-                MM
+                MM / MdVB
             </td>
              <td>
-                waiting for Lowell ASTORB functionality for alternative name queries 
+                Lowell ASTORB functionality TBD 
              </td>
         </tr>
         <tr>
@@ -147,10 +147,10 @@ classes.
                 <span class="mature"></span>
             </td>
             <td align='center'>
-                MM
+                MM / MdVB
             </td>
             <td>
-	       fully implemented
+            NAIF SPICE input TBD
             </td>
         </tr>
         <tr>
@@ -229,7 +229,7 @@ classes.
                 MSK
             </td>
             <td>
-                Halley-Marcus phase function implemented; *Afρ* and *εfρ* classes fully implemented; Syndynes and synchrones tbd.
+                Halley-Marcus phase function implemented; *Afρ* and *εfρ* classes fully implemented; syndynes and synchrones TBD
             </td>
         </tr>
         <tr>
@@ -243,7 +243,7 @@ classes.
                 MSK / MdVB
             </td>
              <td>
-                Haser model implemented; Vectorial model TBD;
+                Haser model implemented; Vectorial model partially tested;
             </td>
         </tr>
         <tr>
@@ -254,51 +254,13 @@ classes.
                 <span class="planned"></span>
             </td>
             <td align='center'>
-                MSK
+                JYL
             </td>
              <td>
-                tbd.
+                TBD
             </td>
         </tr>
     </table>
-
-
-`sbpy.calib`
---------------
-
-.. raw:: html
-
-    <table border="1" class="docutils stability" align='center'>
-        <tr>
-            <th class="head">
-                Sub-Packages and Classes
-            </th>
-            <th class="head">
-                &nbsp;
-            </th>
-            <th class="head">
-                Dev
-            </th>
-            <th class="head">
-                Comments
-            </th>
-        </tr>
-        <tr>
-            <td>
-                <em>sbpy.calib</em>
-            </td>
-            <td align='center'>
-                <span class="stable"></span>
-            </td>
-            <td align='center'>
-                MSK
-            </td>
-            <td>
-                Sun and Vega spectra built in; Calibration system
-                (photometric and spectroscopic) fully implemented.
-            </td>
-        </tr>
-   </table>
 
 
 `sbpy.photometry`
@@ -334,7 +296,7 @@ classes.
             <td>
                 Disk integrated phase functions implemented: HG, HG1G2, HG12,
                 HG12_Pen16, linear phasecurve; disk-resolved phase functions
-                tbd.
+                TBD.
             </td>
         </tr>
         <tr>
@@ -362,7 +324,7 @@ classes.
                 JYL
             </td>
             <td>
-                Phase function of dust grains in cometary comae TBD.
+                Phase function of dust grains in cometary comae TBD
             </td>
         </tr>
     </table>
@@ -396,10 +358,10 @@ classes.
                 <span class="planned"></span>
             </td>
             <td align='center'>
-                MM
+                MSK / MdVB
             </td>
             <td>
-                lightcurve periodicity modeling tools and wrappers (periodograms, Fourier analysis) tbd.
+                lightcurve periodicity modeling tools and wrappers (periodograms, Fourier analysis) TBD
             </td>
         </tr>
         <tr>
@@ -410,10 +372,10 @@ classes.
                 <span class="planned"></span>
             </td>
             <td align='center'>
-                MM
+                MSK / MdVB
             </td>
              <td>
-                Kaasalainen lightcurve inversion tool interface tbd.
+                Kaasalainen lightcurve inversion tool interface TBD
             </td>
         </tr>
     </table>
@@ -461,10 +423,10 @@ classes.
                 <span class="planned"></span>
             </td>
             <td align='center'>
-                MM
+                MdVB
             </td>
             <td>
-                tools for identification of asteroid reflectance spectra tbd.
+                tools for identification of asteroid reflectance spectra TBD
             </td>
         </tr>
         <tr>
@@ -475,10 +437,10 @@ classes.
                 <span class="planned"></span>
             </td>
             <td align='center'>
-                MM
+                MdVB
             </td>
              <td>
-                spectrophotometry tools tbd.
+                spectrophotometry tools TBD.
             </td>
         </tr>
         <tr>
@@ -486,13 +448,13 @@ classes.
                 <em>sbpy.spectroscopy.sources</em>
             </td>
             <td align='center'>
-                <span class="planned"></span>
+                <span class="dev"></span>
             </td>
             <td align='center'>
-                MM
+                MSK / MdVB
             </td>
             <td>
-                `synphot` integration complete, basic quantities (bandpass filtering, color index) complete.
+                `synphot` integration complete, basic quantities (bandpass filtering, color index) complete
             </td>
         </tr>
         <tr>
@@ -506,7 +468,7 @@ classes.
                 JYL
             </td>
              <td>
-                Hapke spectral mixing model, TBD.
+                Hapke spectral mixing model, TBD
             </td>
         </tr>
     </table>
@@ -539,7 +501,7 @@ classes.
                 <span class="dev"></span>
             </td>
             <td align='center'>
-                MM
+                JYL / MM
             </td>
             <td>
                 currently under development
@@ -579,7 +541,7 @@ classes.
                 MSK
             </td>
             <td>
-                comet coma image enhancement tools and image handling tbd.
+                comet coma image enhancement tools and image handling TBD
             </td>
         </tr>
         <tr>
@@ -590,10 +552,10 @@ classes.
                 <span class="planned"></span>
             </td>
             <td align='center'>
-                MM
+                MSK
             </td>
             <td>
-                 PSF subtraction techniques and wrappers tbd.
+                 PSF subtraction techniques and wrappers TBD.
             </td>
         </tr>
     </table>
@@ -627,10 +589,10 @@ classes.
                 <span class="planned"></span>
             </td>
             <td align='center'>
-                MSK/MM
+                MSK / MdVB
             </td>
             <td>
-                finder charts, general observability and peak observability, planning tools, etc. tbd.
+                finder charts, general observability and peak observability, planning tools, etc. TBD
             </td>
         </tr>
     </table>
@@ -697,13 +659,13 @@ classes.
                 <em>sbpy.calib.sun</em>
             </td>
             <td align='center'>
-                <span class="stable"></span>
+                <span class="mature"></span>
             </td>
             <td align='center'>
                 MSK
             </td>
             <td>
-                <em>sbpy.calib.sun</em> implemented and fully tested.
+                <em>sbpy.calib.sun</em> implemented and fully tested
             </td>
         </tr>
         <tr>
@@ -711,13 +673,27 @@ classes.
                 <em>sbpy.calib.vega</em>
             </td>
             <td align='center'>
-                <span class="stable"></span>
+                <span class="mature"></span>
             </td>
             <td align='center'>
                 MSK
             </td>
             <td>
-                <em>sbpy.calib.vega</em> implemented and fully tested.
+                <em>sbpy.calib.vega</em> implemented and fully tested
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <em>sbpy.calib</em>
+            </td>
+            <td align='center'>
+                <span class="mature"></span>
+            </td>
+            <td align='center'>
+                MSK
+            </td>
+            <td>
+                calibration system (photometric and spectroscopic) fully implemented
             </td>
         </tr>
     </table>

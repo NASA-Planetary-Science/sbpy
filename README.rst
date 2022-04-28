@@ -56,7 +56,7 @@ The official `documentation and API reference <https://sbpy.readthedocs.io/en/la
 Status
 ------
 
-sbpy is still under development, which will be finished in 2022. For an overview on the status of individual features see the `Status Page <https://sbpy.readthedocs.io/en/latest/status.html>`_.
+sbpy is still under development, with v1.0 scheduled for delivery in 2024. For an overview on the status of individual features see the `Status Page <https://sbpy.readthedocs.io/en/latest/status.html>`_.
 
 
 Acknowledgements

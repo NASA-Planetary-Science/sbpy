@@ -1,5 +1,27 @@
-conda:
- file: .rtd-environment.yml
+# .readthedocs.yaml
+# Read the Docs configuration file
+# See https://docs.readthedocs.io/en/stable/config-file/v2.html for details
+
+version: 2
+
+build:
+  os: ubuntu-20.04
+  tools:
+    python: "3.9"
+
+sphinx:
+  builder: html
+  configuration: docs/conf.py
+  fail_on_warning: true
 
 python:
-  setup_py_install: true
+  system_packages: false
+  install:
+    - method: pip
+      path: .
+      extra_requirements:
+        - docs
+        - all
+
+# Don't build any extra formats
+formats: []

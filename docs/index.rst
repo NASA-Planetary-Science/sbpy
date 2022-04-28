@@ -4,20 +4,13 @@
 sbpy Documentation
 ##################
 
-`sbpy` is an `Astropy`_ affiliated package for small-body planetary
-astronomy.
+`sbpy` is an `Astropy`_ affiliated package for small-body planetary astronomy.
        
-For an overview on the expected structure and functionality of `sbpy`,
-please refer to the :doc:`about` page; the :doc:`status` page provides
-an overview on the implementation status of all modules and functions.
+For an overview on the expected structure and functionality of `sbpy`, please
+refer to the :doc:`about` page; the :doc:`status` page provides an overview on
+the implementation status of all modules and functions.
 
-.. Important:: `sbpy` is functional, but incomplete, and under heavy
-               development. However, starting with the current stable
-               version (v0.2), we expect most modules will have a
-               stable API.
-
-The development of `sbpy` is expected to conclude with version 1.0
-in 2021.
+The development of `sbpy` is expected to conclude with version 1.0 in 2024.
 
 	       
 **************
@@ -134,14 +127,15 @@ Developer Documentation
 Acknowledgments
 ***************
 
-`sbpy` is supported by NASA PDART Grant No. 80NSSC18K0987.
+`sbpy` is supported by NASA Planetary Data Archiving, Restoration, and Tools
+(PDART) Grant Numbers 80NSSC18K0987 and 80NSSC22K0143.
 
 If you use `sbpy` in your work, please acknowledge it by citing
 
     `Mommert, Kelley, de-Val Borro, Li et al., (2019). sbpy: A Python module for small-body planetary astronomy. Journal of Open Source Software, 4(38), 1426 <https://joss.theoj.org/papers/10.21105/joss.01426>`_
 
-and also please consider using the `~sbpy.bib` reference tracking
-system to properly acknowledge and reference the methods you used in
-the preparation of your manuscript.
+and also please consider using the :doc:`bib </sbpy/bib>` reference tracking system to
+properly acknowledge and reference the methods you used in the preparation of
+your manuscript.
 
-The `sbpy` Team is introduced `here <https://sbpy.org/team.html>`__.
+The core `sbpy` Team is introduced `here <https://sbpy.org/team.html>`__.
