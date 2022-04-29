@@ -8,6 +8,8 @@ build:
   os: ubuntu-20.04
   tools:
     python: "3.9"
+  apt_packages:
+    - graphviz
 
 sphinx:
   builder: html
@@ -15,7 +17,7 @@ sphinx:
   fail_on_warning: true
 
 python:
-  system_packages: false
+  system_packages: true
   install:
     - method: pip
       path: .
