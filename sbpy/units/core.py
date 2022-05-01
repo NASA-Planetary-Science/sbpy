@@ -22,6 +22,7 @@ __all__ = [
     'VEGAmag',
     'JM',
     'JMmag',
+    'albedo_unit',
     'reflectance',
     'projected_size',
 ]
@@ -58,6 +59,13 @@ JMmag.__doc__ = ("Johnson-Morgan magnitude system: Vega is 0.03 mag at "
 hundred_nm = u.def_unit('100 nm', represents=100 * u.nm,
                         doc=('Convenience unit for expressing spectral '
                              'gradients.'))
+
+# various reflectance and albedo units
+albedo_unit = u.def_unit(['albedo'], represents=u.dimensionless_unscaled,
+                    doc=('Integrated reflectance of a planetary body at '
+                         'arbitrary phase angle.  Albedo is the product '
+                         'of geometric albedo and disk-integrated phase '
+                         'function.'))
 
 
 def enable():
