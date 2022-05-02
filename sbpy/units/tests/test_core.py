@@ -35,6 +35,10 @@ def test_hundred_nm():
     assert (1 * hundred_nm).to(u.nm).value == 100
 
 
+def test_albedo_unit():
+    assert (1 * albedo_unit).to_value('') == 1
+
+
 @pytest.mark.parametrize('wf, fluxd, to', (
     (5557.5 * u.AA, 3.44e-9 * u.Unit('erg/(cm2 s AA)'), 0 * VEGAmag),
     (5557.5 * u.AA, 3.44e-9 * u.Unit('erg/(cm2 s AA)'), 0.03 * JMmag),
@@ -110,68 +114,89 @@ def test_spectral_density_vega_undefinedsourceerror():
 
 
 @pytest.mark.parametrize('fluxd, wfb, f_sun, ref', (
-    (3.4 * VEGAmag, JohnsonV, None, 0.02865984),
-    (3.4 * VEGAmag, 5500 * u.AA, None, 0.02774623),
+    (3.4 * VEGAmag, JohnsonV, None, 0.09003754 * albedo_unit),
+    (3.4 * VEGAmag, 5500 * u.AA, None, 0.08716735 * albedo_unit),
     (1.56644783e-09 * u.Unit('W/(m2 um)'), 'V',
-        1839.93273227 * u.Unit('W/(m2 um)'), 0.02865984),
+        1839.93273227 * u.Unit('W/(m2 um)'), 0.09003754 * albedo_unit),
     (1.55728147e-24 * u.Unit('W/(m2 Hz)'), 'V',
-        1.86599755e-12 * u.Unit('W/(m2 Hz)'), 0.02809415),
-    (3.4 * VEGAmag, 'V', -26.77471503 * VEGAmag, 0.02865984),
-    (3.4 * u.ABmag, 'V', -26.77471503 * u.ABmag, 0.02865984),
-    (3.4 * u.mag, 'V', -26.77471503 * u.mag, 0.02865984)
+        1.86599755e-12 * u.Unit('W/(m2 Hz)'), 0.08826038 * albedo_unit),
+    (3.4 * VEGAmag, 'V', -26.77471503 * VEGAmag, 0.09003754 * albedo_unit),
+    (3.4 * u.ABmag, 'V', -26.77471503 * u.ABmag, 0.09003754 * albedo_unit),
+    (3.4 * u.mag, 'V', -26.77471503 * u.mag, 0.09003754 * albedo_unit)
 ))
-def test_reflectance_ref(fluxd, wfb, f_sun, ref):
-    """Test conversion from flux to reflectance
+def test_dimensionless_albedo_alb(fluxd, wfb, f_sun, ref):
+    """Test conversion between flux and albedo
 
-    Use Ceres as the reference: H = 3.4 mag, radius = 460 km, average
-    bidirectional reflectance at zero phase angle 0.029 (~1/pi of geometric
-    albedo).
-
+    Use Ceres as the reference: H = 3.4 mag, radius = 460 km, disk-integrated
+    albedo at zero phase angle 0.09 (geometric albedo).
     """
 
     xsec = 6.648e5 * u.km**2
-
     with vega_fluxd.set({'V': u.Quantity(3.589e-9, 'erg/(s cm2 AA)')}):
         with solar_fluxd.set({wfb: f_sun}):
-            r = fluxd.to('1/sr', reflectance(wfb, cross_section=xsec))
-    assert r.unit == u.sr**-1
-    assert np.isclose(r.value, ref)
+            r = fluxd.to(albedo_unit, dimensionless_albedo(
+                         wfb, cross_section=xsec))
+            fluxd1 = r.to(fluxd.unit, dimensionless_albedo(
+                         wfb, cross_section=xsec))
+    assert u.isclose(r, ref)
+    assert u.isclose(fluxd1, fluxd)
 
 
 @pytest.mark.parametrize('fluxd, wfb, f_sun, radius', (
-    (3.4 * VEGAmag, JohnsonV, None, 460.01351274),
-    (3.4 * VEGAmag, 5500 * u.AA, None, 452.62198065),
+    (3.4 * VEGAmag, JohnsonV, None, 460.01351274 * u.km),
+    (3.4 * VEGAmag, 5500 * u.AA, None, 452.62198065 * u.km),
     (1.56644783e-09 * u.Unit('W/(m2 um)'), 'V',
-        1839.93273227 * u.Unit('W/(m2 um)'), 460.01351274),
+        1839.93273227 * u.Unit('W/(m2 um)'), 460.01351274 * u.km),
     (1.55728147e-24 * u.Unit('W/(m2 Hz)'), 'V',
-        1.86599755e-12 * u.Unit('W/(m2 Hz)'), 455.45095634),
-    (3.4 * VEGAmag, 'V', -26.77471503 * VEGAmag, 460.01351274),
-    (3.4 * u.ABmag, 'V', -26.77471503 * u.ABmag, 460.01351274),
-    (3.4 * u.mag, 'V', -26.77471503 * u.mag, 460.01351274)
+        1.86599755e-12 * u.Unit('W/(m2 Hz)'), 455.45095634 * u.km),
+    (3.4 * VEGAmag, 'V', -26.77471503 * VEGAmag, 460.01351274 * u.km),
+    (3.4 * u.ABmag, 'V', -26.77471503 * u.ABmag, 460.01351274 * u.km),
+    (3.4 * u.mag, 'V', -26.77471503 * u.mag, 460.01351274 * u.km)
 ))
-def test_reflectance_xsec(fluxd, wfb, f_sun, radius):
-    """Test conversion from flux to reflectance
+def test_dimensionless_albedo_xsec(fluxd, wfb, f_sun, radius):
+    """Test conversion between flux and cross-section
 
-    Use Ceres as the reference: H = 3.4 mag, radius = 460 km, average
-    bidirectional reflectance at zero phase angle 0.029 (~1/pi of geometric
-    albedo 0.09).
-
+    Use Ceres as the reference: H = 3.4 mag, radius = 460 km, disk-integrated
+    albedo at zero phase angle 0.09 (geometric albedo).
     """
 
-    ref = 0.02865984 / u.sr
+    alb = 0.09003754 * albedo_unit
     with vega_fluxd.set({'V': u.Quantity(3.589e-9, 'erg/(s cm2 AA)')}):
         with solar_fluxd.set({wfb: f_sun}):
-            xs = fluxd.to('km2', reflectance(wfb, reflectance=ref))
+            xs = fluxd.to('km2', dimensionless_albedo(wfb, albedo=alb))
             ra = np.sqrt(xs / np.pi)
-    assert ra.unit == u.km
-    assert np.isclose(ra.value, radius)
+            fluxd1 = xs.to(fluxd.unit, dimensionless_albedo(wfb, albedo=alb))
+    assert u.isclose(ra, radius)
+    assert u.isclose(fluxd1, fluxd)
 
 
-def test_reflectance_exception():
-    assert reflectance('B', reflectance=1/u.sr) == []
+@pytest.mark.parametrize('fluxd, f_sun, radius', (
+    (3.4 * VEGAmag, -26.77471503 * VEGAmag, 460.01351274 * u.km),
+    (1.56644783e-09 * u.Unit('W/(m2 um)'), 1839.93273227 * u.Unit('W/(m2 um)'),
+        460.01510050 * u.km),
+    (1.55728147e-24 * u.Unit('W/(m2 Hz)'), 1.86599755e-12 * u.Unit('W/(m2 Hz)'),
+        455.45096341 * u.km)
+    ))
+def test_dimensionless_albedo_flux(fluxd, f_sun, radius):
+    """Test conversion between albedo and cross-section
+
+    Use Ceres as the reference: albedo = 0.09, radius = 460 km, disk-integrated
+    albedo at zero phase angle 0.09 (geometric albedo).
+    """
+    alb = 0.09003754 * albedo_unit
+    with solar_fluxd.set({'V': f_sun}):
+        xs = alb.to('km2', dimensionless_albedo('V', flux=fluxd))
+        ra = np.sqrt(xs / np.pi)
+        alb1 = xs.to(albedo_unit, dimensionless_albedo('V', flux=fluxd))
+    assert u.isclose(ra, radius)
+    assert u.isclose(alb1, alb)
 
 
-def test_reflectance_spec():
+def test_dimensionless_albedo_exception():
+    assert dimensionless_albedo('B', albedo=1 * albedo_unit) == []
+
+
+def test_dimensionless_albedo_spec():
     """Test conversion from flux spectrum to reflectance spectrum
 
     Use Tempel 1 spectrum collected by Deep Impact HRI-IR at
@@ -196,17 +221,16 @@ def test_reflectance_spec():
         spec_nu = spec.to('W/(m2 Hz)', u.spectral_density(wave))
 
         xsec = (ifov * delta)**2 / u.sr
-        ref1 = spec.to('1/sr', reflectance(
+        ref1 = spec.to(albedo_unit, dimensionless_albedo(
             wave, cross_section=xsec, interpolate=True))
-        ref2 = spec_nu.to('1/sr', reflectance(
+        ref2 = spec_nu.to(albedo_unit, dimensionless_albedo(
             wave, cross_section=xsec, interpolate=True))
 
     # use built-in solar spectrum
-    ref3 = spec.to('1/sr', reflectance(wave, cross_section=xsec))
+    ref3 = spec.to(albedo_unit, dimensionless_albedo(wave, cross_section=xsec))
 
     for ref in (ref1, ref2, ref3):
-        assert ref.unit == '1/sr'
-        assert np.allclose(ref.value, t1['ref'])
+        assert u.allclose(ref, t1['albedo'] * albedo_unit)
 
 
 @pytest.mark.parametrize('value, delta, test', (

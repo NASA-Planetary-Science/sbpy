@@ -20,7 +20,7 @@ from astropy import log
 from ..data import (Phys, Obs, Ephem, dataclass_input,
                     quantity_to_dataclass)
 from ..bib import cite
-from ..units import reflectance
+from ..units import dimensionless_albedo
 from ..exceptions import SbpyWarning
 
 
