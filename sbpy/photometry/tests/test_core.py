@@ -261,7 +261,7 @@ class TestHG:
                          'mag2': data}, fitter, fields=['mag', 'mag1', 'mag2'])
         assert isinstance(m, HG)
         assert isinstance(m.H, Parameter) \
-                & u.allclose(m.H, [3.436677] * 3 * u.mag)
+            & u.allclose(m.H, [3.436677] * 3 * u.mag)
         assert isinstance(m.G, Parameter) & u.allclose(m.G, [0.1857588] * 3)
         assert 'fields' in m.meta
         assert m.meta['fields'] == ['mag', 'mag1', 'mag2']
@@ -271,7 +271,7 @@ class TestHG:
                         init=[[3., 3., 3.], [0.1, 0.1, 0.1]])
         assert isinstance(m, HG)
         assert isinstance(m.H, Parameter) \
-                & u.allclose(m.H, [3.4366849] * 3 * u.mag)
+            & u.allclose(m.H, [3.4366849] * 3 * u.mag)
         assert isinstance(m.G, Parameter) & u.allclose(m.G, [0.18576319] * 3)
         assert 'fields' in m.meta
         assert m.meta['fields'] == ['mag', 'mag1', 'mag2']

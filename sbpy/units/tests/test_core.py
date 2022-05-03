@@ -172,10 +172,10 @@ def test_dimensionless_albedo_xsec(fluxd, wfb, f_sun, radius):
 
 @pytest.mark.parametrize('fluxd, f_sun, radius', (
     (3.4 * VEGAmag, -26.77471503 * VEGAmag, 460.01351274 * u.km),
-    (1.56644783e-09 * u.Unit('W/(m2 um)'), 1839.93273227 * u.Unit('W/(m2 um)'),
-        460.01510050 * u.km),
-    (1.55728147e-24 * u.Unit('W/(m2 Hz)'), 1.86599755e-12 * u.Unit('W/(m2 Hz)'),
-        455.45096341 * u.km)
+    (1.56644783e-09 * u.Unit('W/(m2 um)'),
+        1839.93273227 * u.Unit('W/(m2 um)'), 460.01510050 * u.km),
+    (1.55728147e-24 * u.Unit('W/(m2 Hz)'),
+        1.86599755e-12 * u.Unit('W/(m2 Hz)'), 455.45096341 * u.km)
     ))
 def test_dimensionless_albedo_flux(fluxd, f_sun, radius):
     """Test conversion between albedo and cross-section

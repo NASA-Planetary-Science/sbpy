@@ -6,9 +6,6 @@ created on June 23, 2017
 
 """
 
-__all__ = ['DiskIntegratedPhaseFunc', 'LinearPhaseFunc', 'HG', 'HG12BaseClass',
-           'HG12', 'HG1G2', 'HG12_Pen16', 'NonmonotonicPhaseFunctionWarning']
-
 from collections import OrderedDict
 import warnings
 import numpy as np
@@ -22,6 +19,10 @@ from ..data import (Phys, Obs, Ephem, dataclass_input,
 from ..bib import cite
 from ..units import dimensionless_albedo, albedo_unit
 from ..exceptions import SbpyWarning
+
+
+__all__ = ['DiskIntegratedPhaseFunc', 'LinearPhaseFunc', 'HG', 'HG12BaseClass',
+           'HG12', 'HG1G2', 'HG12_Pen16', 'NonmonotonicPhaseFunctionWarning']
 
 
 class _spline(object):
@@ -699,8 +700,10 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
                 if self.wfb is None:
                     raise ValueError('Wavelength/Frequency/Band is unknown.')
                 xsec = np.pi * self.radius**2
-                out = out.to(albedo_unit,
-                             dimensionless_albedo(self.wfb, cross_section=xsec))
+                out = out.to(
+                    albedo_unit,
+                    dimensionless_albedo(self.wfb, cross_section=xsec)
+                    )
             else:
                 out = out - norm
                 out = out.to('', u.logarithmic())

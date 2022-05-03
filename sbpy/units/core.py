@@ -14,6 +14,19 @@ To use these units in the top-level `astropy.units` namespace::
 
 """
 
+from warnings import warn
+import numpy as np
+import astropy.units as u
+import astropy.constants as const
+from ..exceptions import SbpyWarning
+from ..calib import (
+    Vega, Sun, vega_fluxd, FilterLookupError, UndefinedSourceError
+)
+from .. import data as sbd
+from ..spectroscopy.sources import SinglePointSpectrumError, SynphotRequired
+from ..exceptions import OptionalPackageUnavailable, SbpyWarning
+
+
 __all__ = [
     'hundred_nm',
     'spectral_density_vega',
@@ -26,18 +39,6 @@ __all__ = [
     'dimensionless_albedo',
     'projected_size',
 ]
-
-from warnings import warn
-import numpy as np
-import astropy.units as u
-import astropy.constants as const
-from ..exceptions import SbpyWarning
-from ..calib import (
-    Vega, Sun, vega_fluxd, FilterLookupError, UndefinedSourceError
-)
-from .. import data as sbd
-from ..spectroscopy.sources import SinglePointSpectrumError, SynphotRequired
-from ..exceptions import OptionalPackageUnavailable, SbpyWarning
 
 
 VEGA = u.def_unit(['VEGA', 'VEGAflux'],
@@ -62,10 +63,10 @@ hundred_nm = u.def_unit('100 nm', represents=100 * u.nm,
 
 # various reflectance and albedo units
 albedo_unit = u.def_unit(['albedo'], represents=u.dimensionless_unscaled,
-                    doc=('Integrated reflectance of a planetary body at '
-                         'arbitrary phase angle.  Albedo is the product '
-                         'of geometric albedo and disk-integrated phase '
-                         'function.'))
+                         doc=('Integrated reflectance of a planetary body '
+                              'at arbitrary phase angle.  Albedo is the '
+                              'product of geometric albedo and '
+                              'disk-integrated phase function.'))
 
 
 def enable():
@@ -250,7 +251,8 @@ def dimensionless_albedo(wfb, flux=None, cross_section=None, albedo=None,
     >>> # calculate albedo from magnitude
     >>> mag = 3.4 * VEGAmag
     >>> xsec = np.pi * (460 * u.km)**2
-    >>> alb = mag.to(albedo_unit, dimensionless_albedo('V', cross_section=xsec))
+    >>> alb = mag.to(albedo_unit,
+    ...              dimensionless_albedo('V', cross_section=xsec))
     >>> print('{0:.4f}'.format(alb))
     0.0900 albedo
 
@@ -271,7 +273,7 @@ def dimensionless_albedo(wfb, flux=None, cross_section=None, albedo=None,
 
     if [flux, cross_section, albedo].count(None) != 2:
         raise ValueError('One and only one of `flux`, `cross_section`, '
-            'or `albedo` should be specified.')
+                         'or `albedo` should be specified.')
 
     # Solar flux density at 1 au in different units
     f_sun = []
@@ -286,7 +288,8 @@ def dimensionless_albedo(wfb, flux=None, cross_section=None, albedo=None,
     if len(f_sun) == 0:
         try:
             f_sun.append(sun.observe(wfb, **kwargs))
-        except (SinglePointSpectrumError, u.UnitConversionError, FilterLookupError):
+        except (SinglePointSpectrumError, u.UnitConversionError,
+                FilterLookupError):
             pass
 
     # pass fluxd0 as an optional argument to dereference it,
@@ -299,18 +302,20 @@ def dimensionless_albedo(wfb, flux=None, cross_section=None, albedo=None,
             if fluxd0.unit in [u.mag, u.dB, u.dex]:
                 equiv.append((
                     fluxd0.unit, albedo_unit,
-                    lambda mag, mag0=fluxd0.value: u.Quantity(mag - mag0,
-                        fluxd0.unit).to_value('', u.logarithmic()) \
-                        / xsec * np.pi,
-                    lambda ref, mag0=fluxd0.value: u.Quantity(ref * xsec \
-                        / np.pi).to_value(fluxd0.unit, u.logarithmic()) + mag0
+                    lambda mag, mag0=fluxd0.value:
+                        u.Quantity(mag - mag0, fluxd0.unit).to_value
+                        ('', u.logarithmic()) / xsec * np.pi,
+                    lambda ref, mag0=fluxd0.value:
+                        u.Quantity(ref * xsec / np.pi).to_value
+                        (fluxd0.unit, u.logarithmic()) + mag0
                     ))
             else:
                 equiv.append((
                     fluxd0.unit, albedo_unit,
-                    lambda fluxd, fluxd0=fluxd0.value: fluxd / (fluxd0 * xsec \
-                        / np.pi),
-                    lambda ref, fluxd0=fluxd0.value: ref * fluxd0 * xsec / np.pi
+                    lambda fluxd, fluxd0=fluxd0.value:
+                        fluxd / (fluxd0 * xsec / np.pi),
+                    lambda ref, fluxd0=fluxd0.value:
+                        ref * fluxd0 * xsec / np.pi
                 ))
     elif albedo is not None:
         ref = albedo.value / np.pi
@@ -319,12 +324,12 @@ def dimensionless_albedo(wfb, flux=None, cross_section=None, albedo=None,
             if fluxd0.unit in [u.mag, u.dB, u.dex]:
                 equiv.append((
                     fluxd0.unit, u.km**2,
-                    lambda mag, mag0=fluxd0.value: u.Quantity(mag - mag0,
-                        fluxd0.unit).to_value('', u.logarithmic()) / ref *
-                        au2km,
-                    lambda xsec, mag0=fluxd0.value: u.Quantity(ref *
-                        xsec / au2km).to_value(fluxd0.unit, u.logarithmic())
-                        + mag0
+                    lambda mag, mag0=fluxd0.value:
+                        u.Quantity(mag - mag0, fluxd0.unit).to_value
+                        ('', u.logarithmic()) / ref * au2km,
+                    lambda xsec, mag0=fluxd0.value:
+                        u.Quantity(ref * xsec / au2km).to_value
+                        (fluxd0.unit, u.logarithmic()) + mag0
                     ))
             else:
                 equiv.append((
