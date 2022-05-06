@@ -244,14 +244,45 @@ class TestOrbitTisserandDCriterion:
         assert u.allclose(comets.tisserand(jupiter),
                           u.Quantity([2.82130706, 2.79709686]))
 
-    def testDCriterion(self):
-        """ test d_criterion method"""
+    @pytest.mark.parametrize('e, q, w, Omega, i, D_test', (
+        (0.7457, 0.95* u.au, 152.000 * u.deg, 45.0 * u.deg,
+            30.0 * u.deg, 0.0),
+        (0.9335, 0.95* u.au, 153.694 * u.deg, 42.0 * u.deg,
+            32.0 * u.deg, 0.193),
+        (0.5954, 0.95* u.au, 150.000 * u.deg, 46.0 * u.deg,
+            32.0 * u.deg, 0.155),
+        (0.5568, 0.95* u.au, 149.339 * u.deg, 46.0 * u.deg,
+            32.0 * u.deg, 0.193)
+    ))
+    def testDCriterion(self, e, q, w, Omega, i, D_test):
+        """test D_criterion method against Table 1 in Jopek 1993, Icarus
+        106, 603
+        """
 
+        orb0 = Orbit.from_dict({
+            'e': 0.7457,
+            'q': 0.95 * u.au,
+            'w': 152 * u.deg,
+            'Omega': 45.0 * u.deg,
+            'incl': 30.0 * u.deg
+            })
+        orb = Orbit.from_dict({
+            'e': e,
+            'q': q,
+            'w': w,
+            'Omega': Omega,
+            'incl': i
+            })
+        D = orb0.D_criterion(orb)
+        assert u.isclose(D, D_test, atol=1e-3)
+
+    def testDCriterion(self):
+        """test D_criterion method with higher precision"""
         comets = Orbit.from_dict(COMETS)
-        assert u.isclose(comets[0].d_criterion(comets[1]),
+        assert u.isclose(comets[0].D_criterion(comets[1]),
                          u.Quantity(0.15598291))
-        assert u.allclose(comets[0].d_criterion(comets),
+        assert u.allclose(comets[0].D_criterion(comets),
                           u.Quantity([0., 0.15598291]))
         halley = Orbit.from_dict(HALLEY)
-        assert u.allclose(halley.d_criterion(comets),
+        assert u.allclose(halley.D_criterion(comets),
                           u.Quantity([2.24077662, 2.50705989]))
