@@ -245,13 +245,13 @@ class TestOrbitTisserandDCriterion:
                           u.Quantity([2.82130706, 2.79709686]))
 
     @pytest.mark.parametrize('e, q, w, Omega, i, D_test', (
-        (0.7457, 0.95* u.au, 152.000 * u.deg, 45.0 * u.deg,
+        (0.7457, 0.95 * u.au, 152.000 * u.deg, 45.0 * u.deg,
             30.0 * u.deg, 0.0),
-        (0.9335, 0.95* u.au, 153.694 * u.deg, 42.0 * u.deg,
+        (0.9335, 0.95 * u.au, 153.694 * u.deg, 42.0 * u.deg,
             32.0 * u.deg, 0.193),
-        (0.5954, 0.95* u.au, 150.000 * u.deg, 46.0 * u.deg,
+        (0.5954, 0.95 * u.au, 150.000 * u.deg, 46.0 * u.deg,
             32.0 * u.deg, 0.155),
-        (0.5568, 0.95* u.au, 149.339 * u.deg, 46.0 * u.deg,
+        (0.5568, 0.95 * u.au, 149.339 * u.deg, 46.0 * u.deg,
             32.0 * u.deg, 0.193)
     ))
     def testDCriterion(self, e, q, w, Omega, i, D_test):
