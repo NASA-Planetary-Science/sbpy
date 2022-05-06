@@ -729,6 +729,7 @@ class Orbit(DataClass):
     def tisserand(self, planet):
         """Tisserand parameter with respect to a planet
 
+
         Parameters
         ----------
         planet : `~Orbit` object
@@ -736,10 +737,17 @@ class Orbit(DataClass):
             If `self` and/or `planet` contains more than one object, then
             numpy broadcasting rules apply.
 
+
         Returns
         -------
         float or numpy.ndarray
             The Tisserand parameter(s)
+
+
+        References
+        ----------
+        Levison, H. F., Duncan, M. J. 1997, Icarus 127, 13
+
 
         Examples
         --------
@@ -779,7 +787,7 @@ class Orbit(DataClass):
         References
         ----------
         Southwarth, R. B., & Hawkins, G. S. 1963, SCoA, 7, 261
-        Josep, T. J. 1993, Icarus 106, 60
+        Jopek, T. J. 1993, Icarus 106, 603
 
 
         Examples
