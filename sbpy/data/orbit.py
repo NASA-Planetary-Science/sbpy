@@ -744,8 +744,11 @@ class Orbit(DataClass):
         Examples
         --------
         >>> from sbpy.data import Orbit
-        >>> comets = Orbit.from_horizons(['90001184', 'P/2016 BA14']) # doctest: +REMOTE_DATA
-        >>> Jupiter = Orbit.from_horizons(599, id_type='majorbody') # doctest: +REMOTE_DATA
+        >>> comets = Orbit.from_horizons(['252P', 'P/2016 BA14'],
+        ...     id_type='designation', closest_apparition=True)
+        ...     # doctest: +REMOTE_DATA
+        >>> Jupiter = Orbit.from_horizons(599, id_type='majorbody')
+        ...     # doctest: +REMOTE_DATA
         >>> T_J = comets.tisserand(Jupiter) # doctest: +REMOTE_DATA
         """
 
@@ -757,24 +760,35 @@ class Orbit(DataClass):
             t = t[0]
         return t
 
-    @cite({'method': '1993Icar..106..603J '})
-    def d_criterion(self, obj):
-        """Evaluate orbit similarity d-criterion
+    @cite({'method': '1963SCoA....7..261S'})
+    def D_criterion(self, obj):
+        """Evaluate orbit similarity D-criterion
+
 
         Parameters
         ----------
         obj : `~Orbit` object
             Object(s) against which to calculate d-criterion
 
+
         Returns
         -------
         float or numpy.ndarray
 
+
+        References
+        ----------
+        Southwarth, R. B., & Hawkins, G. S. 1963, SCoA, 7, 261
+        Josep, T. J. 1993, Icarus 106, 60
+
+
         Examples
         --------
         >>> from sbpy.data import Orbit
-        >>> comets = Orbit.from_horizons(['90001184', 'P/2016 BA14']) # doctest: +REMOTE_DATA
-        >>> D = comets[0].d_criterion(comets[1]) # doctest: +REMOTE_DATA
+        >>> comets = Orbit.from_horizons(['252P', 'P/2016 BA14'],
+        ...     id_type='designation', closest_apparition=True)
+        ...     # doctest: +REMOTE_DATA
+        >>> D = comets[0].D_criterion(comets[1]) # doctest: +REMOTE_DATA
         """
 
         sin_i2 = np.sin((obj['i'] - self['i']) / 2)**2 \
