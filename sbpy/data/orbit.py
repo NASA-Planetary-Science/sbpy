@@ -755,7 +755,7 @@ class Orbit(DataClass):
         >>> comets = Orbit.from_horizons(['252P', 'P/2016 BA14'],
         ...     id_type='designation', closest_apparition=True)
         ...     # doctest: +REMOTE_DATA
-        >>> Jupiter = Orbit.from_horizons(599, id_type='majorbody')
+        >>> Jupiter = Orbit.from_horizons(599, id_type=None)
         ...     # doctest: +REMOTE_DATA
         >>> T_J = comets.tisserand(Jupiter) # doctest: +REMOTE_DATA
         """
@@ -769,14 +769,20 @@ class Orbit(DataClass):
         return t
 
     @cite({'method': '1963SCoA....7..261S'})
-    def D_criterion(self, obj):
+    def D_criterion(self, obj, version='sh'):
         """Evaluate orbit similarity D-criterion
 
 
         Parameters
         ----------
         obj : `~Orbit` object
-            Object(s) against which to calculate d-criterion
+            Object(s) against which to calculate D-criterion
+        version : ['sh', 'd', 'h'], optional
+            Select the versions of D-criterion formula.  Case insensitive.
+            'sh' : Southworth-Hawkins function
+            'd' : Drummond function
+            'h' : Hybrid function
+            See references for the details of each version.
 
 
         Returns
@@ -788,6 +794,10 @@ class Orbit(DataClass):
         ----------
         Southwarth, R. B., & Hawkins, G. S. 1963, SCoA, 7, 261
         Jopek, T. J. 1993, Icarus 106, 603
+        Williams, I. P., Jopek, T. J., Rudawska, R., Tóth, J., Kornoš, L. 2019,
+            Meteoroids: Sources of Meteors on Earth and Beyond (Ryabova, G. O.,
+            Asher, D. J., Compbell-Brown M. D., eds.), Cambridge, UK: Cambridge
+            University Press, 336.
 
 
         Examples
@@ -796,22 +806,63 @@ class Orbit(DataClass):
         >>> comets = Orbit.from_horizons(['252P', 'P/2016 BA14'],
         ...     id_type='designation', closest_apparition=True)
         ...     # doctest: +REMOTE_DATA
-        >>> D = comets[0].D_criterion(comets[1]) # doctest: +REMOTE_DATA
+        >>>
+        >>> # Southworth & Hawkins function
+        >>> D_SH = comets[0].D_criterion(comets[1]) # doctest: +REMOTE_DATA
+        >>> # Drummond function
+        >>> D_D = comets[0].D_criterion(comets[1], version='d')
+        ...     # doctests: +REMOTE_DATA
+        >>> # hybrid function
+        >>> D_H = comets[0].D_criterion(comets[1], version='h')
+        ...     # doctests: +REMOTE_DATA
         """
 
-        sin_i2 = np.sin((obj['i'] - self['i']) / 2)**2 \
-            + np.sin(self['i']) * np.sin(obj['i']) \
-            * np.sin((obj['Omega'] - self['Omega']) / 2)**2
-        cos_i = np.sqrt(1 - sin_i2)
-        delta_Omega = obj['Omega'] - self['Omega']
-        sign = (abs(delta_Omega) <= u.Quantity(180, 'deg')).astype(int) * 2 - 1
-        pi_ba = obj['w'] - self['w'] + 2 * sign * np.arcsin(
-            np.cos((self['i'] + obj['i']) / 2) * np.sin(delta_Omega / 2)
-            / cos_i)
-        d2 = (self['e'] - obj['e'])**2 \
-            + (self['q'].value - obj['q'].value)**2 + 4 * sin_i2 \
-            + ((self['e'] + obj['e']) * np.sin(pi_ba / 2))**2
-        d2 = u.Quantity(d2)
-        if len(d2) == 1:
-            d2 = d2[0]
-        return np.sqrt(d2)
+        if version.lower() not in ['sh', 'd', 'h']:
+            raise ValueError("version should be one of ['sh', 'd', 'h'] (case "
+                             "insensitive, {} received".format(version))
+
+        diff_e = obj['e'] - self['e']
+        sum_e = obj['e'] + self['e']
+        diff_q = obj['q'].to_value(u.au) - self['q'].to_value(u.au)
+        sum_q = obj['q'].to_value(u.au) + self['q'].to_value(u.au)
+        diff_i = obj['i'] - self['i']
+        sum_i = obj['i'] + self['i']
+        diff_omega = obj['Omega'] - self['Omega']
+        diff_w = obj['w'] - self['w']
+
+        # sin(I_AB / 2)**2
+        sin_i2 = np.sin(diff_i / 2)**2 \
+            + np.sin(self['i']) * np.sin(obj['i']) * np.sin(diff_omega / 2)**2
+
+        if version.lower() == 'd':
+            # Drummond function
+            i_ba = np.arcsin(np.sqrt(sin_i2)) * 2
+            beta = [np.arcsin(np.sin(o['i']) * np.sin(o['w']))
+                    for o in [obj, self]]
+            lamb = [o['Omega'] + np.arctan(np.cos(o['i']) * np.tan(o['w']))
+                    + (np.cos(o['w']) < 0).astype(int) * np.pi * u.rad
+                    for o in [obj, self]]
+            theta_ba = np.arccos(np.sin(beta[0]) * np.sin(beta[1])
+                                 + np.cos(beta[0]) * np.cos(beta[1])
+                                 * np.cos(lamb[1] - lamb[0]))
+            d2 = (diff_e / sum_e)**2 + (diff_q / sum_q)**2 \
+                + (i_ba / (np.pi * u.rad))**2 \
+                + (sum_e * theta_ba / (2 * np.pi * u.rad))**2
+        else:
+            cos_i2 = np.sqrt(1 - sin_i2)
+            sign = (abs(diff_omega) <= 180 * u.deg).astype(int) * 2 - 1
+            pi_ba = diff_w + 2 * sign * np.arcsin(
+                np.cos(sum_i / 2) * np.sin(diff_omega / 2) / cos_i2)
+
+            if version.lower() == 'sh':
+                # Southworth-Hawkins function
+                d2 = diff_e**2 + diff_q**2 + 4 * sin_i2 \
+                    + (sum_e * np.sin(pi_ba / 2))**2
+            else:
+                # hybrid function
+                d2 = diff_e**2 + (diff_q / sum_q)**2 + 4 * sin_i2 \
+                    + (sum_e * np.sin(pi_ba / 2))**2
+        d = np.sqrt(u.Quantity(d2))
+        if len(d) == 1:
+            d = d[0]
+        return d
