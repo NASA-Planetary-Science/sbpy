@@ -726,21 +726,23 @@ class Orbit(DataClass):
         return orbits
 
     @cite({'method': '1997Icar..127...13L'})
-    def tisserand(self, planet):
+    def tisserand(self, planet='599'):
         """Tisserand parameter with respect to a planet
 
 
         Parameters
         ----------
-        planet : `~Orbit` object
+        planet : str, `~Orbit` object, or sequence of str, optional
             Planet(s) against which the Tisserand parameter is calculated.
-            If `self` and/or `planet` contains more than one object, then
-            numpy broadcasting rules apply.
+            If `str`, then the orbital elements of the planet will be
+            automaticallyl pulled from JPL Horizons. If `self` and/or
+            `planet` contains more than one object, then `numpy` broadcasting
+            rules apply.  Default is Jupiter.
 
 
         Returns
         -------
-        float or numpy.ndarray
+        u.Quantity
             The Tisserand parameter(s)
 
 
@@ -755,15 +757,22 @@ class Orbit(DataClass):
         >>> comets = Orbit.from_horizons(['252P', 'P/2016 BA14'],
         ...     id_type='designation', closest_apparition=True)
         ...     # doctest: +REMOTE_DATA
-        >>> Jupiter = Orbit.from_horizons(599, id_type=None)
-        ...     # doctest: +REMOTE_DATA
-        >>> T_J = comets.tisserand(Jupiter) # doctest: +REMOTE_DATA
+        >>> T_J = comets.tisserand() # doctest: +REMOTE_DATA
+        >>>
+        >>> halley = Orbit.from_horizons('1P', id_type='designation',
+        ...     closest_apparition=True) # doctest: +REMOTE_DATA
+        >>> T = halley.tisserand(['599', '699', '799', '899']) # doctest: +REMOTE_DATA
         """
+
+        if isinstance(planet, str) \
+            or (hasattr(planet, '__iter__')
+                and np.all([isinstance(x, str) for x in planet])):
+            planet = Orbit.from_horizons(planet, id_type=None)
 
         a_p = planet['a']
         t = a_p / self['a'] + 2 * np.cos(self['i']) * \
             np.sqrt((1 - self['e']**2) * self['a'] / a_p)
-        t = u.Quantity(t, '')
+        t = u.Quantity(t)
         if len(t) == 1:
             t = t[0]
         return t
