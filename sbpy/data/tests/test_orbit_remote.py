@@ -204,3 +204,7 @@ class TestTisserand:
             closest_apparition=True, epochs=epoch)
         jupiter = Orbit.from_horizons(599, id_type=None, epochs=epoch)
         assert u.isclose(halley.tisserand(jupiter), -0.60495016)
+
+        chariklo = Orbit.from_horizons('chariklo', id_type='name')
+        assert u.allclose(chariklo.tisserand(['599', '699', '799', '899']),
+            [3.48480375, 2.93140786, 2.85804178, 3.22352516], atol=1e-5)
