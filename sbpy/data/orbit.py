@@ -804,17 +804,15 @@ class Orbit(DataClass):
         --------
         >>> from sbpy.data import Orbit
         >>> comets = Orbit.from_horizons(['252P', 'P/2016 BA14'],
-        ...     id_type='designation', closest_apparition=True)
-        ...     # doctest: +REMOTE_DATA
+        ...     id_type='designation', closest_apparition=True
+        ...     ) # doctest: +REMOTE_DATA
         >>>
         >>> # Southworth & Hawkins function
         >>> D_SH = comets[0].D_criterion(comets[1]) # doctest: +REMOTE_DATA
         >>> # Drummond function
-        >>> D_D = comets[0].D_criterion(comets[1], version='d')
-        ...     # doctests: +REMOTE_DATA
+        >>> D_D = comets[0].D_criterion(comets[1], version='d') # doctest: +REMOTE_DATA
         >>> # hybrid function
-        >>> D_H = comets[0].D_criterion(comets[1], version='h')
-        ...     # doctests: +REMOTE_DATA
+        >>> D_H = comets[0].D_criterion(comets[1], version='h') # doctest: +REMOTE_DATA
         """
 
         if version.lower() not in ['sh', 'd', 'h']:
