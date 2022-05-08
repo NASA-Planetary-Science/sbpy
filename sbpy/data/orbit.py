@@ -777,7 +777,8 @@ class Orbit(DataClass):
             t = t[0]
         return t
 
-    @cite({'method': '1963SCoA....7..261S'})
+    @cite({'method': ['1963SCoA....7..261S', '1981Icar...45..545D',
+        '1993Icar..106..603J']})
     def D_criterion(self, obj, version='sh'):
         """Evaluate orbit similarity D-criterion
 
@@ -802,6 +803,7 @@ class Orbit(DataClass):
         References
         ----------
         Southwarth, R. B., & Hawkins, G. S. 1963, SCoA, 7, 261
+        Drummond, J. D. 1981, Icarus 45, 545
         Jopek, T. J. 1993, Icarus 106, 603
         Williams, I. P., Jopek, T. J., Rudawska, R., Tóth, J., Kornoš, L. 2019,
             Meteoroids: Sources of Meteors on Earth and Beyond (Ryabova, G. O.,
