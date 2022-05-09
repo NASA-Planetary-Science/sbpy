@@ -33,7 +33,9 @@ comets = {
     'C/2014 S2 (Pan-STARRS)': {'type': 'C', 'desig': '2014 S2',
                                'name': 'Pan-STARRS'},
     'C/2014 S2 (PanSTARRS)': {'type': 'C', 'desig': '2014 S2',
-                              'name': 'PanSTARRS'}
+                              'name': 'PanSTARRS'},
+    'A/2018 V3': {'type': 'A', 'desig': '2018 V3'},
+    '2I/Borisov': {'type': 'I', 'number': 2, 'name': 'Borisov'}
 }
 
 # name: expected result from parse_asteroid()
