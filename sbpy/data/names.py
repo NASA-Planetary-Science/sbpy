@@ -310,8 +310,8 @@ class Names():
         import re
 
         # define comet matching pattern
-        pat = ('^(([1-9][0-9]*[PDCX]'
-               '(-[A-Z]{1,2})?)|[PDCX]/)'  # type/number/fragm [0,1,2]
+        pat = ('^(([1-9][0-9]*[PDCXAI]'
+               '(-[A-Z]{1,2})?)|[PDCXAI]/)'  # type/number/fragm [0,1,2]
                '|([-]?[0-9]{3,4}[ _][A-Z]{1,2}[0-9]{0,3}(-[1-9A-Z]{0,2})?)'
                # designation [3,4]
                '|((([dvA-Z][a-z\']? ?[A-Za-z\-]*)[ -]?[A-Z]?[1-9]*[a-z]*)'
