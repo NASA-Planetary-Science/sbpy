@@ -120,7 +120,7 @@ Note that both functions require `pyoorb
 <https://github.com/oorb/oorb/tree/master/python>`_ to be installed.
 
 
-Calculate dynamic parameters
+Calculate dynamical parameters
 ============================
 
 The Tisserand parameter is a commonly used dynamic parameter to characterize
