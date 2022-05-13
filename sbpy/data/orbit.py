@@ -23,7 +23,7 @@ try:
 except ImportError:
     pyoorb = None
 
-from ..bib import cite
+from ..bib import cite, register
 from ..exceptions import RequiredPackageUnavailable, SbpyException
 from . import Conf, DataClass, QueryError, TimeScaleWarning
 
@@ -777,8 +777,6 @@ class Orbit(DataClass):
             t = t[0]
         return t
 
-    @cite({'method': ['1963SCoA....7..261S', '1981Icar...45..545D',
-        '1993Icar..106..603J']})
     def D_criterion(self, obj, version='sh'):
         """Evaluate orbit similarity D-criterion
 
@@ -845,6 +843,7 @@ class Orbit(DataClass):
 
         if version.lower() == 'd':
             # Drummond function
+            register(self.D_criterion, {'method': '1981Icar...45..545D'})
             i_ba = np.arcsin(np.sqrt(sin_i2)) * 2
             beta = [np.arcsin(np.sin(o['i']) * np.sin(o['w']))
                     for o in [obj, self]]
@@ -865,10 +864,12 @@ class Orbit(DataClass):
 
             if version.lower() == 'sh':
                 # Southworth-Hawkins function
+                register(self.D_criterion, {'method': '1963SCoA....7..261S'})
                 d2 = diff_e**2 + diff_q**2 + 4 * sin_i2 \
                     + (sum_e * np.sin(pi_ba / 2))**2
             else:
                 # hybrid function
+                register(self.D_criterion, {'method': '1993Icar..106..603J'})
                 d2 = diff_e**2 + (diff_q / sum_q)**2 + 4 * sin_i2 \
                     + (sum_e * np.sin(pi_ba / 2))**2
         d = np.sqrt(u.Quantity(d2))
