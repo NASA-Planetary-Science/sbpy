@@ -813,8 +813,8 @@ class Orbit(DataClass):
         --------
         >>> from sbpy.data import Orbit
         >>> comets = Orbit.from_horizons(['252P', 'P/2016 BA14'],
-        ...     id_type='designation', closest_apparition=True
-        ...     ) # doctest: +REMOTE_DATA
+        ...     id_type='designation', closest_apparition=True)
+        ...     # doctest: +REMOTE_DATA
         >>>
         >>> # Southworth & Hawkins function
         >>> D_SH = comets[0].D_criterion(comets[1]) # doctest: +REMOTE_DATA
