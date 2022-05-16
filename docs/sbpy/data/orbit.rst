@@ -121,7 +121,7 @@ Note that both functions require `pyoorb
 
 
 Calculate dynamical parameters
-============================
+==============================
 
 The Tisserand parameter is a commonly used dynamic parameter to characterize
 the orbit of a small body, especially a comet, when its orbital evolution is
