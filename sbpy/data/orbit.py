@@ -780,6 +780,10 @@ class Orbit(DataClass):
     def D_criterion(self, obj, version='sh'):
         """Evaluate orbit similarity D-criterion
 
+        Three different versions of D-criterion are defined and often compared
+        to each other, includingthe Southworth-Hawkins function [SH63]_,
+        Drummond function [D81]_, and the hybrid version [J93]_.  See review by
+        [W19]_.
 
         Parameters
         ----------
@@ -800,13 +804,19 @@ class Orbit(DataClass):
 
         References
         ----------
-        Southwarth, R. B., & Hawkins, G. S. 1963, SCoA, 7, 261
-        Drummond, J. D. 1981, Icarus 45, 545
-        Jopek, T. J. 1993, Icarus 106, 603
-        Williams, I. P., Jopek, T. J., Rudawska, R., Tóth, J., Kornoš, L. 2019,
-            Meteoroids: Sources of Meteors on Earth and Beyond (Ryabova, G. O.,
-            Asher, D. J., Compbell-Brown M. D., eds.), Cambridge, UK: Cambridge
-            University Press, 336.
+        .. [SH63]: `Southwarth, R. B., & Hawkins, G. S. 1963, SCoA, 7, 261
+           <https://ui.adsabs.harvard.edu/abs/1963SCoA....7..261S/abstract>`_
+
+        .. [D81]: `Drummond, J. D. 1981, Icarus 45, 545
+           <https://ui.adsabs.harvard.edu/abs/1981Icar...45..545D/abstract>`_
+
+        .. [J93]: `Jopek, T. J. 1993, Icarus 106, 603
+           <https://ui.adsabs.harvard.edu/abs/1993Icar..106..603J/abstract>`_
+
+        .. [W19]: `Williams, I. P., Jopek, T. J., Rudawska, R., Tóth, J.,
+           Kornoš, L. 2019, In: Ryabova, G. O., Asher, D. J., Compbell-Brown
+           M. D., eds.), Cambridge, UK: Cambridge University Press, 210-234.
+           <https://ui.adsabs.harvard.edu/abs/2019msme.book..210W/abstract>`_
 
 
         Examples
