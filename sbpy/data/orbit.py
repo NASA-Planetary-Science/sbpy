@@ -804,19 +804,15 @@ class Orbit(DataClass):
 
         References
         ----------
-        [SH63]: `Southwarth, R. B., & Hawkins, G. S. 1963, SCoA, 7, 261
-        <https://ui.adsabs.harvard.edu/abs/1963SCoA....7..261S/abstract>`_
+        [SH63] Southwarth, R. B., & Hawkins, G. S. 1963, SCoA, 7, 261
 
-        [D81]: `Drummond, J. D. 1981, Icarus 45, 545
-        <https://ui.adsabs.harvard.edu/abs/1981Icar...45..545D/abstract>`_
+        [D81] Drummond, J. D. 1981, Icarus 45, 545
 
-        [J93]: `Jopek, T. J. 1993, Icarus 106, 603
-        <https://ui.adsabs.harvard.edu/abs/1993Icar..106..603J/abstract>`_
+        [J93] Jopek, T. J. 1993, Icarus 106, 603
 
-        [W19]: `Williams, I. P., Jopek, T. J., Rudawska, R., Tóth, J.,
+        [W19] `Williams, I. P., Jopek, T. J., Rudawska, R., Tóth, J.,
         Kornoš, L. 2019, In: Ryabova, G. O., Asher, D. J., Compbell-Brown
         M. D., eds.), Cambridge, UK: Cambridge University Press, 210-234.
-        <https://ui.adsabs.harvard.edu/abs/2019msme.book..210W/abstract>`_
 
 
         Examples
