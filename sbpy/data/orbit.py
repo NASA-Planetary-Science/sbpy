@@ -810,7 +810,7 @@ class Orbit(DataClass):
 
         .. [J93] Jopek, T. J. 1993, Icarus 106, 603
 
-        .. [W19] `Williams, I. P., Jopek, T. J., Rudawska, R., Tóth, J.,
+        .. [W19] Williams, I. P., Jopek, T. J., Rudawska, R., Tóth, J.,
            Kornoš, L. 2019, In: Ryabova, G. O., Asher, D. J., Compbell-Brown
            M. D., eds.), Cambridge, UK: Cambridge University Press, 210-234.
 
