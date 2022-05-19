@@ -1,3 +1,18 @@
+0.4.0 (release date TBD)
+========================
+
+New Features
+------------
+
+sbpy.data
+^^^^^^^^^
+
+- Added ``Orbit.tisserand`` to calculate the Tisserand parameter of small
+  body's orbits with respect to planets. [#325]
+- Added ``Orbit.D_criterion`` to evaluate the D-criterion between two sets
+  of orbital elements. [#325]
+
+
 0.3.0 (2022-04-28)
 ==================
 
