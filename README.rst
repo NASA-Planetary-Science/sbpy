@@ -23,7 +23,7 @@ planetary astronomy.
     :target: https://doi.org/10.21105/joss.01426
     :alt: JOSS documentation
 
-.. image:: https://codecov.io/gh/NASA-Planetary-Science/sbpy/branch/master/graph/badge.svg
+.. image:: https://codecov.io/gh/NASA-Planetary-Science/sbpy/branch/main/graph/badge.svg
     :target: https://codecov.io/gh/NASA-Planetary-Science/sbpy
     :alt: codecov status
 	  
@@ -67,15 +67,3 @@ Acknowledgements
 If you use `sbpy` in your work, please acknowledge it by citing
 
     `Mommert, Kelley, de-Val Borro, Li et al., (2019). sbpy: A Python module for small-body planetary astronomy. Journal of Open Source Software, 4(38), 1426 <https://joss.theoj.org/papers/8b8e7bb15fb4a14f80f2afd06b6ce060>`_
-
-
-If you locally cloned this repo before 5 Feb 2021
--------------------------------------------------
-
-The primary branch for this repo has been transitioned from ``master`` to ``main``.  If you have a local clone of this repository and want to keep your local branch in sync with this repo, you'll need to do the following in your local clone from your terminal:
-```
-git branch -m master main
-git fetch origin
-git branch -u origin/main main
-```
-If you are using a GUI to manage your repos you'll have to find the equivalent commands as it's different for different programs. Alternatively, you can just delete your local clone and re-clone!
