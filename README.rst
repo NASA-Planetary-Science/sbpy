@@ -1,4 +1,4 @@
-.. image:: https://github.com/NASA-Planetary-Science/sbpy/raw/master/logo/sbpy_logo_short.png
+.. image:: https://github.com/NASA-Planetary-Science/sbpy/raw/main/logo/sbpy_logo_short.png
     :width: 400px
     :align: center	    
     :alt: sbpy	     
@@ -23,7 +23,7 @@ planetary astronomy.
     :target: https://doi.org/10.21105/joss.01426
     :alt: JOSS documentation
 
-.. image:: https://codecov.io/gh/NASA-Planetary-Science/sbpy/branch/master/graph/badge.svg
+.. image:: https://codecov.io/gh/NASA-Planetary-Science/sbpy/branch/main/graph/badge.svg
     :target: https://codecov.io/gh/NASA-Planetary-Science/sbpy
     :alt: codecov status
 	  

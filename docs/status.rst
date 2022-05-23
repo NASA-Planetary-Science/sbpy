@@ -6,14 +6,14 @@ Status Page
 This page indicates the development status of `sbpy`. The development
 is expected to conclude in 2021.
 
-The current development version is **v0.2dev**; its status is as follows:
+The current development version is **v0.4dev**; its status is as follows:
 
 .. image:: https://github.com/NASA-Planetary-Science/sbpy/actions/workflows/ci_cron_weekly.yml/badge.svg
     :target: https://github.com/NASA-Planetary-Science/sbpy/actions
     :alt: GitHub testing status
 
-.. image:: https://codecov.io/gh/NASA-Planetary-Science/sbpy/branch/master/graph/badge.svg
-    :target: https://app.codecov.io/gh/NASA-Planetary-Science/sbpy
+.. image:: https://codecov.io/gh/NASA-Planetary-Science/sbpy/branch/main/graph/badge.svg
+    :target: https://codecov.io/gh/NASA-Planetary-Science/sbpy
     :alt: codecov status
 
 .. image:: https://readthedocs.org/projects/sbpy/badge/?version=latest
