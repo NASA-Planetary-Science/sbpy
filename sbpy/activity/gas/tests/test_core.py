@@ -411,9 +411,11 @@ class TestVectorialModel:
                               parent=parent,
                               fragment=fragment)
 
-        fragment_theory = coma.vmodel['num_fragments_theory']
-        fragment_grid = coma.vmodel['num_fragments_grid']
-        assert np.isclose(fragment_theory, fragment_grid, rtol=0.02)
+        assert np.isclose(
+                coma.vmr.num_fragments_theory,
+                coma.vmr.num_fragments_grid,
+                rtol=0.02
+                )
 
     def test_total_number_large_aperture(self):
         """
@@ -440,9 +442,12 @@ class TestVectorialModel:
                               parent=parent,
                               fragment=fragment)
 
-        fragment_theory = coma.vmodel['num_fragments_theory']
-        ap = core.CircularAperture(coma.vmodel['max_grid_radius'])
-        assert np.isclose(fragment_theory, coma.total_number(ap), rtol=0.02)
+        ap = core.CircularAperture(coma.vmr.max_grid_radius)
+        assert np.isclose(
+                coma.vmr.num_fragments_theory,
+                coma.total_number(ap),
+                rtol=0.02
+                )
 
     def test_model_symmetry(self):
         """
@@ -461,12 +466,12 @@ class TestVectorialModel:
             somehow and lost the symmetry during our calculations.
         """
 
-        base_production = 1e26
+        base_production = 1e28
 
         # # 100,000 x 100,000 km aperture
-        ap = core.RectangularAperture((1.0e5, 1.0e5) * u.km)
+        ap = core.CircularAperture((1.0e6) * u.km)
         # assumed fragment count inside this aperture
-        assumed_count = 1e30
+        assumed_count = 1e32
 
         # Parent molecule is H2O
         parent = Phys.from_dict({
@@ -484,29 +489,30 @@ class TestVectorialModel:
         coma = VectorialModel(base_q=base_production * (1 / u.s),
                               parent=parent,
                               fragment=fragment)
-        # mgr = coma.vmodel['max_grid_radius']
-        # ap = core.RectangularAperture((mgr, mgr))
+
         model_count = coma.total_number(ap)
         calculated_q = (assumed_count / model_count) * base_production
-        print("Calculated: ", calculated_q)
 
-        # Parent molecule is H2O
-        parent_check = Phys.from_dict({
-            'tau_T': 86430 * u.s,
-            'tau_d': 101730 * u.s,
-            'v_outflow': 1 * u.km / u.s,
-            'sigma': 3e-16 * u.cm ** 2
-        })
-        # Fragment molecule is OH
-        fragment_check = Phys.from_dict({
-            'tau_T': photo_timescale('OH') * 0.93,
-            'v_photo': 1.05 * u.km / u.s
-        })
+        # # Parent molecule is H2O
+        # parent_check = Phys.from_dict({
+        #     'tau_T': 86430 * u.s,
+        #     'tau_d': 101730 * u.s,
+        #     'v_outflow': 1 * u.km / u.s,
+        #     'sigma': 3e-16 * u.cm ** 2
+        # })
+        # # Fragment molecule is OH
+        # fragment_check = Phys.from_dict({
+        #     'tau_T': photo_timescale('OH') * 0.93,
+        #     'v_photo': 1.05 * u.km / u.s
+        # })
+        # coma_check = VectorialModel(base_q=calculated_q * (1 / u.s),
+        #                             parent=parent_check,
+        #                             fragment=fragment_check)
         coma_check = VectorialModel(base_q=calculated_q * (1 / u.s),
-                                    parent=parent_check,
-                                    fragment=fragment_check)
+                                    parent=parent,
+                                    fragment=fragment)
         count_check = coma_check.total_number(ap)
-        print("Count/assumed: ", count_check / assumed_count)
+
         assert np.isclose(count_check, assumed_count, rtol=0.001)
 
     @pytest.mark.parametrize("rh,delta,flux,g,Q", (
@@ -590,55 +596,11 @@ class TestVectorialModel:
     def test_combi93(self, rh, delta, N, Q):
         """Compare to results of Combi et al. 1993.
 
-        Combi et al. 1993 compared a Monte Carlo approach to the Vectorial model
-        for OH.  They find best agreement between the two models near 1 au,
-        likely due to the assumption that the water outflow speed is constant in
-        the VM runs, but the MC model only has 1 km/s speeds near 1 au.
-
-        """
-
-        # assign units
-        rh = rh * u.au
-        delta = delta * u.au
-        Q = Q / u.s  # Vectorial model run by Roettger
-        aper = core.RectangularAperture((10, 15) * u.arcsec)
-
-        # Parent molecule is H2O
-        parent = Phys.from_dict({
-            'tau_T': 8.2e4 * 0.88 * (rh / u.au) ** 2 * u.s,
-            'tau_d': 8.2e4 * (rh / u.au) ** 2 * u.s,
-            'v_outflow': 1 * u.km / u.s,
-            'sigma': 3e-16 * u.cm ** 2,
-        })
-
-        # Fragment molecule is OH
-        fragment = Phys.from_dict({
-            'tau_T': 2.0e5 * (rh / u.au) ** 2 * u.s,
-            'v_photo': 1.05 * u.km / u.s
-        })
-
-        Q0 = 2e29 / u.s
-        coma = VectorialModel(base_q=Q0, parent=parent, fragment=fragment)
-        N0 = coma.total_number(aper, eph=delta)
-
-        Q_model = (Q0 * N / N0).to(Q.unit)
-        assert u.allclose(Q, Q_model, rtol=0.13)
-
-    @pytest.mark.parametrize("rh,delta,N,Q", (
-        [1.8662, 0.9683, 0.2424e32, 1.048e29],
-        [0.8855, 0.9906, 3.819e32, 5.548e29],
-        [0.9787, 0.8337, 1.63e32, 3.69e29],
-        [1.0467, 0.7219, 0.8703e32, 2.813e29],
-        [1.9059, 1.4031, 1.07e32, 2.76e29],
-        [2.0715, 1.7930, 1.01e32, 1.88e29]
-    ))
-    def test_combi93(self, rh, delta, N, Q):
-        """Compare to results of Combi et al. 1993.
-
-        Combi et al. 1993 compared a Monte Carlo approach to the Vectorial model
-        for OH.  They find best agreement between the two models near 1 au,
-        likely due to the assumption that the water outflow speed is constant in
-        the VM runs, but the MC model only has 1 km/s speeds near 1 au.
+        Combi et al. 1993 compared a Monte Carlo approach to the Vectorial
+        model for OH.  They find best agreement between the two models near 1
+        au, likely due to the assumption that the water outflow speed is
+        constant in the VM runs, but the MC model only has 1 km/s speeds near 1
+        au.
 
         """
 
@@ -675,13 +637,13 @@ class TestVectorialModel:
         vm.f shared with MSK by Joel Parker.  Comments:
 
             WRITTEN BY M. C. FESTOU
-            (Minor modifications were made by MF on 8 Nov. 1988 on the Tempe version)
-            Some unused variables removed on 6 June 1995 in Baltimore when adapting
-            the code to run on a unix machine. A little bit of additional trimming
-            on 27 June 1995. New printing formats.
-            Few printing format changes made on 27 Sept. 96.
-            Formula on the collision radius added on 1 April 1997.
-            Modification in sub GAUSS (NP and coeff.) and in sub APP on 22-24/4/1997.
+            (Minor modifications were made by MF on 8 Nov. 1988 on the Tempe
+            version) Some unused variables removed on 6 June 1995 in Baltimore
+            when adapting the code to run on a unix machine. A little bit of
+            additional trimming on 27 June 1995. New printing formats.  Few
+            printing format changes made on 27 Sept. 96.  Formula on the
+            collision radius added on 1 April 1997.  Modification in sub GAUSS
+            (NP and coeff.) and in sub APP on 22-24/4/1997.
 
         Input fparam.dat:
 
@@ -743,9 +705,11 @@ class TestVectorialModel:
         collision_sphere_radius = 0.14E+07 * u.cm
         collision_sphere_radius_atol = 0.011e7 * u.cm
         N_fragments_theory = 0.668E+33
-        N_fragments_theory_atol = 0.0011e33
+        # N_fragments_theory_atol = 0.0011e33
+        N_fragments_theory_rtol = 0.001
         N_fragments = 0.657E+33
-        N_fragments_atol = 0.0011e33
+        # N_fragments_atol = 0.0011e33
+        N_fragments_rtol = 0.003
 
         fragment_volume_density = '''
 0.97E+03  0.43E+03    0.68E+04  0.59E+02    0.13E+05  0.31E+02    0.18E+05  0.21E+02
@@ -801,19 +765,19 @@ class TestVectorialModel:
         # evaluate the model
         Q0 = 1e27 / u.s
         coma = VectorialModel(base_q=Q0, parent=parent, fragment=fragment)
-        n = coma.volume_density(n0_rho)
-        sigma = coma.column_density(sigma0_rho)
+        n = [coma.volume_density(r) for r in n0_rho]
+        sigma = [coma.column_density(r) for r in sigma0_rho]
 
         # compare results
-        assert u.isclose(coma.vmodel['collision_sphere_radius'],
+        assert u.isclose(coma.vmr.collision_sphere_radius,
                          collision_sphere_radius,
                          atol=collision_sphere_radius_atol)
 
-        assert np.isclose(coma.calc_num_fragments_theory(),
-                          N_fragments_theory, atol=N_fragments_theory_atol)
+        assert np.isclose(coma.vmr.num_fragments_theory,
+                          N_fragments_theory, rtol=N_fragments_theory_rtol)
 
-        assert np.isclose(coma.calc_num_fragments_grid(),
-                          N_fragments, atol=N_fragments_atol)
+        assert np.isclose(coma.vmr.num_fragments_grid,
+                          N_fragments, rtol=N_fragments_rtol)
 
         assert u.allclose(n, n0, atol=n0_atol_revised)
 
