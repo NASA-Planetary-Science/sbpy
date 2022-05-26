@@ -1,8 +1,9 @@
 
 .. _field name list:
 
-sbpy Field Names
-================
+===================================
+Data Container Field Name Reference
+===================================
 
 The following table lists field names that are recognized by `sbpy`
 when accessing `~sbpy.data.DataClass` objects, i.e.,

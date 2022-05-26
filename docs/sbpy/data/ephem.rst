@@ -1,6 +1,6 @@
-===========
-Using Ephem
-===========
+=====================================
+Ephemeris Objects (`sbpy.data.Ephem`)
+=====================================
 
 As shown above (:ref:`How to use Data Containers`),
 `~sbpy.data.Ephem` objects can be created on the fly. However,

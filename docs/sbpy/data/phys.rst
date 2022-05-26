@@ -1,6 +1,6 @@
-============
- Using Phys
-============
+========================================
+Physical Data Objects (`sbpy.data.Phys`)
+========================================
 
 `~sbpy.data.Phys` is designed to contain and query physical properties for
 small bodies; functions to query these properties are
@@ -17,13 +17,13 @@ small number of asteroids:
     >>> phys = Phys.from_sbdb(['Ceres', '12893', '3552'])  # doctest: +REMOTE_DATA
     >>> phys['targetname', 'H', 'diameter'] # doctest: +SKIP
     <QTable length=3>
-	    targetname            H    diameter
-					  km
-	      str26            float64 float64
+            targetname            H    diameter
+                                 mag      km   
+              str26            float64 float64 
     -------------------------- ------- --------
-		       1 Ceres    3.34    939.4
-     12893 Mommert (1998 QS55)    13.9    5.214
-    3552 Don Quixote (1983 SA)    12.9     19.0
+             1 Ceres (A801 AA)    3.56    939.4
+     12893 Mommert (1998 QS55)   13.98    5.214
+    3552 Don Quixote (1983 SA)   12.96     19.0
 
 
 Please note that the SBDB database is not complete with respect to

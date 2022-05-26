@@ -1,6 +1,6 @@
-===========
- Using Obs
-===========
+============================================
+Observational Data Objects (`sbpy.data.Obs`)
+============================================
 
 `~sbpy.data.Obs` objects mostly share their functionality with
 `~sbpy.data.Ephem`, but there are some unique features tailored to observational data.

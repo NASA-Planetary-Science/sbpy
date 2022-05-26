@@ -1,8 +1,8 @@
 .. _data containers:
 
-===============
-Data Containers
-===============
+=======================================
+Data Containers (`sbpy.data.DataClass`)
+=======================================
 
 `sbpy` relies heavily on the use of `~sbpy.data.DataClass` data
 containers that are used to encapsulate data and to propagate them

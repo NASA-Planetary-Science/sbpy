@@ -1,6 +1,6 @@
-=============
- Using Names
-=============
+===========================================
+Small-Body Name Parsing (`sbpy.data.Names`)
+===========================================
 
 `~sbpy.data.Names` is different from the other classes in `~sbpy.data`
 in that it does not use `~sbpy.data.DataClass` as a base class. Instead,
