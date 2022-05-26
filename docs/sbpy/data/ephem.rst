@@ -5,6 +5,7 @@ Using Ephem
 As shown previously (:ref:`How to use Data Containers`), `~sbpy.data.Ephem`
 objects can be created on the fly:
 
+    >>> import astropy.units as u
     >>> from sbpy.data import Ephem
     >>> eph = Ephem.from_dict({'rh': [2] * u.au,
     ...                        'solar_elongation': [90] * u.deg})
