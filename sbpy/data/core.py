@@ -647,6 +647,14 @@ class DataClass():
         """Refer cls.__setitem__ to self._table"""
         self.table.__setitem__(*args)
 
+    def __contains__(self, field_name):
+        """``True`` if the field name, or its equivalent, is present."""
+        try:
+            self._translate_columns(field_name)
+        except KeyError:
+            return False
+        return True
+
     def _translate_columns(self, target_colnames):
         """Translate target_colnames to the corresponding column names
         present in this object's table. Returns a list of actual column
@@ -658,22 +666,23 @@ class DataClass():
         if not isinstance(target_colnames, (list, ndarray, tuple)):
             target_colnames = [target_colnames]
 
-        translated_colnames = deepcopy(target_colnames)
-        for idx, colname in enumerate(target_colnames):
+        translated_colnames = []
+        for colname in target_colnames:
             # colname is already a column name in self.table
             if colname in self.field_names:
+                translated_colnames.append(colname)
                 continue
             # colname is an alternative column name
-            elif colname in sum(Conf.fieldnames, []):
-                for alt in Conf.fieldnames[Conf.fieldname_idx[colname]]:
-                    # translation available for colname
-                    if alt in self.field_names:
-                        translated_colnames[idx] = alt
-                        break
-            # colname is unknown, raise a KeyError
-            else:
-                raise KeyError('field {:s} not available.'.format(
-                    colname))
+            elif colname in Conf.fieldname_idx:
+                alternatives = Conf.fieldnames[Conf.fieldname_idx[colname]]
+                column_in_table = set(
+                    self.field_names).intersection(alternatives)
+                if len(column_in_table) > 0:
+                    # an alternative for colname is present in the table
+                    translated_colnames.append(column_in_table.pop())
+                    continue
+            # colname not in table, and cannot be translated, raise a KeyError
+            raise KeyError('field {:s} not available.'.format(colname))
 
         return translated_colnames
 
