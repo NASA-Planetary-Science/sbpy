@@ -209,7 +209,7 @@ class Conf():
          'provenance': ['ephem', 'obs'],
          'dimension': dimensions.angle},
         {'description': 'Solar Elongation Angle',
-         'fieldnames': ['elong', 'solarelong',
+         'fieldnames': ['elong', 'solarelong', 'solar_elong', 'solar_elongation',
                         'solarelongation', 'elongation', 'Elongation'],
          'provenance': ['ephem', 'obs'],
          'dimension': dimensions.angle},
