@@ -417,9 +417,13 @@ def test_translate_columns(monkeypatch):
         {
             'fieldnames': ['zz', 'aa'],
             'dimension': dimensions.length
+        },
+        {
+            'fieldnames': ['heliocentric_distance', 'rh'],
+            'dimension': dimensions.length
         }
     ]
-    new_fieldnames = [['zz', 'aa']]
+    new_fieldnames = [info['fieldnames'] for info in new_fieldnames_info]
     new_fieldname_idx = {}
     for idx, field in enumerate(new_fieldnames):
         for alt in field:
@@ -436,8 +440,17 @@ def test_translate_columns(monkeypatch):
     assert tab._translate_columns(['aa', 'bb', 'cc']) == ['aa', 'bb', 'cc']
     assert tab._translate_columns(['zz', 'bb', 'cc']) == ['aa', 'bb', 'cc']
 
+    # x is not in the table
     with pytest.raises(KeyError):
         tab._translate_columns(['x'])
+
+    # heliocentric distance is not in the table
+    with pytest.raises(KeyError):
+        tab._translate_columns(['rh'])
+
+    # test translations via __contains__
+    assert all(col in tab for col in ['aa', 'bb', 'cc', 'zz'])
+    assert not any(col in tab for col in ['x', 'rh', 'heliocentric_distance'])
 
 
 def test_indexing():
