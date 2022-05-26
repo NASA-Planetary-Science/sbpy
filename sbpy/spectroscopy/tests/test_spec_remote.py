@@ -3,7 +3,6 @@ import os
 import numpy as np
 import astropy.units as u
 from astropy.time import Time
-from astropy.tests.helper import remote_data
 from astropy.table import Table
 from astroquery.lamda import Lamda
 from astroquery.jplspec import JPLSpec

@@ -3,7 +3,6 @@ import inspect
 import pytest
 import numpy as np
 import astropy.units as u
-from astropy.tests.helper import remote_data
 from ... import units as sbu
 from ...photometry import bandpass
 from .. import core
