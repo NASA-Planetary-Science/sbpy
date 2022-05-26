@@ -2,8 +2,10 @@
 
 import pytest
 
+import numpy as np
 import astropy.units as u
 from astropy.time import Time
+from astropy.tests.helper import assert_quantity_allclose
 
 from ... import exceptions as sbe
 from ... import bib
@@ -82,3 +84,84 @@ class TestEphemFromOorb:
             oo_ephem = Ephem.from_oo(orbit, scope='basic')
             assert 'sbpy.data.ephem.Ephem.from_oo' in bib.show()
         bib.reset()
+
+
+class TestFillDeltaAndPhase:
+    def test_co_orbital(self):
+        """Test Earth co-orbital"""
+        eph = Ephem.from_dict({'rh': np.ones(91) * u.au,
+                               'solar_elongation': np.arange(91) * u.deg})
+        observer_rh = 1 * u.au
+        eph.fill_delta_and_phase(observer_rh=observer_rh)
+
+        # verify they are valid triangles
+        phase = np.arccos((eph['delta']**2 + eph['rh']**2 - observer_rh**2)
+                          / 2 / eph['delta'] / eph['rh'])
+        assert_quantity_allclose(phase, eph['phase'])
+
+    def test_interior(self):
+        """Test interior object"""
+        observer_rh = 1 * u.au
+
+        # given solar elongation, what rh are possible?
+        for selong in [1, 10, 30, 45, 60, 80, 89] * u.deg:
+            min_rh = observer_rh * np.sin(selong)
+            rh = np.linspace(min_rh, observer_rh)[
+                :-1]  # only use interior values
+
+            eph = Ephem.from_dict({'rh': rh})
+            eph['solar_elongation'] = selong
+            eph.fill_delta_and_phase(closest=True)
+
+            # verify they are valid triangles
+            phase = np.arccos((eph['delta']**2 + eph['rh']**2 - observer_rh**2)
+                              / 2 / eph['delta'] / eph['rh'])
+            assert_quantity_allclose(phase, eph['phase'])
+
+            # repeat for farthest solutions
+            closest = eph['delta'].copy()
+            eph.fill_delta_and_phase(closest=False, overwrite=True)
+            phase = np.arccos((eph['delta']**2 + eph['rh']**2 - observer_rh**2)
+                              / 2 / eph['delta'] / eph['rh'])
+            assert_quantity_allclose(phase, eph['phase'])
+
+            # first should be the same distance
+            assert_quantity_allclose(closest[0], eph['delta'][0])
+            # the rest should be different
+            assert (closest[1:] < eph['delta'][1:]).all()
+
+    def test_exterior(self):
+        """Text exterior object"""
+        observer_rh = 1 * u.au
+        rh = (1 + np.logspace(-5, 2)) * u.au
+        for selong in np.linspace(0.01, np.pi) * u.rad:
+            eph = Ephem.from_dict({'rh': rh})
+            eph['solar_elongation'] = selong
+            eph.fill_delta_and_phase()
+
+            # verify they are valid triangles
+            if selong == np.pi * u.rad:
+                phase = 0 * u.deg
+            else:
+                phase = np.arccos((eph['delta']**2 + eph['rh']**2 - observer_rh**2)
+                                  / 2 / eph['delta'] / eph['rh'])
+            assert_quantity_allclose(eph['phase'], phase)
+
+    def test_exceptions(self):
+        eph = Ephem.from_dict({'ra': 100 * u.deg, 'dec': -50 * u.deg})
+        with pytest.raises(ValueError):
+            eph.fill_delta_and_phase()
+
+        eph['rh'] = 1 * u.au
+        with pytest.raises(ValueError):
+            eph.fill_delta_and_phase()
+
+        eph['delta'] = 1 * u.au
+        with pytest.raises(ValueError):
+            eph.fill_delta_and_phase()
+
+        del eph.table['delta']
+        assert 'delta' not in eph
+        eph['phase'] = 1 * u.deg
+        with pytest.raises(ValueError):
+            eph.fill_delta_and_phase()
