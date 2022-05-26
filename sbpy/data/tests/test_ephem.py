@@ -143,7 +143,8 @@ class TestFillDeltaAndPhase:
             if selong == np.pi * u.rad:
                 phase = 0 * u.deg
             else:
-                phase = np.arccos((eph['delta']**2 + eph['rh']**2 - observer_rh**2)
+                phase = np.arccos((eph['delta']**2 + eph['rh']**2
+                                   - observer_rh**2)
                                   / 2 / eph['delta'] / eph['rh'])
             assert_quantity_allclose(eph['phase'], phase)
 

@@ -852,7 +852,8 @@ class Ephem(DataClass):
 
         return ephem
 
-    def fill_delta_and_phase(self, observer_rh=1 * u.au, closest=True, overwrite=False):
+    def fill_delta_and_phase(self, observer_rh=1 * u.au, closest=True,
+                             overwrite=False):
         """Compute observer-target distance and phase angle.
 
         Requires fields for heliocentric distance and solar elongation.
