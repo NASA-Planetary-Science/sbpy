@@ -7,6 +7,8 @@ New Features
 sbpy.data
 ^^^^^^^^^
 
+- Added ``Ephem.fill_delta_and_phase`` to calculate observer-target distance and
+  phase angle, given heliocentric distance and solar elongation. [#339]
 - Added ``Orbit.tisserand`` to calculate the Tisserand parameter of small
   body's orbits with respect to planets. [#325]
 - Added ``Orbit.D_criterion`` to evaluate the D-criterion between two sets
