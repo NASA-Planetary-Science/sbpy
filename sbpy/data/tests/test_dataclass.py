@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import os
 from collections import OrderedDict
+from tempfile import NamedTemporaryFile
 from sbpy.data import dimensions
 import pytest
 from copy import deepcopy
@@ -563,9 +564,10 @@ def test_io():
                                            ('cc', [7, 8, 9]*u.kg)]))
     tab.meta['test'] = 'stuff'
 
-    tab.to_file('dataclass_table.fits', format='fits', overwrite=True)
-
-    tab2 = DataClass.from_file('dataclass_table.fits', format='fits')
+    with NamedTemporaryFile(suffix='.fits', delete=False) as fits_file:
+        tab.to_file(fits_file, format='fits', overwrite=True)
+    tab2 = DataClass.from_file(fits_file.name, format='fits')
+    os.unlink(fits_file.name)
 
     assert all(tab.table == tab2.table)
     assert tab.meta == {key.lower(): val.lower()
