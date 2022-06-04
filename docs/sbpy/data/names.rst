@@ -8,6 +8,7 @@ in that it does not use `~sbpy.data.DataClass` as a base class. Instead,
 umbrella for functions to identify asteroid and comet names, numbers,
 and designations.
 
+
 Cometary and Asteroidal Name Parsing
 ------------------------------------
 
@@ -49,6 +50,7 @@ instance, the identifier ``'Halley'`` would be identified as an asteroid, as it
 lacks a comet type identifier. Hence, some caution is advised when using these
 routines - identification might not be unambiguous.
 
+
 A/ objects: asteroids in cometary orbits
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -56,7 +58,8 @@ Small bodies designated with an A/ prefix have cometary orbits, but appear
 asteroidal [MPEC2018H54]_.  ``sbpy`` considers them to be asteroids:
 
     >>> Names.asteroid_or_comet('A/2018 V3')
-    'comet'
+    'asteroid'
+
 
 Interstellar objects
 ^^^^^^^^^^^^^^^^^^^^
@@ -75,6 +78,7 @@ exception for I/ objects:
 
 
 .. [MPEC2018H54] Williams, G. V. 2018.  A/ Objects.  MPEC 2018-H54.  https://minorplanetcenter.net/mpec/K18/K18H54.html
+
 
 Sorting names with a natural sort order
 ---------------------------------------
@@ -97,6 +101,7 @@ comparisons are made whenever possible:
     >>> from sbpy.data import natural_sort_key
     >>> sorted(comets, key=natural_sort_key)
     ['2P/Encke', '9P/Tempel 1', '10P/Tempel 2', '101P/Chernykh']
+
 
 Packed Numbers and Designations
 -------------------------------
