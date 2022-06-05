@@ -37,13 +37,13 @@ class SolarSpectra:
     }
 
     Kurucz1993 = {
-        'filename': 'ftp://ftp.stsci.edu/cdbs/grid/k93models/standards/sun_kurucz93.fits',
+        'filename': 'https://archive.stsci.edu/hlsps/reference-atlases/cdbs/grid/k93models/standards/sun_kurucz93.fits',
         'description': 'Kurucz (1993) model, scaled by Colina et al. (1996)',
         'bibcode': '1993KurCD..13.....K'
     }
 
     Castelli1996 = {
-        'filename': 'ftp://ftp.stsci.edu/cdbs/grid/k93models/standards/sun_castelli.fits',
+        'filename': 'https://archive.stsci.edu/hlsps/reference-atlases/cdbs/grid/k93models/standards/sun_castelli.fits',
         'description': 'Castelli model, scaled and presented by Colina et al. (1996)',
         'bibcode': '1996AJ....112..307C'
     }
