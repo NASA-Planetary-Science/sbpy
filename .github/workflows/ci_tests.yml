@@ -88,8 +88,8 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install tox codecov
     - name: Test with tox
-      run: |
-        tox -e ${{ matrix.toxenv }}
+      run: tox ${{ matrix.toxargs}} -e ${{ matrix.toxenv}} -- ${{ matrix.toxposargs}}
+
     # This is an example of how to upload coverage to codecov
     # - name: Upload coverage to codecov
     #   if: "contains(matrix.toxenv, '-cov')"
