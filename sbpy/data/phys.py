@@ -112,6 +112,8 @@ class Phys(DataClass):
                 elif key == 'H':
                     # fix for astroquery <0.4.2
                     columnunits[key].add(u.mag)
+                elif key in ['M1', 'M2', 'M1_sig', 'M2_sig']:
+                    columnunits[key].add(u.mag)
 
             alldata.append(data)
 
