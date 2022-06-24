@@ -121,7 +121,8 @@ class Ephem(DataClass):
         >>> from sbpy.data import Ephem
         >>> from astropy.time import Time
         >>> epoch = Time('2018-05-14', scale='utc')
-        >>> eph = Ephem.from_horizons('ceres', epochs=epoch) # doctest: +REMOTE_DATA
+        >>> eph = Ephem.from_horizons('ceres', epochs=epoch)
+        ...         # doctest: +REMOTE_DATA
 
         """
 
@@ -535,7 +536,8 @@ class Ephem(DataClass):
         >>> from sbpy.data import Ephem
         >>> from astropy.time import Time
         >>> epoch = Time('2018-05-14', scale='utc')
-        >>> eph = Ephem.from_horizons('ceres', epochs=epoch) # doctest: +REMOTE_DATA
+        >>> eph = Ephem.from_horizons('ceres', epochs=epoch)
+        ...         # doctest: +REMOTE_DATA
         """
 
         _epochs = None  # avoid modifying epochs in-place
