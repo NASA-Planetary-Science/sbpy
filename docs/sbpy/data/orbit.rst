@@ -130,11 +130,12 @@ parameter with respect to Jupiter is used in the dynamical classification of
 comets.  The Tisserand parameter can be calculated by `~sbpy.Orbit.tisserand`
 as follows:
 
+    >>> epoch = Time(2449400.5, format='jd', scale='tdb')
     >>> halley = Orbit.from_horizons('1P', id_type='designation',
-    ...     closest_apparition=True)  # doctest: +REMOTE_DATA
+    ...     closest_apparition=True, epochs=epoch)  # doctest: +REMOTE_DATA
     >>> T = halley.tisserand()  # doctest: +REMOTE_DATA
-    >>> print('{:.4f}'.format(T)) # doctest: +REMOTE_DATA
-    -0.6164
+    >>> print('{:.4f}'.format(T)) # doctest: +SKIP
+    -0.6050
 
 One can also specify the planet with respect to which the Tisserand parameter
 is calculated with optional parameter `planet`.  It also allows multiple
