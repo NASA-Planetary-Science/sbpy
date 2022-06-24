@@ -5,7 +5,6 @@ import os
 import numpy as np
 import astropy.units as u
 from astropy.time import Time
-from astropy.tests.helper import remote_data
 from astropy.table import Table
 from astroquery.lamda import Lamda
 from astroquery.jplspec import JPLSpec
@@ -64,7 +63,7 @@ def data_path(filename):
     return os.path.join(data_dir, filename)
 
 
-@remote_data
+@pytest.mark.remote_data
 def test_remote_prodrate_simple_hcn():
 
     hcn = Table.read(data_path('HCN.csv'), format="ascii.csv")
@@ -109,7 +108,7 @@ def test_remote_prodrate_simple_hcn():
     assert np.all(err < 0.2345)
 
 
-@remote_data
+@pytest.mark.remote_data
 def test_remote_prodrate_simple_ch3oh():
 
     ch3oh = Table.read(data_path('CH3OH.csv'), format="ascii.csv")
@@ -154,7 +153,7 @@ def test_remote_prodrate_simple_ch3oh():
 # Issue #296
 # MSK: disabling test as CO and HCN are no longer present in LAMDA database(?)
 @pytest.mark.skip
-@remote_data
+@pytest.mark.remote_data
 def test_einstein():
 
     transition_freq_list = [(1611.7935180 * u.GHz).to('MHz'),
@@ -204,7 +203,7 @@ def test_einstein():
     assert np.all(err < 23.5)
 
 
-@remote_data
+@pytest.mark.remote_data
 def test_Haser_prodrate():
 
     co = Table.read(data_path('CO.csv'), format="ascii.csv")
@@ -266,7 +265,7 @@ See https://github.com/keflavich/pyradex for installment
 
 
 @pytest.mark.skipif('pyradex is None')
-@remote_data
+@pytest.mark.remote_data
 def test_Haser_pyradex():
     co = Table.read(data_path('CO.csv'), format="ascii.csv")
 
@@ -319,7 +318,7 @@ def test_Haser_pyradex():
     assert np.all(err < 0.35)
 
 
-@remote_data
+@pytest.mark.remote_data
 def test_intensity_conversion():
     # test untested case for intensity conversion function
 
@@ -335,7 +334,7 @@ def test_intensity_conversion():
     assert np.isclose(intl.value, 6.186509000388917e-11)
 
 
-@remote_data
+@pytest.mark.remote_data
 def test_einsteincoeff_case():
     # test untested case for einstein coefficient
 
@@ -352,7 +351,7 @@ def test_einsteincoeff_case():
     assert np.isclose(round(au.value, 4), 0.0086)
 
 
-@remote_data
+@pytest.mark.remote_data
 def test_betafactor_case():
     # test untested case for beta beta_factor
 
@@ -381,7 +380,7 @@ See https://github.com/keflavich/pyradex for installment
 
 
 @pytest.mark.skipif('pyradex is None')
-@remote_data
+@pytest.mark.remote_data
 def test_pyradex_case():
     transition_freq = (177.196 * u.GHz).to(u.MHz)
     mol_tag = 29002
@@ -402,7 +401,7 @@ def test_pyradex_case():
 
 
 @pytest.mark.skipif('pyradex is None')
-@remote_data
+@pytest.mark.remote_data
 def test_Haser_prodrate_pyradex(mock_nonlte):
 
     co = Table.read(data_path('CO.csv'), format="ascii.csv")
@@ -456,7 +455,7 @@ def test_Haser_prodrate_pyradex(mock_nonlte):
     assert np.all(err < 0.35)
 
 
-@remote_data
+@pytest.mark.remote_data
 def test_pyradex_cdensity(mock_nonlte):
 
     transition_freq = (177.196 * u.GHz).to(u.MHz)
