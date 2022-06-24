@@ -157,7 +157,8 @@ class TestSun:
         HISTORY   Created Thu 15:49:31 16-Nov-95
         COMMENT   solar model spectrum calculated by F. Castelli.
         COMMENT   Absolute flux normalized to a V flux of 184.2 ergs/s/cm^2/A
-        COMMENT   For more details see Colina, Bohlin & Castelli 1996 CAL/SCS-008
+        COMMENT   For more details see Colina, Bohlin & Castelli 1996
+                  CAL/SCS-008
 
         2022-06-05: sbpy calculates 184.5 ergs/s/cm^2/A; agreement within 0.2%
         """
