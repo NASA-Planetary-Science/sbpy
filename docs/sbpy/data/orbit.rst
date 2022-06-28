@@ -106,7 +106,7 @@ terms of Julian date. The following example propagates the current
 orbit of Ceres back to year 2000:
 
     >>> elem = Orbit.from_horizons('Ceres')  # doctest: +REMOTE_DATA
-    >>> epoch = Time('2000-01-01')
+    >>> epoch = Time('2000-01-01', scale='tdb')
     >>> newelem = elem.oo_propagate(epoch) # doctest: +SKIP 
     >>> newelem # doctest: +SKIP
     <QTable length=1>
@@ -118,3 +118,55 @@ orbit of Ceres back to year 2000:
 
 Note that both functions require `pyoorb
 <https://github.com/oorb/oorb/tree/master/python>`_ to be installed.
+
+
+Calculate dynamical parameters
+==============================
+
+The Tisserand parameter is a commonly used dynamic parameter to characterize
+the orbit of a small body, especially a comet, when its orbital evolution is
+dominated by the gravitational effect of a particular planet.  The Tisserand
+parameter with respect to Jupiter is used in the dynamical classification of
+comets.  The Tisserand parameter can be calculated by `~sbpy.Orbit.tisserand`
+as follows:
+
+    >>> epoch = Time(2449400.5, format='jd', scale='tdb')
+    >>> halley = Orbit.from_horizons('1P', id_type='designation',
+    ...     closest_apparition=True, epochs=epoch)  # doctest: +REMOTE_DATA
+    >>> T = halley.tisserand()  # doctest: +REMOTE_DATA
+    >>> print('{:.4f}'.format(T)) # doctest: +SKIP
+    -0.6050
+
+One can also specify the planet with respect to which the Tisserand parameter
+is calculated with optional parameter `planet`.  It also allows multiple
+planet to be specified simultaneously:
+
+    >>> import numpy as np
+    >>> chariklo = Orbit.from_horizons('chariklo', id_type='name') # doctest: +REMOTE_DATA
+    >>> T = chariklo.tisserand(planet=['599', '699', '799', '899']) # doctest: +REMOTE_DATA
+    >>> with np.printoptions(precision=3):  # doctest: +REMOTE_DATA
+    ...     print(T)  # doctest: +REMOTE_DATA
+    [3.485 2.931 2.858 3.224]
+
+`~sbpy.Orbit` also provides a method to compare the orbits of two objects
+in terms of the "D-criterion" (`Jopek 1993 <https://ui.adsabs.harvard.edu/abs/1993Icar..106..603J/abstract>`_).  The `~sbpy.Orbit.D_criterion` method
+implements all three versions of the D-criterion, including
+Southworth & Hawkins function (`Southworth and Hawkins 1963 <https://ui.adsabs.harvard.edu/abs/1963SCoA....7..261S/abstract>`_),
+Drummond function (`Drummond 1991 <https://ui.adsabs.harvard.edu/abs/1981Icar...45..545D/abstract>`_), and the hybrid function (`Jopek 1993 <https://ui.adsabs.harvard.edu/abs/1993Icar..106..603J/abstract>`_).
+The code example below demonstrates the calculation of three versions of
+D_criterion:
+
+    >>> comets = Orbit.from_horizons(['252P', 'P/2016 BA14'],
+    ...     id_type='designation', closest_apparition=True
+    ...     ) # doctest: +REMOTE_DATA
+    >>>
+    >>> # Southworth & Hawkins function
+    >>> D_SH = comets[0].D_criterion(comets[1]) # doctest: +REMOTE_DATA
+    >>> # Drummond function
+    >>> D_D = comets[0].D_criterion(comets[1], version='d') # doctest: +REMOTE_DATA
+    >>> # hybrid function
+    >>> D_H = comets[0].D_criterion(comets[1], version='h') # doctest: +REMOTE_DATA
+    >>> print('D_SH = {:.4f}, D_D = {:.4f}, D_H = {:.4f}'.
+    ...    format(D_SH, D_D, D_H)) # doctest: +REMOTE_DATA
+    D_SH = 0.1560, D_D = 0.0502, D_H = 0.1556
+

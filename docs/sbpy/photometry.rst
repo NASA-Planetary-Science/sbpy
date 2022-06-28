@@ -85,7 +85,7 @@ model parameters:
   >>> phys = Phys.from_sbdb('Ceres')    # doctest: +REMOTE_DATA
   >>> m = HG.from_phys(phys)            # doctest: +REMOTE_DATA
   INFO: Model initialized for 1 Ceres (A801 AA). [sbpy.photometry.core]
-  >>> print(m)                          # doctest: +REMOTE_DATA 
+  >>> print(m)                          # doctest: +SKIP
   Model: HG
   Inputs: ('x',)
   Outputs: ('y',)
@@ -94,7 +94,7 @@ model parameters:
        H    G 
       mag
       ---- ----
-      3.54 0.12
+      3.31 0.12
 
 Note that model set is not supported.  Only one model can be initialized with
 the first set of valid parameters in the input `~sbpy.data.DataClass`.

@@ -44,7 +44,7 @@ class TestOrbitFromHorizons:
 
     def test_mult_epochs(self):
         # discrete epochs - astropy.time.Time objects
-        epochs = Time(['2018-01-02', '2018-01-05'], format='iso')
+        epochs = Time(['2018-01-02', '2018-01-05'], format='iso', scale='tdb')
         data = Orbit.from_horizons('Ceres', epochs=epochs)
         assert len(data.table) == 2
 
@@ -191,3 +191,22 @@ class TestOOPropagate:
         assert u.isclose(oo_orbit['epoch'][0].utc.jd,
                          future_orbit['epoch'][0].utc.jd)
         assert oo_orbit['epoch'].scale == 'utc'
+
+
+@pytest.mark.remote_data
+class TestTisserand:
+    def test_tisserand(self):
+        """Test against JPL values for -0.605 using epoch JD = 2449400.5
+        elements.
+        """
+        epoch = Time(2449400.5, format='jd', scale='tdb')
+        halley = Orbit.from_horizons('1P', id_type='designation',
+                                     closest_apparition=True, epochs=epoch)
+        jupiter = Orbit.from_horizons(599, id_type=None, epochs=epoch)
+        assert u.isclose(halley.tisserand(jupiter), -0.60495016)
+
+        chariklo = Orbit.from_horizons('chariklo', id_type='name',
+                                       closest_apparition=True, epochs=epoch)
+        assert u.allclose(chariklo.tisserand(['599', '699', '799', '899']),
+                          [3.47746154, 2.92700084, 2.85779878, 3.22653384],
+                          atol=1e-5)
