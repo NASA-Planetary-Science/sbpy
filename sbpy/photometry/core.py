@@ -6,9 +6,6 @@ created on June 23, 2017
 
 """
 
-__all__ = ['DiskIntegratedPhaseFunc', 'LinearPhaseFunc', 'HG', 'HG12BaseClass',
-           'HG12', 'HG1G2', 'HG12_Pen16', 'NonmonotonicPhaseFunctionWarning']
-
 from collections import OrderedDict
 import warnings
 import numpy as np
@@ -20,8 +17,12 @@ from astropy import log
 from ..data import (Phys, Obs, Ephem, dataclass_input,
                     quantity_to_dataclass)
 from ..bib import cite
-from ..units import reflectance
+from ..units import dimensionless_albedo, albedo_unit
 from ..exceptions import SbpyWarning
+
+
+__all__ = ['DiskIntegratedPhaseFunc', 'LinearPhaseFunc', 'HG', 'HG12BaseClass',
+           'HG12', 'HG1G2', 'HG12_Pen16', 'NonmonotonicPhaseFunctionWarning']
 
 
 class _spline(object):
@@ -131,9 +132,9 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
     ...     geomalb = linear_phasefunc.geomalb
     ...     phaseint = linear_phasefunc.phaseint
     ...     bondalb = linear_phasefunc.bondalb
-    >>> print('Geometric albedo is {0:.3}'.format(geomalb))
+    >>> print('Geometric albedo is {0:.3}'.format(geomalb.value))
     Geometric albedo is 0.0487
-    >>> print('Bond albedo is {0:.3}'.format(bondalb))
+    >>> print('Bond albedo is {0:.3}'.format(bondalb.value))
     Bond albedo is 0.0179
     >>> print('Phase integral is {0:.3}'.format(phaseint))
     Phase integral is 0.367
@@ -235,10 +236,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
     @property
     def geomalb(self):
         """Geometric albedo"""
-        alb = np.pi*self.to_ref(0.*u.rad)
-        if hasattr(alb, 'unit') and (alb.unit == 1/u.sr):
-            alb = alb*u.sr
-        return alb
+        return self.to_ref(0. * u.rad)
 
     @property
     def bondalb(self):
@@ -375,9 +373,9 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         <class 'sbpy.data.phys.Phys'>
         >>> p.table.pprint(max_width=-1)  # doctest: +SKIP
             targetname    diameter  H    G            pv                  A
-                             km    mag
-        ----------------- -------- ---- ---- ------------------- --------------------
-        1 Ceres (A801 AA)    939.4 3.31 0.12 0.07624470768627523 0.027779803126557152
+                             km    mag              albedo              albedo
+        ----------------- -------- ---- ---- ------------------- -------------------
+        1 Ceres (A801 AA)    939.4 3.31 0.12 0.09423445077857852 0.03433437637586201
         """  # noqa: E501
         cols = {}
         if (self.meta is not None) and ('targetname' in self.meta.keys()):
@@ -611,10 +609,9 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
                     ' size of object is unknown.')
             if self.wfb is None:
                 raise ValueError('Wavelength/Frequency/Band is unknown.')
-            out = out.to(
-                unit,
-                reflectance(self.wfb, cross_section=np.pi * self.radius**2)
-            )
+            xsec = np.pi * self.radius**2
+            out = out.to(unit,
+                         dimensionless_albedo(self.wfb, cross_section=xsec))
         dist_corr = self._distance_module(eph)
         dist_corr = u.Quantity(dist_corr).to(u.mag, u.logarithmic())
         out = out - dist_corr
@@ -704,10 +701,11 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
                         ' phase function can be calculated.')
                 if self.wfb is None:
                     raise ValueError('Wavelength/Frequency/Band is unknown.')
+                xsec = np.pi * self.radius**2
                 out = out.to(
-                    '1/sr',
-                    reflectance(self.wfb, cross_section=np.pi*self.radius**2)
-                )
+                    albedo_unit,
+                    dimensionless_albedo(self.wfb, cross_section=xsec)
+                    )
             else:
                 out = out - norm
                 out = out.to('', u.logarithmic())
@@ -773,9 +771,9 @@ class LinearPhaseFunc(DiskIntegratedPhaseFunc):
     ...     geomalb = linear_phasefunc.geomalb
     ...     phaseint = linear_phasefunc.phaseint
     ...     bondalb = linear_phasefunc.bondalb
-    >>> print('Geometric albedo is {0:.3}'.format(geomalb))
+    >>> print('Geometric albedo is {0:.3}'.format(geomalb.value))
     Geometric albedo is 0.0487
-    >>> print('Bond albedo is {0:.3}'.format(bondalb))
+    >>> print('Bond albedo is {0:.3}'.format(bondalb.value))
     Bond albedo is 0.0179
     >>> print('Phase integral is {0:.3}'.format(phaseint))
     Phase integral is 0.367
@@ -817,7 +815,7 @@ class HG(DiskIntegratedPhaseFunc):
     >>> from sbpy.photometry import HG
     >>> ceres = HG(3.34 * u.mag, 0.12, radius = 480 * u.km, wfb = 'V')
     >>> with solar_fluxd.set({'V': -26.77 * u.mag}):
-    ...     print('geometric albedo = {0:.4f}'.format(ceres.geomalb))
+    ...     print('geometric albedo = {0:.4f}'.format(ceres.geomalb.value))
     ...     print('phase integral = {0:.4f}'.format(ceres.phaseint))
     geometric albedo = 0.0878
     phase integral = 0.3644
@@ -988,7 +986,7 @@ class HG1G2(HG12BaseClass):
     >>> themis = HG1G2(7.063 * u.mag, 0.62, 0.14, radius = 100 * u.km,
     ...     wfb = 'V')
     >>> with solar_fluxd.set({'V': -26.77 * u.mag}):
-    ...     print('geometric albedo = {0:.4f}'.format(themis.geomalb))
+    ...     print('geometric albedo = {0:.4f}'.format(themis.geomalb.value))
     ...     print('phase integral = {0:.4f}'.format(themis.phaseint))
     geometric albedo = 0.0656
     phase integral = 0.3742
@@ -1082,7 +1080,7 @@ class HG12(HG12BaseClass):
     >>> from sbpy.photometry import HG12
     >>> themis = HG12(7.121 * u.mag, 0.68, radius = 100 * u.km, wfb = 'V')
     >>> with solar_fluxd.set({'V': -26.77 * u.mag}):
-    ...     print('geometric albedo = {0:.4f}'.format(themis.geomalb))
+    ...     print('geometric albedo = {0:.4f}'.format(themis.geomalb.value))
     ...     print('phase integral = {0:.4f}'.format(themis.phaseint))
     geometric albedo = 0.0622
     phase integral = 0.3949
@@ -1180,7 +1178,7 @@ class HG12_Pen16(HG12):
     >>> themis = HG12_Pen16(7.121 * u.mag, 0.68, radius = 100 * u.km,
     ...     wfb = 'V')
     >>> with solar_fluxd.set({'V': -26.77 * u.mag}):
-    ...     print('geometric albedo = {0:.4f}'.format(themis.geomalb))
+    ...     print('geometric albedo = {0:.4f}'.format(themis.geomalb.value))
     ...     print('phase integral = {0:.4f}'.format(themis.phaseint))
     geometric albedo = 0.0622
     phase integral = 0.3804

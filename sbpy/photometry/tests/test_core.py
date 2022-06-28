@@ -7,6 +7,7 @@ from astropy.modeling import Parameter
 from ...calib import solar_fluxd
 from ..core import *
 from ...data import Ephem, Phys
+from ...units import albedo_unit
 
 
 def setup_module(module):
@@ -34,7 +35,7 @@ class TestDiskIntegratedPhaseFunc():
     def test_ref_phasefunc(self):
         class ExpPhase(DiskIntegratedPhaseFunc):
             _unit = 'ref'
-            p = Parameter(default=0.1 / u.sr)
+            p = Parameter(default=0.1 * albedo_unit)
             nu = Parameter(default=0.1 / u.rad)
 
             @staticmethod
@@ -45,10 +46,9 @@ class TestDiskIntegratedPhaseFunc():
         pha_test = np.linspace(0, 120, 10) * u.deg
         ref_test = [0.1, 0.09769976, 0.09545244, 0.0932568, 0.09111168,
                     0.08901589, 0.08696831, 0.08496784, 0.08301337,
-                    0.08110387] / u.sr
+                    0.08110387] * albedo_unit
         ref = exp_phase(pha_test)
-        assert np.allclose(ref.value, ref_test.value)
-        assert ref.unit == ref_test.unit
+        assert u.allclose(ref, ref_test)
         ref_n_test = [1.01760649, 0.99419913, 0.97133019, 0.94898729,
                       0.92715833, 0.90583148, 0.88499521, 0.86463822,
                       0.84474949, 0.82531824]
@@ -64,11 +64,10 @@ class TestDiskIntegratedPhaseFunc():
             mag = exp_phase.to_mag(1 * u.rad, unit=u.mag)
         exp_phase.wfb = 'V'
         mag = exp_phase.to_mag(pha_test, unit=u.mag)
-        mag_test = [5.36175238, 5.38701861, 5.41228484, 5.43755106,
-                    5.46281729, 5.48808352, 5.51334975, 5.53861598, 5.56388221,
-                    5.58914844] * u.mag
-        assert np.allclose(mag.value, mag_test.value)
-        assert mag.unit == mag_test.unit
+        mag_test = [6.60462706, 6.62989329, 6.65515952, 6.68042575,
+                    6.70569198, 6.7309582, 6.75622443, 6.78149066,
+                    6.80675689, 6.83202312] * u.mag
+        assert u.allclose(mag, mag_test)
 
         eph_dict = {'alpha': pha_test,
                     'r': np.repeat(0.8 * u.au, 10),
@@ -82,10 +81,10 @@ class TestLinear():
     def test_init(self):
         linphase = LinearPhaseFunc(5 * u.mag, 0.04 * u.mag/u.deg,
                                    radius=300 * u.km, wfb='V')
-        assert np.isclose(linphase.H.value, 5)
-        assert linphase.H.unit == u.mag
-        assert np.isclose(linphase.S.value, 0.04)
-        assert linphase.S.unit == u.mag/u.deg
+        assert isinstance(linphase.H, Parameter)
+        assert u.isclose(linphase.H, 5 * u.mag)
+        assert isinstance(linphase.S, Parameter)
+        assert u.isclose(linphase.S, 0.04 * u.mag / u.deg)
         assert linphase.radius == 300 * u.km
         assert linphase.wfb == 'V'
 
@@ -95,10 +94,8 @@ class TestLinear():
         pha_test = np.linspace(0, np.pi, 10) * u.rad
         mag_test = [5., 5.8, 6.6, 7.4, 8.2, 9., 9.8, 10.6, 11.4, 12.2] * u.mag
         eph = linphase.to_mag(pha_test, append_results=True)
-        assert np.allclose(eph['mag'].value, mag_test.value)
-        assert eph['mag'].unit == mag_test.unit
-        assert np.allclose(eph['alpha'].value, pha_test.value)
-        assert eph['alpha'].unit == pha_test.unit
+        assert u.allclose(eph['mag'], mag_test)
+        assert u.allclose(eph['alpha'], pha_test)
         assert set(eph.field_names) == {'alpha', 'mag'}
         eph = linphase.to_mag(eph, append_results=True)
         assert set(eph.field_names) == {'alpha', 'mag', 'mag1'}
@@ -108,14 +105,13 @@ class TestLinear():
                                    radius=300 * u.km, wfb='V')
         pha_test = np.linspace(0, 180, 10) * u.deg
         eph = linphase.to_ref(pha_test, append_results=True)
-        ref_test = [1.55045242e-02, 7.42093183e-03, 3.55188129e-03,
-                    1.70003727e-03, 8.13688994e-04, 3.89456039e-04,
-                    1.86405380e-04, 8.92192241e-05, 4.27030055e-05,
-                    2.04389434e-05] / u.sr
-        ref_norm_test = np.array(
-            [1., 0.47863009, 0.22908677, 0.10964782, 0.05248075,
-             0.02511886, 0.01202264, 0.0057544, 0.00275423,
-             0.00131826]) * u.dimensionless_unscaled
+        ref_test = [4.87088992e-02, 2.33135449e-02, 1.11585642e-02,
+                    5.34082459e-03, 2.55627937e-03, 1.22351223e-03,
+                    5.85609771e-04, 2.80290459e-04, 1.34155448e-04,
+                    6.42108346e-05] * albedo_unit
+        ref_norm_test = [1., 0.47863009, 0.22908677, 0.10964782,
+                         0.05248075, 0.02511886, 0.01202264, 0.0057544,
+                         0.00275423, 0.00131826] * albedo_unit
         assert u.allclose(eph['ref'], ref_test)
         assert u.allclose(eph['alpha'], pha_test)
         assert set(eph.field_names) == {'alpha', 'ref'}
@@ -135,8 +131,8 @@ class TestLinear():
     def test_props(self):
         linphase = LinearPhaseFunc(5 * u.mag, 2.29 * u.mag/u.rad,
                                    radius=300 * u.km, wfb='V')
-        assert np.isclose(linphase.geomalb, 0.0487089)
-        assert np.isclose(linphase.bondalb, 0.01790315)
+        assert u.isclose(linphase.geomalb, 0.0487089 * albedo_unit)
+        assert u.isclose(linphase.bondalb, 0.01790315 * albedo_unit)
         assert np.isclose(linphase.phaseint, 0.36755394203990327)
 
     def test__distance_module(self):
@@ -178,9 +174,9 @@ class TestHG:
         phys = Phys.from_sbdb('Ceres')
         m = HG.from_phys(phys)
         assert np.all(m.meta['targetname'] == phys['targetname'])
-        assert np.isclose(m.H.value, phys['H'][0].value)
+        assert u.isclose(m.H, phys['H'][0])
         assert np.isclose(m.G.value, phys['G'][0])
-        assert np.isclose(m.radius.value, phys['diameter'].value/2)
+        assert u.isclose(m.radius, phys['diameter']/2)
         # test the case when target name is unknown
         phys.table.remove_column('targetname')
         m = HG.from_phys(phys)
@@ -195,19 +191,16 @@ class TestHG:
         p = m.to_phys()
         assert isinstance(p, Phys)
         assert set(p.field_names) == {'H', 'G'}
-        assert np.isclose(p['H'].value, 3.34)
-        assert p['H'].unit == u.mag
+        assert u.isclose(p['H'], 3.34 * u.mag)
         assert np.isclose(p['G'], 0.12)
         m = HG(3.34 * u.mag, 0.12, radius=480 * u.km, wfb='V',
                meta={'targetname': '1 Ceres'})
         p = m.to_phys()
         assert isinstance(p, Phys)
         assert p['targetname'] == '1 Ceres'
-        assert np.isclose(p['H'].value, 3.34)
-        assert p['H'].unit == u.mag
+        assert u.isclose(p['H'], 3.34 * u.mag)
         assert np.isclose(p['G'], 0.12)
-        assert np.isclose(p['diameter'].value, 960)
-        assert p['diameter'].unit == u.km
+        assert u.isclose(p['diameter'], 960 * u.km)
         assert np.isclose(p['pv'], 0.0877745)
         assert np.isclose(p['A'], 0.03198069)
 
@@ -236,8 +229,8 @@ class TestHG:
 
     def test_props(self):
         ceres = HG(3.34 * u.mag, 0.12, radius=480 * u.km, wfb='V')
-        assert np.isclose(ceres.geomalb, 0.0877745)
-        assert np.isclose(ceres.bondalb, 0.03198069)
+        assert u.isclose(ceres.geomalb, 0.0877745 * albedo_unit)
+        assert u.isclose(ceres.bondalb, 0.03198069 * albedo_unit)
         assert np.isclose(ceres.phaseint, 0.3643505755292945)
 
     def test_from_obs(self):
@@ -256,25 +249,20 @@ class TestHG:
         # test fit with one column
         m = HG.from_obs({'alpha': pha, 'mag': data}, fitter)
         assert isinstance(m, HG)
-        assert isinstance(m.H, Parameter) & np.isclose(
-            m.H.value, 3.436677) & (m.H.unit == u.mag)
-        assert isinstance(m.G, Parameter) & np.isclose(
-            m.G.value, 0.1857588) & (m.G.unit == u.dimensionless_unscaled)
+        assert isinstance(m.H, Parameter) & u.isclose(m.H, 3.436677 * u.mag)
+        assert isinstance(m.G, Parameter) & u.isclose(m.G, 0.1857588)
         # test fit with one column and `init` parameters
         m = HG.from_obs({'alpha': pha, 'mag': data}, fitter, init=[3, 0.1])
         assert isinstance(m, HG)
-        assert isinstance(m.H, Parameter) & np.isclose(
-            m.H.value, 3.4366849) & (m.H.unit == u.mag)
-        assert isinstance(m.G, Parameter) & np.isclose(
-            m.G.value, 0.18576319) & (m.G.unit == u.dimensionless_unscaled)
+        assert isinstance(m.H, Parameter) & u.isclose(m.H, 3.4366849 * u.mag)
+        assert isinstance(m.G, Parameter) & u.isclose(m.G, 0.18576319)
         # test fit with more than one column
         m = HG.from_obs({'alpha': pha, 'mag': data, 'mag1': data,
                          'mag2': data}, fitter, fields=['mag', 'mag1', 'mag2'])
         assert isinstance(m, HG)
-        assert isinstance(m.H, Parameter) & np.allclose(
-            m.H.value, [3.436677]*3) & (m.H.unit == u.mag)
-        assert isinstance(m.G, Parameter) & np.allclose(
-            m.G.value, [0.1857588]*3) & (m.G.unit == u.dimensionless_unscaled)
+        assert isinstance(m.H, Parameter) \
+            & u.allclose(m.H, [3.436677] * 3 * u.mag)
+        assert isinstance(m.G, Parameter) & u.allclose(m.G, [0.1857588] * 3)
         assert 'fields' in m.meta
         assert m.meta['fields'] == ['mag', 'mag1', 'mag2']
         # test fit with more than one column with `init` parameters
@@ -282,10 +270,9 @@ class TestHG:
                          'mag2': data}, fitter, fields=['mag', 'mag1', 'mag2'],
                         init=[[3., 3., 3.], [0.1, 0.1, 0.1]])
         assert isinstance(m, HG)
-        assert isinstance(m.H, Parameter) & np.allclose(
-            m.H.value, [3.4366849]*3) & (m.H.unit == u.mag)
-        assert isinstance(m.G, Parameter) & np.allclose(
-            m.G.value, [0.18576319]*3) & (m.G.unit == u.dimensionless_unscaled)
+        assert isinstance(m.H, Parameter) \
+            & u.allclose(m.H, [3.4366849] * 3 * u.mag)
+        assert isinstance(m.G, Parameter) & u.allclose(m.G, [0.18576319] * 3)
         assert 'fields' in m.meta
         assert m.meta['fields'] == ['mag', 'mag1', 'mag2']
 
@@ -321,12 +308,13 @@ class TestHG:
                     'r': np.repeat(2.7*u.au, 10),
                     'delta': np.repeat(1.8*u.au, 10)}
         eph_test = Ephem.from_dict(eph_dict)
-        ref1_test = [2.79394901e-02, 1.14014480e-02, 6.86111195e-03,
-                     4.26478439e-03, 2.56294353e-03, 1.39916471e-03,
-                     6.32141181e-04, 1.98694761e-04, 3.03518927e-05,
-                     5.78010611e-07] / u.sr
+        ref1_test = [8.77744970e-02, 3.58187053e-02, 2.15548189e-02,
+                     1.33982153e-02, 8.05172457e-03, 4.39560559e-03,
+                     1.98593009e-03, 6.24218000e-04, 9.53532832e-05,
+                     1.81587389e-06] * albedo_unit
         eph1 = ceres.to_ref(eph_test, append_results=True)
         assert set(eph1.field_names) == {'alpha', 'delta', 'ref', 'r'}
+        print(eph1['ref'])
         assert u.allclose(eph1['ref'], ref1_test)
         pha_test = np.linspace(0, np.pi*0.9, 10) * u.rad
         ref2_norm_test = np.array(
@@ -360,11 +348,11 @@ class TestHG1G2:
         assert themis._unit == 'mag'
         assert u.isclose(themis.radius, 100 * u.km)
         assert isinstance(themis.H, Parameter)
-        assert np.isclose(themis.H.value, 7.063)
+        assert u.isclose(themis.H, 7.063 * u.mag)
         assert isinstance(themis.G1, Parameter)
-        assert np.isclose(themis.G1.value, 0.62)
+        assert u.isclose(themis.G1, 0.62)
         assert isinstance(themis.G2, Parameter)
-        assert np.isclose(themis.G2.value, 0.14)
+        assert u.isclose(themis.G2, 0.14)
         assert themis.wfb == 'V'
 
     @pytest.mark.remote_data
@@ -410,8 +398,8 @@ class TestHG1G2:
 
     def test_props(self):
         themis = HG1G2(7.063 * u.mag, 0.62, 0.14, radius=100 * u.km, wfb='V')
-        assert np.isclose(themis.geomalb, 0.06556179)
-        assert np.isclose(themis.bondalb, 0.02453008)
+        assert u.isclose(themis.geomalb, 0.06556179 * albedo_unit)
+        assert u.isclose(themis.bondalb, 0.02453008 * albedo_unit)
         assert np.isclose(themis.phaseint, 0.374152)
 
     def test_from_obs(self):
@@ -429,16 +417,13 @@ class TestHG1G2:
         fitter = LevMarLSQFitter()
         m = HG1G2.from_obs({'alpha': pha, 'mag': data}, fitter)
         assert isinstance(m, HG1G2)
-        assert isinstance(m.H, Parameter) & np.isclose(
-            m.H.value, 7.1167) & (m.H.unit == u.mag)
-        assert isinstance(m.G1, Parameter) & np.isclose(
-            m.G1.value, 0.63922) & (m.G1.unit == u.dimensionless_unscaled)
-        assert isinstance(m.G2, Parameter) & np.isclose(
-            m.G2.value, 0.17262569) & (m.G2.unit == u.dimensionless_unscaled)
+        assert isinstance(m.H, Parameter) & u.isclose(m.H, 7.1167 * u.mag)
+        assert isinstance(m.G1, Parameter) & u.isclose(m.G1, 0.63922)
+        assert isinstance(m.G2, Parameter) & u.isclose(m.G2, 0.17262569)
 
     def test_to_mag(self):
         themis = HG1G2(7.063 * u.mag, 0.62, 0.14, radius=100 * u.km, wfb='V')
-        pha_test = np.linspace(0, np.pi, 10)*u.rad
+        pha_test = np.linspace(0, np.pi, 10) * u.rad
         mag_test = [7.063, 8.07436233, 8.68048572, 9.29834638, 9.96574599,
                     10.72080704, 11.52317465, 12.15094612, 18.65369516,
                     18.65389398] * u.mag
@@ -447,10 +432,10 @@ class TestHG1G2:
     def test_to_ref(self):
         themis = HG1G2(7.063 * u.mag, 0.62, 0.14, radius=100 * u.km, wfb='V')
         pha_test = np.linspace(0, np.pi, 10)*u.rad
-        ref_test = [2.08689669e-02, 8.22159390e-03, 4.70442623e-03,
-                    2.66294623e-03, 1.44013284e-03, 7.18419542e-04,
-                    3.43108196e-04, 1.92452033e-04, 4.82195204e-07,
-                    4.82106912e-07] / u.sr
+        ref_test = [6.55617931e-02, 2.58288990e-02, 1.47793909e-02,
+                    8.36589231e-03, 4.52431075e-03, 2.25698156e-03,
+                    1.07790619e-03, 6.04605893e-04, 1.51486091e-06,
+                    1.51458353e-06] * albedo_unit
         assert u.allclose(themis.to_ref(pha_test), ref_test)
 
     def test_g1g2_validator(self):
@@ -466,9 +451,9 @@ class TestHG12:
         assert themis._unit == 'mag'
         assert u.isclose(themis.radius, 100 * u.km)
         assert isinstance(themis.H, Parameter)
-        assert np.isclose(themis.H.value, 7.121)
+        assert u.isclose(themis.H, 7.121 * u.mag)
         assert isinstance(themis.G12, Parameter)
-        assert np.isclose(themis.G12.value, 0.68)
+        assert u.isclose(themis.G12, 0.68)
         assert themis.wfb == 'V'
 
     def test__G1_G2(self):
@@ -508,8 +493,8 @@ class TestHG12:
 
     def test_props(self):
         themis = HG12(7.121 * u.mag, 0.68, radius=100 * u.km, wfb='V')
-        assert np.isclose(themis.geomalb, 0.06215139)
-        assert np.isclose(themis.bondalb, 0.02454096)
+        assert u.isclose(themis.geomalb, 0.06215139 * albedo_unit)
+        assert u.isclose(themis.bondalb, 0.02454096 * albedo_unit)
         assert np.isclose(themis.phaseint, 0.3948577512)
         assert np.isclose(themis.phasecoeff, -1.6777182566684201)
         assert np.isclose(themis.oe_amp, 0.23412300750840437)
@@ -529,10 +514,8 @@ class TestHG12:
         fitter = LevMarLSQFitter()
         m = HG12.from_obs({'alpha': pha, 'mag': data}, fitter)
         assert isinstance(m, HG12)
-        assert isinstance(m.H, Parameter) & np.isclose(
-            m.H.value, 7.13939) & (m.H.unit == u.mag)
-        assert isinstance(m.G12, Parameter) & np.isclose(
-            m.G12.value, 0.44872) & (m.G12.unit == u.dimensionless_unscaled)
+        assert isinstance(m.H, Parameter) & u.isclose(m.H, 7.13939 * u.mag)
+        assert isinstance(m.G12, Parameter) & u.isclose(m.G12, 0.44872)
 
     def test_to_mag(self):
         pha_test = np.linspace(0, np.pi, 10) * u.rad
@@ -544,10 +527,10 @@ class TestHG12:
 
     def test_to_ref(self):
         pha_test = np.linspace(0, np.pi, 10) * u.rad
-        ref_test = [1.97834009e-02, 8.23548424e-03, 4.71126618e-03,
-                    2.66039298e-03, 1.43691333e-03, 7.18378086e-04,
-                    3.46630119e-04, 1.96703860e-04, 4.59397839e-07,
-                    4.59313722e-07] / u.sr
+        ref_test = [6.21513869e-02, 2.58725368e-02, 1.48008792e-02,
+                    8.35787104e-03, 4.51419636e-03, 2.25685132e-03,
+                    1.08897064e-03, 6.17963402e-04, 1.44324088e-06,
+                    1.44297661e-06] * albedo_unit
         themis = HG12(7.121 * u.mag, 0.68, radius=100 * u.km, wfb='V')
         assert u.allclose(themis.to_ref(pha_test), ref_test)
 
@@ -568,9 +551,9 @@ class TestHG12_Pen16:
         assert themis._unit == 'mag'
         assert u.isclose(themis.radius, 100*u.km)
         assert isinstance(themis.H, Parameter)
-        assert np.isclose(themis.H.value, 7.121)
+        assert u.isclose(themis.H, 7.121 * u.mag)
         assert isinstance(themis.G12, Parameter)
-        assert np.isclose(themis.G12.value, 0.68)
+        assert u.isclose(themis.G12, 0.68)
         assert themis.wfb == 'V'
 
     def test__G1_G2(self):
@@ -604,8 +587,8 @@ class TestHG12_Pen16:
 
     def test_props(self):
         themis = HG12_Pen16(7.121 * u.mag, 0.68, radius=100 * u.km, wfb='V')
-        assert np.isclose(themis.geomalb, 0.06215139)
-        assert np.isclose(themis.bondalb, 0.02364406)
+        assert u.isclose(themis.geomalb, 0.06215139 * albedo_unit)
+        assert u.isclose(themis.bondalb, 0.02364406 * albedo_unit)
         assert np.isclose(themis.phaseint, 0.38042683486452)
 
     def test_from_obs(self):
@@ -623,10 +606,8 @@ class TestHG12_Pen16:
         fitter = LevMarLSQFitter()
         m = HG12_Pen16.from_obs({'alpha': pha, 'mag': data}, fitter)
         assert isinstance(m, HG12_Pen16)
-        assert isinstance(m.H, Parameter) & np.isclose(
-            m.H.value, 7.038705) & (m.H.unit == u.mag)
-        assert isinstance(m.G12, Parameter) & np.isclose(
-            m.G12.value, 0.681691) & (m.G12.unit == u.dimensionless_unscaled)
+        assert isinstance(m.H, Parameter) & u.isclose(m.H, 7.038705 * u.mag)
+        assert isinstance(m.G12, Parameter) & u.isclose(m.G12, 0.681691)
 
     def test_to_mag(self):
         pha_test = np.linspace(0, np.pi, 10) * u.rad
@@ -638,10 +619,10 @@ class TestHG12_Pen16:
 
     def test_to_ref(self):
         pha_test = np.linspace(0, np.pi, 10) * u.rad
-        ref_test = [1.97834009e-02, 7.85236516e-03, 4.54188647e-03,
-                    2.59652934e-03, 1.41153731e-03, 6.97923066e-04,
-                    3.19213708e-04, 1.69983395e-04, 5.59122499e-07,
-                    5.59020121e-07] / u.sr
+        ref_test = [6.21513869e-02, 2.46689327e-02, 1.42687572e-02,
+                    8.15723750e-03, 4.43447524e-03, 2.19258998e-03,
+                    1.00283944e-03, 5.34018585e-04, 1.75653514e-06,
+                    1.75621351e-06] * albedo_unit
         themis = HG12_Pen16(7.121 * u.mag, 0.68, radius=100 * u.km, wfb='V')
         assert u.allclose(themis.to_ref(pha_test), ref_test)
 

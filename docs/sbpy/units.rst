@@ -78,7 +78,8 @@ phase angle can be calculated:
   >>> import numpy as np
   >>> from astropy import units as u
   >>> from sbpy.calib import solar_fluxd, vega_fluxd
-  >>> from sbpy.units import reflectance, VEGAmag, spectral_density_vega
+  >>> from sbpy.units import (dimensionless_albedo, albedo_unit, VEGAmag,
+  ...                         spectral_density_vega)
   >>>
   >>> solar_fluxd.set({'V': -26.775 * VEGAmag})
   <ScienceState solar_fluxd: {'V': <Magnitude -26.775 mag(VEGA)>}>
@@ -87,19 +88,20 @@ phase angle can be calculated:
   >>> mag = 3.4 * VEGAmag
   >>> radius = 460 * u.km
   >>> cross_sec = np.pi * (radius)**2
-  >>> ref = mag.to('1/sr', reflectance('V', cross_section=cross_sec))
+  >>> ref = mag.to(albedo_unit, dimensionless_albedo('V',
+  ...              cross_section=cross_sec))
   >>> print('{0:.4f}'.format(ref))
-  0.0287 1 / sr
+  0.0900 albedo
 
 `~sbpy.units.reflectance` works with `sbpy`'s spectral calibration system (see :ref:`sbpy-calib`):
 
   >>> from sbpy.photometry import bandpass
   >>> V = bandpass('Johnson V')
-  >>> ref = 0.0287 / u.sr
-  >>> cross_sec = mag.to('km2', reflectance(V, reflectance=ref))
+  >>> ref = 0.09 * albedo_unit
+  >>> cross_sec = mag.to('km2', dimensionless_albedo(V, albedo=ref))
   >>> radius = np.sqrt(cross_sec / np.pi)
   >>> print('{0:.2f}'.format(radius))
-  459.69 km
+  460.11 km
 
 `~sbpy.units.reflectance` also supports conversion between a flux spectrum and a reflectance spectrum:
 
@@ -107,19 +109,19 @@ phase angle can be calculated:
   >>> flux = [1.636e-18, 1.157e-18, 8.523e-19, 5.262e-19, 1.9645e-19] \
   ...     * u.Unit('W/(m2 um)')
   >>> xsec = 0.0251 * u.km**2
-  >>> ref = flux.to('1/sr', reflectance(wave, cross_section=xsec))
+  >>> ref = flux.to(albedo_unit, dimensionless_albedo(wave, cross_section=xsec))
   >>> print(ref)  # doctest: +FLOAT_CMP
-  [0.0021763  0.00201223 0.0022041  0.00269637 0.00292785] 1 / sr
+  [0.00683705 0.00632161 0.00692438 0.0084709 0.00919811] albedo
 
-`~sbpy.units.reflectance` also supports dimensionless logarithmic unit for
-solar flux, which can be specified with `~sbpy.calib.solar_fluxd.set`:
+`~sbpy.units.dimensionless_albedo` also supports dimensionless logarithmic unit
+for solar flux, which can be specified with `~sbpy.calib.solar_fluxd.set`:
 
   >>> with solar_fluxd.set({'V': -26.77 * u.mag}):
   ...     mag = 3.4 * u.mag
-  ...     ref = mag.to('1/sr', reflectance('V', cross_section =
+  ...     ref = mag.to(albedo_unit, dimensionless_albedo('V', cross_section =
   ...         np.pi*(460*u.km)**2))
   >>> print(ref)  # doctest: +FLOAT_CMP
-  0.028786262941247264 1 / sr
+  0.09043471218052651 albedo
 
 Projected Sizes
 ---------------

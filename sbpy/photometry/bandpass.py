@@ -4,12 +4,13 @@ sbpy bandpass Module
 
 """
 
+import os
+from astropy.utils.data import get_pkg_data_filename
+
+
 __all__ = [
     'bandpass'
 ]
-
-import os
-from astropy.utils.data import get_pkg_data_filename
 
 
 def bandpass(name):

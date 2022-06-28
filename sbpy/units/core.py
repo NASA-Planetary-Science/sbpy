@@ -14,18 +14,6 @@ To use these units in the top-level `astropy.units` namespace::
 
 """
 
-__all__ = [
-    'hundred_nm',
-    'spectral_density_vega',
-    'enable',
-    'VEGA',
-    'VEGAmag',
-    'JM',
-    'JMmag',
-    'reflectance',
-    'projected_size',
-]
-
 from warnings import warn
 import numpy as np
 import astropy.units as u
@@ -37,6 +25,20 @@ from ..calib import (
 from .. import data as sbd
 from ..spectroscopy.sources import SinglePointSpectrumError, SynphotRequired
 from ..exceptions import OptionalPackageUnavailable, SbpyWarning
+
+
+__all__ = [
+    'hundred_nm',
+    'spectral_density_vega',
+    'enable',
+    'VEGA',
+    'VEGAmag',
+    'JM',
+    'JMmag',
+    'albedo_unit',
+    'dimensionless_albedo',
+    'projected_size',
+]
 
 
 VEGA = u.def_unit(['VEGA', 'VEGAflux'],
@@ -58,6 +60,13 @@ JMmag.__doc__ = ("Johnson-Morgan magnitude system: Vega is 0.03 mag at "
 hundred_nm = u.def_unit('100 nm', represents=100 * u.nm,
                         doc=('Convenience unit for expressing spectral '
                              'gradients.'))
+
+# various reflectance and albedo units
+albedo_unit = u.def_unit(['albedo'], represents=u.dimensionless_unscaled,
+                         doc=('Integrated reflectance of a planetary body '
+                              'at arbitrary phase angle.  Albedo is the '
+                              'product of geometric albedo and '
+                              'disk-integrated phase function.'))
 
 
 def enable():
@@ -164,15 +173,32 @@ def spectral_density_vega(wfb):
     return equiv
 
 
-@u.quantity_input(cross_section='km2', reflectance='1/sr')
-def reflectance(wfb, cross_section=None, reflectance=None, **kwargs):
-    """Reflectance related equivalencies.
+@u.quantity_input(flux=['W / (m2 nm)', 'W / (m2 Hz)', VEGA, u.AB, u.ST],
+                  cross_section='km2', albedo=albedo_unit, rh=u.au,
+                  delta=u.au)
+def dimensionless_albedo(wfb, flux=None, cross_section=None, albedo=None,
+                         rh=1*u.au, delta=1*u.au, **kwargs):
+    """Dimensionless albedo related equivalencies.
 
-    Supports conversion from/to reflectance and scattering
-    cross-section to/from total flux or magnitude at 1 au for both
-    heliocentric and observer distances.  Uses `sbpy`'s photometric
-    calibration system: `~sbpy.calib.solar_spectrum` and
+    Supports conversion between disk-integrated albedo, scattering
+    cross-section, and the total flux or magnitude.  Uses `sbpy`'s
+    photometric calibration system: `~sbpy.calib.solar_spectrum` and
     `~sbpy.calib.solar_fluxd`.
+
+    To perform the conversion, one of the three keywords `flux`,
+    `cross_section`, or `albedo` must be provided, depending on the units
+    of the from and to quantities.
+
+    Albedo is defined as the ratio of the disk-integrated brightness
+    of a solar system planetary body at an arbitrary phase angle to that
+    of a perfect Lambert disk of the same radius and at the same distance
+    as the body, but illuminated and observed perpendicularly.
+
+    Based on this definition, albedo is essentially the product of
+    geometric albedo (pv) and the disk-integrated phase function (Phi(a),
+    where a is phase angle):
+
+        albedo = pv * Phi(a)
 
     Spectral flux density equivalencies for Vega are automatically
     used, if possible.  Dimensionless logarithmic units are also supported
@@ -185,13 +211,21 @@ def reflectance(wfb, cross_section=None, reflectance=None, **kwargs):
         Wavelength, frequency, or a bandpass corresponding to the flux
         density being converted.
 
+    flux : `astropy.units.Quantity`, `astropy.units.Magnitude`, optional
+        Total flux or magnitude of a planetary body.
+
     cross_section : `astropy.units.Qauntity`, optional
         Total scattering cross-section.  One of `cross_section` or
         `reflectance` is required.
 
-    reflectance : `astropy.units.Quantity`, optional
-        Average reflectance.  One of `cross_section` or `reflectance`
-        is required.
+    albedo : `astropy.units.Quantity`, optional
+        Albedo as defined earlier
+
+    rh : `astropy.units.Quantity`, optional
+        Heliocentric distance of the target.
+
+    delta : `astropy.units.Quantity`, optional
+        Observer distance of the target.
 
     **kwargs
         Keyword arguments for `~Sun.observe()`.
@@ -205,36 +239,41 @@ def reflectance(wfb, cross_section=None, reflectance=None, **kwargs):
 
     Examples
     --------
-    Convertion between scattering cross-section and reflectance
     >>> import numpy as np
     >>> from astropy import units as u
-    >>> from sbpy.units import reflectance, VEGAmag, spectral_density_vega
-    >>> from sbpy.calib import solar_fluxd, vega_fluxd
+    >>> from sbpy.units import dimensionless_albedo
+    >>> from sbpy.units import VEGAmag, spectral_density_vega, albedo_unit
+    >>> from sbpy.calib import solar_fluxd
     >>>
     >>> solar_fluxd.set({'V': -26.77471503 * VEGAmag})
     ...                                             # doctest: +IGNORE_OUTPUT
-    >>> vega_fluxd.set({'V': 3.5885e-08 * u.Unit('W / (m2 um)')})
-    ...                                             # doctest: +IGNORE_OUTPUT
+
+    >>> # calculate albedo from magnitude
     >>> mag = 3.4 * VEGAmag
-    >>> cross_sec = np.pi * (460 * u.km)**2
-    >>> ref = mag.to('1/sr', reflectance('V', cross_section=cross_sec))
-    >>> print('{0:.4f}'.format(ref))
-    0.0287 1 / sr
-    >>> mag1 = ref.to(VEGAmag, reflectance('V', cross_section=cross_sec))
-    >>> print('{0:.2f}'.format(mag1))
-    3.40 mag(VEGA)
+    >>> xsec = np.pi * (460 * u.km)**2
+    >>> alb = mag.to(albedo_unit,
+    ...              dimensionless_albedo('V', cross_section=xsec))
+    >>> print('{0:.4f}'.format(alb))
+    0.0900 albedo
 
-    >>> # Convertion between magnitude and scattering cross-section
-    >>> ref = 0.0287 / u.sr
-    >>> cross_sec = mag.to('km2', reflectance('V', reflectance=ref))
-    >>> radius = np.sqrt(cross_sec/np.pi)
+    >>> # calculate size from magnitude
+    >>> alb = 0.09 * albedo_unit
+    >>> xsec = mag.to('km2', dimensionless_albedo('V', albedo=alb))
+    >>> radius = np.sqrt(xsec/np.pi)
     >>> print('{0:.2f}'.format(radius))
-    459.69 km
-    >>> mag2 = cross_sec.to(VEGAmag, reflectance('V', reflectance=ref))
-    >>> print('{0:.2f}'.format(mag2))
-    3.40 mag(VEGA)
+    460.11 km
 
+    >>> # calculate albedo from size
+    >>> radius = 460 * u.km
+    >>> xsec = np.pi * radius**2
+    >>> alb = xsec.to(albedo_unit, dimensionless_albedo('V', flux=mag))
+    >>> print('{0:.4f}'.format(alb))
+    0.0900 albedo
     """
+
+    if [flux, cross_section, albedo].count(None) != 2:
+        raise ValueError('One and only one of `flux`, `cross_section`, '
+                         'or `albedo` should be specified.')
 
     # Solar flux density at 1 au in different units
     f_sun = []
@@ -249,7 +288,8 @@ def reflectance(wfb, cross_section=None, reflectance=None, **kwargs):
     if len(f_sun) == 0:
         try:
             f_sun.append(sun.observe(wfb, **kwargs))
-        except (SinglePointSpectrumError, u.UnitConversionError, FilterLookupError):
+        except (SinglePointSpectrumError, u.UnitConversionError,
+                FilterLookupError):
             pass
 
     # pass fluxd0 as an optional argument to dereference it,
@@ -257,35 +297,39 @@ def reflectance(wfb, cross_section=None, reflectance=None, **kwargs):
     # the last item in f_sun
     equiv = []
     if cross_section is not None:
-        xsec = cross_section.to('au2').value
+        xsec = cross_section.to_value('au2')
         for fluxd0 in f_sun:
             if fluxd0.unit in [u.mag, u.dB, u.dex]:
                 equiv.append((
-                    fluxd0.unit, u.sr**-1,
-                    lambda mag, mag0=fluxd0.value: u.Quantity(mag - mag0,
-                        fluxd0.unit).to('', u.logarithmic()).value / xsec,
-                    lambda ref, mag0=fluxd0.value: u.Quantity(ref * xsec).to(
-                        fluxd0.unit, u.logarithmic()).value + mag0
+                    fluxd0.unit, albedo_unit,
+                    lambda mag, mag0=fluxd0.value:
+                        u.Quantity(mag - mag0, fluxd0.unit).to_value
+                        ('', u.logarithmic()) / xsec * np.pi,
+                    lambda ref, mag0=fluxd0.value:
+                        u.Quantity(ref * xsec / np.pi).to_value
+                        (fluxd0.unit, u.logarithmic()) + mag0
                     ))
             else:
                 equiv.append((
-                    fluxd0.unit, u.sr**-1,
-                    lambda fluxd, fluxd0=fluxd0.value: fluxd / (fluxd0 * xsec),
-                    lambda ref, fluxd0=fluxd0.value: ref * fluxd0 * xsec
+                    fluxd0.unit, albedo_unit,
+                    lambda fluxd, fluxd0=fluxd0.value:
+                        fluxd / (fluxd0 * xsec / np.pi),
+                    lambda ref, fluxd0=fluxd0.value:
+                        ref * fluxd0 * xsec / np.pi
                 ))
-    elif reflectance is not None:
-        ref = reflectance.to('1/sr').value
-        au2km = (const.au.to('km')**2).value
+    elif albedo is not None:
+        ref = albedo.value / np.pi
+        au2km = const.au.to_value('km')**2
         for fluxd0 in f_sun:
             if fluxd0.unit in [u.mag, u.dB, u.dex]:
                 equiv.append((
                     fluxd0.unit, u.km**2,
-                    lambda mag, mag0=fluxd0.value: u.Quantity(mag - mag0,
-                        fluxd0.unit).to('', u.logarithmic()).value / ref *
-                        au2km,
-                    lambda xsec, mag0=fluxd0.value: u.Quantity(ref *
-                        xsec / au2km).to(fluxd0.unit, u.logarithmic()).value
-                        + mag0
+                    lambda mag, mag0=fluxd0.value:
+                        u.Quantity(mag - mag0, fluxd0.unit).to_value
+                        ('', u.logarithmic()) / ref * au2km,
+                    lambda xsec, mag0=fluxd0.value:
+                        u.Quantity(ref * xsec / au2km).to_value
+                        (fluxd0.unit, u.logarithmic()) + mag0
                     ))
             else:
                 equiv.append((
@@ -295,6 +339,23 @@ def reflectance(wfb, cross_section=None, reflectance=None, **kwargs):
                     lambda xsec, fluxd0=fluxd0.value: (
                         fluxd0 * ref * xsec / au2km)
                 ))
+    elif flux is not None:
+        au2km = const.au.to_value('km')**2
+        try:
+            f_sun = sun.observe(wfb, unit=flux.unit, **kwargs)
+        except SinglePointSpectrumError:
+            f_sun = sun(wfb, unit=unit)
+        except (u.UnitConversionError, FilterLookupError):
+            return equiv
+        if isinstance(flux, u.Magnitude):
+            f_over_fsun = (flux - f_sun).to_value('', u.logarithmic())
+        else:
+            f_over_fsun = flux / f_sun
+        equiv.append((
+            albedo_unit, u.km**2,
+            lambda alb: f_over_fsun / alb * au2km * np.pi,
+            lambda xsec: f_over_fsun / xsec * au2km * np.pi,
+        ))
     return equiv
 
 
