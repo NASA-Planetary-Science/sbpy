@@ -149,16 +149,16 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
     >>>
     >>> # Initialize from physical parameters pulled from JPL SBDB
     >>> phys = Phys.from_sbdb('Ceres')       # doctest: +REMOTE_DATA
-    >>> print(phys['targetname','H','G'])    # doctest: +REMOTE_DATA
+    >>> print(phys['targetname','H','G'])    # doctest: +SKIP
     <QTable length=1>
         targetname       H       G
                         mag
           str17       float64 float64
     ----------------- ------- -------
-    1 Ceres (A801 AA)    3.54    0.12
+    1 Ceres (A801 AA)    3.31    0.12
     >>> m = HG.from_phys(phys)                  # doctest: +REMOTE_DATA
     INFO: Model initialized for 1 Ceres (A801 AA). [sbpy.photometry.core]
-    >>> print(m)                             # doctest: +REMOTE_DATA
+    >>> print(m)                             # doctest: +SKIP
     Model: HG
     Inputs: ('x',)
     Outputs: ('y',)
@@ -167,22 +167,22 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
          H     G
         mag
         ---- ----
-        3.54 0.12
+        3.31 0.12
     >>> print(m.meta['targetname'])          # doctest: +REMOTE_DATA
     1 Ceres (A801 AA)
-    >>> print(m.radius)                      # doctest: +REMOTE_DATA
+    >>> print(m.radius)                      # doctest: +SKIP
     469.7 km
     >>>
     >>> # Initialize from orbital elements pulled from JPL Horizons that also
     >>> # contain the H and G parameters
     >>> elem = Orbit.from_horizons('Ceres')  # doctest: +REMOTE_DATA
-    >>> print(elem['targetname','H','G'])    # doctest: +REMOTE_DATA
+    >>> print(elem['targetname','H','G'])    # doctest: +SKIP
     <QTable length=1>
         targetname       H       G
                         mag
           str17       float64 float64
     ----------------- ------- -------
-    1 Ceres (A801 AA)    3.54    0.12
+    1 Ceres (A801 AA)    3.33    0.12
     >>> m = HG.from_phys(elem)                    # doctest: +REMOTE_DATA
     INFO: Model initialized for 1 Ceres (A801 AA). [sbpy.photometry.core]
     >>>
@@ -278,16 +278,16 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         >>>
         >>> # Initialize from physical parameters pulled from JPL SBDB
         >>> phys = Phys.from_sbdb('Ceres')      # doctest: +REMOTE_DATA
-        >>> print(phys['targetname','H','G'])   # doctest: +REMOTE_DATA
+        >>> print(phys['targetname','H','G'])   # doctest: +SKIP
         <QTable length=1>
             targetname       H       G
                             mag
               str17       float64 float64
         ----------------- ------- -------
-        1 Ceres (A801 AA)    3.54    0.12
+        1 Ceres (A801 AA)    3.31    0.12
         >>> m = HG.from_phys(phys)              # doctest: +REMOTE_DATA
         INFO: Model initialized for 1 Ceres (A801 AA). [sbpy.photometry.core]
-        >>> print(m)                            # doctest: +REMOTE_DATA
+        >>> print(m)                            # doctest: +SKIP
         Model: HG
         Inputs: ('x',)
         Outputs: ('y',)
@@ -296,7 +296,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
              H     G
             mag
             ---- ----
-            3.54 0.12
+            3.31 0.12
         >>> print(m.meta['targetname'])         # doctest: +REMOTE_DATA
         1 Ceres (A801 AA)
         >>> print(m.radius)                     # doctest: +REMOTE_DATA
@@ -306,7 +306,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         >>> phys = Phys.from_sbdb('12893')      # doctest: +REMOTE_DATA
         >>> print('G' in phys.field_names)      # doctest: +REMOTE_DATA
         False
-        >>> m = HG.from_phys(phys)              # doctest: +REMOTE_DATA +SKIP
+        >>> m = HG.from_phys(phys)              # doctest: +SKIP
         Traceback (most recent call last):
           File "<stdin>", line 1, in <module>
         KeyError: 'field G not available.'
@@ -359,13 +359,13 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         >>>
         >>> # Initialize from physical parameters pulled from JPL SBDB
         >>> phys = Phys.from_sbdb('Ceres')             # doctest: +REMOTE_DATA
-        >>> print(phys['targetname','radius','H','G']) # doctest: +REMOTE_DATA
+        >>> print(phys['targetname','radius','H','G']) # doctest: +SKIP
         <QTable length=1>
             targetname     radius    H       G
                              km     mag
               str17       float64 float64 float64
         ----------------- ------- ------- -------
-        1 Ceres (A801 AA)   469.7    3.54    0.12
+        1 Ceres (A801 AA)   469.7    3.31    0.12
         >>> m = HG.from_phys(phys)   # doctest: +REMOTE_DATA
         INFO: Model initialized for 1 Ceres (A801 AA). [sbpy.photometry.core]
         >>> m.wfb = 'V'              # doctest: +REMOTE_DATA
@@ -373,11 +373,11 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         ...     p = m.to_phys()      # doctest: +REMOTE_DATA
         >>> print(type(p))           # doctest: +REMOTE_DATA
         <class 'sbpy.data.phys.Phys'>
-        >>> p.table.pprint(max_width=-1)  # doctest: +REMOTE_DATA
+        >>> p.table.pprint(max_width=-1)  # doctest: +SKIP
             targetname    diameter  H    G            pv                  A
                              km    mag
         ----------------- -------- ---- ---- ------------------- --------------------
-        1 Ceres (A801 AA)    939.4 3.54 0.12 0.07624470768627523 0.027779803126557152
+        1 Ceres (A801 AA)    939.4 3.31 0.12 0.07624470768627523 0.027779803126557152
         """  # noqa: E501
         cols = {}
         if (self.meta is not None) and ('targetname' in self.meta.keys()):
@@ -588,9 +588,10 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         >>> from sbpy.data import Ephem
         >>> ceres_hg = HG(3.34 * u.mag, 0.12)
         >>> # parameter `eph` as `~sbpy.data.Ephem` type
-        >>> eph = Ephem.from_dict({'alpha': np.linspace(0,np.pi*0.9,200)*u.rad,
-        ...              'r': np.repeat(2.7*u.au, 200),
-        ...              'delta': np.repeat(1.8*u.au, 200)})
+        >>> eph = Ephem.from_dict({'alpha': np.linspace(
+        ...                                     0, np.pi * 0.9, 200) * u.rad,
+        ...                        'r': np.repeat(2.7 * u.au, 200),
+        ...                        'delta': np.repeat(1.8 * u.au, 200)})
         >>> mag1 = ceres_hg.to_mag(eph)
         >>> # parameter `eph` as numpy array
         >>> pha = np.linspace(0, 170, 200) * u.deg
@@ -674,9 +675,10 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         >>> from sbpy.data import Ephem
         >>> ceres_hg = HG(3.34 * u.mag, 0.12, radius = 480 * u.km, wfb= 'V')
         >>> # parameter `eph` as `~sbpy.data.Ephem` type
-        >>> eph = Ephem.from_dict({'alpha': np.linspace(0,np.pi*0.9,200)*u.rad,
-        ...              'r': np.repeat(2.7*u.au, 200),
-        ...              'delta': np.repeat(1.8*u.au, 200)})
+        >>> eph = Ephem.from_dict({'alpha': np.linspace(
+        ...                                     0, np.pi * 0.9, 200) * u.rad,
+        ...                        'r': np.repeat(2.7 * u.au, 200),
+        ...                        'delta': np.repeat(1.8 * u.au, 200)})
         >>> with solar_fluxd.set({'V': -26.77 * u.mag}):
         ...     ref1 = ceres_hg.to_ref(eph)
         ...     # parameter `eph` as numpy array
