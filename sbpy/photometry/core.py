@@ -732,4 +732,3 @@ class LinearPhaseFunc(DiskIntegratedPhaseFunc):
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return OrderedDict([('H', outputs_unit['y']),
                             ('S', outputs_unit['y']/inputs_unit['x'])])
-
