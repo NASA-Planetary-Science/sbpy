@@ -13,7 +13,6 @@ from collections import OrderedDict
 import numpy as np
 from scipy.integrate import quad
 from astropy.modeling import (Fittable1DModel, Parameter)
-from astropy.table import Column
 import astropy.units as u
 from astropy import log
 from ..data import (Phys, Obs, Ephem, dataclass_input,
@@ -553,7 +552,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
             while name in eph.field_names:
                 name = 'mag'+str(i)
                 i += 1
-            eph.table.add_column(Column(out, name=name))
+            eph.apply(out, name=name)
             return eph
         else:
             return out
@@ -646,7 +645,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
             while name in eph.field_names:
                 name = 'ref'+str(i)
                 i += 1
-            eph.table.add_column(Column(out, name=name))
+            eph.apply(out, name=name)
             return eph
         else:
             return out
