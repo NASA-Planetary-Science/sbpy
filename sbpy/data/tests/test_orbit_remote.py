@@ -187,7 +187,7 @@ class TestOOPropagate:
 
         elements = ['a', 'e', 'i', 'Omega', 'w', 'M']
         assert all([u.isclose(oo_orbit[k][0], future_orbit[k][0])
-                   for k in elements])
+                    for k in elements])
         assert u.isclose(oo_orbit['epoch'][0].utc.jd,
                          future_orbit['epoch'][0].utc.jd)
         assert oo_orbit['epoch'].scale == 'utc'
