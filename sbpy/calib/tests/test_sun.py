@@ -134,7 +134,7 @@ class TestSun:
         sun = Sun.from_builtin('E490_2014')
         assert sun.meta is None
 
-    @remote_data
+    @pytest.mark.remote_data
     def test_kurucz_nan_error(self):
         """sbpy#113
 
@@ -148,7 +148,7 @@ class TestSun:
         fluxd = sun.observe(V, unit=u.ABmag)
         assert np.isclose(fluxd.value, -26.77, atol=0.005)
 
-    @remote_data
+    @pytest.mark.remote_data
     def test_castelli96(self):
         """Verify Castelli1996 calibration.
 
