@@ -67,6 +67,7 @@ asteroids = {
                                  '`O`o', 'desig': '2006 RJ110'},
     "(20123) A900 MA": {'number': 20123, 'desig': '1900 MA'},
     "1A": {'desig': '1A'},
+    "A/2018 V3": {'desig': '2018 V3'}
 }
 
 
@@ -92,9 +93,8 @@ def test_asteroid_or_comet():
         assert Names.asteroid_or_comet(comet) == 'comet', \
             'failed for {}'.format(comet)
     for asteroid in asteroids:
-        if asteroid != '2017 U1':
-            assert Names.asteroid_or_comet(asteroid) == 'asteroid', \
-                'failed for {}'.format(asteroid)
+        assert Names.asteroid_or_comet(asteroid) == 'asteroid', \
+            'failed for {}'.format(asteroid)
 
 
 def test_from_packed():
