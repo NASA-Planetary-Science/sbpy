@@ -90,7 +90,12 @@ jobs:
     - name: Test with tox
       env:
         ADS_DEV_KEY: ${{ secrets.ADS_DEV_KEY }}
-      run: tox ${{ matrix.toxargs }} -e ${{ matrix.toxenv }} -- ${{ matrix.toxposargs }}
+        TEST_TEST: ${{ secrets.TEST_TEST }}
+        TEST: "asdf"
+      run: |
+        echo $TEST
+        echo $TEST_TEST
+        tox ${{ matrix.toxargs }} -e ${{ matrix.toxenv }} -- ${{ matrix.toxposargs }}
 
     # This is an example of how to upload coverage to codecov
     # - name: Upload coverage to codecov
