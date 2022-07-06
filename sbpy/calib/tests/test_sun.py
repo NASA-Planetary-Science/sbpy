@@ -4,7 +4,6 @@ import inspect
 import pytest
 import numpy as np
 import astropy.units as u
-from astropy.tests.helper import remote_data
 from ...units import JMmag, VEGAmag
 from ...photometry import bandpass
 from .. import *
@@ -136,7 +135,7 @@ class TestSun:
         assert sun.meta is None
 
     @pytest.mark.skipif('True')
-    @remote_data
+    @pytest.mark.remote_data
     def test_kurucz_nan_error(self):
         """sbpy#113
 
