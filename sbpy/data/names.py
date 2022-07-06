@@ -342,7 +342,7 @@ class Names():
                 if len(el[0]) > 0:
                     typnumber = el[0].replace('/', '')
                     try:
-                        r['type'] = re.findall('[PDCXI]', typnumber)[0]
+                        r['type'] = re.findall('[PDCX]', typnumber)[0]
                     except IndexError:
                         pass
                     try:
@@ -481,10 +481,10 @@ class Names():
                )
 
         # regex patterns that will be rejected
-        rej_pat = ('([CPXD]/[1-2][0-9]{0,3}[ _][A-Z][0-9]*(\b|$))'
-                   # comet desig
+        rej_pat = ('([CPXDI]/[1-2][0-9]{0,3}[ _][A-Z][0-9]*(\b|$))'
+                   # comet or interstellar desig
                    '|([1-9][0-9]*[PDCXI]\b)'
-                   # comet number
+                   # comet or interstellar number
                    '|([PDCXI]/)'
                    # comet type
                    '|([1-2][0-9]{0,3}[ _][a-z]{2}[0-9]{0,3})'
