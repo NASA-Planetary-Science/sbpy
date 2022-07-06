@@ -10,6 +10,7 @@ created on August 28, 2017
 
 """
 
+import re
 from ..exceptions import SbpyException
 
 __all__ = ['Names', 'TargetNameParseError', 'natural_sort_key']
@@ -47,7 +48,6 @@ def natural_sort_key(s):
     ['2P/Encke', '9P/Tempel 1', '10P/Tempel 2', '101P/Chernykh']
 
     """
-    import re
     keys = tuple()
     for k in re.split('([0-9]+)', str(s)):
         keys += (int(k) if k.isdigit() else k,)
@@ -307,20 +307,20 @@ class Names():
 
         """
 
-        import re
-
         # define comet matching pattern
         pat = ('^(([1-9][0-9]*[PDCX]'
                '(-[A-Z]{1,2})?)|[PDCX]/)'  # type/number/fragm [0,1,2]
                '|([-]?[0-9]{3,4}[ _][A-Z]{1,2}[0-9]{0,3}(-[1-9A-Z]{0,2})?)'
                # designation [3,4]
-               '|((([dvA-Z][a-z\']? ?[A-Za-z\-]*)[ -]?[A-Z]?[1-9]*[a-z]*)'
+               r'|((([dvA-Z][a-z\']? ?[A-Za-z\-]*)[ -]?[A-Z]?[1-9]*[a-z]*)'
                '( [1-9A-Z]{1,2})*)'  # name [5,6]
                )
 
         # regex patterns that will be rejected
-        rej_pat = ('(([1-9][0-9]*[pdcxai]\b)'  # small-caps comet number
-                   '|([pdcxai]/))'  # small-caps comet type
+        rej_pat = ('^(([1-9][0-9]*[pdcxiaCXIA]\b)'
+                   # numbered with lower case, X, C, I, or A
+                   '|([pdcxaiAI]/))'
+                   # temporary designation with lower case, I, or A
                    )
 
         raw = s.translate(str.maketrans('()', '  ')).strip()
@@ -342,7 +342,7 @@ class Names():
                 if len(el[0]) > 0:
                     typnumber = el[0].replace('/', '')
                     try:
-                        r['type'] = re.findall('[PDCXAI]', typnumber)[0]
+                        r['type'] = re.findall('[PDCX]', typnumber)[0]
                     except IndexError:
                         pass
                     try:
@@ -449,10 +449,11 @@ class Names():
         +----------------------------------+----------+------+-----------------+
         |1A                                |1A        |      |                 |
         +----------------------------------+----------+------+-----------------+
+        |A/2018 V3                         |2018 V3   |      |                 |
+        +----------------------------------+----------+------+-----------------+
+
 
         """
-
-        import re
 
         pat = ('(([1A][8-9][0-9]{2}[ _][A-Z]{2}[0-9]{0,3}|'
                '20[0-9]{2}[ _][A-Z]{2}[0-9]{0,3})'
@@ -475,14 +476,16 @@ class Names():
                # number [7,8]
                '|^(([1-9][0-9]*A))'
                # comet-style designations: 1A [10]
+               '|^A/([12][0-9][0-9][0-9] [A-Z][0-9]+)'
+               # asteroids with cometary orbits [12]
                )
 
         # regex patterns that will be rejected
-        rej_pat = ('([1-2][0-9]{0,3}[ _][A-Z][0-9]*(\b|$))'
-                   # comet desig
-                   '|([1-9][0-9]*[PDCXAI]\b)'
-                   # comet number
-                   '|([PDCXAI]/)'
+        rej_pat = ('([CPXDI]/[1-2][0-9]{0,3}[ _][A-Z][0-9]*(\b|$))'
+                   # comet or interstellar desig
+                   '|([1-9][0-9]*[PDCXI]\b)'
+                   # comet or interstellar number
+                   '|([PDCXI]/)'
                    # comet type
                    '|([1-2][0-9]{0,3}[ _][a-z]{2}[0-9]{0,3})'
                    )
@@ -527,6 +530,8 @@ class Names():
                 # comet-style designation
                 elif len(el[10]) > 0:
                     r['desig'] = el[10].strip()
+                elif len(el[12]) > 0:
+                    r['desig'] = el[12].strip()
 
         if len(r) == 0:
             raise TargetNameParseError(('{} does not appear to be an '
