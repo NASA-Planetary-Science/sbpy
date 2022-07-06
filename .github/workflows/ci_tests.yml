@@ -42,11 +42,10 @@ jobs:
             python: 3.8
             toxenv: py38-test-alldeps
 
-          - name: Python 3.8 with all optional dependencies, remote tests, and coverage checking
+          - name: Python 3.8 with all optional dependencies and coverage checking
             os: ubuntu-latest
             python: 3.8
             toxenv: py38-test-alldeps-cov
-            toxposargs: --remote-data
 
           # - name: Windows - Python 3.8 with all optional dependencies
           #   os: windows-latest
@@ -88,8 +87,6 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install tox codecov
     - name: Test with tox
-      env:
-        ADS_DEV_KEY: ${{ secrets.ADS_DEV_KEY }}
       run: tox ${{ matrix.toxargs }} -e ${{ matrix.toxenv }} -- ${{ matrix.toxposargs }}
 
     # This is an example of how to upload coverage to codecov
