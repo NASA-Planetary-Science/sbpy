@@ -17,7 +17,7 @@ from .core import DiskIntegratedPhaseFunc, NonmonotonicPhaseFunctionWarning
 from ..bib import cite
 
 
-__all__ = ['HG', 'HG12BaseClass', 'HG12', 'HG1G2', 'HG12_Pen16']
+__all__ = ['HG', 'HG12', 'HG1G2', 'HG12_Pen16']
 
 
 class _spline(object):
