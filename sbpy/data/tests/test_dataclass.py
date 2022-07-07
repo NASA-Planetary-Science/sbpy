@@ -410,8 +410,8 @@ def test_alternative_name_uniqueness():
     Conf.fieldname_idx = storage[1]
 
 
-def test_translate_columns(monkeypatch):
-    """test function that translates column names"""
+def test_translate_columns_and_contains(monkeypatch):
+    """test function that translates column names and the `in` operator"""
 
     new_fieldnames_info = [
         {
@@ -438,6 +438,11 @@ def test_translate_columns(monkeypatch):
 
     with pytest.raises(KeyError):
         tab._translate_columns(['x'])
+
+    assert 'aa' in tab
+    assert 'bb' in tab
+    assert 'zz' in tab
+    assert 'y' not in tab
 
 
 def test_indexing():
