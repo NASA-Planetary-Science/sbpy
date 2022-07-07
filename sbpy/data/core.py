@@ -647,6 +647,15 @@ class DataClass():
         """Refer cls.__setitem__ to self._table"""
         self.table.__setitem__(*args)
 
+    def __contains__(self, value):
+        """Use cls._translate_columns to realize the `in` operator"""
+        try:
+            _ = self._translate_columns(value)
+        except KeyError:
+            return False
+        else:
+            return True
+
     def _translate_columns(self, target_colnames):
         """Translate target_colnames to the corresponding column names
         present in this object's table. Returns a list of actual column
