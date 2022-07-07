@@ -313,6 +313,15 @@ object, you can use `~sbpy.data.DataClass.field_names`:
     >>> obs.field_names
     ['ra', 'dec', 't']
 
+You can also use the `in` operator to check if a field is contained in
+a `~sbpy.data.DataClass` object.  Alternative field names can also be
+used for the `in` test:
+
+    >>> 'ra' in obs
+    True
+    >>> 'RA' in obs
+    True
+
 Each of these columns can be accessed easily, for instance:
 
     >>> obs['ra']
