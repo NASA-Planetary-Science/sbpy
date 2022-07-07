@@ -59,10 +59,12 @@ Data Structures: Orbits, Ephemerides, Observations, and Physical Properties
 ---------------------------------------------------------------------------
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
+   :glob:
 
    sbpy/data/index.rst
    sbpy/data/fieldnames.rst
+   sbpy/data/*
 
 Photometry and Spectroscopy
 ---------------------------

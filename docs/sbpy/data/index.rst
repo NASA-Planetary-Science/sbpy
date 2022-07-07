@@ -26,11 +26,11 @@ Content
 .. toctree::
    :maxdepth: 2
 
-   dataclass.rst	     
+   dataclass.rst
    ephem.rst
    obs.rst
    orbit.rst
-   phys.rst	      
+   phys.rst
    names.rst
 
 
