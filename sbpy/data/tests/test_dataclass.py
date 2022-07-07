@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import os
 from collections import OrderedDict
+from tempfile import NamedTemporaryFile
 from sbpy.data import dimensions
 import pytest
 from copy import deepcopy
@@ -417,9 +418,13 @@ def test_translate_columns(monkeypatch):
         {
             'fieldnames': ['zz', 'aa'],
             'dimension': dimensions.length
+        },
+        {
+            'fieldnames': ['heliocentric_distance', 'rh'],
+            'dimension': dimensions.length
         }
     ]
-    new_fieldnames = [['zz', 'aa']]
+    new_fieldnames = [info['fieldnames'] for info in new_fieldnames_info]
     new_fieldname_idx = {}
     for idx, field in enumerate(new_fieldnames):
         for alt in field:
@@ -436,8 +441,17 @@ def test_translate_columns(monkeypatch):
     assert tab._translate_columns(['aa', 'bb', 'cc']) == ['aa', 'bb', 'cc']
     assert tab._translate_columns(['zz', 'bb', 'cc']) == ['aa', 'bb', 'cc']
 
+    # x is not in the table
     with pytest.raises(KeyError):
         tab._translate_columns(['x'])
+
+    # heliocentric distance is not in the table
+    with pytest.raises(KeyError):
+        tab._translate_columns(['rh'])
+
+    # test translations via __contains__
+    assert all(col in tab for col in ['aa', 'bb', 'cc', 'zz'])
+    assert not any(col in tab for col in ['x', 'rh', 'heliocentric_distance'])
 
 
 def test_indexing():
@@ -550,9 +564,10 @@ def test_io():
                                            ('cc', [7, 8, 9]*u.kg)]))
     tab.meta['test'] = 'stuff'
 
-    tab.to_file('dataclass_table.fits', format='fits', overwrite=True)
-
-    tab2 = DataClass.from_file('dataclass_table.fits', format='fits')
+    with NamedTemporaryFile(suffix='.fits', delete=False) as fits_file:
+        tab.to_file(fits_file, format='fits', overwrite=True)
+    tab2 = DataClass.from_file(fits_file.name, format='fits')
+    os.unlink(fits_file.name)
 
     assert all(tab.table == tab2.table)
     assert tab.meta == {key.lower(): val.lower()

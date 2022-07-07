@@ -2,14 +2,63 @@
 Using Ephem
 ===========
 
-As shown above (:ref:`How to use Data Containers`),
-`~sbpy.data.Ephem` objects can be created on the fly. However,
+As shown previously (:ref:`How to use Data Containers`), `~sbpy.data.Ephem`
+objects can be created on the fly:
+
+    >>> import astropy.units as u
+    >>> from sbpy.data import Ephem
+    >>> eph = Ephem.from_dict({'rh': [2] * u.au,
+    ...                        'solar_elongation': [90] * u.deg})
+    >>> print(eph)
+    <QTable length=1>
+       rh   solar_elongation
+       AU         deg       
+    float64     float64     
+    ------- ----------------
+        2.0             90.0
+
+However, this introduces the possibility of nonsensical values, as we can assign
+arbitrary phase angles and observer-target distances to this object:
+
+    >>> eph['delta'] = 1000 * u.au
+    >>> eph['phase'] = 0 * u.deg
+    >>> eph['comment'] = 'nonsense!'
+    >>> print(eph)
+    <QTable length=1>
+       rh   solar_elongation  delta   phase   comment 
+       AU         deg           AU     deg            
+    float64     float64      float64 float64    str9  
+    ------- ---------------- ------- ------- ---------
+        2.0             90.0  1000.0     0.0 nonsense!
+
+Instead, use the the `~sbpy.data.Ephem.fill_delta_and_phase` method, which will
+calculate the phase angle and observer-target distance from heliocentric
+distance and solar elongation.
+
+    >>> eph.fill_delta_and_phase(overwrite=True)  # allow overwriting delta and phase
+    >>> eph['comment'] = 'valid!'
+    >>> print(eph)
+    <QTable length=1>
+       rh   solar_elongation       delta              phase        comment
+       AU         deg                AU                deg                
+    float64     float64           float64            float64         str9 
+    ------- ---------------- ------------------ ------------------ -------
+        2.0             90.0 1.7320508075688772 30.000000000000004  valid!
+
+
+Remote services
+---------------
+
 `~sbpy.data.Ephem` can also be used to access ephemerides information
 from remote services with a largely uniform API.
 
-For instance, the following few lines will query
-ephemerides for asteroid Ceres on a given date and for the position of
-Mauna Kea Observatory (IAU observatory code ``568``) from the `JPL Horizons service <https://ssd.jpl.nasa.gov/horizons.cgi>`_:
+JPL Horizons (`sbpy.data.Ephem.from_horizons`)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+For instance, the following few lines will query ephemerides for asteroid Ceres
+on a given date and for the position of Mauna Kea Observatory (IAU observatory
+code ``568``) from the `JPL Horizons service
+<https://ssd.jpl.nasa.gov/horizons.cgi>`_:
 
     >>> from sbpy.data import Ephem
     >>> from astropy.time import Time
@@ -135,6 +184,9 @@ example:
     ---------- ------- ------- -------------- ... -------- ------- ---------
        1 Ceres    3.34    0.12              * ... 130.4303  9.2004 2458119.5
 
+Minor Planet Center (`sbpy.data.Ephem.from_mpc`)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 Offering almost identical functionality, the
 `~sbpy.data.Ephem.from_mpc` method will retrieve ephemerides from the
 `Minor Planet Center <https://minorplanetcenter.net/>`_:
@@ -154,6 +206,9 @@ Offering almost identical functionality, the
             2P 2018-10-25 00:00:00.000 ...          67.0         -53.0
             2P 2018-10-26 00:00:00.000 ...          81.0         -56.0
             2P 2018-10-23 00:00:00.000 ...          41.0         -41.0
+
+IMCCE Miriade (`sbpy.data.Ephem.from_miriade`)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Finally, `~sbpy.data.Ephem.from_miriade` will retrieve ephemerides
 from the `Miriade ephemeris generator
@@ -175,7 +230,10 @@ from the `Miriade ephemeris generator
          2P 2458415.5 329.83517041666664 ...    -0.055369    25.253586
          2P 2458416.5 329.76366666666667 ...    -0.051392   25.4700287
          2P 2458417.5  329.6967958333333 ...     -0.04743    25.677518
-    
+
+Orbital elements (`sbpy.data.Ephem.from_oo`)
+--------------------------------------------
+
 Ephemerides can also be derived from `~sbpy.data.Orbit` objects using
 `sbpy`'s interface to `pyoorb
 <https://github.com/oorb/oorb/tree/master/python>`_ with the function
@@ -209,7 +267,7 @@ from the Discovery Channel Telescope:
        1 Ceres 239.48722955376766 ... 107.87239964547449  2458704.558989811
        1 Ceres 239.49204656314026 ... 107.88097065658197  2458704.600656478
 
-     
+
 The properties computed by pyoorb and listed in the resulting table
 are defined in the `pyoorb documentation
 <https://github.com/oorb/oorb/tree/master/python>`_. Note that this function requires pyoorb to be installed, which is not a requirement for `sbpy`.

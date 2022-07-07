@@ -853,3 +853,69 @@ class Ephem(DataClass):
         ephem.table.remove_column('MJD')
 
         return ephem
+
+    def fill_delta_and_phase(self, observer_rh=1 * u.au, closest=True,
+                             overwrite=False):
+        """Compute observer-target distance and phase angle.
+
+        Requires fields for heliocentric distance and solar elongation.
+
+
+        Parameters
+        ----------
+        observer_rh : `~astropy.units.Quantity`, optional
+            Sun-observer distance, may be a single value or an array of values
+            of same length as the ephemeris object.
+
+        closest : bool, optional
+            Two solutions exist when the target heliocentric distance is closer
+            to the Sun than the observer.  If ``closest == True``, then the
+            solution with the smallest observer-target distance is returned.
+
+        overwrite : bool, optional
+            Set to ``True`` and, if present, the current observer-target
+            distance and phase angle fields will be overwritten.
+
+        """
+
+        # check for required fields
+        if not all(['rh' in self, 'solar_elongation' in self]):
+            raise ValueError("heliocentric distance and solar elongation are "
+                             "required but not present in this object.")
+
+        # delta or phase already exist?
+        if any(['delta' in self, 'phase' in self]) and not overwrite:
+            raise ValueError("delta and/or phase already present in this "
+                             "object, but overwrite is ``False``.")
+
+        # promote observer_rh to an array, as needed, and match units from rh
+        _observer_rh = np.broadcast_to(observer_rh,
+                                       self['rh'].shape,
+                                       subok=True)
+
+        # solve for phase using law of sines
+        phase = np.arcsin(_observer_rh / self['rh']
+                          * np.sin(self['solar_elongation']))
+
+        # carefully handle interior objects
+        sign = np.ones(len(self['rh']))
+        interior = self['rh'] < _observer_rh
+
+        if closest and any(interior):
+            phase[interior] = 180 * u.deg - phase[interior]
+            sign[interior] = -1
+
+        x = np.sqrt(self['rh']**2 - _observer_rh**2 *
+                    np.sin(self['solar_elongation'])**2)
+        delta = _observer_rh * np.cos(self['solar_elongation']) + sign * x
+
+        # carefully handle opposition
+        opposition = np.isclose(self['solar_elongation'], 180 * u.deg)
+        if any(opposition):
+            phase[opposition] = 0
+            delta[opposition] = (_observer_rh[opposition]
+                                 + self['rh'][opposition])
+
+        # save to data object
+        self['delta'] = delta.to(self['rh'].unit)
+        self['phase'] = phase.to(self['solar_elongation'].unit)
