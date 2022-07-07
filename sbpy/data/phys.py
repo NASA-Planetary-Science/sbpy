@@ -111,6 +111,8 @@ class Phys(DataClass):
                         columnunits[key].add(unit)
                 elif key in ['M1', 'M2', 'M1_sig', 'M2_sig']:
                     columnunits[key].add(u.mag)
+                elif key in ['M1', 'M2', 'M1_sig', 'M2_sig']:
+                    columnunits[key].add(u.mag)
 
             alldata.append(data)
 
