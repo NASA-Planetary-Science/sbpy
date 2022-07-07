@@ -1,12 +1,12 @@
-===========
- Using Obs
-===========
+============================================
+Observational Data Objects (`sbpy.data.Obs`)
+============================================
 
 `~sbpy.data.Obs` objects mostly share their functionality with
 `~sbpy.data.Ephem`, but there are some unique features tailored to observational data.
 
-For instance, this class allows you to query observations reported to
-the Minor Planet Center for a given target:
+For instance, this class allows you to query observations reported to the Minor
+Planet Center for a given target via `astroquery.mpc.MPCClass.get_observations`:
 
     >>> from sbpy.data import Obs
     >>> data = Obs.from_mpc('2019 AA', id_type='asteroid designation') # doctest: +REMOTE_DATA
