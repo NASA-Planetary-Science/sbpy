@@ -109,12 +109,8 @@ class Phys(DataClass):
                 elif isinstance(val, u.CompositeUnit):
                     for unit in val.bases:
                         columnunits[key].add(unit)
-                elif key == 'H':
-                    # fix for astroquery <0.4.2
-                    columnunits[key].add(u.mag)
-                elif key in ['M1', 'M2', 'M1_sig', 'M2_sig']:
-                    columnunits[key].add(u.mag)
-                elif key in ['M1', 'M2', 'M1_sig', 'M2_sig']:
+                elif key in ['H', 'M1', 'M2', 'M1_sig', 'M2_sig']:
+                    # fix for lack of units from SBDB via astroquery
                     columnunits[key].add(u.mag)
 
             alldata.append(data)

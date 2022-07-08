@@ -23,10 +23,13 @@ def test_from_sbdb_comet():
     """Regression test for issue #349.
 
     As of June 2022, astroquery does not assign units to M1, M2 and their
-    uncertainties.
+    uncertainties, nor H.
 
     """
-    # need a comet with all both M1 and M2, and their uncertainties:
+    # need a comet with both M1 and M2, and their uncertainties:
     data = Phys.from_sbdb('147P')
     for k in ('M1', 'M2', 'M1_sig', 'M2_sig'):
         assert isinstance(data[k], u.Quantity) and data[k].unit == u.mag
+
+    data = Phys.from_sbdb('1')
+    assert isinstance(data['H'], u.Quantity) and data['H'].unit == u.mag
