@@ -20,7 +20,7 @@ def test_from_sbdb():
 
 @pytest.mark.remote_data
 def test_from_sbdb_comet():
-    """Regression test for issue #349.
+    """Regression test for issues #349 and #358.
 
     As of June 2022, astroquery does not assign units to M1, M2 and their
     uncertainties, nor H.
