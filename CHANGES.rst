@@ -11,6 +11,8 @@ sbpy.data
   body's orbits with respect to planets. [#325]
 - Added ``Orbit.D_criterion`` to evaluate the D-criterion between two sets
   of orbital elements. [#325]
+- Added ``DataClass.__contains__`` to enable `in` operator for ``DataClass``
+  objects. [#357]
 
 
 0.3.0 (2022-04-28)
