@@ -9,10 +9,25 @@ sbpy.data
 
 - Added ``Orbit.tisserand`` to calculate the Tisserand parameter of small
   body's orbits with respect to planets. [#325]
+
 - Added ``Orbit.D_criterion`` to evaluate the D-criterion between two sets
   of orbital elements. [#325]
 - Added ``DataClass.__contains__`` to enable `in` operator for ``DataClass``
   objects. [#357]
+
+
+Bug Fixes
+---------
+
+sbpy.data
+^^^^^^^^^
+
+- Cometary magnitudes obtained via ``Phys.from_sbdb`` (i.e., M1 and M2) now have
+  appropriate units. [#349]
+
+- Asteroids with A/ designations (e.g., A/2019 G2) are correctly identified by
+  ``Names`` as asteroids.  Improved handling of interstellar object (I/)
+  designations: they do not parse as cometary or asteroidal. [#334, #340]
 
 
 0.3.0 (2022-04-28)
