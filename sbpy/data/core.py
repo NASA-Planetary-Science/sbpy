@@ -674,11 +674,17 @@ class DataClass():
                 continue
             # colname is an alternative column name
             elif colname in sum(Conf.fieldnames, []):
+                found = False
                 for alt in Conf.fieldnames[Conf.fieldname_idx[colname]]:
                     # translation available for colname
                     if alt in self.field_names:
                         translated_colnames[idx] = alt
+                        found = True
                         break
+                # not found in the table
+                if not found:
+                    raise KeyError('field {:s} not available.'.format(
+                        colname))
             # colname is unknown, raise a KeyError
             else:
                 raise KeyError('field {:s} not available.'.format(
