@@ -24,18 +24,9 @@
           <li>
             <a href="index.html"><strong>sbpy</strong></a>
           </li>
-          <li>
-            <div class="dropdown">
-              <a>About</a>
-              <div class="dropdown-content">
-                <ul>
-                  <li><a href="https://sbpy.readthedocs.io/en/latest/about.html">About sbpy</a></li>
-                  <li><a href="https://astropy.org">Aboout Astropy</a></li>
-                </ul>
-              </div>
-            </div>
-          </li>
+          <li><a href="https://sbpy.readthedocs.io/en/latest/about.html">About</a></li>
           <li><a href="https://sbpy.readthedocs.io/en/latest/index.html">Documentation</a></li>
+          <li><a href="https://github.com/NASA-Planetary-Science/sbpy/discussions">Help</a></li>
           <li><a href="https://github.com/NASA-Planetary-Science/sbpy-tutorial">Tutorials</a></li>
           <li><a href="https://sbpy.readthedocs.io/en/latest/development/index.html">Contributing</a></li>
           <li><a href="https://github.com/NASA-Planetary-Science/sbpy">GitHub</a></li>
@@ -72,16 +63,21 @@
         <img src="https://codecov.io/gh/NASA-Planetary-Science/sbpy/branch/main/graph/badge.svg">
       </a>
 
-      <p class="version">Current Version: 0.1.1</p>
+      <p class="version">Current Version: 0.3</p>
 
     </section>
 
     <section class="install">
       <h1>Installation</h1>
-      <p>We recommend
-        installing <a href="https://www.anaconda.com/download/">Anaconda
-          Python 3</a> before installing sbpy using:
-      <p><code>pip install git+https://github.com/NASA-Planetary-Science/sbpy.git</code></p>
+      <p>sbpy is a Python package, installable with pip:</p>
+      <p>
+      <pre>pip install sbpy</pre>
+      </p>
+      <p>Or with <a href="https://www.anaconda.com/">Anaconda</a> via the <a
+          href="https://conda-forge.org/">conda-forge</a> channel</a>:
+      <p>
+      <pre>conda install sbpy --channel=conda-forge</pre>
+      </p>
       <a class="button" href="https://sbpy.readthedocs.io/en/latest/install.html" target="_blank">Detailed Installation
         Instructions</a>
     </section>
@@ -96,9 +92,27 @@
     </section>
 
     <section class="whatsnext">
-      <h1>Report bugs and Contribute</h1>
-      <p>Please report what you believe is a bug or a mistake using the github issue tracker. If you have an idea for
-        how to improve sbpy, or would like to contribute code directly, please check out the contribution guidelines.
+      <h1>Get help</h1>
+      <p>Questions about sbpy or how to use sbpy modules can be posted at <a
+          href="https://github.com/NASA-Planetary-Science/sbpy/discussions">sbpy
+          Discussions</a>, hosted on GitHub. Help about using astropy and affiliated
+        packages (including sbpy) can also be found on <a href="https://www.astropy.org/help.html">Astropy's help
+          page</a>. You can
+        also find sbpy developers on the Astropy slack workspace in the #sbpy
+        channel (see <a href="https://www.astropy.org/help.html">Astropy's help
+          page</a> for connection details).
+      </p>
+      <a class="button" href="https://github.com/NASA-Planetary-Science/sbpy/discussions" target="_blank">sbpy
+        Discussions</a>
+      <a class="button" href="https://www.astropy.org/help.html" target="_blank">Astropy help</a>
+    </section>
+
+    <section class="whatsnext">
+      <h1>Report bugs and contribute</h1>
+      <p>Please report what you believe is a bug or a mistake using <a
+          href="https://github.com/NASA-Planetary-Science/sbpy/issues">sbpy's issue
+          tracker</a>. If you have an idea for how to improve sbpy, or would like to
+        contribute code directly, please check out the contribution guidelines.
       </p>
       <a class="button" href="https://github.com/NASA-Planetary-Science/sbpy/issues" target="_blank">Report issues</a>
       <a class="button" href="https://sbpy.readthedocs.io/en/latest/development/index.html" target="_blank">Contribution
@@ -125,7 +139,7 @@
           <img src="images/NASA_logo.svg" height="40px">
           <figcaption>Partner</figcaption>
         </figure>
-        sbpy is supported by NASA PDART Grant No. 80NSSC18K0987.</p>
+        sbpy support provided by NASA PDART Grant Nos. 80NSSC18K0987, 80NSSC22K0143.</p>
       </div>
     </div>
   </div>
