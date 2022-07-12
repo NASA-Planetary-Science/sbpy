@@ -417,9 +417,13 @@ def test_translate_columns_and_contains(monkeypatch):
         {
             'fieldnames': ['zz', 'aa'],
             'dimension': dimensions.length
+        },
+        {
+            'fieldnames': ['yy', 'dd'],
+            'dimension': dimensions.time
         }
     ]
-    new_fieldnames = [['zz', 'aa']]
+    new_fieldnames = [['zz', 'aa'], ['yy', 'dd']]
     new_fieldname_idx = {}
     for idx, field in enumerate(new_fieldnames):
         for alt in field:
@@ -437,12 +441,14 @@ def test_translate_columns_and_contains(monkeypatch):
     assert tab._translate_columns(['zz', 'bb', 'cc']) == ['aa', 'bb', 'cc']
 
     with pytest.raises(KeyError):
-        tab._translate_columns(['x'])
+        tab._translate_columns(['x'])  # undefined column name
+        tab._translate_columns(['dd'])  # defined column name but not in table
 
     assert 'aa' in tab
     assert 'bb' in tab
     assert 'zz' in tab
-    assert 'y' not in tab
+    assert 'x' not in tab  # undefined column name
+    assert 'dd' not in tab  # defined column name but no in table
 
 
 def test_indexing():
