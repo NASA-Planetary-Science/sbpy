@@ -711,6 +711,7 @@ class Orbit(DataClass):
             in_orbits=in_orbits._to_oo(),
             in_epoch=ooepoch,
             in_dynmodel=dynmodel)
+        print(oo_orbits, err)
 
         if err != 0:
             OpenOrbError('pyoorb failed with error code {:d}'.format(err))
@@ -726,7 +727,7 @@ class Orbit(DataClass):
         return orbits
 
     @cite({'method': '1997Icar..127...13L'})
-    def tisserand(self, planet='599'):
+    def tisserand(self, planet='599', epoch=None):
         """Tisserand parameter with respect to a planet
 
 
@@ -738,7 +739,11 @@ class Orbit(DataClass):
             automaticallyl pulled from JPL Horizons. If `self` and/or
             `planet` contains more than one object, then `numpy` broadcasting
             rules apply.  Default is Jupiter.
-
+        epoch : `~astropy.time.Time`, optional
+            The epoch of planet orbit if pulled from JPL Horizons.  This
+            parameter will be passed to `~sbpy.data.Orbit.from_horizons`.
+            If the planet orbit is passed directly, then this parameter
+            has no effect.
 
         Returns
         -------
@@ -767,7 +772,7 @@ class Orbit(DataClass):
         if isinstance(planet, str) \
             or (hasattr(planet, '__iter__')
                 and np.all([isinstance(x, str) for x in planet])):
-            planet = Orbit.from_horizons(planet, id_type=None)
+            planet = Orbit.from_horizons(planet, id_type=None, epochs=epoch)
 
         a_p = planet['a']
         t = a_p / self['a'] + 2 * np.cos(self['i']) * \
