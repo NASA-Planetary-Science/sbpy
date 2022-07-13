@@ -181,7 +181,7 @@ class TestOOPropagate:
 
         future_orbit = Orbit.from_horizons('Ceres',
                                            epochs=Time(epoch, format='jd',
-                                                       scale='utc'))
+                                                       scale='utc').tdb)
 
         oo_orbit = orbit.oo_propagate(epoch)
 
@@ -207,6 +207,7 @@ class TestTisserand:
 
         chariklo = Orbit.from_horizons('chariklo', id_type='name',
                                        closest_apparition=True, epochs=epoch)
-        assert u.allclose(chariklo.tisserand(['599', '699', '799', '899']),
-                          [3.47746154, 2.92700084, 2.85779878, 3.22653384],
+        assert u.allclose(chariklo.tisserand(['599', '699', '799', '899'],
+                                             epoch=epoch),
+                          [3.47740968, 2.92990768, 2.85749431, 3.22074493],
                           atol=1e-5)
