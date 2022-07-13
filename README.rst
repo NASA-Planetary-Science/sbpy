@@ -62,7 +62,7 @@ sbpy is still under development, with v1.0 scheduled for delivery in 2024. For a
 Acknowledgements
 ----------------
 
-`sbpy` is supported by NASA PDART Grant No. 80NSSC18K0987.
+`sbpy` support provided by NASA PDART Grant Nos. 80NSSC18K0987 and 80NSSC22K0143.
 
 If you use `sbpy` in your work, please acknowledge it by citing
 

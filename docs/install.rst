@@ -54,25 +54,49 @@ The latest development version of `sbpy` can be easily installed using:
     $ pip install git+https://github.com/NASA-Planetary-Science/sbpy.git
 
 
-Using GitHub
-^^^^^^^^^^^^
+Using conda
+^^^^^^^^^^^
 
-This way of installing `sbpy` is recommended if you plan to contribute
-to the module. The current development version of `sbpy` can be
-obtained from `GitHub <https://github.com/NASA-Planetary-Science/sbpy>`__ using
+The latest stable version of `sbpy` can be installed with `Anaconda
+<https://www.anaconda.com/>`__ via the `conda-forge <https://conda-forge.org/>`__
+channel:
+
+.. code-block:: bash
+
+    $ conda install sbpy --channel=conda-forge
+
+If you do not have the conda-forge channel available, add it and re-run the
+installation command:
+
+.. code-block:: bash
+
+    $ conda config --add channels conda-forge
+    $ conda install sbpy --channel=conda-forge
+
+
+Using Git+Pip
+^^^^^^^^^^^^^
+
+This way of installing `sbpy` is recommended if you plan to contribute to the
+module. The current development version of `sbpy` can be obtained from `GitHub
+<https://github.com/NASA-Planetary-Science/sbpy>`__ using:
 
 .. code-block:: bash
 
     $ git clone https://github.com/NASA-Planetary-Science/sbpy.git
 
-This will create a new directory (``sbpy/``). In this directory, run
+This will create a new directory (``sbpy/``). In this directory, run:
 
 .. code-block:: bash
 
-    $ python setup.py install --user
+    $ pip install .
 
-in order to use `sbpy` in your default Python environment. If you plan to work on the code and always want to use the latest version of your code, you can install it with
+As above, to install optional dependencies, instead use ``pip install .[all]``.
+
+If you plan to work on the code and always want to use the latest version of
+your code, we recommend installing in "editable" mode with the optional
+dependences and the testing dependencies:
 
 .. code-block:: bash
 
-    $ python setup.py develop --user
+    $ pip install -e .[all,test]
