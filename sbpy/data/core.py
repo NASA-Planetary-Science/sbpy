@@ -643,9 +643,17 @@ class DataClass():
         # return as new instance of this class for all other identifiers
         return self.from_table(self.table[ident])
 
-    def __setitem__(self, *args):
+    def __setitem__(self, ident, val):
         """Refer cls.__setitem__ to self._table"""
-        self.table.__setitem__(*args)
+        # `astropy.table.Table.__setitem__` only allows to set a single
+        # column.  Only this case is checked here for alternative column
+        # name.  All other cases are directly passed to `table.__setitem__`.
+        if isinstance(ident, str):
+            try:
+                ident = self._translate_columns(ident)[0]
+            except KeyError:
+                pass
+        self.table.__setitem__(ident, val)
 
     def __contains__(self, value):
         """Use cls._translate_columns to realize the `in` operator"""

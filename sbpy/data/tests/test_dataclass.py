@@ -313,6 +313,14 @@ def test_get_set():
     assert data['z'][1] == 2
     assert isinstance(data, DataClass)
 
+    # modify existing column using alternative name
+    data = DataClass.from_dict(
+        {'rh': [1, 2, 3] * u.au,
+         'delta': [4, 5, 6] * u.au})
+    data['r'] = [7, 8, 9] * u.au
+    assert u.allclose(data['rh'], [7, 8, 9] * u.au)
+    assert set(data.field_names) == {'rh', 'delta'}
+
 
 def test_units():
     """ test units on multi-row tables """
