@@ -657,12 +657,12 @@ class DataClass():
 
     def __contains__(self, value):
         """Use cls._translate_columns to realize the `in` operator"""
-        try:
-            _ = self._translate_columns(value)
-        except KeyError:
-            return False
-        else:
+        if (value in self.table.colnames) or \
+            (value in sum([Conf.fieldnames[Conf.fieldname_idx.get(x, slice(0))]
+                            for x in self.table.colnames], [])):
             return True
+        else:
+            return False
 
     def _translate_columns(self, target_colnames):
         """Translate target_colnames to the corresponding column names
