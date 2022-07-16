@@ -656,7 +656,7 @@ class DataClass():
         """Use cls._translate_columns to realize the `in` operator"""
         if (value in self.table.colnames) or \
             (value in sum([Conf.fieldnames[Conf.fieldname_idx.get(x, slice(0))]
-                            for x in self.table.colnames], [])):
+                           for x in self.table.colnames], [])):
             return True
         else:
             return False
