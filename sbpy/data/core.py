@@ -648,11 +648,8 @@ class DataClass():
         # `astropy.table.Table.__setitem__` only allows to set a single
         # column.  Only this case is checked here for alternative column
         # name.  All other cases are directly passed to `table.__setitem__`.
-        if isinstance(ident, str):
-            try:
-                ident = self._translate_columns(ident)[0]
-            except KeyError:
-                pass
+        if isinstance(ident, str) and ident in self:
+            ident = self._translate_columns(ident)[0]
         self.table.__setitem__(ident, val)
 
     def __contains__(self, value):
