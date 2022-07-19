@@ -653,7 +653,7 @@ class DataClass():
         self.table.__setitem__(ident, val)
 
     def __contains__(self, value):
-        """Use cls._translate_columns to realize the `in` operator"""
+        """To support `in` operator that allows for alternative names"""
         if (value in self.table.colnames) or \
             (value in sum([Conf.fieldnames[Conf.fieldname_idx.get(x, slice(0))]
                            for x in self.table.colnames], [])):
@@ -679,14 +679,12 @@ class DataClass():
                 continue
             # colname is an alternative column name
             else:
-                found = False
                 for alt in Conf.fieldnames[
                             Conf.fieldname_idx.get(colname, slice(0))]:
                     if alt in self.field_names:
                         translated_colnames[idx] = alt
-                        found = True
                         break
-                if not found:
+                else:
                     raise KeyError('field "{:s}" not available.'.format(
                         colname))
 
