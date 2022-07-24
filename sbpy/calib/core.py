@@ -30,8 +30,7 @@ import json
 import numpy as np
 from astropy.utils.state import ScienceState
 from astropy.utils.data import get_pkg_data_filename
-from astropy.table import Table, QTable
-from astropy.io import ascii
+from astropy.table import Table
 import astropy.units as u
 
 from ..spectroscopy.sources import SpectralSource, SynphotRequired

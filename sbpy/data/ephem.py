@@ -738,7 +738,7 @@ class Ephem(DataClass):
            1 Ceres 2458529.2336329385 ...   1.326517587380005e-05 70.34353031031534
            1 Ceres 2458529.2752996054 ...  1.1193369555934085e-05 70.35298818987367        """
 
-        if not pyoorb:
+        if pyoorb is None:
             raise RequiredPackageUnavailable('pyoorb')
 
         # create a copy of orbit

@@ -1,4 +1,5 @@
 # GitHub Actions workflow that runs on a cron schedule.
+# Check URLs and run latest deps with remote tests
 
 name: Weekly CI Tests
 
@@ -8,9 +9,18 @@ on:
     - cron: '0 6 * * 1'
 
 jobs:
-  # Weekly testing to catch links that stop working for some reason.
-  doc_test:
+  weekly:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+        - name: Check links in docs using tox
+          toxenv: linkcheck
+        - name: Check dev versions of key dependencies
+          toxenv: py39-test-devdeps
+          toxposargs: --remote-data
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
@@ -19,10 +29,11 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: 3.8
+        python-version: 3.9
     - name: Install base dependencies
       run: |
         python -m pip install --upgrade pip tox
-    - name: Check links in docs using tox
-      run: |
-        tox -e linkcheck
+    - name: Test with tox
+      env:
+        ADS_DEV_KEY: ${{ secrets.ADS_DEV_KEY }}
+      run: tox ${{ matrix.toxargs}} -e ${{ matrix.toxenv}} -- ${{ matrix.toxposargs}}

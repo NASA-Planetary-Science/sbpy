@@ -134,7 +134,6 @@ class TestSun:
         sun = Sun.from_builtin('E490_2014')
         assert sun.meta is None
 
-    @pytest.mark.skipif('True')
     @pytest.mark.remote_data
     def test_kurucz_nan_error(self):
         """sbpy#113
@@ -148,6 +147,26 @@ class TestSun:
         V = bandpass('johnson v')
         fluxd = sun.observe(V, unit=u.ABmag)
         assert np.isclose(fluxd.value, -26.77, atol=0.005)
+
+    @pytest.mark.remote_data
+    def test_castelli96(self):
+        """Verify Castelli1996 calibration.
+
+        According to the FITS header:
+
+        HISTORY   Created Thu 15:49:31 16-Nov-95
+        COMMENT   solar model spectrum calculated by F. Castelli.
+        COMMENT   Absolute flux normalized to a V flux of 184.2 ergs/s/cm^2/A
+        COMMENT   For more details see Colina, Bohlin & Castelli 1996
+                  CAL/SCS-008
+
+        2022-06-05: sbpy calculates 184.5 ergs/s/cm^2/A; agreement within 0.2%
+        """
+
+        sun = Sun.from_builtin('Castelli1996')
+        V = bandpass('johnson v')
+        fluxd = sun.observe(V, unit='erg/(s cm2 AA)')
+        assert np.isclose(fluxd.value, 184.2, rtol=0.002)
 
     def test_show_builtin(self, capsys):
         Sun.show_builtin()
