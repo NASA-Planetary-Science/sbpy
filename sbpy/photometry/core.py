@@ -7,7 +7,7 @@ created on June 23, 2017
 """
 
 __all__ = ['DiskIntegratedPhaseFunc', 'LinearPhaseFunc',
-           'NonmonotonicPhaseFunctionWarning']
+           'InvalidPhaseFunctionWarning']
 
 from collections import OrderedDict
 import numpy as np
@@ -21,7 +21,7 @@ from ..units import reflectance
 from ..exceptions import SbpyWarning
 
 
-class NonmonotonicPhaseFunctionWarning(SbpyWarning):
+class InvalidPhaseFunctionWarning(SbpyWarning):
     pass
 
 
@@ -366,8 +366,8 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         --------
         >>> from sbpy.photometry import HG # doctest: +SKIP
         >>> from sbpy.data import Misc # doctest: +SKIP
-        >>> from astropy.modeling.fitting import LevMarLSQFitter
-        >>> fitter = LevMarLSQFitter()
+        >>> from astropy.modeling.fitting import SLSQPLSQFitter
+        >>> fitter = SLSQPLSQFitter()
         >>> obs = Misc.mpc_observations('Bennu') # doctest: +SKIP
         >>> hg = HG() # doctest: +SKIP
         >>> best_hg = hg.from_obs(obs, eph['mag'], fitter) # doctest: +SKIP

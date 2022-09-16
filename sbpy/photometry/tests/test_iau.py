@@ -4,10 +4,11 @@ import numpy as np
 import pytest
 from astropy import units as u
 from astropy.modeling import Parameter
+from astropy.modeling.fitting import SLSQPLSQFitter
 from ...calib import solar_fluxd
 from ...data import Ephem, Phys
-from ..core import NonmonotonicPhaseFunctionWarning
-from ..iau import *
+from ..core import InvalidPhaseFunctionWarning
+from ..iau import HG, HG12, HG1G2, HG12_Pen16, _check_bounds
 
 
 def setup_module(module):
@@ -17,6 +18,17 @@ def setup_module(module):
 
 def teardown_module(module):
     solar_fluxd.set(module.solar_fluxd_default)
+
+
+def test__check_bounds():
+    with pytest.warns(Warning):
+        _check_bounds(1, [2, 3], Warning)
+        _check_bounds(5, [2, 3], Warning)
+        _check_bounds(np.array([1, 2, 2.5]), [2, 3], Warning)
+    with pytest.raises(Exception):
+        _check_bounds(1, [2, 3], Exception)
+    _check_bounds(2.5, [2, 3], Exception)
+    _check_bounds(np.array([2.1, 2.2, 3]), [2, 3], Exception)
 
 
 class TestHG:
@@ -109,30 +121,29 @@ class TestHG:
                 5.52976173, 5.64255607, 5.84536878, 6.13724017, 6.33675472,
                 6.63099954, 7.2461781, 7.32734464, 8.00147425,
                 8.40595306] * u.mag
-        from astropy.modeling.fitting import LevMarLSQFitter
-        fitter = LevMarLSQFitter()
+        fitter = SLSQPLSQFitter()
         # test fit with one column
         m = HG.from_obs({'alpha': pha, 'mag': data}, fitter)
         assert isinstance(m, HG)
         assert isinstance(m.H, Parameter) & np.isclose(
-            m.H.value, 3.436677) & (m.H.unit == u.mag)
+            m.H.value, 3.43668488) & (m.H.unit == u.mag)
         assert isinstance(m.G, Parameter) & np.isclose(
-            m.G.value, 0.1857588) & (m.G.unit == u.dimensionless_unscaled)
+            m.G.value, 0.18576227) & (m.G.unit == u.dimensionless_unscaled)
         # test fit with one column and `init` parameters
         m = HG.from_obs({'alpha': pha, 'mag': data}, fitter, init=[3, 0.1])
         assert isinstance(m, HG)
         assert isinstance(m.H, Parameter) & np.isclose(
-            m.H.value, 3.4366849) & (m.H.unit == u.mag)
+            m.H.value, 3.43674827) & (m.H.unit == u.mag)
         assert isinstance(m.G, Parameter) & np.isclose(
-            m.G.value, 0.18576319) & (m.G.unit == u.dimensionless_unscaled)
+            m.G.value, 0.18580637) & (m.G.unit == u.dimensionless_unscaled)
         # test fit with more than one column
         m = HG.from_obs({'alpha': pha, 'mag': data, 'mag1': data,
                          'mag2': data}, fitter, fields=['mag', 'mag1', 'mag2'])
         assert isinstance(m, HG)
         assert isinstance(m.H, Parameter) & np.allclose(
-            m.H.value, [3.436677]*3) & (m.H.unit == u.mag)
+            m.H.value, [3.43668488]*3) & (m.H.unit == u.mag)
         assert isinstance(m.G, Parameter) & np.allclose(
-            m.G.value, [0.1857588]*3) & (m.G.unit == u.dimensionless_unscaled)
+            m.G.value, [0.18576227]*3) & (m.G.unit == u.dimensionless_unscaled)
         assert 'fields' in m.meta
         assert m.meta['fields'] == ['mag', 'mag1', 'mag2']
         # test fit with more than one column with `init` parameters
@@ -141,9 +152,9 @@ class TestHG:
                         init=[[3., 3., 3.], [0.1, 0.1, 0.1]])
         assert isinstance(m, HG)
         assert isinstance(m.H, Parameter) & np.allclose(
-            m.H.value, [3.4366849]*3) & (m.H.unit == u.mag)
+            m.H.value, [3.43674827]*3) & (m.H.unit == u.mag)
         assert isinstance(m.G, Parameter) & np.allclose(
-            m.G.value, [0.18576319]*3) & (m.G.unit == u.dimensionless_unscaled)
+            m.G.value, [0.18580637]*3) & (m.G.unit == u.dimensionless_unscaled)
         assert 'fields' in m.meta
         assert m.meta['fields'] == ['mag', 'mag1', 'mag2']
 
@@ -201,7 +212,7 @@ class TestHG:
         assert u.allclose(ref5, ref1_test)
 
     def test_g_validate(self):
-        with pytest.warns(NonmonotonicPhaseFunctionWarning):
+        with pytest.warns(InvalidPhaseFunctionWarning):
             m = HG(0, 1.2)
 
     def test_hgphi_exception(self):
@@ -283,16 +294,15 @@ class TestHG1G2:
                 9.24703668, 9.49069761, 9.57246629, 10.12429626, 10.14465944,
                 10.51021594, 10.63215313, 11.15570421, 11.44890748,
                 11.43888611] * u.mag
-        from astropy.modeling.fitting import LevMarLSQFitter
-        fitter = LevMarLSQFitter()
+        fitter = SLSQPLSQFitter()
         m = HG1G2.from_obs({'alpha': pha, 'mag': data}, fitter)
         assert isinstance(m, HG1G2)
         assert isinstance(m.H, Parameter) & np.isclose(
-            m.H.value, 7.1167) & (m.H.unit == u.mag)
+            m.H.value, 7.11670348) & (m.H.unit == u.mag)
         assert isinstance(m.G1, Parameter) & np.isclose(
-            m.G1.value, 0.63922) & (m.G1.unit == u.dimensionless_unscaled)
+            m.G1.value, 0.63922934) & (m.G1.unit == u.dimensionless_unscaled)
         assert isinstance(m.G2, Parameter) & np.isclose(
-            m.G2.value, 0.17262569) & (m.G2.unit == u.dimensionless_unscaled)
+            m.G2.value, 0.17261464) & (m.G2.unit == u.dimensionless_unscaled)
 
     def test_to_mag(self):
         themis = HG1G2(7.063 * u.mag, 0.62, 0.14, radius=100 * u.km, wfb='V')
@@ -312,7 +322,7 @@ class TestHG1G2:
         assert u.allclose(themis.to_ref(pha_test), ref_test)
 
     def test_g1g2_validator(self):
-        with pytest.warns(NonmonotonicPhaseFunctionWarning):
+        with pytest.warns(InvalidPhaseFunctionWarning):
             m = HG1G2(0, -0.2, 0.5)
             m = HG1G2(0, 0.5, -0.2)
             m = HG1G2(0, 0.6, 0.6)
@@ -383,14 +393,13 @@ class TestHG12:
                 9.20869753, 9.52578025, 9.8427691, 9.91588852, 10.3636637,
                 10.26459992, 10.79316978, 10.79202241, 11.36950747,
                 11.61018708] * u.mag
-        from astropy.modeling.fitting import LevMarLSQFitter
-        fitter = LevMarLSQFitter()
+        fitter = SLSQPLSQFitter()
         m = HG12.from_obs({'alpha': pha, 'mag': data}, fitter)
         assert isinstance(m, HG12)
         assert isinstance(m.H, Parameter) & np.isclose(
-            m.H.value, 7.13939) & (m.H.unit == u.mag)
+            m.H.value, 7.13938908) & (m.H.unit == u.mag)
         assert isinstance(m.G12, Parameter) & np.isclose(
-            m.G12.value, 0.44872) & (m.G12.unit == u.dimensionless_unscaled)
+            m.G12.value, 0.448715) & (m.G12.unit == u.dimensionless_unscaled)
 
     def test_to_mag(self):
         pha_test = np.linspace(0, np.pi, 10) * u.rad
@@ -410,7 +419,7 @@ class TestHG12:
         assert u.allclose(themis.to_ref(pha_test), ref_test)
 
     def test_g_validator(self):
-        with pytest.warns(NonmonotonicPhaseFunctionWarning):
+        with pytest.warns(InvalidPhaseFunctionWarning):
             m = HG12(0, -0.71)
             m = HG12(0, 1.31)
 
@@ -477,14 +486,13 @@ class TestHG12_Pen16:
                 9.16195702, 9.54770054, 9.60599559, 10.06129054, 10.22544773,
                 10.49122575, 10.78544483, 11.12145723, 11.18055954,
                 11.40468613] * u.mag
-        from astropy.modeling.fitting import LevMarLSQFitter
-        fitter = LevMarLSQFitter()
+        fitter = SLSQPLSQFitter()
         m = HG12_Pen16.from_obs({'alpha': pha, 'mag': data}, fitter)
         assert isinstance(m, HG12_Pen16)
         assert isinstance(m.H, Parameter) & np.isclose(
-            m.H.value, 7.038705) & (m.H.unit == u.mag)
+            m.H.value, 7.03870429) & (m.H.unit == u.mag)
         assert isinstance(m.G12, Parameter) & np.isclose(
-            m.G12.value, 0.681691) & (m.G12.unit == u.dimensionless_unscaled)
+            m.G12.value, 0.68169538) & (m.G12.unit == u.dimensionless_unscaled)
 
     def test_to_mag(self):
         pha_test = np.linspace(0, np.pi, 10) * u.rad
@@ -504,6 +512,6 @@ class TestHG12_Pen16:
         assert u.allclose(themis.to_ref(pha_test), ref_test)
 
     def test_g_validator(self):
-        with pytest.warns(NonmonotonicPhaseFunctionWarning):
+        with pytest.warns(InvalidPhaseFunctionWarning):
             m = HG12(0, -0.71)
             m = HG12(0, 1.31)
