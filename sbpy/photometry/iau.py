@@ -13,11 +13,43 @@ import numpy as np
 from scipy.integrate import quad
 from astropy.modeling import Parameter
 import astropy.units as u
-from .core import DiskIntegratedPhaseFunc, NonmonotonicPhaseFunctionWarning
+from .core import DiskIntegratedPhaseFunc, InvalidPhaseFunctionWarning
 from ..bib import cite
 
 
 __all__ = ['HG', 'HG12', 'HG1G2', 'HG12_Pen16']
+
+
+# define the bounds of various model parameters
+_hg_g_bounds = [-0.253, 1.194]
+_hg1g2_g1_bounds = [0, 1]
+_hg1g2_g2_bounds = [0, 1]
+_hg12_g12_bounds = [-0.0818919, 0.909714]
+_hg12_pen16_g12_bounds = [0, 1]
+
+
+def _check_bounds(value, bounds, exception, msg=''):
+    """Check if all `value` is within `bounds`
+
+    Parameters
+    ----------
+    value : number, number array
+        Value to be checked
+    bounds : 2-element array-like representing [lower, upper]
+        Bounds for value.  Lower or upper could be None, representing
+        no bounds.
+    exception : Warning or Exception
+        If out of bounds, issue a warning or exception.
+    msg : str, optional
+        Exception or warning string
+    """
+    value = np.asanyarray(value)
+    if ((bounds[0] is not None and (value < bounds[0]).any())
+        or (bounds[1] is not None and (value > bounds[1]).any())):
+        if issubclass(exception, Warning):
+            warnings.warn(msg, exception)
+        elif issubclass(exception, Exception):
+            raise exception(msg)
 
 
 class _spline(object):
@@ -110,7 +142,8 @@ class HG(DiskIntegratedPhaseFunc):
 
     _unit = 'mag'
     H = Parameter(description='H parameter', default=8)
-    G = Parameter(description='G parameter', default=0.4)
+    G = Parameter(description='G parameter', default=0.4,
+                  bounds=_hg_g_bounds)
 
     @cite({'definition': '1989aste.conf..524B'})
     def __init__(self, *args, **kwargs):
@@ -118,15 +151,8 @@ class HG(DiskIntegratedPhaseFunc):
 
     @G.validator
     def G(self, value):
-        """Validate parameter G to avoid non-monotonic phase function
-
-        If G > 1.194, the phase function could potentially be non-monotoic,
-        and a warning will be issued.
-        """
-        if np.any(value > 1.194):
-            warnings.warn(
-                'G parameter could result in a non-monotonic phase function',
-                NonmonotonicPhaseFunctionWarning)
+        _check_bounds(value, _hg_g_bounds, InvalidPhaseFunctionWarning,
+            'G parameter could result in an invalid phase function')
 
     @staticmethod
     def _hgphi(pha, i):
@@ -279,32 +305,31 @@ class HG1G2(HG12BaseClass):
     """
 
     H = Parameter(description='H parameter', default=8)
-    G1 = Parameter(description='G1 parameter', default=0.2)
-    G2 = Parameter(description='G2 parameter', default=0.2)
+    G1 = Parameter(description='G1 parameter', default=0.2,
+                   bounds=_hg1g2_g1_bounds)
+    G2 = Parameter(description='G2 parameter', default=0.2,
+                   bounds=_hg1g2_g2_bounds)
+
+    def __init__(self, *args, **kwargs):
+        ineqcons = kwargs.pop('ineqcons', [])
+        ineqcons.append(lambda x, *args: 1 - x[1] - x[2])
+        super().__init__(*args, ineqcons=ineqcons, **kwargs)
 
     @G1.validator
     def G1(self, value):
-        """Validate parameter G1 to avoid non-monotonic phase function
-
-        If G1 < 0 or G2 < 0 or G1 + G2 > 1, the phase function could
-        potentially be non-monotoic, and a warning will be issued.
-        """
-        if np.any(value < 0) or np.any(value + self.G2 > 1):
-            warnings.warn(
-                'G1, G2 parameter combination might result in a non-monotonic'
-                ' phase function', NonmonotonicPhaseFunctionWarning)
+        _check_bounds(value, _hg1g2_g1_bounds, InvalidPhaseFunctionWarning,
+            'G1 results in an invalid phase function.')
+        if (value + self.G2 > 1).any():
+            warnings.warn('G1, G2 combination results in an invalid '
+                'phase function.')
 
     @G2.validator
     def G2(self, value):
-        """Validate parameter G1 to avoid non-monotonic phase function
-
-        If G1 < 0 or G2 < 0 or G1 + G2 > 1, the phase function could
-        potentially be non-monotoic, and a warning will be issued.
-        """
-        if np.any(value < 0) or np.any(value + self.G1 > 1):
-            warnings.warn(
-                'G1, G2 parameter combination might result in a non-monotonic'
-                ' phase function', NonmonotonicPhaseFunctionWarning)
+        _check_bounds(value, _hg1g2_g2_bounds, InvalidPhaseFunctionWarning,
+            'G2 results in an invalid phase function.')
+        if (value + self.G1 > 1).any():
+            warnings.warn('G1, G2 combination results in an invalid '
+                'phase function.')
 
     @property
     def _G1(self):
@@ -374,19 +399,13 @@ class HG12(HG12BaseClass):
     """
 
     H = Parameter(description='H parameter', default=8)
-    G12 = Parameter(description='G12 parameter', default=0.3)
+    G12 = Parameter(description='G12 parameter', default=0.3,
+                    bounds=_hg12_g12_bounds)
 
     @G12.validator
     def G12(self, value):
-        """Validate parameter G12 to avoid non-monotonic phase function
-
-        If G12 < -0.70 or G12 > 1.30, the phase function could potentially be
-        non-monotoic, and a warning will be issued.
-        """
-        if np.any(value < -0.70) or np.any(value > 1.30):
-            warnings.warn(
-                'G12 parameter could result in a non-monotonic phase function',
-                NonmonotonicPhaseFunctionWarning)
+        _check_bounds(value, _hg12_g12_bounds, InvalidPhaseFunctionWarning,
+            'G12 parameter could result in an invalid phase function')
 
     @property
     def _G1(self):
@@ -469,6 +488,15 @@ class HG12_Pen16(HG12):
     geometric albedo = 0.0622
     phase integral = 0.3804
     """
+
+    G12 = Parameter(description='G12 parameter', default=0.3,
+                    bounds=_hg12_pen16_g12_bounds)
+
+    @G12.validator
+    def G12(self, value):
+        _check_bounds(value, _hg12_pen16_g12_bounds,
+                      InvalidPhaseFunctionWarning,
+                      'G12 parameter could result in an invalid phsae function')
 
     @cite({'definition': '2016P&SS..123..117P'})
     def __init__(self, *args, **kwargs):
