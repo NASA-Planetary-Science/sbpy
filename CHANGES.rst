@@ -22,6 +22,10 @@ sbpy.data
 - Added ``DataClass.__contains__`` to enable `in` operator for ``DataClass``
   objects. [#357]
 
+
+sbpy.photometry
+^^^^^^^^^^^^^^^
+
 - Added parameter constraints to the IAU disk-integrated phase function models,
   such as ``HG``, ``HG1G2``, ``HG12``, and ``HG12_Pen16``. [#366]
 
