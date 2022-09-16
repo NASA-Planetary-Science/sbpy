@@ -23,7 +23,7 @@ sbpy.data
   objects. [#357]
 
 - Added parameter constraints to the IAU disk-integrated phase function models,
-  such as ``HG``, ``HG1G2``, ``HG12``, and ``HG12_Pen16``. [#xxx]
+  such as ``HG``, ``HG1G2``, ``HG12``, and ``HG12_Pen16``. [#366]
 
 
 Bug Fixes
