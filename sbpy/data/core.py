@@ -9,7 +9,7 @@ created on June 22, 2017
 
 from copy import deepcopy
 from numpy import ndarray, array, hstack, iterable
-from astropy.table import QTable, Column
+from astropy.table import QTable, Table, Column, vstack
 from astropy.time import Time
 from astropy.coordinates import Angle
 import astropy.units as u
@@ -975,9 +975,11 @@ class DataClass():
         with new columns, and the cells with no values will be masked in
         both the existing dataclass and the newly joined rows.
 
+        Joining will be in-place.
+
         Parameters
         ----------
-        data : `sbpy.data.DataClass`
+        data : `sbpy.data.DataClass`, dict, `astropy.table.Table`
             Object to be joined with the current object
 
         Examples
@@ -988,8 +990,21 @@ class DataClass():
         >>> data1 = DataClass.from_dict(
         ...         {'rh': [1, 2, 3] * u.au, 'delta': [1, 2, 3] * u.au})
         >>> data2 = DataClass.from_dict(
-                    {'rh': [4, 5] * u.au, 'phase': 15 * u.deg}
+        ...         {'rh': [4, 5] * u.au, 'phase': [15, 15] * u.deg})
         >>> data1.join(data2)
         """
-        pass
+        # check and process input data
+        if isinstance(data, dict):
+            data = DataClass.from_dict(data)
+        elif isinstance(data, Table):
+            data = DataClass.from_table(data)
+        if not isinstance(data, DataClass):
+            raise ValueError('DataClass, dict, or astorpy.table.Table are '
+                'expected, but {} is received.'.format(type(data)))
 
+        # adjust input column names for alises
+        alt = self._translate_columns(data.field_names, ignore_missing=True)
+        data.table.rename_columns(data.field_names, alt)
+
+        # join with the input table
+        self.table = vstack([self.table, data.table], join_type='outer')

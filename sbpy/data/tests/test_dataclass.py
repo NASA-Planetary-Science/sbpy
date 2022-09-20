@@ -605,3 +605,62 @@ def test_apply():
 
     with pytest.raises(DataClassError):
         tab.apply([12.1, 12.5, 12.6, 99]*u.mag, name='V')  # wrong size
+
+
+def test_join():
+    """test DataClass.join"""
+    tab = DataClass.from_columns([[2451223, 2451224, 2451226]*u.d,
+                                  [120.1, 121.3, 124.9]*u.deg,
+                                  [12.4, 12.2, 10.8]*u.deg],
+                                 names=('JD', 'RA', 'DEC'))
+
+    # join a DataClass, same columns
+    assert isinstance(tab, DataClass)
+    tab.join(tab)
+    assert len(tab) == 6
+    assert set(tab.field_names) == {'JD', 'RA', 'DEC'}
+    assert all(tab.table[:3] == tab.table[-3:])
+
+    # join a Table
+    delta_tab = tab.table
+    assert isinstance(delta_tab, QTable)
+    tab.join(delta_tab)
+    assert len(tab) == 12
+    assert set(tab.field_names) == {'JD', 'RA', 'DEC'}
+    assert all(tab.table[:6] == tab.table[-6:])
+
+    # join a dict
+    delta_tab = dict(tab.table)
+    assert isinstance(delta_tab, dict)
+    tab.join(dict(delta_tab))
+    assert len(tab) == 24
+    assert set(tab.field_names) == {'JD', 'RA', 'DEC'}
+    assert all(tab.table[:6] == tab.table[-6:])
+
+    # join an unrecoganized object
+    with pytest.raises(ValueError):
+        tab.join([1, 2, 3])
+
+    # join a table with different sets of columns
+    tab = DataClass.from_columns([[2451223, 2451224, 2451226]*u.d,
+                                  [120.1, 121.3, 124.9]*u.deg,
+                                  [12.4, 12.2, 10.8]*u.deg],
+                                 names=('JD', 'RA', 'DEC'))
+    subtab = QTable([[1, 2, 3] * u.au,
+                     [1, 2, 3] * u.au,
+                     [20, 30, 40] * u.deg],
+                    names=('r', 'delta', 'DEC'))
+    field0 = tab.field_names
+    tab.join(subtab)
+    assert len(tab) == 6
+    assert set(field0).union(set(subtab.colnames)) == set(tab.field_names)
+
+    # join a table that has a column using alternative names
+    subtab = QTable([[4, 5] * u.au,
+                     [10, 20] * u.deg],
+                    names=('rh', 'phase'))
+    field0 = tab.field_names
+    tab.join(subtab)
+    assert len(tab) == 8
+    assert 'rh' not in tab.table.colnames
+    assert set(field0).union({'phase'}) == set(tab.field_names)
