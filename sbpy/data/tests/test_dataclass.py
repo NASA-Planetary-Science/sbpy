@@ -452,6 +452,9 @@ def test_translate_columns_and_contains(monkeypatch):
         tab._translate_columns(['x'])  # undefined column name
         tab._translate_columns(['dd'])  # defined column name but not in table
 
+    trans = tab._translate_columns(['x', 'dd'], ignore_missing=True)
+    assert trans == ['x', 'dd']
+
     assert 'aa' in tab
     assert 'bb' in tab
     assert 'zz' in tab

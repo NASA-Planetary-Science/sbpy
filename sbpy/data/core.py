@@ -661,12 +661,15 @@ class DataClass():
         else:
             return False
 
-    def _translate_columns(self, target_colnames):
+    def _translate_columns(self, target_colnames, ignore_missing=False):
         """Translate target_colnames to the corresponding column names
         present in this object's table. Returns a list of actual column
         names present in this object that corresponds to target_colnames
-        (order is preserved). Raises KeyError if not all columns are
-        present or one or more columns could not be translated.
+        (order is preserved). If `ignore_missing == False` (default),
+        raises a `KeyError` if a match cannot be found for an input column
+        name (neither in this object nor defined in `Conf.fieldnames`).
+        If `ignore_missing == True`, then the problemtic column name will
+        be silently carried ouver and returned.
         """
 
         if not isinstance(target_colnames, (list, ndarray, tuple)):
@@ -674,19 +677,19 @@ class DataClass():
 
         translated_colnames = deepcopy(target_colnames)
         for idx, colname in enumerate(target_colnames):
-            # colname is already a column name in self.table
-            if colname in self.field_names:
-                continue
-            # colname is an alternative column name
-            else:
+            if colname not in self.field_names:
+                # colname not already in self.table
                 for alt in Conf.fieldnames[
                             Conf.fieldname_idx.get(colname, slice(0))]:
+                    # defined in `Conf.fieldnames`
                     if alt in self.field_names:
                         translated_colnames[idx] = alt
                         break
                 else:
-                    raise KeyError('field "{:s}" not available.'.format(
-                        colname))
+                    # undefined colname
+                    if not ignore_missing:
+                        raise KeyError('field "{:s}" not available.'.format(
+                            colname))
 
         return translated_colnames
 
