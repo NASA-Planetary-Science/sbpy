@@ -934,3 +934,59 @@ class DataClass():
                 ):
                     raise FieldError('Field {} does not have units of {}'
                                      .format(test_field, str(dim.unit)))
+
+    def add_row(self, vals, names=None):
+        """Add a new row to the end of DataClass.
+
+        This is similar to `astropy.table.Table.add_row`, but allows for
+        a set of different columns in the new row from the original DataClass
+        object.  It also allows for aliases of column names.
+
+        Parameters
+        ----------
+        vals : tuple, list, dict or None
+            Use the specified values in the new row
+        mask : tuple, list, dict or None
+            Use the specified mask values in the new row
+        names : iterable of strings
+            The names of columns if not implicitly specified in `vals`.
+            Ignored if the column names are specified in `vals`.
+
+        Examples
+        --------
+        >>> import astropy.units as u
+        >>> from sbpy.data import DataClass
+        >>>
+        >>> data = DataClass.from_dict(
+        ...         {'rh': [1, 2, 3] * u.au, 'delta': [1, 2, 3] * u.au})
+        >>> row = {'rh': 4 * u.au, 'delta': 4 * u.au, 'phase': 15 * u.deg}
+        >>> data.add_row(row)
+        """
+        pass
+
+    def join(self, data):
+        """Join another DataClass object to the end of DataClass
+
+        The DataClass object doesn't need to have the same set of columns
+        as the existing object.  The original dataclass will be expanded
+        with new columns, and the cells with no values will be masked in
+        both the existing dataclass and the newly joined rows.
+
+        Parameters
+        ----------
+        data : `sbpy.data.DataClass`
+            Object to be joined with the current object
+
+        Examples
+        --------
+        >>> import astropy.units as u
+        >>> from sbpy.data import DataClass
+        >>>
+        >>> data1 = DataClass.from_dict(
+        ...         {'rh': [1, 2, 3] * u.au, 'delta': [1, 2, 3] * u.au})
+        >>> data2 = DataClass.from_dict(
+                    {'rh': [4, 5] * u.au, 'phase': 15 * u.deg}
+        >>> data1.join(data2)
+        """
+        pass
+
