@@ -6,7 +6,7 @@ import pytest
 from copy import deepcopy
 import astropy.units as u
 from astropy.coordinates import Angle
-from astropy.table import QTable, Column
+from astropy.table import QTable, Column, Row
 from astropy.time import Time
 from ..core import DataClass, Conf, DataClassError, FieldError
 
@@ -605,6 +605,42 @@ def test_apply():
 
     with pytest.raises(DataClassError):
         tab.apply([12.1, 12.5, 12.6, 99]*u.mag, name='V')  # wrong size
+
+
+def test_add_row():
+    """test DataClass.add_row"""
+    tab = DataClass.from_columns([[2451223, 2451224, 2451226]*u.d,
+                                  [120.1, 121.3, 124.9]*u.deg,
+                                  [12.4, 12.2, 10.8]*u.deg],
+                                 names=('JD', 'RA', 'DEC'))
+    # add astropy Row
+    r = tab.table[0]
+    assert isinstance(r, Row)
+    tab.add_row(r)
+    assert len(tab) == 4
+    assert tab.table[-1] == r
+
+    # add a dict
+    r = {'JD': 2451228 * u.d, 'RA': 130 * u.deg, 'DEC': 8 * u.deg}
+    tab.add_row(r)
+    assert len(tab) == 5
+    for k in r.keys():
+        assert u.isclose(tab[-1][k], r[k])
+
+    # add an iterable that matches the existing columns
+    r = [2451130 * u.d, 135 * u.deg, 6 * u.deg]
+    tab.add_row(r)
+    assert len(tab) == 6
+    for i, k in enumerate(tab.field_names):
+        assert u.isclose(tab[-1][k], r[i])
+
+    # add an iterable with specified column names
+    r = [2451132 * u.d, 140 * u.deg, 3 * u.au]
+    n = ['JD', 'RA', 'rh'] # adding a new column and missing an existing column
+    tab.add_row(r, n)
+    assert len(tab) == 7
+    for i, k in enumerate(n):
+        assert u.isclose(tab[-1][k], r[i])
 
 
 def test_join():

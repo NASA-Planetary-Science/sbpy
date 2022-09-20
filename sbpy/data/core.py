@@ -7,9 +7,10 @@ sbpy.data core module
 created on June 22, 2017
 """
 
+from collections.abc import Mapping
 from copy import deepcopy
 from numpy import ndarray, array, hstack, iterable
-from astropy.table import QTable, Table, Column, vstack
+from astropy.table import QTable, Table, Column, Row, vstack
 from astropy.time import Time
 from astropy.coordinates import Angle
 import astropy.units as u
@@ -947,13 +948,11 @@ class DataClass():
 
         Parameters
         ----------
-        vals : tuple, list, dict or None
-            Use the specified values in the new row
-        mask : tuple, list, dict or None
-            Use the specified mask values in the new row
+        vals : `~astropy.table.Row`, tuple, list, dict
+            Row to be added
         names : iterable of strings
-            The names of columns if not implicitly specified in `vals`.
-            Ignored if the column names are specified in `vals`.
+            The names of columns if not implicitly specified in ``vals``.
+            Ignored if the column names are specified in ``vals``.
 
         Examples
         --------
@@ -965,7 +964,20 @@ class DataClass():
         >>> row = {'rh': 4 * u.au, 'delta': 4 * u.au, 'phase': 15 * u.deg}
         >>> data.add_row(row)
         """
-        pass
+        if isinstance(vals, Row):
+            vals = DataClass.from_table(vals)
+        elif isinstance(vals, Mapping):
+            keys_list = list(vals.keys())
+            vals_list = [vals[k] for k in keys_list]
+            vals = DataClass.from_rows(vals_list, keys_list)
+        else:
+            # assume it's an iterable that can be taken as columns
+            if names is None:
+                # if names of columns are not specified, default to the
+                # existing names and orders
+                names = self.field_names
+            vals = DataClass.from_rows(vals, names)
+        self.join(vals)
 
     def join(self, data):
         """Join another DataClass object to the end of DataClass
@@ -979,7 +991,7 @@ class DataClass():
 
         Parameters
         ----------
-        data : `sbpy.data.DataClass`, dict, `astropy.table.Table`
+        data : `~sbpy.data.DataClass`, dict, `~astropy.table.Table`
             Object to be joined with the current object
 
         Examples
