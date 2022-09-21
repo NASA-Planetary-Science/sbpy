@@ -663,6 +663,28 @@ def test_add_row():
     assert u.isclose(tab[-1]['phase'], r['DEC'])
 
 
+def test_add_column():
+    """test DataClass.add_column"""
+    tab = DataClass.from_columns([[2451223, 2451224, 2451226]*u.d,
+                                  [120.1, 121.3, 124.9]*u.deg,
+                                  [12.4, 12.2, 10.8]*u.deg],
+                                 names=('JD', 'RA', 'DEC'))
+    filt = ['V', 'V', 'R']
+    # add astropy Column
+    tab.add_column(Column(filt, name='filter'))
+    assert set(tab.field_names) == {'JD', 'RA', 'DEC', 'filter'}
+    assert all(tab['filter'] == filt)
+
+    # add a sequence
+    tab.add_column(filt, name='filter1')
+    assert set(tab.field_names) == {'JD', 'RA', 'DEC', 'filter', 'filter1'}
+    assert all(tab['filter1'] == filt)
+
+    # duplicated column
+    with pytest.raises(DataClassError):
+        tab.add_column(filt, name='filter')
+
+
 def test_join():
     """test DataClass.join"""
     tab = DataClass.from_columns([[2451223, 2451224, 2451226]*u.d,
