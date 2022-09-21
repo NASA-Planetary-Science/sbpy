@@ -609,7 +609,8 @@ def test_apply():
 
 def test_add_row():
     """test DataClass.add_row"""
-    tab = DataClass.from_columns([[2451223, 2451224, 2451226]*u.d,
+    tab = DataClass.from_columns([Time([2451223, 2451224, 2451226],
+                                       format='jd'),
                                   [120.1, 121.3, 124.9]*u.deg,
                                   [12.4, 12.2, 10.8]*u.deg],
                                  names=('JD', 'RA', 'DEC'))
@@ -624,23 +625,42 @@ def test_add_row():
     r = {'JD': 2451228 * u.d, 'RA': 130 * u.deg, 'DEC': 8 * u.deg}
     tab.add_row(r)
     assert len(tab) == 5
-    for k in r.keys():
+    assert all(tab[-1]['JD'] == Time(r['JD'], format='jd'))
+    for k in ['RA', 'DEC']:
         assert u.isclose(tab[-1][k], r[k])
 
     # add an iterable that matches the existing columns
     r = [2451130 * u.d, 135 * u.deg, 6 * u.deg]
     tab.add_row(r)
     assert len(tab) == 6
-    for i, k in enumerate(tab.field_names):
-        assert u.isclose(tab[-1][k], r[i])
+    assert all(tab[-1]['JD'] == Time(r[0], format='jd'))
+    for i, k in enumerate(tab.field_names[1:]):
+        assert u.isclose(tab[-1][k], r[i+1])
 
     # add an iterable with specified column names
     r = [2451132 * u.d, 140 * u.deg, 3 * u.au]
     n = ['JD', 'RA', 'rh'] # adding a new column and missing an existing column
     tab.add_row(r, n)
     assert len(tab) == 7
-    for i, k in enumerate(n):
-        assert u.isclose(tab[-1][k], r[i])
+    assert set(tab.field_names) == {'JD', 'RA', 'DEC', 'rh'}
+    assert all(tab[-1]['JD'] == Time(r[0], format='jd'))
+    for i, k in enumerate(n[1:]):
+        assert u.isclose(tab[-1][k], r[i+1])
+
+    # time represented by a string
+    r = ['1998-11-18', 120 * u.deg, 3 * u.au]
+    n = ['JD', 'RA', 'rh']
+    tab.add_row(r, n)
+    assert len(tab) == 8
+    assert all(tab[-1]['JD'] == r[0])
+
+    # specify different names from the Mapping object
+    r = {'JD': 2451228 * u.d, 'RA': 130 * u.deg, 'DEC': 8 * u.deg}
+    n = ['JD', 'RA', 'phase']
+    tab.add_row(r, n)
+    assert len(tab) == 9
+    assert set(tab.field_names) == {'JD', 'RA', 'DEC', 'rh', 'phase'}
+    assert u.isclose(tab[-1]['phase'], r['DEC'])
 
 
 def test_join():

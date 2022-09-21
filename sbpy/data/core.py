@@ -939,7 +939,7 @@ class DataClass():
                     raise FieldError('Field {} does not have units of {}'
                                      .format(test_field, str(dim.unit)))
 
-    def add_row(self, vals, names=None):
+    def add_row(self, vals, names=None, units=None):
         """Add a new row to the end of DataClass.
 
         This is similar to `astropy.table.Table.add_row`, but allows for
@@ -950,9 +950,28 @@ class DataClass():
         ----------
         vals : `~astropy.table.Row`, tuple, list, dict
             Row to be added
-        names : iterable of strings
+        names : iterable of strings, optional
             The names of columns if not implicitly specified in ``vals``.
-            Ignored if the column names are specified in ``vals``.
+            Takes precedence over the column names in ``vals`` if any.
+        units : str or list-like, optional
+            Unit labels (as provided by `~astropy.units.Unit`) in which
+            the data provided in ``rows`` will be stored in the underlying
+            table. If None, the units as provided by ``rows``
+            are used. If the units provided in ``units`` differ from those
+            used in ``rows``, ``rows`` will be transformed to the units
+            provided in ``units``. Must have the same length as ``names``
+            and the individual data rows in ``rows``. Default: None
+
+        Notes
+        -----
+        If a time is included in ``vals``, it can either be an explicit
+        `~astropy.time.Time` object, or a number, `~astropy.units.Quantity`
+        object, or string that can be inferred to be a time by the existing
+        column of the same name or by its position in the sequence.  In
+        this case, the type of time values must be valid to initialize
+        an `~astropy.time.Time` object with format='jd' or 'isot', and
+        the scale of time is default to the scale of the corresponding
+        existing column of time.
 
         Examples
         --------
@@ -966,17 +985,25 @@ class DataClass():
         """
         if isinstance(vals, Row):
             vals = DataClass.from_table(vals)
-        elif isinstance(vals, Mapping):
-            keys_list = list(vals.keys())
-            vals_list = [vals[k] for k in keys_list]
-            vals = DataClass.from_rows(vals_list, keys_list)
         else:
-            # assume it's an iterable that can be taken as columns
-            if names is None:
-                # if names of columns are not specified, default to the
-                # existing names and orders
-                names = self.field_names
-            vals = DataClass.from_rows(vals, names)
+            if isinstance(vals, Mapping):
+                keys_list = list(vals.keys())
+                vals_list = [vals[k] for k in keys_list]
+                vals = vals_list
+                if names is None:
+                    names = keys_list
+            else:
+                # assume it's an iterable that can be taken as columns
+                if names is None:
+                    # if names of columns are not specified, default to the
+                    # existing names and orders
+                    names = self.field_names
+            # check if any astropy Time columns
+            for i, k in enumerate(names):
+                if k in self and isinstance(self[k], Time):
+                    vals[i] = Time(vals[i], scale=self[k].scale,
+                        format='isot' if isinstance(vals[i], str) else 'jd')
+            vals = DataClass.from_rows(vals, names, units=units)
         self.join(vals)
 
     def join(self, data):
