@@ -411,21 +411,17 @@ directly addressing them:
     >>> obs['ra']
     <Quantity [10.323423, 10.333453, 10.343452] deg>
 
-More complex data table modifications are possible by directly
-accessing the underlying `~astropy.table.QTable` object as shown below.
-
-`~sbpy.data.DataClass` provides a direct interface to the table
-modification functions provided by `~astropy.table.Table`:
-`~astropy.table.Table.add_row`, `~astropy.table.Table.add_column`,
-`~astropy.table.Table.add_columns`, etc. For instance, it is trivial to add
-additional rows and columns to these objects.
+The basic functionalities to modify the data table are implemented in
+`~sbpy.data.DataClass`, including adding rows and columns and join a
+DataClass with another DataClass object or an `~astropy.table.Table`
+object.
 
 Let's assume you want to add some more observations to your ``obs``
 object:
 
 .. doctest-requires:: astropy>=5
 
-    >>> obs.table.add_row([10.255460 * u.deg, -12.39460 * u.deg, 2451523.94653 * u.d])
+    >>> obs.add_row([10.255460 * u.deg, -12.39460 * u.deg, 2451523.94653 * u.d])
     >>> obs
     <QTable length=4>
         ra       dec          t      
@@ -442,13 +438,12 @@ or if you want to add a column to your object:
 
 .. doctest-requires:: astropy>=5
 
-    >>> from astropy.table import Column
-    >>> obs.table.add_column(Column(['V', 'V', 'R', 'i'], name='filter'))
+    >>> obs.add_column(['V', 'V', 'R', 'i'], name='filter')
     >>> obs
     <QTable length=4>
         ra       dec          t       filter
        deg       deg                        
-     float64   float64       Time      str1 
+     float64   float64       Time     str32
     --------- --------- ------------- ------
     10.323423 -12.42123  2451523.6234      V
     10.333453 -12.41562  2451523.7345      V
@@ -464,7 +459,7 @@ The same result can be achieved using the following syntax:
     <QTable length=4>
         ra       dec          t       filter filter2
        deg       deg                                
-     float64   float64       Time      str1    str1 
+     float64   float64       Time     str32    str1
     --------- --------- ------------- ------ -------
     10.323423 -12.42123  2451523.6234      V       V
     10.333453 -12.41562  2451523.7345      V       V
@@ -477,16 +472,42 @@ Similarly, existing columns can be modified using:
 
     >>> obs['filter'] = ['g', 'i', 'R', 'V']
 
-Note how the `~astropy.table.Table.add_column` and
-`~astropy.table.Table.add_row` functions are called from
-``obs.table``. `~sbpy.data.DataClass.table` is a property that exposes
-the underlying `~astropy.table.QTable` object so that the user can
-directly interact with it. Please refer to the `~astropy.table.Table`
-reference and
-[documentation](https://docs.astropy.org/en/stable/table/index.html)
-for more information on how to modify `~astropy.table.QTable` objects.
+If you want to join two observations into a single object:
 
+.. doctest-requires:: astropy>=5
 
+    >>> ra = [20.223423, 20.233453, 20.243452] * u.deg
+    >>> dec = [12.42123, 12.41562, 12.40435] * u.deg
+    >>> phase = [10.1, 12.3, 15.6] * u.deg
+    >>> epoch = Time(2451623.5 + array([0.1234, 0.2345, 0.3525]), format='jd')
+    >>> obs2 = Obs.from_columns([ra, dec, epoch, phase],
+    ...     names=['ra', 'dec', 't', 'phase'])
+    >>>
+    >>> obs.join(obs2)
+    >>> obs
+    <QTable length=7>
+        ra       dec          t       filter filter2  phase
+       deg       deg                                   deg
+     float64   float64       Time      str1    str1  float64
+    --------- --------- ------------- ------ ------- -------
+    10.323423 -12.42123  2451523.6234      g       V     ———
+    10.333453 -12.41562  2451523.7345      i       V     ———
+    10.343452 -12.40435  2451523.8525      R       R     ———
+     10.25546  -12.3946 2451523.94653      V       i     ———
+    20.223423  12.42123  2451623.6234     --      --    10.1
+    20.233453  12.41562  2451623.7345     --      --    12.3
+    20.243452  12.40435  2451623.8525     --      --    15.6
+
+Note that the data table to be joined doesn't have to have the same
+columns as the original data table.  The empty field will be automatically
+masked out.
+
+Because the underlying `~astropy.table.QTable` can be exposed by the
+`~sbpy.data.DataClass.table` property, it is possible to modify the data
+table by directly accessing the underlying `~astropy.table.QTable` object.
+However, this is not generally advised.  You should use the mechanisms provided
+by `~sbpy.data.DataClass` to manipulate the data table as much as possible
+to maintain the integrity of the data table.
 
 Additional Data Container Concepts
 ==================================
