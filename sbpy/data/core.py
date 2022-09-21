@@ -1002,7 +1002,8 @@ class DataClass():
             for i, k in enumerate(names):
                 if k in self and isinstance(self[k], Time):
                     vals[i] = Time(vals[i], scale=self[k].scale,
-                        format='isot' if isinstance(vals[i], str) else 'jd')
+                                   format='isot' if isinstance(vals[i], str)
+                                   else 'jd')
             vals = DataClass.from_rows(vals, names, units=units)
         self.join(vals)
 
@@ -1060,7 +1061,8 @@ class DataClass():
             data = DataClass.from_table(data)
         if not isinstance(data, DataClass):
             raise ValueError('DataClass, dict, or astorpy.table.Table are '
-                'expected, but {} is received.'.format(type(data)))
+                             'expected, but {} is received.'.
+                             format(type(data)))
 
         # adjust input column names for alises
         alt = self._translate_columns(data.field_names, ignore_missing=True)

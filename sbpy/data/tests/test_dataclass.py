@@ -639,7 +639,7 @@ def test_add_row():
 
     # add an iterable with specified column names
     r = [2451132 * u.d, 140 * u.deg, 3 * u.au]
-    n = ['JD', 'RA', 'rh'] # adding a new column and missing an existing column
+    n = ['JD', 'RA', 'rh']  # with a new column and missing an existing column
     tab.add_row(r, n)
     assert len(tab) == 7
     assert set(tab.field_names) == {'JD', 'RA', 'DEC', 'rh'}
