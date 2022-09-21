@@ -22,6 +22,9 @@ sbpy.data
 - Added ``DataClass.__contains__`` to enable `in` operator for ``DataClass``
   objects. [#357]
 
+- Added ``DataClass.add_row``, ``DataClass.add_column``, ``DataClass.join``
+  methods. [#xxx]
+
 
 Bug Fixes
 ---------
