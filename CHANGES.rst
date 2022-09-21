@@ -23,7 +23,7 @@ sbpy.data
   objects. [#357]
 
 - Added ``DataClass.add_row``, ``DataClass.add_column``, ``DataClass.join``
-  methods. [#xxx]
+  methods. [#367]
 
 
 Bug Fixes
