@@ -17,7 +17,7 @@ from abc import ABC, abstractmethod
 from distutils.log import warn
 import warnings
 from dataclasses import dataclass
-from typing import Callable
+from typing import Callable, Tuple
 
 import numpy as np
 import astropy.units as u
@@ -1031,7 +1031,7 @@ class VectorialModel(GasComa):
         """
         # No additional production at any time
         def q_t(_):
-            return 0
+            return 0.0
 
         return q_t
 
@@ -1159,7 +1159,7 @@ class VectorialModel(GasComa):
                                x: np.float64,
                                y: np.float64,
                                theta: np.float64
-                               ) -> tuple[np.ndarray, np.ndarray]:
+                               ) -> Tuple[np.ndarray, np.ndarray]:
         """ Construct a list of points along the outflow axis, sampled to be
             more dense around the minimum distance to (x, y)
 
@@ -1286,6 +1286,10 @@ class VectorialModel(GasComa):
                 v_two = vp*cos_eject - v_factor
                 velocities = [v_one, v_two]
 
+            # TODO: this shouldn't be necessary if we only pick r, theta inside ejection
+            if v_one == 0.0:
+                continue
+
             for v in velocities:
                 # Time taken to travel from the dissociation point at v, reject
                 # if the time is too large and fragments have decayed beyond
@@ -1310,12 +1314,12 @@ class VectorialModel(GasComa):
 
                 # Fragment extinction when traveling at speed v from
                 # dissociation site to x, y
-                f_extinction_one = np.e**(-t_frag/f_tau_T)
+                f_extinction = np.e**(-t_frag/f_tau_T)
 
                 # differential addition to the density integrating along dr,
                 # similar to eq. (36) Festou 1981
                 n_r = (
-                        (p_extinction*f_extinction_one*q_r_eps) /
+                        (p_extinction*f_extinction*q_r_eps) /
                         (sep_dist**2 * v)
                         )
 
