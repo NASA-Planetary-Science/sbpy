@@ -8,9 +8,7 @@ Requires synphot.
 
 """
 
-__all__ = [
-    'BlackbodySource', 'Reddening'
-]
+__all__ = ["BlackbodySource", "Reddening"]
 
 import numpy as np
 from abc import ABC
@@ -30,12 +28,13 @@ except ImportError:
     class BaseUnitlessSpectrum:
         pass
 
+
 from ..exceptions import SbpyException
 from ..utils.decorators import requires
 
 __doctest_requires__ = {
-    'SpectralSource': ['synphot'],
-    'BlackbodySource': ['synphot'],
+    "SpectralSource": ["synphot"],
+    "BlackbodySource": ["synphot"],
 }
 
 
@@ -99,15 +98,14 @@ class SpectralSource(ABC):
         """
 
         source = synphot.SourceSpectrum(
-            synphot.Empirical1D, points=wave, lookup_table=fluxd,
-            meta=meta)
+            synphot.Empirical1D, points=wave, lookup_table=fluxd, meta=meta
+        )
 
         return cls(source, **kwargs)
 
     @classmethod
     @requires("synphot")
-    def from_file(cls, filename, wave_unit=None, flux_unit=None,
-                  cache=True, **kwargs):
+    def from_file(cls, filename, wave_unit=None, flux_unit=None, cache=True, **kwargs):
         """Load the source spectrum from a file.
 
         NaNs are dropped.
@@ -130,7 +128,7 @@ class SpectralSource(ABC):
 
         """
 
-        if filename.lower().endswith(('.fits', '.fit', '.fz')):
+        if filename.lower().endswith((".fits", ".fit", ".fz")):
             read_spec = synphot.specio.read_fits_spec
         else:
             read_spec = synphot.specio.read_ascii_spec
@@ -144,8 +142,11 @@ class SpectralSource(ABC):
         spec = read_spec(fn, wave_unit=wave_unit, flux_unit=flux_unit)
         i = np.isfinite(spec[1] * spec[2])
         source = synphot.SourceSpectrum(
-            synphot.Empirical1D, points=spec[1][i], lookup_table=spec[2][i],
-            meta={'header': spec[0]})
+            synphot.Empirical1D,
+            points=spec[1][i],
+            lookup_table=spec[2][i],
+            meta={"header": spec[0]},
+        )
 
         return cls(source, **kwargs)
 
@@ -162,7 +163,7 @@ class SpectralSource(ABC):
     @property
     def fluxd(self):
         """The source spectrum."""
-        return self.source(self._source.waveset, flux_unit='W / (m2 um)')
+        return self.source(self._source.waveset, flux_unit="W / (m2 um)")
 
     @property
     def source(self):
@@ -200,14 +201,15 @@ class SpectralSource(ABC):
 
         if unit is not None:
             unit = u.Unit(unit)
-        elif wave_or_freq.unit.is_equivalent('m'):
-            unit = u.Unit('W/(m2 um)')
+        elif wave_or_freq.unit.is_equivalent("m"):
+            unit = u.Unit("W/(m2 um)")
         else:
             unit = u.Jy
 
         if unit.is_equivalent(sbu.VEGA):
-            fluxd = self.source(wave_or_freq, 'W/(m2 um)').to(
-                unit, sbu.spectral_density_vega(wave_or_freq))
+            fluxd = self.source(wave_or_freq, "W/(m2 um)").to(
+                unit, sbu.spectral_density_vega(wave_or_freq)
+            )
         else:
             fluxd = self.source(wave_or_freq, unit)
 
@@ -262,16 +264,14 @@ class SpectralSource(ABC):
         """
 
         if isinstance(wfb, (list, tuple, SpectralElement)):
-            lambda_eff, fluxd = self.observe_bandpass(
-                wfb, unit=unit, **kwargs)
+            lambda_eff, fluxd = self.observe_bandpass(wfb, unit=unit, **kwargs)
         elif isinstance(wfb, u.Quantity):
             if interpolate:
                 fluxd = self(wfb, unit=unit)
             else:
                 fluxd = self.observe_spectrum(wfb, unit=unit, **kwargs)
         else:
-            raise TypeError('Unsupported type for `wfb` type: {}'
-                            .format(type(wfb)))
+            raise TypeError("Unsupported type for `wfb` type: {}".format(type(wfb)))
 
         return fluxd
 
@@ -314,7 +314,7 @@ class SpectralSource(ABC):
             ndim = np.ndim(bp)
 
         if unit is None:
-            unit = u.Unit('W/(m2 um)')
+            unit = u.Unit("W/(m2 um)")
         else:
             unit = u.Unit(unit)
 
@@ -323,7 +323,7 @@ class SpectralSource(ABC):
             obs = synphot.Observation(self.source, bp[i], **kwargs)
             lambda_eff = obs.effective_wavelength()
             lambda_pivot = obs.bandpass.pivot()
-            _fluxd = obs.effstim('W/(m2 um)')
+            _fluxd = obs.effstim("W/(m2 um)")
 
             if unit.is_equivalent(sbu.VEGAmag):
                 fluxd[i] = _fluxd.to(unit, sbu.spectral_density_vega(bp[i]))
@@ -387,14 +387,14 @@ class SpectralSource(ABC):
 
         if np.size(wave_or_freq) == 1:
             raise SinglePointSpectrumError(
-                'Multiple wavelengths or frequencies required for '
-                'observe_spectrum.  Instead consider interpolation '
-                'with {}().'
-                .format(self.__class__.__name__))
+                "Multiple wavelengths or frequencies required for "
+                "observe_spectrum.  Instead consider interpolation "
+                "with {}().".format(self.__class__.__name__)
+            )
 
         if unit is None:
-            if wave_or_freq.unit.is_equivalent('m'):
-                unit = u.Unit('W/(m2 um)')
+            if wave_or_freq.unit.is_equivalent("m"):
+                unit = u.Unit("W/(m2 um)")
             else:
                 unit = u.Jy
         else:
@@ -406,14 +406,14 @@ class SpectralSource(ABC):
         # standards are not.  force='taper' will affect retrieving
         # flux densities at the edges of the spectrum, but is
         # preferred to avoid wild extrapolation.
-        kwargs['force'] = kwargs.get('force', 'taper')
+        kwargs["force"] = kwargs.get("force", "taper")
 
-        obs = synphot.Observation(
-            self.source, specele, binset=wave_or_freq, **kwargs)
+        obs = synphot.Observation(self.source, specele, binset=wave_or_freq, **kwargs)
 
         if unit.is_equivalent(sbu.VEGAmag):
-            fluxd = obs.sample_binned(flux_unit='W/(m2 um)').to(
-                unit, sbu.spectral_density_vega(wave_or_freq))
+            fluxd = obs.sample_binned(flux_unit="W/(m2 um)").to(
+                unit, sbu.spectral_density_vega(wave_or_freq)
+            )
         else:
             fluxd = obs.sample_binned(flux_unit=unit)
 
@@ -457,8 +457,9 @@ class SpectralSource(ABC):
                 w, m[i] = self.observe_bandpass(wfb[i], unit=unit)
                 eff_wave.append(w)
             else:
-                raise TypeError('Unsupported type for `wfb` type: {}'
-                                .format(type(wfb[i])))
+                raise TypeError(
+                    "Unsupported type for `wfb` type: {}".format(type(wfb[i]))
+                )
 
         ci = m[0] - m[1]
 
@@ -479,12 +480,14 @@ class SpectralSource(ABC):
 
         """
         from copy import deepcopy
+
         r = Reddening(S)
         red_spec = deepcopy(self)
         red_spec._source = red_spec.source * r
         if red_spec.description is not None:
-            red_spec._description = '{} reddened by {} at {}'.format(
-                red_spec.description, S, S.wave0)
+            red_spec._description = "{} reddened by {} at {}".format(
+                red_spec.description, S, S.wave0
+            )
         return red_spec
 
 
@@ -504,17 +507,19 @@ class BlackbodySource(SpectralSource):
 
     @requires("synphot")
     def __init__(self, T=None):
-        super().__init__(None, description='πB(T)')
+        super().__init__(None, description="πB(T)")
 
         if T is None:
-            raise TypeError('T is required.')
+            raise TypeError("T is required.")
 
         self._T = u.Quantity(T, u.K)
-        self._source = synphot.SourceSpectrum(
-            synphot.BlackBody1D, temperature=self._T.value) * np.pi
+        self._source = (
+            synphot.SourceSpectrum(synphot.BlackBody1D, temperature=self._T.value)
+            * np.pi
+        )
 
     def __repr__(self):
-        return '<BlackbodySource: T={}>'.format(self._T)
+        return "<BlackbodySource: T={}>".format(self._T)
 
     @property
     def T(self):
@@ -534,14 +539,11 @@ class Reddening(BaseUnitlessSpectrum):
     @u.quantity_input(S=u.percent / u.um)
     @requires("synphot")
     def __init__(self, S):
-
-        if getattr(S, 'wave0', None) is None:
-            raise ValueError("Normalization wavelength in `S` (.wave0) is "
-                             "required by not available.")
-
+        if getattr(S, "wave0", None) is None:
+            raise ValueError("Normalization wavelength in `S` (.wave0) is required.")
         wv = [1, 2] * S.wave0
-        df = (S.wave0 * S).to('').value
+        df = (S.wave0 * S).to("").value
 
         super().__init__(
-            synphot.Empirical1D, points=wv, lookup_table=[1, 1+df],
-            fill_value=None)
+            synphot.Empirical1D, points=wv, lookup_table=[1, 1 + df], fill_value=None
+        )
