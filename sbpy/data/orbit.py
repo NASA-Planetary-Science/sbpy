@@ -9,6 +9,7 @@ Class for querying, manipulating, integrating, and fitting orbital elements.
 created on June 04, 2017
 """
 import os
+import itertools
 import numpy as np
 from numpy import array, ndarray, double, arange
 from astropy.time import Time
@@ -701,7 +702,9 @@ class Orbit(DataClass):
                                (u.Quantity, u.CompositeUnit))):
                 self[colname].unit = default_units[colname]
 
-        ooepoch = [epochs.tt.mjd, Conf.oorb_timeScales['TT']]
+        ooepoch = np.array(
+            list(itertools.zip_longest(epochs.tt.mjd, [3])), dtype=np.double, order="F"
+        )
 
         # convert epochs to TT and MJD
         in_orbits = Orbit.from_table(self.table)
