@@ -46,8 +46,8 @@ jobs:
         - name: Python 3.10 with all optional dependencies
           linux: py310-test-alldeps
           
-        - name: Python 3.8 with oldest supported version of all dependencies
-          linux: py38-test-oldestdeps-alldeps
+        - name: Python 3.8 with oldest supported versions
+          linux: py38-test-oldestdeps
           coverage: codecov
 
         - name: Python 3.10 with all optional dependencies (MacOS X)
