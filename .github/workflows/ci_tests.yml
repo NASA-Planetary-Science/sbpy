@@ -52,37 +52,10 @@ jobs:
 
         - name: Python 3.10 with all optional dependencies (MacOS X)
           macos: py310-test-alldeps
-          run: |
-            # make sure gfortran is available
-            sudo ln -s /usr/local/bin/gfortran-11 /usr/local/bin/gfortran
-            sudo mkdir /usr/local/gfortran
-            sudo ln -s /usr/local/Cellar/gcc@11/*/lib/gcc/11 /usr/local/gfortran/lib
-            gfortran --version
-
-
-    # steps:
-    # - name: Checkout code
-    #   uses: actions/checkout@v2
-    #   with:
-    #     fetch-depth: 0
-    # - name: Set up python ${{ matrix.python }} on ${{ matrix.os }}
-    #   uses: actions/setup-python@v2
-    #   with:
-    #     python-version: ${{ matrix.python }}
-    # - name: Set up gfortran on ${{ matrix.os }}
-    #   if: runner.os == 'macos'
-    #   run: |
-    #     echo `which gfortran-11`
-    #     sudo ln -sfn /usr/local/bin/gfortran-11 /usr/local/bin/gfortran
-    #     echo `which gfortran`
-    # - name: Install base dependencies
-    #   run: |
-    #     python -m pip install --upgrade pip
-    #     python -m pip install tox codecov
-    # - name: Test with tox
-    #   run: tox ${{ matrix.toxargs }} -e ${{ matrix.toxenv }} -- ${{ matrix.toxposargs }}
-    # - name: Upload coverage to codecov
-    #   if: "contains(matrix.toxenv, '-cov')"
-    #   uses: codecov/codecov-action@v3
-    #   with:
-    #     file: ./coverage.xml
+      if: runner.os == 'macOS'
+        run: |
+          # make sure gfortran is available
+          sudo ln -s /usr/local/bin/gfortran-11 /usr/local/bin/gfortran
+          sudo mkdir /usr/local/gfortran
+          sudo ln -s /usr/local/Cellar/gcc@11/*/lib/gcc/11 /usr/local/gfortran/lib
+          gfortran --version
