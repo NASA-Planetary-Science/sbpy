@@ -492,8 +492,8 @@ class Afrho(DustComaQuantity):
     Examples
     --------
     >>> from sbpy.activity import Afrho
-    >>> print(Afrho(1000, 'cm'))  # doctest: +FLOAT_CMP
-    1000 cm
+    >>> print(Afrho(1000.0, 'cm'))
+    1000.0 cm
 
     """
 
@@ -689,8 +689,8 @@ class Efrho(DustComaQuantity):
     Examples
     --------
     >>> from sbpy.activity import Efrho
-    >>> print(Efrho(1000, 'cm'))  # pytest: +FLOAT_CMP
-    1000 cm
+    >>> print(Efrho(1000.0, 'cm'))
+    1000.0 cm
 
     """
 
