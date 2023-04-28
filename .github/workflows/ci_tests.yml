@@ -63,7 +63,7 @@ jobs:
     - name: Set up python
       uses: actions/setup-python@v4
       with:
-        python-version: 3.10
+        python-version: "3.10"
     - name: Set up gfortran on ${{ matrix.os }}
       if: runner.os == 'macos'
       run: |
