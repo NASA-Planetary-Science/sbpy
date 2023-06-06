@@ -104,11 +104,13 @@ To fit a photometric model, one may follow the standard procedure defined in
 `astropy.modeling` submodule, first initializing a model, then using one of
 the fitter classes defined in `astropy.modeling.fitting`
 submodule, such as `~astropy.modeling.fitting.SLSQPLSQFitter`.  Note that
-the `~sbpy.photometry.HG1G2` model requires a constraint, 1 - G1 - G2 < 1,
-that is implemented in sbpy as an ineqcons-type constraint (see
-`~astropy.modeling.Model`).  Some fitters, such as
-`astropy.modeling.LevMarLSQFitter`, doesn't support this type of constrained
-fit.
+the `~sbpy.photometry.HG1G2` model requires that the G1 and G2 parameters
+are bounded within [0, 1], as well as an inequality constraint,
+0 <= 1 - G1 - G2 <= 1.  These constraints are implemented in sbpy via the
+`bounds` parameter of `~astropy.modeling.Parameter` and the `ineqcons`
+parameter of `~astropy.modeling.Model`.  Some fitters, such as
+`astropy.modeling.LevMarLSQFitter`, doesn't support constrained fit via
+the `ineqcons` parameter, though.
 
   >>> import numpy as np
   >>> import astropy.units as u
