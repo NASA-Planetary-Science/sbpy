@@ -663,30 +663,8 @@ def test_add_row():
     assert u.isclose(tab[-1]['phase'], r['DEC'])
 
 
-def test_add_column():
-    """test DataClass.add_column"""
-    tab = DataClass.from_columns([[2451223, 2451224, 2451226]*u.d,
-                                  [120.1, 121.3, 124.9]*u.deg,
-                                  [12.4, 12.2, 10.8]*u.deg],
-                                 names=('JD', 'RA', 'DEC'))
-    filt = ['V', 'V', 'R']
-    # add astropy Column
-    tab.add_column(Column(filt, name='filter'))
-    assert set(tab.field_names) == {'JD', 'RA', 'DEC', 'filter'}
-    assert all(tab['filter'] == filt)
-
-    # add a sequence
-    tab.add_column(filt, name='filter1')
-    assert set(tab.field_names) == {'JD', 'RA', 'DEC', 'filter', 'filter1'}
-    assert all(tab['filter1'] == filt)
-
-    # duplicated column
-    with pytest.raises(DataClassError):
-        tab.add_column(filt, name='filter')
-
-
-def test_join():
-    """test DataClass.join"""
+def test_vstack():
+    """test DataClass.vstack"""
     tab = DataClass.from_columns([[2451223, 2451224, 2451226]*u.d,
                                   [120.1, 121.3, 124.9]*u.deg,
                                   [12.4, 12.2, 10.8]*u.deg],
@@ -694,7 +672,7 @@ def test_join():
 
     # join a DataClass, same columns
     assert isinstance(tab, DataClass)
-    tab.join(tab)
+    tab.vstack(tab)
     assert len(tab) == 6
     assert set(tab.field_names) == {'JD', 'RA', 'DEC'}
     assert all(tab.table[:3] == tab.table[-3:])
@@ -702,7 +680,7 @@ def test_join():
     # join a Table
     delta_tab = tab.table
     assert isinstance(delta_tab, QTable)
-    tab.join(delta_tab)
+    tab.vstack(delta_tab)
     assert len(tab) == 12
     assert set(tab.field_names) == {'JD', 'RA', 'DEC'}
     assert all(tab.table[:6] == tab.table[-6:])
@@ -710,14 +688,14 @@ def test_join():
     # join a dict
     delta_tab = dict(tab.table)
     assert isinstance(delta_tab, dict)
-    tab.join(dict(delta_tab))
+    tab.vstack(dict(delta_tab))
     assert len(tab) == 24
     assert set(tab.field_names) == {'JD', 'RA', 'DEC'}
     assert all(tab.table[:6] == tab.table[-6:])
 
     # join an unrecoganized object
     with pytest.raises(ValueError):
-        tab.join([1, 2, 3])
+        tab.vstack([1, 2, 3])
 
     # join a table with different sets of columns
     tab = DataClass.from_columns([[2451223, 2451224, 2451226]*u.d,
@@ -729,7 +707,7 @@ def test_join():
                      [20, 30, 40] * u.deg],
                     names=('r', 'delta', 'DEC'))
     field0 = tab.field_names
-    tab.join(subtab)
+    tab.vstack(subtab)
     assert len(tab) == 6
     assert set(field0).union(set(subtab.colnames)) == set(tab.field_names)
 
@@ -738,7 +716,7 @@ def test_join():
                      [10, 20] * u.deg],
                     names=('rh', 'phase'))
     field0 = tab.field_names
-    tab.join(subtab)
+    tab.vstack(subtab)
     assert len(tab) == 8
     assert 'rh' not in tab.table.colnames
     assert set(field0).union({'phase'}) == set(tab.field_names)
