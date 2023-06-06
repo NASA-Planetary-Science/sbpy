@@ -580,6 +580,7 @@ def test_io():
     finally:
         os.unlink("dataclass_table.fits")
 
+
 def test_apply():
     """test DataClass.apply"""
     tab = DataClass.from_columns([[2451223, 2451224, 2451226]*u.d,
