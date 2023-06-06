@@ -26,9 +26,11 @@ Spectral gradients are commonly expressed as % per 100 nm.  This is too subtle a
 
 As a convenience, sbpy defines the `~sbpy.units.hundred_nm` unit, which has an appropriate string representation:
 
+.. doctest-requires:: astropy>=5.3
+
   >>> from sbpy.units import hundred_nm
   >>> print(u.percent / hundred_nm)
-  % / 100 nm
+  % / (100 nm)
 
 .. _vega-magnitudes:
 
@@ -75,6 +77,8 @@ For example, the absolute magnitude of Ceres in V-band is 3.4 in ``VEGAmag``
 system, the radius is 460 km, its disk-averaged bidirectional reflectance at 0
 phase angle can be calculated:
 
+.. doctest-requires:: astropy>=5.3
+
   >>> import numpy as np
   >>> from astropy import units as u
   >>> from sbpy.calib import solar_fluxd, vega_fluxd
@@ -83,7 +87,7 @@ phase angle can be calculated:
   >>> solar_fluxd.set({'V': -26.775 * VEGAmag})
   <ScienceState solar_fluxd: {'V': <Magnitude -26.775 mag(VEGA)>}>
   >>> vega_fluxd.set({'V': 3.5885e-08 * u.Unit('W / (m2 um)')})
-  <ScienceState vega_fluxd: {'V': <Quantity 3.5885e-08 W / (m2 um)>}>
+  <ScienceState vega_fluxd: {'V': <Quantity 3.5885e-08 W / (um m2)>}>
   >>> mag = 3.4 * VEGAmag
   >>> radius = 460 * u.km
   >>> cross_sec = np.pi * (radius)**2

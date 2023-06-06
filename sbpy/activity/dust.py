@@ -10,6 +10,7 @@ All things dust coma related.
 
 __all__ = ["phase_HalleyMarcus", "Afrho", "Efrho"]
 
+__doctest_requires__ = {"Afrho.to_fluxd": ["astropy>=5.3"]}
 
 from warnings import warn
 import abc
@@ -558,13 +559,13 @@ class Afrho(DustComaQuantity):
         >>> eph = dict(rh=1.5 * u.au, delta=1.0 * u.au)
         >>> fluxd = afrho.to_fluxd(wave, aper, eph)
         >>> print(fluxd)    # doctest: +FLOAT_CMP
-        6.730018324465526e-14 W / (m2 um)
+        6.730018324465526e-14 W / (um m2)
 
         With a phase correction:
         >>> eph['phase'] = 30 * u.deg
         >>> fluxd = afrho.to_fluxd(wave, aper, eph, phasecor=True)
         >>> print(fluxd)    # doctest: +FLOAT_CMP
-        2.8017202649540757e-14 W / (m2 um)
+        2.8017202649540757e-14 W / (um m2)
 
         In magnitudes through the Johnson V filter:
         >>> import sbpy.units as sbu

@@ -24,6 +24,12 @@ except ImportError:
 
 __all__ = ['Spectrum', 'SpectralModel', 'SpectralGradient']
 
+__doctest_requires__ = {
+    "SpectralGradient": ["astropy>=5.3"],
+    "SpectralGradient.from_color": ["astropy>=5.3"],
+    "SpectralGradient.renormalize": ["astropy>=5.3"],
+}
+
 
 class SpectralGradient(u.SpecificTypeQuantity):
     r"""Convert between magnitude and spectral gradient.
@@ -74,7 +80,7 @@ class SpectralGradient(u.SpecificTypeQuantity):
     >>> from sbpy.units import hundred_nm
     >>> S = SpectralGradient(10 * u.percent / hundred_nm, wave0=5500 * u.AA)
     >>> print(S)
-    10.0 % / 100 nm
+    10.0 % / (100 nm)
 
     >>> from sbpy.units import VEGAmag
     >>> from sbpy.photometry import bandpass
@@ -84,7 +90,7 @@ class SpectralGradient(u.SpecificTypeQuantity):
     >>> VmR_sun = 0.37 * u.mag
     >>> S = SpectralGradient.from_color((V, R), VmR - VmR_sun)
     >>> print(S)    # doctest: +FLOAT_CMP
-    12.29185986266534 % / 100 nm
+    12.29185986266534 % / (100 nm)
 
 
     References
@@ -178,7 +184,7 @@ class SpectralGradient(u.SpecificTypeQuantity):
         >>> w = [0.4719, 0.6185] * u.um
         >>> S = SpectralGradient.from_color(w, 0.10 * u.mag)
         >>> print(S)                            # doctest: +FLOAT_CMP
-        6.27819572 % / 100 nm
+        6.27819572 % / (100 nm)
 
         """
         from ..units import hundred_nm
@@ -287,7 +293,7 @@ class SpectralGradient(u.SpecificTypeQuantity):
         ...                      wave0=0.55 * u.um)
         >>> S2 = S1.renormalize(3.6 * u.um)
         >>> print(S2.renormalize(3.6 * u.um))    # doctest: +FLOAT_CMP
-        2.469135802469136 % / 100 nm
+        2.469135802469136 % / (100 nm)
         >>> print(S2.wave0)
         3.6 um
         """

@@ -29,18 +29,22 @@ re-normalization to other wavelengths.
 inverse length.  For convenience, `sbpy` includes a
 `~sbpy.units.hundred_nm` unit, which is equal to 100 nm:
 
+.. doctest-requires:: astropy>=5.3
+
   >>> import astropy.units as u
   >>> from sbpy.spectroscopy import SpectralGradient
   >>> from sbpy.units import hundred_nm
   >>> S = SpectralGradient(10 * u.percent / hundred_nm)
   >>> print(S)
-  10.0 % / 100 nm
+  10.0 % / (100 nm)
 
 Initialize a spectral gradient from a color index:
 
+.. doctest-requires:: astropy>=5.3
+
   >>> w = (550, 650) * u.nm
   >>> SpectralGradient.from_color(w, 0.1 * u.mag)  # doctest: +FLOAT_CMP
-  <SpectralGradient 9.20383492 % / 100 nm>
+  <SpectralGradient 9.20383492 % / (100 nm)>
 
 Note we use the dimensionless magnitude unit from `astropy`, i.e., not
 one that carries flux density units such as `astropy.units.ABmag`.
@@ -53,9 +57,11 @@ Convert spectral gradient (normalized to 550 nm) to a color index:
 
 Renormalize to 1.0 μm:
 
+.. doctest-requires:: astropy>=5.3
+
   >>> S = SpectralGradient(10 * u.percent / hundred_nm, wave0=550 * u.nm)
   >>> S.renormalize(1 * u.um)  # doctest: +FLOAT_CMP
-  <SpectralGradient 6.89655172 % / 100 nm>
+  <SpectralGradient 6.89655172 % / (100 nm)>
 
 
 Spectral Reddening
