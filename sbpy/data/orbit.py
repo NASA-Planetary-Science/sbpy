@@ -702,8 +702,10 @@ class Orbit(DataClass):
                                (u.Quantity, u.CompositeUnit))):
                 self[colname].unit = default_units[colname]
 
+        # epochs may be a scalar value, but we need an interable
+        mjd = epochs.tt.mjd.reshape(epochs.size)
         ooepoch = np.array(
-            list(itertools.zip_longest(epochs.tt.mjd, [3])), dtype=np.double, order="F"
+            list(itertools.zip_longest(mjd, [3])), dtype=np.double, order="F"
         )
 
         # convert epochs to TT and MJD
