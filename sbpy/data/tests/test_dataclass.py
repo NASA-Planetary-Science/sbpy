@@ -569,14 +569,16 @@ def test_io():
                                            ('cc', [7, 8, 9]*u.kg)]))
     tab.meta['test'] = 'stuff'
 
-    tab.to_file('dataclass_table.fits', format='fits', overwrite=True)
+    try:
+        tab.to_file('dataclass_table.fits', format='fits', overwrite=True)
 
-    tab2 = DataClass.from_file('dataclass_table.fits', format='fits')
+        tab2 = DataClass.from_file('dataclass_table.fits', format='fits')
 
-    assert all(tab.table == tab2.table)
-    assert tab.meta == {key.lower(): val.lower()
-                        for key, val in tab2.meta.items()}
-
+        assert all(tab.table == tab2.table)
+        assert tab.meta == {key.lower(): val.lower()
+                            for key, val in tab2.meta.items()}
+    finally:
+        os.unlink("dataclass_table.fits")
 
 def test_apply():
     """test DataClass.apply"""
