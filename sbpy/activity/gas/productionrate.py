@@ -23,8 +23,11 @@ __all__ = ['LTE', 'NonLTE', 'einstein_coeff',
            'intensity_conversion', 'beta_factor', 'total_number',
            'from_Haser']
 
-if astropy.__version__ < '5':
-    __doctest_skip__ = ['LTE.from_Drahus']
+__doctest_requires__ = {
+    "LTE.from_Drahus": ["astropy>=5.0", "astroquery>=0.4.7"],
+    "NonLTE.from_pyradex": ["astroquery>=0.4.7"],
+    "from_haser": ["astroquery>=0.4.7"],
+}
 
 
 def intensity_conversion(mol_data):
