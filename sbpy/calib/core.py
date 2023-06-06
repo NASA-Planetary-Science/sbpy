@@ -650,7 +650,7 @@ class Sun(SpectralStandard):
     >>> sun = Sun.from_default()
     >>> v = bandpass('Johnson V')
     >>> print(sun.observe(v))                  # doctest: +FLOAT_CMP
-    1839.93273227  W / (m2 um)
+    1839.93273227  W / (um m2)
 
     Observe through a filter, using `sbpy`'s filter calibration system:
 
