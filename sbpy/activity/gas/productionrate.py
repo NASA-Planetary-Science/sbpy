@@ -11,7 +11,6 @@ created on June 26, 2019
 
 import tempfile
 import numpy as np
-import astropy
 import astropy.constants as con
 import astropy.units as u
 from astroquery.jplspec import JPLSpec
@@ -26,7 +25,7 @@ __all__ = ['LTE', 'NonLTE', 'einstein_coeff',
 __doctest_requires__ = {
     "LTE.from_Drahus": ["astropy>=5.0", "astroquery>=0.4.7"],
     "NonLTE.from_pyradex": ["astroquery>=0.4.7"],
-    "from_haser": ["astroquery>=0.4.7"],
+    "from_Haser": ["astroquery>=0.4.7"],
 }
 
 
