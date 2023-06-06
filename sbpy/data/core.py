@@ -670,7 +670,7 @@ class DataClass():
         raises a `KeyError` if a match cannot be found for an input column
         name (neither in this object nor defined in `Conf.fieldnames`).
         If `ignore_missing == True`, then the problemtic column name will
-        be silently carried ouver and returned.
+        be silently carried over and returned.
         """
 
         if not isinstance(target_colnames, (list, ndarray, tuple)):
@@ -1006,27 +1006,6 @@ class DataClass():
                                    else 'jd')
             vals = DataClass.from_rows(vals, names, units=units)
         self.join(vals)
-
-    def add_column(self, col, name=None, unit=None):
-        """Add a new column
-
-        col : `~astropy.table.Column` object, or sequence
-            The column to be added.  Must have the same length as the
-            existing table.
-        name : array-like str, optional
-            Specify the name of added column.  If not ``None``, then
-            takes precedence over ``col.name``.
-        unit : array-like `~astropy.units` objects or str, optional
-            Unit to be applied to the new column.  If not ``None``, then
-            take precedence over ``col.unit``.
-        """
-        if name is None:
-            name = getattr(col, 'name', '')
-        if unit is None:
-            unit = getattr(col, 'unit', None)
-        if name in self:
-            raise DataClassError('Column {} already exists.'.format(name))
-        self.apply(col, name=name, unit=unit)
 
     def join(self, data):
         """Join another DataClass object to the end of DataClass
