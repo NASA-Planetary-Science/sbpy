@@ -314,8 +314,8 @@ object, you can use `~sbpy.data.DataClass.field_names`:
     ['ra', 'dec', 't']
 
 You can also use the `in` operator to check if a field is contained in
-a `~sbpy.data.DataClass` object.  Alternative field names can also be
-used for the `in` test:
+a `~sbpy.data.DataClass` object.  Alternative field names can be used
+for the `in` test:
 
     >>> 'ra' in obs
     True
@@ -412,7 +412,7 @@ directly addressing them:
     <Quantity [10.323423, 10.333453, 10.343452] deg>
 
 The basic functionalities to modify the data table are implemented in
-`~sbpy.data.DataClass`, including adding rows and columns and join a
+`~sbpy.data.DataClass`, including adding rows and columns and stack a
 DataClass with another DataClass object or an `~astropy.table.Table`
 object.
 
@@ -438,7 +438,7 @@ or if you want to add a column to your object:
 
 .. doctest-requires:: astropy>=5
 
-    >>> obs.add_column(['V', 'V', 'R', 'i'], name='filter')
+    >>> obs.apply(['V', 'V', 'R', 'i'], name='filter')
     >>> obs
     <QTable length=4>
         ra       dec          t       filter
@@ -472,7 +472,7 @@ Similarly, existing columns can be modified using:
 
     >>> obs['filter'] = ['g', 'i', 'R', 'V']
 
-If you want to join two observations into a single object:
+If you want to stack two observations into a single object:
 
 .. doctest-requires:: astropy>=5
 
@@ -483,7 +483,7 @@ If you want to join two observations into a single object:
     >>> obs2 = Obs.from_columns([ra, dec, epoch, phase],
     ...     names=['ra', 'dec', 't', 'phase'])
     >>>
-    >>> obs.join(obs2)
+    >>> obs.stack(obs2)
     >>> obs
     <QTable length=7>
         ra       dec          t       filter filter2  phase
@@ -498,9 +498,10 @@ If you want to join two observations into a single object:
     20.233453  12.41562  2451623.7345     --      --    12.3
     20.243452  12.40435  2451623.8525     --      --    15.6
 
-Note that the data table to be joined doesn't have to have the same
-columns as the original data table.  The empty field will be automatically
-masked out.
+Note that the data table to be stacked doesn't have to have the same
+columns as the original data table.  A keyword `join_type` is used to
+decide how to process the different sets of columns.  See
+`~astropy.table.Table.vstack()` for more detail.
 
 Because the underlying `~astropy.table.QTable` can be exposed by the
 `~sbpy.data.DataClass.table` property, it is possible to modify the data
