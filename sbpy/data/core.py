@@ -1005,15 +1005,15 @@ class DataClass():
                                    format='isot' if isinstance(vals[i], str)
                                    else 'jd')
             vals = DataClass.from_rows(vals, names, units=units)
-        self.join(vals)
+        self.vstack(vals)
 
-    def join(self, data):
-        """Join another DataClass object to the end of DataClass
+    def vstack(self, data, **kwargs):
+        """Stack another DataClass object to the end of DataClass
 
-        The DataClass object doesn't need to have the same set of columns
-        as the existing object.  The original dataclass will be expanded
-        with new columns, and the cells with no values will be masked in
-        both the existing dataclass and the newly joined rows.
+        Similar to `~astropy.table.Table.vstack`, the DataClass object
+        to be stacked doesn't have to have the same set of columns as
+        the existing object.  The `join_type` keyword parameter will be
+        used to decide how to process the different sets of columns.
 
         Joining will be in-place.
 
@@ -1021,6 +1021,8 @@ class DataClass():
         ----------
         data : `~sbpy.data.DataClass`, dict, `~astropy.table.Table`
             Object to be joined with the current object
+        kwargs : dict
+            Keyword parameters accepted by `~astropy.table.Table.vstack`.
 
         Examples
         --------
@@ -1031,7 +1033,7 @@ class DataClass():
         ...         {'rh': [1, 2, 3] * u.au, 'delta': [1, 2, 3] * u.au})
         >>> data2 = DataClass.from_dict(
         ...         {'rh': [4, 5] * u.au, 'phase': [15, 15] * u.deg})
-        >>> data1.join(data2)
+        >>> data1.vstack(data2)
         """
         # check and process input data
         if isinstance(data, dict):
@@ -1048,4 +1050,4 @@ class DataClass():
         data.table.rename_columns(data.field_names, alt)
 
         # join with the input table
-        self.table = vstack([self.table, data.table], join_type='outer')
+        self.table = vstack([self.table, data.table], **kwargs)
