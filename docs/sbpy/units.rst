@@ -84,10 +84,10 @@ phase angle can be calculated:
   >>> from sbpy.calib import solar_fluxd, vega_fluxd
   >>> from sbpy.units import reflectance, VEGAmag, spectral_density_vega
   >>>
-  >>> solar_fluxd.set({'V': -26.775 * VEGAmag})
-  <ScienceState solar_fluxd: {'V': <Magnitude -26.775 mag(VEGA)>}>
-  >>> vega_fluxd.set({'V': 3.5885e-08 * u.Unit('W / (m2 um)')})
-  <ScienceState vega_fluxd: {'V': <Quantity 3.5885e-08 W / (um m2)>}>
+  >>> solar_fluxd.set({"V": -26.775 * VEGAmag, "V(lambda pivot)": 0.55 * u.um})
+  <ScienceState solar_fluxd: {'V': <Magnitude -26.775 mag(VEGA)>, 'V(lambda pivot)': <Quantity 0.55 um>}>
+  >>> vega_fluxd.set({"V": 3.5885e-08 * u.Unit("W / (m2 um)"), "V(lambda pivot)": 0.55 * u.um})
+  <ScienceState vega_fluxd: {'V': <Quantity 3.5885e-08 W / (um m2)>, 'V(lambda pivot)': <Quantity 0.55 um>}>
   >>> mag = 3.4 * VEGAmag
   >>> radius = 460 * u.km
   >>> cross_sec = np.pi * (radius)**2
@@ -104,8 +104,8 @@ phase angle can be calculated:
   >>> from astropy import units as u
   >>> from sbpy.calib import solar_fluxd, vega_fluxd
   >>> from sbpy.units import reflectance, VEGAmag, spectral_density_vega
-  >>> solar_fluxd.set({'V': -26.775 * VEGAmag})  # doctest: +IGNORE_OUTPUT
-  >>> vega_fluxd.set({'V': 3.5885e-08 * u.Unit('W / (m2 um)')})  # doctest: +IGNORE_OUTPUT
+  >>> solar_fluxd.set({"V": -26.775 * VEGAmag, "V(lambda pivot)": 0.55 * u.um})  # doctest: +IGNORE_OUTPUT
+  >>> vega_fluxd.set({"V": 3.5885e-08 * u.Unit("W / (m2 um)"), "V(lambda pivot)": 0.55 * u.um})  # doctest: +IGNORE_OUTPUT
   >>> mag = 3.4 * VEGAmag
   >>> radius = 460 * u.km
   >>> cross_sec = np.pi * (radius)**2
