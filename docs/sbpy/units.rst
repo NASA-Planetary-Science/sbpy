@@ -97,6 +97,20 @@ phase angle can be calculated:
 
 `~sbpy.units.reflectance` works with `sbpy`'s spectral calibration system (see :ref:`sbpy-calib`):
 
+.. testsetup::
+.. doctest-requires:: astropy<5.3
+
+  >>> import numpy as np
+  >>> from astropy import units as u
+  >>> from sbpy.calib import solar_fluxd, vega_fluxd
+  >>> from sbpy.units import reflectance, VEGAmag, spectral_density_vega
+  >>> solar_fluxd.set({'V': -26.775 * VEGAmag})  # doctest: +IGNORE_OUTPUT
+  >>> vega_fluxd.set({'V': 3.5885e-08 * u.Unit('W / (m2 um)')})  # doctest: +IGNORE_OUTPUT
+  >>> mag = 3.4 * VEGAmag
+  >>> radius = 460 * u.km
+  >>> cross_sec = np.pi * (radius)**2
+  >>> ref = mag.to('1/sr', reflectance('V', cross_section=cross_sec))
+
   >>> from sbpy.photometry import bandpass
   >>> V = bandpass('Johnson V')
   >>> ref = 0.0287 / u.sr

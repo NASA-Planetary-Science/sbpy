@@ -29,6 +29,8 @@ re-normalization to other wavelengths.
 inverse length.  For convenience, `sbpy` includes a
 `~sbpy.units.hundred_nm` unit, which is equal to 100 nm:
 
+.. testsetup::
+.. doctest-requires:: astropy<5.3
 
   >>> import astropy.units as u
   >>> from sbpy.spectroscopy import SpectralGradient
@@ -36,6 +38,9 @@ inverse length.  For convenience, `sbpy` includes a
 
 .. doctest-requires:: astropy>=5.3
 
+  >>> import astropy.units as u
+  >>> from sbpy.spectroscopy import SpectralGradient
+  >>> from sbpy.units import hundred_nm
   >>> S = SpectralGradient(10 * u.percent / hundred_nm)
   >>> print(S)
   10.0 % / (100 nm)

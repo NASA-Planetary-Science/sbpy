@@ -95,6 +95,12 @@ Photometric calibration (without spectra or `synphot`)
 
 The `~astropy.utils.state.ScienceState` objects `~sbpy.calib.solar_fluxd` and `~sbpy.calib.vega_fluxd` control photometric calibration by filter name.  These are completely independent of the spectroscopic calibration and can be used without the optional `synphot` package.  The spectral flux densities (per unit wavelength) of the Sun and Vega are provided and enabled by default.  Values and filters are from Willmer (2018):
 
+.. testsetup::
+.. doctest-requires:: astropy<5.3
+  
+  >>> from sbpy.calib import Sun, solar_fluxd, vega_fluxd
+  >>> import sbpy.units as sbu
+
 .. doctest-requires:: astropy>=5.3
 
   >>> from sbpy.calib import Sun, solar_fluxd, vega_fluxd
@@ -192,6 +198,12 @@ Inspect a sub-set of the data for this example.
   [1895. 1862. 1871. 1846. 1882.] W / (um m2)
 
 Interpolate with observe() and compare to the original values.
+
+.. testsetup::
+.. doctest-requires:: astropy<5.3
+
+  >>> wave = sun.wave[430:435]
+  >>> S = sun.fluxd[430:435]  # for astropy<5.3
 
   >>> S_interp = sun.observe(wave, interpolate=True)
   >>> np.allclose(S.value, S_interp.value)
