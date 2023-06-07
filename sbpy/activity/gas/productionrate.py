@@ -11,7 +11,6 @@ created on June 26, 2019
 
 import tempfile
 import numpy as np
-import astropy
 import astropy.constants as con
 import astropy.units as u
 from astroquery.jplspec import JPLSpec
@@ -23,8 +22,11 @@ __all__ = ['LTE', 'NonLTE', 'einstein_coeff',
            'intensity_conversion', 'beta_factor', 'total_number',
            'from_Haser']
 
-if astropy.__version__ < '5':
-    __doctest_skip__ = ['LTE.from_Drahus']
+__doctest_requires__ = {
+    "LTE.from_Drahus": ["astropy>=5.0", "astroquery>=0.4.7"],
+    "NonLTE.from_pyradex": ["astroquery>=0.4.7"],
+    "from_Haser": ["astroquery>=0.4.7"],
+}
 
 
 def intensity_conversion(mol_data):

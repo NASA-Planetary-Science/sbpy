@@ -16,8 +16,8 @@ __doctest_requires__ = {
     'SpectralStandard': ['synphot'],
     'solar_spectrum': ['synphot'],
     'vega_spectrum': ['synphot'],
-    'Sun': ['synphot'],
-    'Vega': ['synphot'],
+    'Sun': ['synphot', 'astropy>=5.3'],
+    'Vega': ['synphot', 'astropy>=5.3'],
 }
 
 import os
@@ -634,7 +634,7 @@ class Sun(SpectralStandard):
     Interpolate to / evaluate at 0.62 μm:
 
     >>> print(sun(0.62 * u.um))                # doctest: +FLOAT_CMP
-    1611.7080046473307 W / (m2 um)
+    1611.7080046473307 W / (um m2)
 
     Observe as through a spectrometer:
 
@@ -650,7 +650,7 @@ class Sun(SpectralStandard):
     >>> sun = Sun.from_default()
     >>> v = bandpass('Johnson V')
     >>> print(sun.observe(v))                  # doctest: +FLOAT_CMP
-    1839.93273227  W / (m2 um)
+    1839.93273227  W / (um m2)
 
     Observe through a filter, using `sbpy`'s filter calibration system:
 
@@ -712,7 +712,7 @@ class Vega(SpectralStandard):
 
     Evaluate Vega at 1 μm (interpolation):
     >>> print(vega(1 * u.um))                    # doctest: +FLOAT_CMP
-    6.326492514857613e-09 W / (m2 um)
+    6.326492514857613e-09 W / (um m2)
 
     Observe Vega through as if through a spectrometer:
     >>> import numpy as np

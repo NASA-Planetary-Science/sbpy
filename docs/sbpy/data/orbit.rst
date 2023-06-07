@@ -9,10 +9,12 @@ Orbit Queries
 body osculating elements from the `JPL Horizons service
 <https://ssd.jpl.nasa.gov/horizons.cgi>`_:
 
+.. doctest-remote-data::
+    
     >>> from sbpy.data import Orbit
     >>> from astropy.time import Time
     >>> epoch = Time('2018-05-14', scale='utc')
-    >>> elem = Orbit.from_horizons('Ceres', epochs=epoch)  # doctest: +REMOTE_DATA
+    >>> elem = Orbit.from_horizons('Ceres', epochs=epoch)
     >>> elem  # doctest: +SKIP
     <...>/sbpy/data/orbit.py:113: TimeScaleWarning: converting utc epochs to tdb for use in astroquery.jplhorizons
       TimeScaleWarning)
@@ -38,10 +40,12 @@ epoch (current time) are queried. Similar to
 parameter on to that function. Furthermore, it is possible to query
 orbital elements for a number of targets:
 
+.. doctest-remote-data::
+
     >>> epoch = Time('2018-08-03 14:20', scale='tdb')
     >>> elem = Orbit.from_horizons(['3749', '2009 BR60'],
     ...                            epochs=epoch,
-    ...                            refplane='earth')  # doctest: +REMOTE_DATA
+    ...                            refplane='earth')
     >>> elem # doctest: +SKIP
     <QTable masked=True length=2>
 	  targetname         H       G    ...         P               epoch      
@@ -55,7 +59,9 @@ Alternatively, orbital elements can also be queried from the `Minor
 Planet Center <https://minorplanetcenter.net/iau/MPEph/MPEph.html>`_,
 although in this case only the most recent elements are accessible:
 
-    >>> elem = Orbit.from_mpc(['3552', '12893']) # doctest: +SKIP
+.. doctest-remote-data::
+
+    >>> elem = Orbit.from_mpc(['3552', '12893'])
     >>> elem # doctest: +SKIP
     <QTable length=2>
      absmag    Q      arc       w     ...     a        Tj   moid_uranus moid_venus
@@ -81,7 +87,9 @@ using `OpenOrb <https://github.com/oorb/oorb>`_.
 In order to transform some current orbits to a state vector in
 cartesian coordinates, one could use the following code:
 
-    >>> elem = Orbit.from_horizons(['Ceres', 'Pallas', 'Vesta'])  # doctest: +REMOTE_DATA
+.. doctest-remote-data::
+
+    >>> elem = Orbit.from_horizons(['Ceres', 'Pallas', 'Vesta'])
     >>> statevec = elem.oo_transform('CART') # doctest: +SKIP 
     >>> statevec # doctest: +SKIP
     <QTable length=3>
@@ -105,9 +113,11 @@ propagated to either as `~astropy.time.Time` object, or as float in
 terms of Julian date. The following example propagates the current
 orbit of Ceres back to year 2000:
 
-    >>> elem = Orbit.from_horizons('Ceres')  # doctest: +REMOTE_DATA
+.. doctest-remote-data::
+
+    >>> elem = Orbit.from_horizons('Ceres')
     >>> epoch = Time('2000-01-01', scale='tdb')
-    >>> newelem = elem.oo_propagate(epoch) # doctest: +SKIP 
+    >>> newelem = elem.oo_propagate(epoch) 
     >>> newelem # doctest: +SKIP
     <QTable length=1>
        id           a                  e          ...   epoch      H       G   
@@ -130,10 +140,12 @@ parameter with respect to Jupiter is used in the dynamical classification of
 comets.  The Tisserand parameter can be calculated by `~sbpy.Orbit.tisserand`
 as follows:
 
+.. doctest-remote-data::
+
     >>> epoch = Time(2449400.5, format='jd', scale='tdb')
     >>> halley = Orbit.from_horizons('1P', id_type='designation',
-    ...     closest_apparition=True, epochs=epoch)  # doctest: +REMOTE_DATA
-    >>> T = halley.tisserand()  # doctest: +REMOTE_DATA
+    ...     closest_apparition=True, epochs=epoch)
+    >>> T = halley.tisserand()
     >>> print('{:.4f}'.format(T)) # doctest: +SKIP
     -0.6050
 
@@ -141,11 +153,13 @@ One can also specify the planet with respect to which the Tisserand parameter
 is calculated with optional parameter `planet`.  It also allows multiple
 planet to be specified simultaneously:
 
+.. doctest-remote-data::
+
     >>> import numpy as np
-    >>> chariklo = Orbit.from_horizons('chariklo', id_type='name') # doctest: +REMOTE_DATA
-    >>> T = chariklo.tisserand(planet=['599', '699', '799', '899']) # doctest: +REMOTE_DATA
-    >>> with np.printoptions(precision=3):  # doctest: +REMOTE_DATA
-    ...     print(T)  # doctest: +REMOTE_DATA
+    >>> chariklo = Orbit.from_horizons('chariklo', id_type='name')
+    >>> T = chariklo.tisserand(planet=['599', '699', '799', '899'])
+    >>> with np.printoptions(precision=3):
+    ...     print(T)  # doctest: +FLOAT_CMP
     [3.485 2.931 2.858 3.224]
 
 `~sbpy.Orbit` also provides a method to compare the orbits of two objects
@@ -156,17 +170,18 @@ Drummond function (`Drummond 1991 <https://ui.adsabs.harvard.edu/abs/1981Icar...
 The code example below demonstrates the calculation of three versions of
 D_criterion:
 
+.. doctest-remote-data::
+
     >>> comets = Orbit.from_horizons(['252P', 'P/2016 BA14'],
-    ...     id_type='designation', closest_apparition=True
-    ...     ) # doctest: +REMOTE_DATA
+    ...     id_type='designation', closest_apparition=True)
     >>>
     >>> # Southworth & Hawkins function
-    >>> D_SH = comets[0].D_criterion(comets[1]) # doctest: +REMOTE_DATA
+    >>> D_SH = comets[0].D_criterion(comets[1])
     >>> # Drummond function
-    >>> D_D = comets[0].D_criterion(comets[1], version='d') # doctest: +REMOTE_DATA
+    >>> D_D = comets[0].D_criterion(comets[1], version='d')
     >>> # hybrid function
-    >>> D_H = comets[0].D_criterion(comets[1], version='h') # doctest: +REMOTE_DATA
+    >>> D_H = comets[0].D_criterion(comets[1], version='h')
     >>> print('D_SH = {:.4f}, D_D = {:.4f}, D_H = {:.4f}'.
-    ...    format(D_SH, D_D, D_H)) # doctest: +REMOTE_DATA
+    ...    format(D_SH, D_D, D_H))
     D_SH = 0.1560, D_D = 0.0502, D_H = 0.1556
 

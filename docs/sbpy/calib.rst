@@ -95,13 +95,21 @@ Photometric calibration (without spectra or `synphot`)
 
 The `~astropy.utils.state.ScienceState` objects `~sbpy.calib.solar_fluxd` and `~sbpy.calib.vega_fluxd` control photometric calibration by filter name.  These are completely independent of the spectroscopic calibration and can be used without the optional `synphot` package.  The spectral flux densities (per unit wavelength) of the Sun and Vega are provided and enabled by default.  Values and filters are from Willmer (2018):
 
+.. testsetup::
+.. doctest-requires:: astropy<5.3
+  
+  >>> from sbpy.calib import Sun, solar_fluxd, vega_fluxd
+  >>> import sbpy.units as sbu
+
+.. doctest-requires:: astropy>=5.3
+
   >>> from sbpy.calib import Sun, solar_fluxd, vega_fluxd
   >>> import sbpy.units as sbu
   >>>
   >>> solar_fluxd.set('Willmer2018')   # doctest: +IGNORE_OUTPUT
   >>> sun = Sun(None)
   >>> print(sun.observe('PS1 r'))    # doctest: +FLOAT_CMP
-  167.49428760264365 erg / (Angstrom cm2 s)
+  167.49428760264365 erg / (Angstrom s cm2)
   >>> vega_fluxd.set('Willmer2018')   # doctest: +IGNORE_OUTPUT
   >>> print(sun.observe('PS1 r', unit=sbu.VEGAmag))    # doctest: +FLOAT_CMP
   -27.05 mag(VEGA)
@@ -116,6 +124,8 @@ Users wanting to calibrate data with their own flux densities may do so.  For ex
   -26.75 mag(VEGA)
 
 Some sbpy calculations will require the effective wavelength or the pivot wavelength.  These are optional parameters that may be specified with `~sbpy.calib.solar_fluxd` and `~sbpy.calib.vega_fluxd`:
+
+.. doctest-requires:: astropy>=5.3
 
   >>> import astropy.units as u
   >>> from sbpy.calib import vega_fluxd, Vega
@@ -133,7 +143,7 @@ Some sbpy calculations will require the effective wavelength or the pivot wavele
   ...     # doctest: +IGNORE_EXCEPTION_DETAIL
   Traceback (most recent call last):
   ...
-  UnitConversionError: 'Jy' (spectral flux density) and 'erg / (Angstrom cm2 s)' (spectral flux density wav) are not convertible  Is "V(lambda pivot)" required and was it provided?
+  UnitConversionError: 'Jy' (spectral flux density) and 'erg / (Angstrom s cm2)' (spectral flux density wav) are not convertible  Is "V(lambda pivot)" required and was it provided?
   >>> vega_fluxd.set({
   ...     'V': 3674.73 * u.Jy,
   ...     'V(lambda eff)': 5476 * u.AA,
@@ -141,7 +151,7 @@ Some sbpy calculations will require the effective wavelength or the pivot wavele
   ... })    # doctest: +IGNORE_OUTPUT
   <ScienceState vega_fluxd: {'V': <Quantity 3674.73 Jy>, 'V(lambda eff)': <Quantity 5476. Angstrom>, 'V(lambda pivot)': <Quantity 5511. Angstrom>}>
   >>> print(vega.observe('V', unit='erg/(s cm2 AA)'))   # doctest: +FLOAT_CMP
-  3.62701e-9 erg / (Angstrom cm2 s)
+  3.62701e-9 erg / (Angstrom s cm2)
 
 Observe the Sun
 ---------------
@@ -178,14 +188,22 @@ Compare interpolation and rebinning for the E490 low-resolution solar spectrum, 
 
 Inspect a sub-set of the data for this example.
 
+.. doctest-requires:: astropy>=5.3
+  
   >>> wave = sun.wave[430:435]
   >>> S = sun.fluxd[430:435]
   >>> print(wave)    # doctest: +FLOAT_CMP
   [5495. 5505. 5515. 5525. 5535.] Angstrom
   >>> print(S)       # doctest: +FLOAT_CMP
-  [1895. 1862. 1871. 1846. 1882.] W / (m2 um)
+  [1895. 1862. 1871. 1846. 1882.] W / (um m2)
 
 Interpolate with observe() and compare to the original values.
+
+.. testsetup::
+.. doctest-requires:: astropy<5.3
+
+  >>> wave = sun.wave[430:435]
+  >>> S = sun.fluxd[430:435]  # for astropy<5.3
 
   >>> S_interp = sun.observe(wave, interpolate=True)
   >>> np.allclose(S.value, S_interp.value)

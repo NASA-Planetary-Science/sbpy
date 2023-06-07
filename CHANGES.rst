@@ -1,6 +1,12 @@
 0.4.0 (release date TBD)
 ========================
 
+* Dropped support for Python 3.7, minimum supported version is 3.8.
+
+* Bumped minimum supported versions for `numpy` to 1.18, `astropy` to 4.3, `synphot`
+  to 1.1, `astroquery` to 4.6.
+
+
 New Features
 ------------
 
@@ -12,6 +18,7 @@ sbpy.data
 
 - Added ``Orbit.D_criterion`` to evaluate the D-criterion between two sets
   of orbital elements. [#325]
+
 - Added ``DataClass.__contains__`` to enable `in` operator for ``DataClass``
   objects. [#357]
 
