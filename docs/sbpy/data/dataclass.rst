@@ -483,7 +483,7 @@ If you want to stack two observations into a single object:
     >>> obs2 = Obs.from_columns([ra, dec, epoch, phase],
     ...     names=['ra', 'dec', 't', 'phase'])
     >>>
-    >>> obs.stack(obs2)
+    >>> obs.vstack(obs2)
     >>> obs
     <QTable length=7>
         ra       dec          t       filter filter2  phase
