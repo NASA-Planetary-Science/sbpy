@@ -109,7 +109,7 @@ are bounded within [0, 1], as well as an inequality constraint,
 0 <= 1 - G1 - G2 <= 1.  These constraints are implemented in sbpy via the
 `bounds` parameter of `~astropy.modeling.Parameter` and the `ineqcons`
 parameter of `~astropy.modeling.Model`.  Some fitters, such as
-`astropy.modeling.LevMarLSQFitter`, doesn't support constrained fit via
+`astropy.modeling.LevMarLSQFitter`, do not support constrained fit via
 the `ineqcons` parameter, though.
 
   >>> import numpy as np
