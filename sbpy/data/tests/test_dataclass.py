@@ -6,7 +6,7 @@ import pytest
 from copy import deepcopy
 import astropy.units as u
 from astropy.coordinates import Angle
-from astropy.table import QTable, Column
+from astropy.table import QTable, Column, Row
 from astropy.time import Time
 from ..core import DataClass, Conf, DataClassError, FieldError
 
@@ -452,6 +452,9 @@ def test_translate_columns_and_contains(monkeypatch):
         tab._translate_columns(['x'])  # undefined column name
         tab._translate_columns(['dd'])  # defined column name but not in table
 
+    trans = tab._translate_columns(['x', 'dd'], ignore_missing=True)
+    assert trans == ['x', 'dd']
+
     assert 'aa' in tab
     assert 'bb' in tab
     assert 'zz' in tab
@@ -602,3 +605,118 @@ def test_apply():
 
     with pytest.raises(DataClassError):
         tab.apply([12.1, 12.5, 12.6, 99]*u.mag, name='V')  # wrong size
+
+
+def test_add_row():
+    """test DataClass.add_row"""
+    tab = DataClass.from_columns([Time([2451223, 2451224, 2451226],
+                                       format='jd'),
+                                  [120.1, 121.3, 124.9]*u.deg,
+                                  [12.4, 12.2, 10.8]*u.deg],
+                                 names=('JD', 'RA', 'DEC'))
+    # add astropy Row
+    r = tab.table[0]
+    assert isinstance(r, Row)
+    tab.add_row(r)
+    assert len(tab) == 4
+    assert tab.table[-1] == r
+
+    # add a dict
+    r = {'JD': 2451228 * u.d, 'RA': 130 * u.deg, 'DEC': 8 * u.deg}
+    tab.add_row(r)
+    assert len(tab) == 5
+    assert all(tab[-1]['JD'] == Time(r['JD'], format='jd'))
+    for k in ['RA', 'DEC']:
+        assert u.isclose(tab[-1][k], r[k])
+
+    # add an iterable that matches the existing columns
+    r = [2451130 * u.d, 135 * u.deg, 6 * u.deg]
+    tab.add_row(r)
+    assert len(tab) == 6
+    assert all(tab[-1]['JD'] == Time(r[0], format='jd'))
+    for i, k in enumerate(tab.field_names[1:]):
+        assert u.isclose(tab[-1][k], r[i+1])
+
+    # add an iterable with specified column names
+    r = [2451132 * u.d, 140 * u.deg, 3 * u.au]
+    n = ['JD', 'RA', 'rh']  # with a new column and missing an existing column
+    tab.add_row(r, n)
+    assert len(tab) == 7
+    assert set(tab.field_names) == {'JD', 'RA', 'DEC', 'rh'}
+    assert all(tab[-1]['JD'] == Time(r[0], format='jd'))
+    for i, k in enumerate(n[1:]):
+        assert u.isclose(tab[-1][k], r[i+1])
+
+    # time represented by a string
+    r = ['1998-11-18', 120 * u.deg, 3 * u.au]
+    n = ['JD', 'RA', 'rh']
+    tab.add_row(r, n)
+    assert len(tab) == 8
+    assert all(tab[-1]['JD'] == r[0])
+
+    # specify different names from the Mapping object
+    r = {'JD': 2451228 * u.d, 'RA': 130 * u.deg, 'DEC': 8 * u.deg}
+    n = ['JD', 'RA', 'phase']
+    tab.add_row(r, n)
+    assert len(tab) == 9
+    assert set(tab.field_names) == {'JD', 'RA', 'DEC', 'rh', 'phase'}
+    assert u.isclose(tab[-1]['phase'], r['DEC'])
+
+
+def test_vstack():
+    """test DataClass.vstack"""
+    tab = DataClass.from_columns([[2451223, 2451224, 2451226]*u.d,
+                                  [120.1, 121.3, 124.9]*u.deg,
+                                  [12.4, 12.2, 10.8]*u.deg],
+                                 names=('JD', 'RA', 'DEC'))
+
+    # join a DataClass, same columns
+    assert isinstance(tab, DataClass)
+    tab.vstack(tab)
+    assert len(tab) == 6
+    assert set(tab.field_names) == {'JD', 'RA', 'DEC'}
+    assert all(tab.table[:3] == tab.table[-3:])
+
+    # join a Table
+    delta_tab = tab.table
+    assert isinstance(delta_tab, QTable)
+    tab.vstack(delta_tab)
+    assert len(tab) == 12
+    assert set(tab.field_names) == {'JD', 'RA', 'DEC'}
+    assert all(tab.table[:6] == tab.table[-6:])
+
+    # join a dict
+    delta_tab = dict(tab.table)
+    assert isinstance(delta_tab, dict)
+    tab.vstack(dict(delta_tab))
+    assert len(tab) == 24
+    assert set(tab.field_names) == {'JD', 'RA', 'DEC'}
+    assert all(tab.table[:6] == tab.table[-6:])
+
+    # join an unrecoganized object
+    with pytest.raises(ValueError):
+        tab.vstack([1, 2, 3])
+
+    # join a table with different sets of columns
+    tab = DataClass.from_columns([[2451223, 2451224, 2451226]*u.d,
+                                  [120.1, 121.3, 124.9]*u.deg,
+                                  [12.4, 12.2, 10.8]*u.deg],
+                                 names=('JD', 'RA', 'DEC'))
+    subtab = QTable([[1, 2, 3] * u.au,
+                     [1, 2, 3] * u.au,
+                     [20, 30, 40] * u.deg],
+                    names=('r', 'delta', 'DEC'))
+    field0 = tab.field_names
+    tab.vstack(subtab)
+    assert len(tab) == 6
+    assert set(field0).union(set(subtab.colnames)) == set(tab.field_names)
+
+    # join a table that has a column using alternative names
+    subtab = QTable([[4, 5] * u.au,
+                     [10, 20] * u.deg],
+                    names=('rh', 'phase'))
+    field0 = tab.field_names
+    tab.vstack(subtab)
+    assert len(tab) == 8
+    assert 'rh' not in tab.table.colnames
+    assert set(field0).union({'phase'}) == set(tab.field_names)
