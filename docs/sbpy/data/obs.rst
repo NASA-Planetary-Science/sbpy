@@ -8,7 +8,7 @@ Observational Data Objects (`sbpy.data.Obs`)
 For instance, this class allows you to query observations reported to the Minor
 Planet Center for a given target via `astroquery.mpc.MPCClass.get_observations`:
 
-  .. doctest-remote-data:: 
+.. doctest-remote-data:: 
 
     >>> from sbpy.data import Obs
     >>> data = Obs.from_mpc('2019 AA', id_type='asteroid designation')
@@ -37,7 +37,7 @@ function makes use of the query functions that are part of
 `~sbpy.data.Ephem` and allows you to pick a service from which you
 would like to obtain the data.
 
-  .. doctest-remote-data:: 
+.. doctest-remote-data:: 
 
     >>> data.field_names
     ['number', 'desig', 'discovery', 'note1', 'note2', 'epoch', 'RA', 'DEC', 'mag', 'band', 'observatory']

@@ -30,49 +30,49 @@ Use sbpy ``DataClass`` objects
 
 * The classes enable easy parameter passing from online sources.  Compare the following:
 
-  .. code-block:: python
+.. code-block:: python
      
-     eph = Ephem.from_horizons('2P')
-     # rh, delta required, phase angle is optional:
-     Afrho(wave, fluxd, aper, eph['rh'], eph['delta'], phase=eph['phase'])
-     # more to the point:
-     Afrho(wave, fluxd, aper, eph)
+    eph = Ephem.from_horizons('2P')
+    # rh, delta required, phase angle is optional:
+    Afrho(wave, fluxd, aper, eph['rh'], eph['delta'], phase=eph['phase'])
+    # more to the point:
+    Afrho(wave, fluxd, aper, eph)
 
   Carefully document which fields are used by your function or method.
      
 * Dictionary-like objects may be allowed for user input, but should be internally converted to a ``DataClass`` object with the `~sbpy.data.dataclass_input` decorator:
 
-  .. code-block:: python
+.. code-block:: python
      
-     @dataclass_input(eph=Ephem)
-     def H11(eph):
-         ...
+    @dataclass_input(eph=Ephem)
+    def H11(eph):
+        ...
 
   The same, but using function annotations:
   
-  .. code-block:: python
+.. code-block:: python
      
-     @dataclass_input
-     def H11(eph: Ephem):
-         ...
+    @dataclass_input
+    def H11(eph: Ephem):
+        ...
 
 * Exceptions are allowed when only one parameter is needed, e.g., ``phase_func(phase)``.  But instead consider using the relevant ``DataClass`` object, and decorating the function with `~sbpy.data.quantity_to_dataclass`:
 
-  .. code-block:: python
+.. code-block:: python
 
-     @quantity_to_dataclass(eph=(Ephem, 'phase'))
-     def phase_func(eph):
-         ...
+    @quantity_to_dataclass(eph=(Ephem, 'phase'))
+    def phase_func(eph):
+        ...
 
   The decorator may be stacked with ``dataclass_input`` for maximum
   flexibility:
 
-  .. code-block:: python
+.. code-block:: python
 
-     @dataclass_input
-     @quantity_to_dataclass(eph=(Ephem, 'phase'))
-     def phase_func(eph):
-         ...
+    @dataclass_input
+    @quantity_to_dataclass(eph=(Ephem, 'phase'))
+    def phase_func(eph):
+        ...
 
 
 Append fields to ``DataClass`` at the user's request
@@ -94,11 +94,11 @@ Cite relevant works
 
 * Citations may be executed internally with :func:`sbpy.bib.register`, or via the `~sbpy.bib.cite` decorator:
 
-  .. code-block:: python
+.. code-block:: python
 
-     @cite({'method': '1687pnpm.book.....N'})
-     def force(mass, acceleration):
-         return mass * acceleration
+    @cite({'method': '1687pnpm.book.....N'})
+    def force(mass, acceleration):
+        return mass * acceleration
 
 * Labels describing references (``'method'`` in the above example) are
   required to start with the following strings: ``'method'`` (for

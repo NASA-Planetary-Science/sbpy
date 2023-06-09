@@ -8,17 +8,17 @@ Dust comae (`sbpy.activity.dust`)
 
 The *Afρ* parameter of A'Hearn et al (1984) is based on observations of idealized cometary dust comae.  It is proportional to the observed flux density within a circular aperture.  The quantity is the product of dust albedo, dust filling factor, and the radius of the aperture at the distance of the comet.  It carries the units of *ρ* (length), and under certain assumptions is proportional to the dust production rate of the comet:
 
-  .. math::
+.. math::
 
-     Afρ = \frac{4 Δ^2 r_h^2}{ρ}\frac{F_c}{F_⊙}
+    Afρ = \frac{4 Δ^2 r_h^2}{ρ}\frac{F_c}{F_⊙}
 
 where *Δ* and *ρ* have the same (linear) units, but :math:`r_h` is in units of au.  :math:`F_c` * is the flux density of the comet in the aperture, and :math:`F_⊙` is that of the Sun at 1 au in the same units.  See A'Hearn et al. (1984) and Fink & Rubin (2012) for more details.
 
 The *εfρ* parameter is the thermal emission counterpart to *Afρ*, replacing albedo with IR emissivity, *ε*, and the solar spectrum with the Planck function, *B*:
 
-  .. math::
+.. math::
 
-     εfρ = \frac{F_c Δ^2}{π ρ B(T_c)}
+    εfρ = \frac{F_c Δ^2}{π ρ B(T_c)}
 
 where :math:`T_c` is the spectral temperature of the continuum (Kelley et al. 2013).
 
