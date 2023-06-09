@@ -1042,9 +1042,11 @@ class VectorialModel(GasComa):
 
         """
 
-        q_invsecs = qs.to(1 / (u.s)).value
-        t_at_p_secs = ts.to(u.s).value
         base_q = qs[0]
+        q_variations = qs - base_q
+
+        q_invsecs = q_variations.to_value(1 / (u.s))
+        t_at_p_secs = ts.to_value(u.s)
 
         # extend the arrays to simplify our comparisons in binned_q_t
         # last bin stops at observation time, t = 0
@@ -1052,16 +1054,18 @@ class VectorialModel(GasComa):
         # junk value for production because this is in the future
         q_invsecs = np.append(q_invsecs, [0])
 
+        # this function represents the deviation from base_q at any time t, so
+        # we need to handle times outside of the range specified in 'ts'
         def q_t(t):
             # too long in the past?
-            if t > t_at_p_secs[0] or t < 0:
-                return base_q
+            if t > t_at_p_secs[0]:
+                return 0
             # in the future?
             if t < 0:
                 return 0
 
-            # loop over all elements except the last so we can always look at
-            # [index+1] for the comparison
+            # find which bin the given time falls in, and return the
+            # corresponding production for that interval
             for i in range(len(q_invsecs) - 1):
                 if t < t_at_p_secs[i] and t > t_at_p_secs[i + 1]:
                     return q_invsecs[i]
