@@ -52,6 +52,13 @@ class SolarSpectra:
         'bibcode': '1996AJ....112..307C'
     }
 
+    calspec = {
+        "filename": ("https://archive.stsci.edu/hlsps/reference-atlases/cdbs/"
+                     "current_calspec/sun_mod_001.fits"),
+        "description": "R=5000, created by R. Bohlin from Kurucz Special Model",
+        "bibcode": "2014PASP..126..711B"
+    }
+
 
 class SolarPhotometry:
     """Built-in solar photometry.

@@ -5,14 +5,15 @@ Spectral Standards and Photometric Calibration (`sbpy.calib`)
 
 sbpy's photometric calibration is based on spectra of the Sun and Vega.  For example, they are used to convert between :ref:`reflectance, cross-section, and magnitude <reflectance-equivalencies>`, between :ref:`Afρ and spectral flux density <afrho-to-from-flux-density>`, and between :ref:`Vega-based and other magnitude systems <vega-magnitudes>`.   sbpy has built-in spectra for each, and users may provide their own.
 
-The spectrum of `Bohlin (2014) <https://dx.doi.org/10.1088/0004-6256/147/6/127>`_ is the default and only built-in spectrum for Vega.  It is distributed with sbpy.  Four solar spectra are built-in:
+The spectrum of `Bohlin (2014) <https://dx.doi.org/10.1088/0004-6256/147/6/127>`_ is the default and only built-in spectrum for Vega.  It is distributed with sbpy.  Five solar spectra are built-in:
 
   * Castelli1996 - Castelli model from Colina et al. (1996).
   * E490_2014 - E490 (2014) standard.
   * E490_2014LR - A low resolution version of the E490 standard.
   * Kurucz1993 - Kurucz (1993) model.
+  * calspec - R=5000, created by R. Bohlin from Kurucz Special Model
 
-The E490 spectra are included with sbpy, and the Kurucz and Castelli spectra are downloaded as needed from `STScI's astronomical catalog <https://www.stsci.edu/hst/instrumentation/reference-data-for-calibration-and-tools/astronomical-catalogs>`_.
+The E490 spectra are included with sbpy, and the others are downloaded as needed from MAST's `Spectral Atlas Files for Synphot Software (REFERENCE-ATLASES) <https://archive.stsci.edu/hlsp/reference-atlases>`_ or STScI's `CALSPEC Database <https://www.stsci.edu/hst/instrumentation/reference-data-for-calibration-and-tools/astronomical-catalogs/calspec>`_.
 
 Each star has a class for use within sbpy.  The classes can be initialized with the default spectrum using :func:`~sbpy.calib.SpectralStandard.from_default`:
 
@@ -32,9 +33,10 @@ The names of the built-in sources are stored as an internal array.  They can be 
         name                                description
     ------------ -----------------------------------------------------------------
     Castelli1996      Castelli model, scaled and presented by Colina et al. (1996)
-        E490_2014                E490-00a (2014) reference solar spectrum (Table 3)
-    E490_2014LR E490-00a (2014) low resolution reference solar spectrum (Table 4)
-        Kurucz1993               Kurucz (1993) model, scaled by Colina et al. (1996)
+       E490_2014                E490-00a (2014) reference solar spectrum (Table 3)
+     E490_2014LR E490-00a (2014) low resolution reference solar spectrum (Table 4)
+      Kurucz1993               Kurucz (1993) model, scaled by Colina et al. (1996)
+         calspec            R=5000, created by R. Bohlin from Kurucz Special Model
     >>> sun = Sun.from_builtin('E490_2014LR')
     >>> print(sun)
     <Sun: E490-00a (2014) low resolution reference solar spectrum (Table 4)>
