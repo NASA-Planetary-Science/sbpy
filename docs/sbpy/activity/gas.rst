@@ -103,12 +103,6 @@ The gas coma models work with sbpy's apertures:
 Vectorial Model
 ^^^^^^^^^^^^^^^
 
-.. warning::
-
-  Literature tests with the Vectorial model are generally in agreement at the
-  20% level or better.  The cause for the differences with the Festou FORTRAN
-  code are not yet precisely known.  Help testing this feature is appreciated.
-
 The Vectorial model (`Festou 1981
 <https://ui.adsabs.harvard.edu/abs/1981A%26A....95...69F/abstract>`_) describes
 the spatial distribution of coma photolysis products.  Unlike the Haser model,

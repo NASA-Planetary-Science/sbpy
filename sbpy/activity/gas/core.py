@@ -682,6 +682,23 @@ class Haser(GasComa):
 
 @dataclass
 class VMParent:
+    """
+    Physical information about the parent necessary for the vectorial model
+
+    Parameters
+    ----------
+    v_outflow : float
+        See VectorialModel documentation.
+
+    tau_d : float
+        See VectorialModel documentation.
+
+    tau_T : float
+        See VectorialModel documentation.
+
+    sigma : float
+        See VectorialModel documentation.
+    """
     v_outflow: float
     tau_d: float
     tau_T: float
@@ -690,19 +707,61 @@ class VMParent:
 
 @dataclass
 class VMFragment:
+    """
+    Physical information about the fragment necessary for the vectorial model
+
+    Parameters
+    ----------
+    v_photo : float
+        See VectorialModel documentation.
+
+    tau_T : float
+        See VectorialModel documentation.
+    """
     v_photo: float
     tau_T: float
 
 
 @dataclass
 class VMGridParams:
+    """
+    Vectorial model gridding parameters to control how finely the space around
+    the comet should be gridded, and how detailed the outflow sampling should
+    be.
+
+    Parameters
+    ----------
+    radial_points : int
+        See VectorialModel documentation.
+
+    angular_points : int
+        See VectorialModel documentation.
+
+    radial_substeps : int
+        See VectorialModel documentation.
+    """
     radial_points: int
     angular_points: int
     radial_substeps: int
 
 
 @dataclass
-class VMModelParams:
+class VMParams:
+    """
+    Vectorial model parameters unrelated to physical inputs, dealing with the
+    model's assumptions and detalis of the calculations.
+
+    Parameters
+    ----------
+    parent_destrution_level : float
+        See VectorialModel documentation.
+
+    fragment_destruction_level : float
+        See VectorialModel documentation.
+
+    max_fragment_lifetimes : float
+        See VectorialModel documentation.
+    """
     parent_destruction_level: float
     fragment_destruction_level: float
     max_fragment_lifetimes: float
@@ -710,6 +769,24 @@ class VMModelParams:
 
 @dataclass
 class VMFragmentSputterPolar:
+    """
+    Describes the distribution of fragment volume density
+    (``fragment_density[i][j]``) as function of (``rs[i]``, ``thetas[j]``) in a
+    spherical coordinate system, given a column of parent molecules flowing
+    outward along the azimuthal (z) axis.
+
+    Parameters
+    ----------
+    rs : `np.ndarray`
+        List of radii (`astropy.units.Quantity`).
+
+    thetas: `np.ndarray`
+        List of polar angles theta (radians) in a spherical coordinate system.
+
+    fragment_density: `np.ndarray`
+        List of fragment densities at the corresponding ``rs[i]`` and
+        ``thetas[j]``.
+    """
     rs: np.ndarray
     thetas: np.ndarray
     fragment_density: np.ndarray
@@ -717,6 +794,80 @@ class VMFragmentSputterPolar:
 
 @dataclass
 class VMResult:
+    """
+    Dataclass to hold a collection of vectorial model details and results in a
+    language- and model-independent way.
+
+    Parameters
+    ----------
+    volume_density_grid : `np.ndarray`
+        List of radii (`~astropy.units.Quantity`) that the model used for
+        volume density calculations.
+
+    volume_density : `np.ndarray`
+        List of volume densities (`~astropy.units.Quantity`) computed at the
+        corresponding radius: at radius = ``volume_density_grid[i]``, the volume
+        density is ``volume_density[i]``.
+
+    column_density_grid : `np.ndarray`
+        List of radii (`~astropy.units.Quantity`) that the model used for
+        column density calculations.
+
+    column_density : `np.ndarray`
+        List of column densities (`~astropy.units.Quantity`), computed at the
+        corresponding radius: at radius = ``column_density_grid[i]``, the column
+        density is ``column_density[i]``.
+
+    fragment_sputter : `VMFragmentSputterPolar`
+        Describes the distribution of fragment volume density as function of
+        (r, theta) in a spherical coordinate system, given a column of parent
+        molecules flowing outward along the azimuthal (z) axis.
+
+    solid_angle_sputter : `VMFragmentSputterPolar`
+        Similar to ``fragment_sputter``, but adjusted by a factor of
+        ``sin(theta)``.
+
+    volume_density_interpolation : `scipy.interpolate.PPoly`
+        Function that takes radius as a float in meters (no astropy units) and
+        returns the volume density in 1/m^3.  Not reliable beyond
+        ``max_grid_radius``, and questionable for radii less than
+        ``collision_sphere_radius``.
+
+    column_density_interpolation : `scipi.interpolate.PPoly`
+        Function that takes radius as a float in meters (no astropy units) and
+        returns the column density in 1/m^2.  Not relaible beyond
+        ``max_grid_radius``, and questionable for radii less than
+        ``collision_sphere_radius``.
+
+    collision_sphere_radius : `astropy.units.Quantity`
+        The radius of the collision sphere as described and calculated in
+        Festou (1981): the radius beyond which a molecule can expect to see one
+        collision over its lifetime.
+
+    max_grid_radius : `astropy.units.Quantity`
+        Cutoff radius for the model calculations.  Attempting to take results
+        from the model beyond this radius will be wrong or unreliable at best.
+
+    coma_radius : `astropy.units.Quantity`
+        Cutoff radius beyond which we take the parents to be entirely
+        dissociated.
+
+    num_fragments_theory : `float`
+        Total number of fragments that we expect based on a steady-state
+        calculation.  Unreliable when time dependence is strong.
+
+    num_fragments_grid : `float`
+        Total number of fragments based on the actual results of the model.
+        Agreement with ``num_fragments_theory`` is generally very good in the
+        steady-state case.
+
+    t_perm_flow : `float`
+        Time for the comet to reach a steady state/permanent flow regime, where
+        the number of fragments produced is equal to the number of fragments
+        lost to dissociation.  In a time-dependent production context, this
+        will also measure how long the effects of a single outburst can affect
+        the density.
+    """
     volume_density_grid: np.ndarray = None
     volume_density: np.ndarray = None
     column_density_grid: np.ndarray = None
@@ -820,14 +971,14 @@ class VectorialModel(GasComa):
         max_fragment_lifetimes=8.0,
         print_progress=False,
     ):
-        warnings.warn(
-            "Literature tests with the Vectorial model are generally"
-            " in agreement at the 20% level or better.  The cause"
-            " for the differences with the Festou FORTRAN code are"
-            " not yet precisely known.  Help testing this feature is"
-            " appreciated.",
-            TestingNeeded,
-        )
+        # warnings.warn(
+        #     "Literature tests with the Vectorial model are generally"
+        #     " in agreement at the 20% level or better.  The cause"
+        #     " for the differences with the Festou FORTRAN code are"
+        #     " not yet precisely known.  Help testing this feature is"
+        #     " appreciated.",
+        #     TestingNeeded,
+        # )
 
         super().__init__(base_q, parent["v_outflow"][0])
 
@@ -865,7 +1016,7 @@ class VectorialModel(GasComa):
             angular_points=angular_points,
         )
 
-        self.model_params = VMModelParams(
+        self.model_params = VMParams(
             # Helps define cutoff for radial grid at this percentage of parents
             # lost to decay
             parent_destruction_level=parent_destruction_level,
@@ -1321,7 +1472,6 @@ class VectorialModel(GasComa):
         ejection_sites, drs = self._outflow_axis_sampling(x, y, theta)
 
         # Loop over these ejection sites that contribute to x, y
-        # for k, slice_r in enumerate(ejection_sites):
         for slice_r, dr in zip(ejection_sites, drs):
             # Distance from dissociation site to our grid point
             sep_dist = np.sqrt(x**2 + (slice_r - y) ** 2)
