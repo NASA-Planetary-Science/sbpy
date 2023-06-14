@@ -4,16 +4,21 @@
 """
 
 __all__ = [
-    'photo_lengthscale',
-    'photo_timescale',
-    'fluorescence_band_strength',
-    'Haser',
-    'VectorialModel'
+    "photo_lengthscale",
+    "photo_timescale",
+    "fluorescence_band_strength",
+    "Haser",
+    "VectorialModel",
 ]
 
 from abc import ABC, abstractmethod
+
+# distutils is deprecated in python 3.10 and will be removed in 3.12 (PEP 632).
+# Migration from distutils.log -> logging
 from distutils.log import warn
 import warnings
+from dataclasses import dataclass
+from typing import Callable, Tuple
 
 import numpy as np
 import astropy.units as u
@@ -30,8 +35,13 @@ from ... import bib
 from ... import data as sbd
 from ... import units as sbu
 from ...exceptions import RequiredPackageUnavailable, TestingNeeded
-from .. core import (Aperture, RectangularAperture, GaussianAperture,
-                     AnnularAperture, CircularAperture)
+from ..core import (
+    Aperture,
+    RectangularAperture,
+    GaussianAperture,
+    AnnularAperture,
+    CircularAperture,
+)
 
 
 def photo_lengthscale(species, source=None):
@@ -70,26 +80,26 @@ def photo_lengthscale(species, source=None):
     from .data import photo_lengthscale as data
 
     default_sources = {
-        'H2O': 'CS93',
-        'OH': 'CS93',
+        "H2O": "CS93",
+        "OH": "CS93",
     }
 
     if species not in data:
-        summary = ''
+        summary = ""
         for k, v in sorted(data.items()):
-            summary += '\n{} [{}]'.format(k, ', '.join(v.keys()))
+            summary += "\n{} [{}]".format(k, ", ".join(v.keys()))
 
-        raise ValueError(
-            'Invalid species {}.  Choose from:{}'
-            .format(species, summary))
+        raise ValueError("Invalid species {}.  Choose from:{}".format(species, summary))
 
     gas = data[species]
     source = default_sources[species] if source is None else source
 
     if source not in gas:
         raise ValueError(
-            'Source key {} not available for {}.  Choose from: {}'
-            .format(source, species, ', '.join(gas.keys())))
+            "Source key {} not available for {}.  Choose from: {}".format(
+                source, species, ", ".join(gas.keys())
+            )
+        )
 
     gamma, bibcode = gas[source]
     bib.register(photo_lengthscale, bibcode)
@@ -139,32 +149,32 @@ def photo_timescale(species, source=None):
     from .data import photo_timescale as data
 
     default_sources = {
-        'H2O': 'CS93',
-        'OH': 'CS93',
-        'HCN': 'C94',
-        'CH3OH': 'C94',
-        'H2CO': 'C94',
-        'CO2': 'CE83',
-        'CO': 'CE83',
-        'CN': 'H92'
+        "H2O": "CS93",
+        "OH": "CS93",
+        "HCN": "C94",
+        "CH3OH": "C94",
+        "H2CO": "C94",
+        "CO2": "CE83",
+        "CO": "CE83",
+        "CN": "H92",
     }
 
     if species not in data:
-        summary = ''
+        summary = ""
         for k, v in sorted(data.items()):
-            summary += '\n{} [{}]'.format(k, ', '.join(v.keys()))
+            summary += "\n{} [{}]".format(k, ", ".join(v.keys()))
 
-        raise ValueError(
-            "Invalid species {}.  Choose from:{}"
-            .format(species, summary))
+        raise ValueError("Invalid species {}.  Choose from:{}".format(species, summary))
 
     gas = data[species]
     source = default_sources[species] if source is None else source
 
     if source not in gas:
         raise ValueError(
-            'Source key {} not available for {}.  Choose from: {}'
-            .format(source, species, ', '.join(gas.keys())))
+            "Source key {} not available for {}.  Choose from: {}".format(
+                source, species, ", ".join(gas.keys())
+            )
+        )
 
     tau, bibcode = gas[source]
     bib.register(photo_timescale, bibcode)
@@ -213,28 +223,32 @@ def fluorescence_band_strength(species, eph=None, source=None):
     from .data import fluorescence_band_strength as data
 
     default_sources = {
-        'OH 0-0': 'SA88',
-        'OH 1-0': 'SA88',
-        'OH 1-1': 'SA88',
-        'OH 2-2': 'SA88',
-        'OH 0-1': 'SA88',
-        'OH 0-2': 'SA88',
-        'OH 2-0': 'SA88',
-        'OH 2-1': 'SA88',
+        "OH 0-0": "SA88",
+        "OH 1-0": "SA88",
+        "OH 1-1": "SA88",
+        "OH 2-2": "SA88",
+        "OH 0-1": "SA88",
+        "OH 0-2": "SA88",
+        "OH 2-0": "SA88",
+        "OH 2-1": "SA88",
     }
 
     if species not in data:
         raise ValueError(
-            'No data available for {}.  Choose one of: {}'
-            .format(species, ', '.join(data.keys())))
+            "No data available for {}.  Choose one of: {}".format(
+                species, ", ".join(data.keys())
+            )
+        )
 
     band = data[species]
     source = default_sources[species] if source is None else source
 
     if source not in band:
         raise ValueError(
-            'No source {} for {}.  Choose one of: {}'
-            .format(source, species, ', '.join(band.keys())))
+            "No source {} for {}.  Choose one of: {}".format(
+                source, species, ", ".join(band.keys())
+            )
+        )
 
     LN, note, bibcode = band[source]
     if bibcode is not None:
@@ -257,7 +271,7 @@ class GasComa(ABC):
 
     """
 
-    @u.quantity_input(Q=(u.s ** -1, u.mol / u.s), v=u.m / u.s)
+    @u.quantity_input(Q=(u.s**-1, u.mol / u.s), v=u.m / u.s)
     def __init__(self, Q, v):
         self.Q = Q
         self.v = v
@@ -280,10 +294,10 @@ class GasComa(ABC):
 
         """
 
-        return self._volume_density(r.to_value('m')) / u.m ** 3
+        return self._volume_density(r.to_value("m")) / u.m**3
 
     @sbd.dataclass_input(eph=sbd.Ephem)
-    @sbd.quantity_to_dataclass(eph=(sbd.Ephem, 'delta'))
+    @sbd.quantity_to_dataclass(eph=(sbd.Ephem, "delta"))
     def column_density(self, rho, eph=None):
         """Coma column density at a projected distance from nucleus.
 
@@ -311,11 +325,11 @@ class GasComa(ABC):
         if eph is not None:
             equiv = sbu.projected_size(eph)
 
-        rho = rho.to_value('m', equiv)
-        return self._column_density(rho) / u.m ** 2
+        rho = rho.to_value("m", equiv)
+        return self._column_density(rho) / u.m**2
 
     @sbd.dataclass_input(eph=sbd.Ephem)
-    @sbd.quantity_to_dataclass(eph=(sbd.Ephem, 'delta'))
+    @sbd.quantity_to_dataclass(eph=(sbd.Ephem, "delta"))
     def total_number(self, aper, eph=None):
         """Total number of molecules in aperture.
 
@@ -428,18 +442,19 @@ class GasComa(ABC):
         """
 
         if not scipy:
-            raise RequiredPackageUnavailable('scipy')
+            raise RequiredPackageUnavailable("scipy")
 
         def f(s, rho2):
-            r = np.sqrt(rho2 + s ** 2)
+            r = np.sqrt(rho2 + s**2)
             return self._volume_density(r)
 
         # quad diverges integrating to infinity, but 1e6 × rho is good
         # enough
         limit = 30
         points = rho * np.logspace(-4, 4, limit // 2)
-        sigma, err = quad(f, 0, 1e6 * rho, args=(rho ** 2,),
-                          limit=limit, points=points, epsabs=epsabs)
+        sigma, err = quad(
+            f, 0, 1e6 * rho, args=(rho**2,), limit=limit, points=points, epsabs=epsabs
+        )
 
         # spherical symmetry
         sigma *= 2
@@ -473,13 +488,13 @@ class GasComa(ABC):
         """
 
         if not scipy:
-            raise RequiredPackageUnavailable('scipy')
+            raise RequiredPackageUnavailable("scipy")
 
         if isinstance(aper, (CircularAperture, AnnularAperture)):
             if isinstance(aper, CircularAperture):
-                limits = (0, aper.radius.to_value('m'))
+                limits = (0, aper.radius.to_value("m"))
             else:
-                limits = aper.shape.to_value('m')
+                limits = aper.shape.to_value("m")
 
             # integrate in polar coordinates
             def f(rho):
@@ -494,7 +509,7 @@ class GasComa(ABC):
             N *= 2 * np.pi
             err *= 2 * np.pi
         elif isinstance(aper, RectangularAperture):
-            shape = aper.shape.to_value('m')
+            shape = aper.shape.to_value("m")
 
             def f(rho, th):
                 """Column density integration in polar coordinates.
@@ -538,10 +553,13 @@ class GasComa(ABC):
                 rho and sigma in m, column_density in m**-2
 
                 """
-                return (rho * np.exp(-rho ** 2 / sigma ** 2 / 2)
-                        * self._column_density(rho))
+                return (
+                    rho
+                    * np.exp(-(rho**2) / sigma**2 / 2)
+                    * self._column_density(rho)
+                )
 
-            sigma = aper.sigma.to_value('m')
+            sigma = aper.sigma.to_value("m")
             N, err = quad(f, 0, np.inf, args=(sigma,), epsabs=epsabs)
             N *= 2 * np.pi
             err *= 2 * np.pi
@@ -579,7 +597,7 @@ class Haser(GasComa):
 
     """
 
-    @bib.cite({'model': '1957BSRSL..43..740H'})
+    @bib.cite({"model": "1957BSRSL..43..740H"})
     @u.quantity_input(parent=u.m, daughter=u.m)
     def __init__(self, Q, v, parent, daughter=None):
         super().__init__(Q, v)
@@ -587,40 +605,46 @@ class Haser(GasComa):
         self.daughter = daughter
 
     def _volume_density(self, r):
-        n = (self.Q / self.v).to_value('1/m') / r ** 2 / 4 / np.pi
-        parent = self.parent.to_value('m')
+        n = (self.Q / self.v).to_value("1/m") / r**2 / 4 / np.pi
+        parent = self.parent.to_value("m")
         if self.daughter is None or self.daughter == 0:
             # parent only
             n *= np.exp(-r / parent)
         else:
-            daughter = self.daughter.to_value('m')
-            n *= (daughter / (parent - daughter)
-                  * (np.exp(-r / parent) - np.exp(-r / daughter)))
+            daughter = self.daughter.to_value("m")
+            n *= (
+                daughter
+                / (parent - daughter)
+                * (np.exp(-r / parent) - np.exp(-r / daughter))
+            )
 
         return n
 
     def _iK0(self, x):
         """Integral of the modified Bessel function of 2nd kind, 0th order."""
         if not scipy:
-            raise RequiredPackageUnavailable('scipy')
+            raise RequiredPackageUnavailable("scipy")
         return special.iti0k0(x)[1]
 
     def _K1(self, x):
         """Modified Bessel function of 2nd kind, 1st order."""
         if not scipy:
-            raise RequiredPackageUnavailable('scipy')
+            raise RequiredPackageUnavailable("scipy")
         return special.k1(x)
 
-    @bib.cite({'model': '1978Icar...35..360N'})
+    @bib.cite({"model": "1978Icar...35..360N"})
     def _column_density(self, rho):
-        sigma = (self.Q / self.v).to_value('1/m') / rho / 2 / np.pi
-        parent = self.parent.to_value('m')
+        sigma = (self.Q / self.v).to_value("1/m") / rho / 2 / np.pi
+        parent = self.parent.to_value("m")
         if self.daughter is None or self.daughter == 0:
             sigma *= np.pi / 2 - self._iK0(rho / parent)
         else:
-            daughter = self.daughter.to_value('m')
-            sigma *= (daughter / (parent - daughter)
-                      * (self._iK0(rho / daughter) - self._iK0(rho / parent)))
+            daughter = self.daughter.to_value("m")
+            sigma *= (
+                daughter
+                / (parent - daughter)
+                * (self._iK0(rho / daughter) - self._iK0(rho / parent))
+            )
         return sigma
 
     def _total_number(self, aper):
@@ -633,7 +657,7 @@ class Haser(GasComa):
             return N1 - N0
 
         # Solution for the circular aperture of radius rho:
-        bib.register(self.total_number, {'model': '1978Icar...35..360N'})
+        bib.register(self.total_number, {"model": "1978Icar...35..360N"})
 
         rho = aper.radius
         parent = self.parent.to(rho.unit)
@@ -643,97 +667,320 @@ class Haser(GasComa):
             N *= 1 / x - self._K1(x) + np.pi / 2 - self._iK0(x)
         else:
             daughter = self.daughter.to(rho.unit)
-            y = (rho / daughter).to_value('')
-            N *= ((daughter / (parent - daughter)).to_value('')
-                  * (self._iK0(y) - self._iK0(x) + x ** -1 - y ** -1
-                     + self._K1(y) - self._K1(x)))
+            y = (rho / daughter).to_value("")
+            N *= (daughter / (parent - daughter)).to_value("") * (
+                self._iK0(y)
+                - self._iK0(x)
+                + x**-1
+                - y**-1
+                + self._K1(y)
+                - self._K1(x)
+            )
 
         return N
 
 
-class VectorialModel(GasComa):
-    """ Vectorial model for fragments in a coma produced
-         with a dissociative energy kick
-
-        Parameters
-        ----------
-        base_q : `~astropy.units.Quantity`
-            Base production rate, per time
-
-        parent: `~sbpy.data.Phys`
-            Object with the following physical property fields:
-                * ``tau_T``: total lifetime of the parent molecule
-                * ``tau_d``: photodissociative lifetime of the parent molecule
-                * ``v_outflow``: outflow velocity of the parent molecule
-                * ``sigma``: cross-sectional area of the parent molecule
-
-        fragment: `~sbpy.data.Phys`
-            Object with the following physical property fields:
-                * ``tau_T``: total lifetime of the fragment molecule
-                * ``v_photo``: velocity of fragment resulting from
-                    photodissociation of the parent
-
-        q_t: callable, optional
-            Calculates the parent production rate as a function of time:
-            ``q_t(t)``. The argument ``t`` is the look-back time as a float
-            in units of seconds.  The return value is the production rate in
-            units of inverse seconds.  If provided, this value is added to
-            ``base_q``.
-
-            If no time-dependence function is given, the model will run with
-            steady production at ``base_q`` stretching infinitely far into the
-            past.
-
-        radial_points: int, optional
-            Number of radial grid points the model will use
-
-        radial_substeps: int, optional
-            Number of points along the contributing axis to integrate over
-
-        angular_points: int, optional
-            Number of angular grid points the model will use
-
-        angular_substeps: int, optional
-            Number of angular steps per radial substep to integrate over
-
-        parent_destruction_level: float, optional
-            Model will attempt to track parents until
-            this percentage has dissociated
-
-        fragment_destruction_level: float, optional
-            Model will attempt to track fragments until
-            this percentage has dissociated
-
-        max_fragment_lifetimes: float, optional
-            Fragments traveling through the coma will be ignored if they take
-            longer than this to arrive and contribute to the density at any
-            considered point
-
-        print_progress: bool, optional
-            Print progress percentage while calculating
-
-        References:
-            The density distribution of neutral compounds in cometary
-            atmospheres. I - Models and equations,
-            Festou, M. C. 1981, Astronomy and Astrophysics, vol. 95, no. 1,
-            Feb. 1981, p. 69-79.
+@dataclass
+class VMParent:
     """
-    @bib.cite({'model': '1981A&A....95...69F'})
-    @u.quantity_input(base_q=(u.s ** -1, u.mol / u.s))
-    def __init__(self, base_q, parent, fragment, q_t=None, radial_points=50,
-                 radial_substeps=12, angular_points=30, angular_substeps=7,
-                 parent_destruction_level=0.99,
-                 fragment_destruction_level=0.95,
-                 max_fragment_lifetimes=8.0,
-                 print_progress=False):
+    Physical information about the parent necessary for the vectorial model
 
-        warnings.warn("Literature tests with the Vectorial model are generally"
-                      " in agreement at the 20% level or better.  The cause"
-                      " for the differences with the Festou FORTRAN code are"
-                      " not yet precisely known.  Help testing this feature is"
-                      " appreciated.", TestingNeeded)
+    Parameters
+    ----------
+    v_outflow : float
+        See VectorialModel documentation.
 
-        super().__init__(base_q, parent['v_outflow'][0])
+    tau_d : float
+        See VectorialModel documentation.
+
+    tau_T : float
+        See VectorialModel documentation.
+
+    sigma : float
+        See VectorialModel documentation.
+    """
+    v_outflow: float
+    tau_d: float
+    tau_T: float
+    sigma: float
+
+
+@dataclass
+class VMFragment:
+    """
+    Physical information about the fragment necessary for the vectorial model
+
+    Parameters
+    ----------
+    v_photo : float
+        See VectorialModel documentation.
+
+    tau_T : float
+        See VectorialModel documentation.
+    """
+    v_photo: float
+    tau_T: float
+
+
+@dataclass
+class VMGridParams:
+    """
+    Vectorial model gridding parameters to control how finely the space around
+    the comet should be gridded, and how detailed the outflow sampling should
+    be.
+
+    Parameters
+    ----------
+    radial_points : int
+        See VectorialModel documentation.
+
+    angular_points : int
+        See VectorialModel documentation.
+
+    radial_substeps : int
+        See VectorialModel documentation.
+    """
+    radial_points: int
+    angular_points: int
+    radial_substeps: int
+
+
+@dataclass
+class VMParams:
+    """
+    Vectorial model parameters unrelated to physical inputs, dealing with the
+    model's assumptions and detalis of the calculations.
+
+    Parameters
+    ----------
+    parent_destrution_level : float
+        See VectorialModel documentation.
+
+    fragment_destruction_level : float
+        See VectorialModel documentation.
+
+    max_fragment_lifetimes : float
+        See VectorialModel documentation.
+    """
+    parent_destruction_level: float
+    fragment_destruction_level: float
+    max_fragment_lifetimes: float
+
+
+@dataclass
+class VMFragmentSputterPolar:
+    """
+    Describes the distribution of fragment volume density
+    (``fragment_density[i][j]``) as function of (``rs[i]``, ``thetas[j]``) in a
+    spherical coordinate system, given a column of parent molecules flowing
+    outward along the azimuthal (z) axis.
+
+    Parameters
+    ----------
+    rs : `np.ndarray`
+        List of radii (`astropy.units.Quantity`).
+
+    thetas: `np.ndarray`
+        List of polar angles theta (radians) in a spherical coordinate system.
+
+    fragment_density: `np.ndarray`
+        List of fragment densities at the corresponding ``rs[i]`` and
+        ``thetas[j]``.
+    """
+    rs: np.ndarray
+    thetas: np.ndarray
+    fragment_density: np.ndarray
+
+
+@dataclass
+class VMResult:
+    """
+    Dataclass to hold a collection of vectorial model details and results in a
+    language- and model-independent way.
+
+    Parameters
+    ----------
+    volume_density_grid : `np.ndarray`
+        List of radii (`~astropy.units.Quantity`) that the model used for
+        volume density calculations.
+
+    volume_density : `np.ndarray`
+        List of volume densities (`~astropy.units.Quantity`) computed at the
+        corresponding radius: at radius = ``volume_density_grid[i]``, the volume
+        density is ``volume_density[i]``.
+
+    column_density_grid : `np.ndarray`
+        List of radii (`~astropy.units.Quantity`) that the model used for
+        column density calculations.
+
+    column_density : `np.ndarray`
+        List of column densities (`~astropy.units.Quantity`), computed at the
+        corresponding radius: at radius = ``column_density_grid[i]``, the column
+        density is ``column_density[i]``.
+
+    fragment_sputter : `VMFragmentSputterPolar`
+        Describes the distribution of fragment volume density as function of
+        (r, theta) in a spherical coordinate system, given a column of parent
+        molecules flowing outward along the azimuthal (z) axis.
+
+    solid_angle_sputter : `VMFragmentSputterPolar`
+        Similar to ``fragment_sputter``, but adjusted by a factor of
+        ``sin(theta)``.
+
+    volume_density_interpolation : `scipy.interpolate.PPoly`
+        Function that takes radius as a float in meters (no astropy units) and
+        returns the volume density in 1/m^3.  Not reliable beyond
+        ``max_grid_radius``, and questionable for radii less than
+        ``collision_sphere_radius``.
+
+    column_density_interpolation : `scipi.interpolate.PPoly`
+        Function that takes radius as a float in meters (no astropy units) and
+        returns the column density in 1/m^2.  Not relaible beyond
+        ``max_grid_radius``, and questionable for radii less than
+        ``collision_sphere_radius``.
+
+    collision_sphere_radius : `astropy.units.Quantity`
+        The radius of the collision sphere as described and calculated in
+        Festou (1981): the radius beyond which a molecule can expect to see one
+        collision over its lifetime.
+
+    max_grid_radius : `astropy.units.Quantity`
+        Cutoff radius for the model calculations.  Attempting to take results
+        from the model beyond this radius will be wrong or unreliable at best.
+
+    coma_radius : `astropy.units.Quantity`
+        Cutoff radius beyond which we take the parents to be entirely
+        dissociated.
+
+    num_fragments_theory : `float`
+        Total number of fragments that we expect based on a steady-state
+        calculation.  Unreliable when time dependence is strong.
+
+    num_fragments_grid : `float`
+        Total number of fragments based on the actual results of the model.
+        Agreement with ``num_fragments_theory`` is generally very good in the
+        steady-state case.
+
+    t_perm_flow : `float`
+        Time for the comet to reach a steady state/permanent flow regime, where
+        the number of fragments produced is equal to the number of fragments
+        lost to dissociation.  In a time-dependent production context, this
+        will also measure how long the effects of a single outburst can affect
+        the density.
+    """
+    volume_density_grid: np.ndarray = None
+    volume_density: np.ndarray = None
+    column_density_grid: np.ndarray = None
+    column_density: np.ndarray = None
+
+    fragment_sputter: VMFragmentSputterPolar = None
+    solid_angle_sputter: VMFragmentSputterPolar = None
+
+    volume_density_interpolation: scipy.interpolate.PPoly = None
+    column_density_interpolation: scipy.interpolate.PPoly = None
+
+    collision_sphere_radius: u.Quantity = None
+    max_grid_radius: u.Quantity = None
+    coma_radius: u.Quantity = None
+
+    num_fragments_theory: float = None
+    num_fragments_grid: float = None
+    t_perm_flow: u.Quantity = None
+
+
+class VectorialModel(GasComa):
+    """
+    Vectorial model for fragments in a coma produced with a dissociative energy
+    kick.
+
+
+    Parameters
+    ----------
+    base_q : `~astropy.units.Quantity`
+        Base production rate, per time
+
+    parent: `~sbpy.data.Phys`
+        Object with the following physical property fields:
+            * ``tau_T``: total lifetime of the parent molecule
+            * ``tau_d``: photodissociative lifetime of the parent molecule
+            * ``v_outflow``: outflow velocity of the parent molecule
+            * ``sigma``: cross-sectional area of the parent molecule
+
+    fragment: `~sbpy.data.Phys`
+        Object with the following physical property fields:
+            * ``tau_T``: total lifetime of the fragment molecule
+            * ``v_photo``: velocity of fragment resulting from
+                photodissociation of the parent
+
+    q_t: callable, optional
+        Calculates the parent production rate as a function of time: ``q_t(t)``.
+        The argument ``t`` is the look-back time as a float in units of seconds.
+        The return value is the production rate in units of inverse seconds.  If
+        provided, this value is added to ``base_q``.
+
+        If no time-dependence function is given, the model will run with steady
+        production at ``base_q`` stretching infinitely far into the past.
+
+    radial_points: int, optional
+        Number of radial grid points the model will use
+
+    radial_substeps: int, optional
+        Number of points along the outflow axis to integrate over
+
+    angular_points: int, optional
+        Number of angular grid points the model will use
+
+    parent_destruction_level: float, optional
+        Model will attempt to track parents until this percentage has
+        dissociated
+
+    fragment_destruction_level: float, optional
+        Model will attempt to track fragments until this percentage has
+        dissociated
+
+    max_fragment_lifetimes: float, optional
+        Fragments traveling through the coma will be ignored if they take longer
+        than this to arrive and contribute to the density at any considered
+        point.
+
+    print_progress: bool, optional
+        Print progress while calculating.
+
+
+    References
+    ----------
+    The density distribution of neutral compounds in cometary atmospheres. I -
+    Models and equations, Festou, M. C. 1981, Astronomy and Astrophysics, vol.
+    95, no. 1, Feb. 1981, p. 69-79.
+
+    """
+
+    @bib.cite({"model": "1981A&A....95...69F"})
+    @u.quantity_input(base_q=(u.s**-1, u.mol / u.s))
+    def __init__(
+        self,
+        base_q,
+        parent,
+        fragment,
+        q_t=None,
+        radial_points=50,
+        radial_substeps=80,
+        angular_points=30,
+        parent_destruction_level=0.99,
+        fragment_destruction_level=0.95,
+        max_fragment_lifetimes=8.0,
+        print_progress=False,
+    ):
+        # warnings.warn(
+        #     "Literature tests with the Vectorial model are generally"
+        #     " in agreement at the 20% level or better.  The cause"
+        #     " for the differences with the Festou FORTRAN code are"
+        #     " not yet precisely known.  Help testing this feature is"
+        #     " appreciated.",
+        #     TestingNeeded,
+        # )
+
+        super().__init__(base_q, parent["v_outflow"][0])
 
         # Calculations are done internally in meters and seconds to match the
         # base GasComa class
@@ -749,160 +996,208 @@ class VectorialModel(GasComa):
 
         # Copy parent info, stripping astropy units and converting to meters
         # and seconds
-        self.parent = {
-            'tau_T': parent['tau_T'][0].to(u.s).value,
-            'tau_d': parent['tau_d'][0].to(u.s).value,
-            'v_outflow': parent['v_outflow'][0].to(u.m / u.s).value,
-            'sigma': parent['sigma'][0].to(u.m ** 2).value
-        }
+        self.parent = VMParent(
+            tau_T=parent["tau_T"][0].to(u.s).value,
+            tau_d=parent["tau_d"][0].to(u.s).value,
+            v_outflow=parent["v_outflow"][0].to(u.m / u.s).value,
+            sigma=parent["sigma"][0].to(u.m**2).value,
+        )
 
         # Same for the fragment info
-        self.fragment = {
-            'tau_T': fragment['tau_T'][0].to(u.s).value,
-            'v_photo': fragment['v_photo'][0].to(u.m / u.s).value
-        }
+        self.fragment = VMFragment(
+            tau_T=fragment["tau_T"][0].to(u.s).value,
+            v_photo=fragment["v_photo"][0].to(u.m / u.s).value,
+        )
 
         # Grid settings
-        self.radial_points = radial_points
-        self.radial_substeps = radial_substeps
-        self.angular_points = angular_points
-        self.angular_substeps = angular_substeps
+        self.grid = VMGridParams(
+            radial_points=radial_points,
+            radial_substeps=radial_substeps,
+            angular_points=angular_points,
+        )
 
-        # Helps define cutoff for radial grid at this percentage of parents
-        # lost to decay
-        self.parent_destruction_level = parent_destruction_level
-        # Default here is lower than parents because they are born farther from
-        # nucleus, tracking them too long will stretch the radial grid a bit
-        # too much
-        self.fragment_destruction_level = fragment_destruction_level
+        self.model_params = VMParams(
+            # Helps define cutoff for radial grid at this percentage of parents
+            # lost to decay
+            parent_destruction_level=parent_destruction_level,
+            # Default here is lower than parents because they are born farther
+            # from nucleus, tracking them too long will stretch the radial grid
+            # a bit too much
+            fragment_destruction_level=fragment_destruction_level,
+            # If a fragment has to travel longer than this many lifetimes to
+            # contribute to the density at a point, ignore it
+            max_fragment_lifetimes=max_fragment_lifetimes,
+        )
 
-        # If a fragment has to travel longer than this many lifetimes to
-        # contribute to the density at a point, ignore it
-        self.max_fragment_lifetimes = max_fragment_lifetimes
-
-        # Print progress during density calculations?
         self.print_progress = print_progress
 
-        """Initialize data structures to hold our calculations"""
-        self.vmodel = {}
+        self.vmr = VMResult()
 
         # Calculate up a few things
         self._setup_calculations()
 
         # Build the radial grid
-        self.vmodel['fast_radial_grid'] = self._make_radial_logspace_grid()
-        self.vmodel['radial_grid'] = self.vmodel['fast_radial_grid'] * (u.m)
+        self.fast_voldens_grid = self._make_radial_logspace_grid()
+        self.vmr.volume_density_grid = self.fast_voldens_grid * (u.m)
 
         # Angular grid
-        self.vmodel['d_alpha'] = self.vmodel[
-            'epsilon_max'] / self.angular_points
+        self.d_alpha = self.epsilon_max / self.grid.angular_points
         # Make array of angles adjusted up away from zero, to keep from
-        # calculating a radial line's contribution to itself
-        self.vmodel['angular_grid'] = np.linspace(
-            0, self.vmodel['epsilon_max'], num=self.angular_points,
-            endpoint=False
+        # encroaching on the outflow axis
+        self.angular_grid = np.linspace(
+            0, self.epsilon_max, num=self.grid.angular_points, endpoint=False
         )
-        # This maps addition over the whole array automatically
-        self.vmodel['angular_grid'] += self.vmodel['d_alpha'] / 2
+        self.angular_grid += self.d_alpha / 2
 
         # Makes a 2d array full of zero values
-        self.vmodel['density_grid'] = np.zeros((self.radial_points,
-                                                self.angular_points))
+        self.fragment_sputter = np.zeros(
+            (self.grid.radial_points, self.grid.angular_points)
+        )
 
         # Do the main computation
         self._compute_fragment_density()
 
-        # Turn our grid into a function of r
-        self._interpolate_radial_density()
+        # Turn our volume density into a function of r
+        self._interpolate_volume_density()
 
         # Get the column density at our grid points and interpolate
         self._compute_column_density()
 
         # Count up the number of fragments in the grid versus theoretical value
-        self.vmodel['num_fragments_theory'] = self.calc_num_fragments_theory()
-        self.vmodel['num_fragments_grid'] = self.calc_num_fragments_grid()
+        self.vmr.num_fragments_theory = self._calc_num_fragments_theory()
+        self.vmr.num_fragments_grid = self._calc_num_fragments_grid()
+
+        # Convert fragment sputters to group of one-dimensional arrays
+        # of the form r_i, theta_i, fragment_density_i
+        sputterlist = []
+        for (i, j), frag_dens in np.ndenumerate(self.fragment_sputter):
+            sputterlist.append(
+                [
+                    self.vmr.volume_density_grid[i].to(u.m).value,
+                    self.angular_grid[j],
+                    frag_dens,
+                ]
+            )
+        sputter = np.array(sputterlist)
+        # fill in the fragment sputter results
+        self.vmr.fragment_sputter = VMFragmentSputterPolar(
+            rs=sputter[:, 0] * u.m,
+            thetas=sputter[:, 1],
+            fragment_density=sputter[:, 2] / u.m**3,
+        )
+        normsputterlist = []
+        for (i, j), norm_dens in np.ndenumerate(self.solid_angle_sputter):
+            normsputterlist.append(
+                [
+                    self.vmr.volume_density_grid[i].to(u.m).value,
+                    self.angular_grid[j],
+                    norm_dens,
+                ]
+            )
+        normsputter = np.array(normsputterlist)
+        self.vmr.solid_angle_sputter = VMFragmentSputterPolar(
+            rs=normsputter[:, 0] * u.m,
+            thetas=normsputter[:, 1],
+            fragment_density=normsputter[:, 2] / u.m**3,
+        )
+
+        if print_progress:
+            print("Vectorial model calculations complete!")
 
     @classmethod
     def binned_production(cls, qs, fragment, parent, ts, **kwargs):
-        """ Alternate constructor for vectorial model
+        """Alternate constructor for vectorial model
 
-            Parameters
-            ----------
-            qs : `~astropy.units.Quantity`
-                List of steady production rates, per time, with length equal to
-                that of ``ts``.
 
-            parent: `~sbpy.data.Phys`
-                Same as __init__
+        Parameters
+        ----------
+        qs : `~astropy.units.Quantity`
+            List of steady production rates, per time, with length equal to that
+            of ``ts``.
 
-            fragment: `~sbpy.data.Phys`
-                Same as __init__
+        parent: `~sbpy.data.Phys`
+            Same as __init__
 
-            ts : `~astropy.units.Quantity`
-                List of times corresponding to when the production qs begin,
-                with positive times indicating the past.
+        fragment: `~sbpy.data.Phys`
+            Same as __init__
 
-            kwargs: variable, optional
-                Any additional parameters in kwargs are passed on to __init__,
-                which are documented above and may be passed in here.
+        ts : `~astropy.units.Quantity`
+            List of times corresponding to when the production qs begin, with
+            positive times indicating the past.
 
-            Returns
-            -------
-            VectorialModel
-                Instance of the VectorialModel class
+        kwargs: variable, optional
+            Any additional parameters in kwargs are passed on to __init__, which
+            are documented above and may be passed in here.
 
-            Examples
-            --------
-            This specifies that from 30 days ago to 7 days ago, the production
-            was 1.e27, changes to 3.e27 between 7 and 5 days ago, then falls to
-            2.e27 from 5 days ago until now
-            >>> q_example = [1.e27, 3.e27, 1.e27] * (1/u.s)
-            >>> t_example = [30, 7, 5] * u.day
 
-            Notes
-            -----
-            Preserves Festou's original fortran method of describing time
-            dependence in the model - time bins of steady production at
-            specified intervals
+        Returns
+        -------
+        VectorialModel
+            Instance of the VectorialModel class
 
-            The base production of the model is taken from the first element in
-            the production array, which assumes the arrays are time-ordered
-            from oldest to most recent.  The base production extends backward
-            in time to infinity, so take care when using this method for time
-            dependence if that is not what is intended.
-        """
-        return cls(base_q=qs[0],
-                   q_t=VectorialModel._make_binned_production(qs, ts),
-                   fragment=fragment, parent=parent, **kwargs)
 
-    def _make_binned_production(qs, ts):
-        """ Produces a time dependence function out of lists given to
-            binned_production constructor
+        Examples
+        --------
+        This specifies that from 30 days ago to 7 days ago, the production was
+        1.e27, changes to 3.e27 between 7 and 5 days ago, then falls to 2.e27
+        from 5 days ago until now: >>> q_example = [1.e27, 3.e27, 1.e27] *
+        (1/u.s) >>> t_example = [30, 7, 5] * u.day
 
-            Parameters
-            ----------
-            qs : `astropy.units.Quantity`
-                See binned_production for description
 
-            ts : `astropy.units.Quantity`
-                See binned_production for description
+        Notes
+        -----
+        Preserves Festou's original fortran method of describing time dependence
+        in the model - time bins of steady production at specified intervals.
 
-            Returns
-            -------
-            q_t : function
-                See __init__ for description
+        The base production of the model is taken from the first element in the
+        production array, which assumes the arrays are time-ordered from oldest
+        to most recent.  The base production extends backward in time to
+        infinity, so take care when using this method for time dependence if
+        that is not what is intended.
 
-            Notes
-            -----
-            We create a model-compatible function for time dependence out of
-            the information specified in the arrays qs and ts
-            The resulting function gives a steady specified production within
-            the given time windows
         """
 
-        q_invsecs = qs.to(1 / (u.s)).value
-        t_at_p_secs = ts.to(u.s).value
+        return cls(
+            base_q=qs[0],
+            q_t=VectorialModel._make_binned_production(qs, ts),
+            fragment=fragment,
+            parent=parent,
+            **kwargs
+        )
+
+    def _make_binned_production(qs, ts) -> Callable[[np.float64], np.float64]:
+        """Produces a time dependence function out of lists given to
+        binned_production constructor.
+
+
+        Parameters
+        ----------
+        qs : `astropy.units.Quantity`
+            See binned_production for description
+
+        ts : `astropy.units.Quantity`
+            See binned_production for description
+
+
+        Returns
+        -------
+        q_t : function
+            See __init__ for description
+
+
+        Notes
+        -----
+        We create a model-compatible function for time dependence out of the
+        information specified in the arrays qs and ts The resulting function
+        gives a steady specified production within the given time windows.
+
+        """
+
         base_q = qs[0]
+        q_variations = qs - base_q
+
+        q_invsecs = q_variations.to_value(1 / (u.s))
+        t_at_p_secs = ts.to_value(u.s)
 
         # extend the arrays to simplify our comparisons in binned_q_t
         # last bin stops at observation time, t = 0
@@ -910,47 +1205,59 @@ class VectorialModel(GasComa):
         # junk value for production because this is in the future
         q_invsecs = np.append(q_invsecs, [0])
 
+        # this function represents the deviation from base_q at any time t, so
+        # we need to handle times outside of the range specified in 'ts'
         def q_t(t):
             # too long in the past?
-            if t > t_at_p_secs[0] or t < 0:
-                return base_q
+            if t > t_at_p_secs[0]:
+                return 0
             # in the future?
             if t < 0:
                 return 0
 
-            # loop over all elements except the last so we can always look at
-            # [index+1] for the comparison
+            # find which bin the given time falls in, and return the
+            # corresponding production for that interval
             for i in range(len(q_invsecs) - 1):
                 if t < t_at_p_secs[i] and t > t_at_p_secs[i + 1]:
                     return q_invsecs[i]
 
         return q_t
 
-    def _make_steady_production(self):
-        """ Produces a time dependence function that contributes no extra
-            parents at any time
+    def _make_steady_production(self) -> Callable[[np.float64], np.float64]:
+        """Produces a time dependence function that contributes no extra
+        parents at any time.
 
-            Notes
-            -----
-            If no q_t is given, we use this as our time dependence as the
-            model needs a q_t to run
+
+        Returns
+        -------
+        q_t : function
+            See __init__ for description
+
+
+        Notes
+        -----
+        If no q_t is given, we use this as our time dependence as the
+        model needs a q_t to run
+
         """
+
         # No additional production at any time
-        def q_t(t):
-            return 0
+        def q_t(_):
+            return 0.0
 
         return q_t
 
-    def _setup_calculations(self):
-        """ Miscellaneus calculations to inform the model later
+    def _setup_calculations(self) -> None:
+        """Miscellaneous calculations to inform the model later.
 
-            Notes
-            -----
-            Calculates the collision sphere radius, coma radius, time to
-            permanent flow regime, the maximum radius our grid could possibly
-            need to extend out to, and the maximum angle that a fragment's
-            trajectory can deviate from its parent's trajectory (which is
-            assumed to be radial)
+        Notes
+        -----
+        Calculates the collision sphere radius, coma radius, time to
+        permanent flow regime, the maximum radius our grid could possibly
+        need to extend out to, and the maximum angle that a fragment's
+        trajectory can deviate from its parent's trajectory (which is
+        assumed to be radial).
+
         """
 
         """
@@ -962,544 +1269,566 @@ class VectorialModel(GasComa):
             enough time to reach a steady state before letting production vary
             with time.
         """
+
+        if self.print_progress:
+            print("Performing setup calculations...")
+
         # This v_therm factor comes from molecular flux of ideal gas moving
         # through a surface, in our case the surface of the collision sphere
         # The gas is collisional inside this sphere and free beyond it, so we
         # can model this as effusion
-        v_therm = self.parent['v_outflow'] * 0.25
+        v_therm = self.parent.v_outflow * 0.25
         q = self.base_q
-        vp = self.parent['v_outflow']
-        vf = self.fragment['v_photo']
+        vp = self.parent.v_outflow
+        vf = self.fragment.v_photo
 
         # Eq. 5 of Festou 1981
-        self.vmodel['collision_sphere_radius'] = (
-            (self.parent['sigma'] * q * v_therm) / (vp * vp)
+        self.vmr.collision_sphere_radius = (
+            (self.parent.sigma * q * v_therm) / (vp * vp)
         ) * u.m
 
-        # Calculates the radius of the coma (parents only), given our input
-        # parameters
+        # Calculates the radius of the coma (defined as the space the parents
+        # occupy)
         # NOTE: Equation (16) of Festou 1981 where alpha is the percent
         # destruction of molecules
-        parent_beta_r = -np.log(1.0 - self.parent_destruction_level)
-        parent_r = parent_beta_r * vp * self.parent['tau_T']
-        self.vmodel['coma_radius'] = parent_r * u.m
+        parent_beta_r = -np.log(1.0 - self.model_params.parent_destruction_level)
+        parent_r = parent_beta_r * vp * self.parent.tau_T
+        self.vmr.coma_radius = parent_r * u.m
 
-        # Calculates the time needed to hit a steady, permanent production of
+        fragment_beta_r = -np.log(1.0 - self.model_params.fragment_destruction_level)
+        # Calculate the time needed to hit a steady, permanent production of
         # fragments
-        fragment_beta_r = -np.log(1.0 - self.fragment_destruction_level)
-
-        perm_flow_radius = (
-            self.vmodel['coma_radius'].value +
-            ((vp + vf) * fragment_beta_r * self.fragment['tau_T'])
+        perm_flow_radius = self.vmr.coma_radius.value + (
+            (vp + vf) * fragment_beta_r * self.fragment.tau_T
         )
 
-        t_secs = (
-            self.vmodel['coma_radius'].value / vp +
-            (perm_flow_radius - self.vmodel['coma_radius'].value)
-            / (vp + vf)
-        )
-        self.vmodel['t_perm_flow'] = (t_secs * u.s).to(u.day)
+        t_secs = self.vmr.coma_radius.value / vp + (
+            perm_flow_radius - self.vmr.coma_radius.value
+        ) / (vp + vf)
+        self.vmr.t_perm_flow = (t_secs * u.s).to(u.day)
 
         # This is the total radial size that parents & fragments occupy, beyond
         # which we assume zero density
-        self.vmodel['max_grid_radius'] = perm_flow_radius * u.m
+        self.vmr.max_grid_radius = perm_flow_radius * u.m
 
         # Two cases for angular range of ejection of fragment based on relative
         # velocities of parent and fragment species
-        if(vf < vp):
-            self.vmodel['epsilon_max'] = np.arcsin(vf / vp)
+        if vf < vp:
+            self.epsilon_max = np.arcsin(vf / vp)
         else:
-            self.vmodel['epsilon_max'] = np.pi
+            self.epsilon_max = np.pi
 
-    def production_at_time(self, t):
-        """ Get production rate at time t
+    def production_at_time(self, t: np.float64) -> np.float64:
+        """Get production rate at time t.
 
-            Parameters
-            ----------
-            t : float
-                Time in seconds, with positive values representing the past
 
-            Returns
-            -------
-            numpy.float64
-                Production rate, unitless, at the specified time
+        Parameters
+        ----------
+        t : numpy.float64
+            Time in seconds, with positive values representing the past
+
+
+        Returns
+        -------
+        numpy.float64
+            Production rate, unitless, at the specified time
 
         """
 
         return self.base_q + self.q_t(t)
 
-    def _make_radial_logspace_grid(self):
-        """ Create an appropriate radial grid based on the model parameters
+    def _make_radial_logspace_grid(self) -> np.ndarray:
+        """Create an appropriate radial grid based on the model parameters.
 
-            Returns
-            -------
-            ndarray
-                Logarithmically spaced samples of the radial space around the
-                coma, out to a maximum distance
 
-            Notes
-            -----
-            Creates a grid (in meters) with numpy's logspace function that
-            covers the expected radial size, stretching from 2 times the
-            collision sphere radius (near the nucleus be dragons) out to the
-            calculated max.  If we get too close to the nucleus things go very
-            badly so don't do it, dear reader
+        Returns
+        -------
+        ndarray
+            Logarithmically spaced samples of the radial space around the coma,
+            out to a maximum distance.
+
+
+        Notes
+        -----
+        Creates a grid (in meters) with numpy's logspace function that covers
+        the expected radial size, stretching from 2 times the collision sphere
+        radius (near the nucleus be dragons) out to the calculated max.  If we
+        get too close to the nucleus things go very badly so don't do it, dear
+        reader.
+
         """
-        start_power = np.log10(
-            self.vmodel['collision_sphere_radius'].value * 2
-        )
-        end_power = np.log10(self.vmodel['max_grid_radius'].value)
+
+        start_power = np.log10(self.vmr.collision_sphere_radius.value * 2)
+        end_power = np.log10(self.vmr.max_grid_radius.value)
         return np.logspace(
-            start_power, end_power,
-            num=self.radial_points, endpoint=True
+            start_power, end_power, num=self.grid.radial_points, endpoint=True
         )
 
-    def _compute_fragment_density(self):
-        """ Computes the density of fragments as a function of radius
+    def _outflow_axis_sampling(
+        self, x: np.float64, y: np.float64, theta: np.float64
+    ) -> Tuple[np.ndarray, np.ndarray]:
+        """Construct a list of points along the outflow axis, sampled to be
+        more dense around the minimum distance to (x, y).
 
-            Notes
-            -----
-            Computes the density at different radii and due to each ejection
-            angle, performing the radial integration of eq. (36), Festou 1981
-            with only one fragment velocity.  The resulting units will be in
-            1/(m^3) as we work in m, s, and m/s.
 
-            The density is first found on a radial grid, then interpolated to
-            find density as a function of arbitrary radius.  We use our results
-            from the grid to calculate the total number of fragments in the
-            coma for comparison to the theoretical number we expect, to provide
-            the user with a rough idea of how well the chosen radial and
-            angular grid sizes have captured the appropriate amount of
-            particles.  Note that some level of disagreement is expected
-            because the parent_destruction_level and fragment_destruction_level
-            parameters cut the grid off before all particles can dissociate,
-            and thus some escape the model and come up missing in the fragment
-            count based on the grid.
+        Parameters
+        ----------
+        x : numpy.float64
+            x-coordinate of the space where we are calculating the fragment
+            density
+
+        y : numpy.float64
+            y-coordinate of the space where we are calculating the fragment
+            density
+
+        theta: numpy.float64
+            polar spherical coordinate of (x, y) to avoid calculating it from
+            (x, y)
+
+
+        Returns
+        -------
+        tuple(numpy.ndarray, numpy.ndarray)
+            Tuple with list of ejection sites in the first index and their
+            extents in the second index
+
+
+        Notes
+        -----
+        Returns list of radial points along outflow axis to sample for fragment
+        ejection, with a list describing the size dr that each ejection point
+        occupies along the outflow axis.
+
         """
-        vp = self.parent['v_outflow']
-        vf = self.fragment['v_photo']
+
+        outflow_axis_edge = self.vmr.coma_radius.value
+
+        # calc angle to edge of the grid, and use it if it's less than
+        # epsilon max.  without this, when epsilon_max approaches pi we
+        # get values of r outside the edge of the grid
+        grid_edge_angle = np.arctan2(x, (y - outflow_axis_edge))
+        if grid_edge_angle < self.epsilon_max:
+            max_subangle = grid_edge_angle
+        else:
+            max_subangle = self.epsilon_max
+
+        # Trace angles from our grid point at x, y and find where dissociations
+        # would have to occur along the outflow axis. This samples shorter
+        # trajectories more finely along the axis, which is necessary because
+        # the exponential decay along their transit means they contribute the
+        # most to the fragment density
+        ces = np.vectorize(lambda epsilon: y - x / np.tan(epsilon))
+
+        # array one element larger than radial_substeps because we will
+        # use the midpoints defined by this array
+        subangles = np.linspace(
+            theta, max_subangle, num=self.grid.radial_substeps + 1, endpoint=True
+        )
+
+        # Find where this set of angles intersects the outflow axis
+        ejection_grid = ces(subangles)
+        # Find dr for radial integration
+        drs = np.diff(ejection_grid)
+
+        # This puts the sampling of the ejection sites at the midpoints
+        # of our ejection grid
+        ejection_sites = (ejection_grid[1:] + ejection_grid[:-1]) / 2
+
+        return ejection_sites, drs
+
+    def _fragment_sputter(self, r: np.float64, theta: np.float64) -> np.float64:
+        """Compute the fragment density at (r, theta) in a spherical
+        coordinate system where theta is the polar angle and the parents flow
+        radially outward along the z axis.
+
+
+        Parameters
+        ----------
+        r : numpy.float64
+            radial coordinate in meters where we are calculating the fragment
+            density.
+
+        theta : numpy.float64
+            polar spherical coordinate where we are calculating the fragment
+            density.
+
+
+        Returns
+        -------
+        np.float64
+            Fragment density in 1/m**3, no astropy units attached.
+
+        """
+
+        sputter = 0.0
+        vp = self.parent.v_outflow
+        vf = self.fragment.v_photo
+        p_tau_T = self.parent.tau_T
+        f_tau_T = self.fragment.tau_T
+
+        x = r * np.sin(theta)
+        y = r * np.cos(theta)
+
+        ejection_sites, drs = self._outflow_axis_sampling(x, y, theta)
+
+        # Loop over these ejection sites that contribute to x, y
+        for slice_r, dr in zip(ejection_sites, drs):
+            # Distance from dissociation site to our grid point
+            sep_dist = np.sqrt(x**2 + (slice_r - y) ** 2)
+
+            cos_eject = (y - slice_r) / sep_dist
+            sin_eject = x / sep_dist
+
+            # Parent extinction when traveling along to the
+            # dissociation site
+            p_extinction = np.e ** (-slice_r / (p_tau_T * vp))
+
+            # Calculate sqrt(vR^2 - u^2 sin^2 gamma)
+            v_factor = np.sqrt(vf * vf - (vp * vp) * sin_eject**2)
+
+            # The geometry of the problem can admit one or two solutions for
+            # the velocity of the fragment
+            v_one = vp * cos_eject + v_factor
+            if vf > vp:
+                velocities = [v_one]
+            else:
+                v_two = vp * cos_eject - v_factor
+                velocities = [v_one, v_two]
+
+            # TODO: this shouldn't be necessary if we only pick r, theta inside ejection
+            if v_one == 0.0:
+                continue
+
+            for v in velocities:
+                # Time taken to travel from the dissociation point at v, reject
+                # if the time is too large and fragments have decayed beyond
+                # self.fragment_destruction_level percent
+                t_frag = sep_dist / v
+                if t_frag > self.time_limit:
+                    continue
+
+                # total time between parent emission from nucleus and fragment
+                # arriving at our point of interest, which we then use to look
+                # up Q at that time in the past
+                t_total = (slice_r / vp) + t_frag
+
+                # Division by parent velocity makes this production per
+                # unit distance for radial integration q(r, epsilon)
+                # given by eq. 32, Festou 1981
+                q = self.production_at_time(t_total) / vp
+                q_r_eps = (v**2 * q) / (vf * np.abs(v - vp * cos_eject))
+
+                # Fragment extinction when traveling at speed v from
+                # dissociation site to x, y
+                f_extinction = np.e ** (-t_frag / f_tau_T)
+
+                # differential addition to the density integrating along dr,
+                # similar to eq. (36) Festou 1981
+                n_r = (p_extinction * f_extinction * q_r_eps) / (sep_dist**2 * v)
+
+                sputter += n_r * dr
+
+        return sputter
+
+    def _compute_fragment_density(self) -> None:
+        """Computes the density of fragments as a function of radius.
+
+        Notes
+        -----
+        Computes the density of fragments sputtered around the comet due to an
+        outflow of parents along the z-axis, performing the integration in eq.
+        (36), Festou 1981. The resulting radial fragment density will be in
+        units of 1/(m^3) as we work in m, s, and m/s.
+
+        We then interpolate the fragment density as a function of arbitrary
+        radius.  We use our results to calculate the total number of fragments
+        in the coma for comparison to the theoretical number we expect, to
+        provide the user with a rough idea of how well the chosen radial and
+        angular grid sizes have captured the appropriate amount of particles.
+        Note that some level of disagreement is expected because the
+        parent_destruction_level and fragment_destruction_level parameters cut
+        the grid off before all parents can dissociate, and thus some escape the
+        model and come up missing in the fragment count based on the grid.
+
+        """
+
+        if self.print_progress:
+            print("Starting fragment density computations...")
 
         # Follow fragments until they have been totally destroyed
-        time_limit = self.max_fragment_lifetimes * self.fragment['tau_T']
-        r_coma = self.vmodel['coma_radius'].value
-        r_limit = r_coma
+        self.time_limit = self.model_params.max_fragment_lifetimes * self.fragment.tau_T
 
-        # temporary radial array for when we loop through 0 to epsilonMax
-        ejection_radii = np.zeros(self.radial_substeps)
-
-        p_tau_T = self.parent['tau_T']
-        f_tau_T = self.fragment['tau_T']
-        p_tau_d = self.parent['tau_d']
-
-        # Compute this once ahead of time
         # More factors to fill out integral similar to eq. (36) Festou 1981
         integration_factor = (
-            (1 / (4 * np.pi * p_tau_d)) *
-            self.vmodel['d_alpha'] / (4.0 * np.pi)
+            (1 / (4 * np.pi * self.parent.tau_d)) * self.d_alpha / (4.0 * np.pi)
         )
 
-        # Calculate the density contributions over the volume of the comet
-        # atmosphere due to one ejection axis
-        for j in range(0, self.angular_points):
-            cur_angle = self.vmodel['angular_grid'][j]
-            # Loop through the radial points along this axis
-            for i in range(0, self.radial_points):
-
-                cur_r = self.vmodel['fast_radial_grid'][i]
-                x = cur_r * np.sin(cur_angle)
-                y = cur_r * np.cos(cur_angle)
-
-                # Decide how granular our epsilon should be
-                d_epsilon_steps = len(ejection_radii)
-                d_epsilon = (
-                            (self.vmodel['epsilon_max'] - cur_angle)
-                    / d_epsilon_steps
-                )
-
-                # Maximum radius that contributes to point x,y when there is a
-                # a max ejection angle
-                if(self.vmodel['epsilon_max'] < np.pi):
-                    r_limit = y - (x / np.tan(self.vmodel['epsilon_max']))
-                # Set the last element to be r_coma or the above limit
-                ejection_radii[d_epsilon_steps - 1] = r_limit
-
-                # We already filled out the very last element in the array
-                # above, so it's d_epsilon_steps - 1
-                for dE in range(0, d_epsilon_steps - 1):
-                    ejection_radii[dE] = (
-                        y -
-                        x / np.tan((dE + 1) * d_epsilon + cur_angle)
-                    )
-
-                ejection_radii_start = 0
-                # Number of slices along the contributing axis for each step
-                num_slices = self.angular_substeps
-
-                # Loop over radial chunk that contributes to x,y
-                for ejection_radii_end in ejection_radii:
-
-                    # We are slicing up this axis into pieces
-                    dr = (
-                         (ejection_radii_end - ejection_radii_start) /
-                        num_slices
-                    )
-
-                    # Loop over tiny slices along this chunk
-                    for m in range(0, num_slices):
-
-                        # TODO: We could probably eliminate m by making a
-                        # linear space from ejection_radii_start to
-                        # ejection_radii_end
-
-                        # Current distance along contributing axis
-                        cur_r = (m + 0.5) * dr + ejection_radii_start
-                        # This is the distance from the NP axis point to the
-                        # current point on the ray, squared
-                        sep_dist = np.sqrt(x * x + (cur_r - y) * (cur_r - y))
-
-                        cos_eject = (y - cur_r) / sep_dist
-                        sin_eject = x / sep_dist
-
-                        # Calculate sqrt(vR^2 - u^2 sin^2 gamma)
-                        v_factor = np.sqrt(
-                            vf * vf - (vp * vp) * sin_eject ** 2)
-
-                        # The first (and largest) of the two solutions for the
-                        # velocity when it arrives
-                        v_one = vp * cos_eject + v_factor
-
-                        # Time taken to travel from the dissociation point at
-                        # v1, reject if the time is too large (and all
-                        # fragments have decayed)
-                        t_frag_one = sep_dist / v_one
-                        if t_frag_one > time_limit:
-                            continue
-
-                        # This is the total time between parent emission from
-                        # nucleus and fragment arriving at our point of
-                        # interest, which we then use to look up Q at that time
-                        # in the past
-                        t_total_one = (cur_r / vp) + t_frag_one
-
-                        # Division by parent velocity makes this production per
-                        # unit distance for radial integration q(r, epsilon)
-                        # given by eq. 32, Festou 1981
-                        prod_one = self.production_at_time(t_total_one) / vp
-                        q_r_eps_one = (
-                            (v_one * v_one * prod_one) /
-                            (vf * np.abs(v_one - vp * cos_eject))
-                        )
-
-                        # Parent extinction when traveling along to the
-                        # dissociation site
-                        p_extinction = np.e ** (-cur_r / (p_tau_T * vp))
-                        # Fragment extinction when traveling at speed v1
-                        f_extinction_one = np.e ** (-t_frag_one / f_tau_T)
-
-                        # First differential addition to the density
-                        # integrating along dr, similar to eq. (36) Festou
-                        # 1981, due to the first velocity
-                        n_r_one = (
-                            (p_extinction * f_extinction_one * q_r_eps_one) /
-                            (sep_dist ** 2 * v_one)
-                        )
-
-                        # Add this contribution to the density grid
-                        self.vmodel['density_grid'][i][j] = (
-                            self.vmodel['density_grid'][i][j] +
-                            n_r_one * dr
-                        )
-
-                        # Check if there is a second solution for the velocity
-                        if vf > vp:
-                            continue
-
-                        # Compute the contribution from the second solution for
-                        # v in the same way
-                        v_two = vp * cos_eject - v_factor
-                        t_frag_two = sep_dist / v_two
-                        if t_frag_two > time_limit:
-                            continue
-                        t_total_two = (cur_r / vp) + t_frag_two
-                        prod_two = self.production_at_time(t_total_two) / vp
-                        q_r_eps_two = (
-                            (v_two * v_two * prod_two) /
-                            (vf * np.abs(v_two - vp * cos_eject))
-                        )
-                        f_extinction_two = np.e ** (-t_frag_two / f_tau_T)
-                        n_r_two = (
-                            (p_extinction * f_extinction_two * q_r_eps_two) /
-                            (v_two * sep_dist ** 2)
-                        )
-                        self.vmodel['density_grid'][i][j] = (
-                            self.vmodel['density_grid'][i][j] +
-                            n_r_two * dr
-                        )
-
-                    # Next starting radial point is the current end point
-                    ejection_radii_start = ejection_radii_end
-
-            if(self.print_progress is True):
-                progress_percent = (j + 1) * 100 / self.angular_points
-                print(f'Computing: {progress_percent:3.1f} %', end='\r')
-
-        # Loops automatically over the 2d grid
-        self.vmodel['density_grid'] *= integration_factor
-        # phew
-
-        """
-            Performs angular part of the integration to yield density in m^-3
-            as a function of radius.  Assumes spherical symmetry of parent
-            production.
-
-            Fills vmodel['radial_density'] and vmodel['fast_radial_density']
-            with and without units respectively
-            Fills vmodel['r_dens_interpolation'] with cubic spline
-            interpolation of the radial density, which takes radial coordinate
-            in m and outputs the density at that coord in m^-3, without units
-            attached
-        """
+        # vectorize and apply to each combination of (r, theta)
+        sputter_func = np.vectorize(self._fragment_sputter)
+        rs, thetas = np.meshgrid(
+            self.fast_voldens_grid, self.angular_grid, indexing="ij"
+        )
+        self.fragment_sputter = integration_factor * sputter_func(rs, thetas)
 
         # Make array to hold our data, no units
-        self.vmodel['fast_radial_density'] = np.zeros(self.radial_points)
+        self.fast_voldens = np.zeros(self.grid.radial_points)
 
-        # loop through grid array
-        for i in range(0, self.radial_points):
-            for j in range(0, self.angular_points):
-                # Current angle is theta
-                theta = self.vmodel['angular_grid'][j]
-                # Integration factors from angular part of integral, similar to
-                # eq. (36) Festou 1981
-                dens_contribution = (
-                    2.0 * np.pi * np.sin(theta) *
-                    self.vmodel['density_grid'][i][j]
-                )
-                self.vmodel['fast_radial_density'][i] += dens_contribution
+        # Integration factors from angular part of integral, similar to
+        # eq. (36) Festou 1981
+        # integrate over theta to produce radial fragment volume density
+        # axis = 1 sums over second column, theta
+        # Equivalent to summing over j for sin(theta[j]) *
+        # fragment_sputter[i][j] with numpy magic
+        self.solid_angle_sputter = np.sin(thetas) * self.fragment_sputter
+        self.fast_voldens = 2.0 * np.pi * np.sum(self.solid_angle_sputter, axis=1)
 
         # Tag with proper units
-        self.vmodel['radial_density'] = (
-            self.vmodel['fast_radial_density'] / (u.m ** 3)
-        )
+        self.vmr.volume_density = self.fast_voldens / (u.m**3)
 
-    def _interpolate_radial_density(self):
-        """ Interpolate the radial density.
+    def _interpolate_volume_density(self) -> None:
+        """Interpolate the volume density as a function of radial distance
+        from the nucleus.
 
         Takes our fragment density grid and constructs density as a function of
-        arbitrary radius
+        arbitrary radius.
+
         """
 
         if not scipy:
-            raise RequiredPackageUnavailable('scipy')
+            raise RequiredPackageUnavailable("scipy")
+
+        if self.print_progress:
+            print("Interpolating radial fragment density...")
+
         # Interpolate this radial density grid with a cubic spline for lookup
         # at non-grid radii, input in m, output in 1/m^3
-        self.vmodel['r_dens_interpolation'] = (
-            CubicSpline(self.vmodel['fast_radial_grid'],
-                        self.vmodel['fast_radial_density'],
-                        bc_type='natural')
+        self.vmr.volume_density_interpolation = CubicSpline(
+            self.fast_voldens_grid, self.fast_voldens, bc_type="natural"
         )
 
-    def _column_density_at_rho(self, rho):
-        """ Calculate the column density of fragments at a given impact parameter
+    def _column_density_at_rho(self, rho: np.float64) -> np.float64:
+        """
+        Calculate the column density of fragments at a given impact parameter.
 
-            Parameters
-            ----------
-            rho : float
-                Impact parameter of the column density integration, in meters
 
-            Returns
-            -------
-            float
-                Column density at the given impact parameter in m^-2, no
-                astropy units attached
+        Parameters
+        ----------
+        rho : np.float64
+            Impact parameter of the column density integration, in meters
 
-            Notes
-            -----
-            We return zero column density beyond the edge of our grid, so if
-            there is still significant column density near the edge of the grid
-            this can lead to strange graphing results and sharp cutoffs.
+
+        Returns
+        -------
+        np.float64
+            Column density at the given impact parameter in m^-2, no
+            astropy units attached
+
+
+        Notes
+        -----
+        We return zero column density beyond a certain distance past the
+        grid edge, which can lead to strange graphing results and sharp
+        cutoffs.
+
         """
 
-        r_max = self.vmodel['max_grid_radius'].value
-        if(rho > r_max):
+        reach_factor = 2.0
+
+        # _volume_density() approximates beyond the edge of the grid, so allow
+        # an arbirtary limit beyond which we just return zero column density
+        r_max = self.vmr.max_grid_radius.value * reach_factor
+
+        if rho > r_max:
             return 0
-        rhosq = rho ** 2
-        z_max = np.sqrt(r_max ** 2 - rhosq)
+
+        rhosq = rho**2
+        z_max = np.sqrt(r_max**2 - rhosq)
 
         def column_density_integrand(z):
-            return self.vmodel['r_dens_interpolation'](np.sqrt(z ** 2 + rhosq))
+            return self._volume_density(np.sqrt(z**2 + rhosq))
 
-        # Romberg is significantly slower for impact parameters near the
-        # nucleus, and becomes much faster at roughly 60 times the collision
-        # sphere radius, after a few tests
-        # The results of both were the same to within .1% or better, generally
-        # TODO: test this for a range of productions to see if this holds
-
-        if rho < (60 * self.vmodel['collision_sphere_radius'].value):
-            c_dens = (
-                quad(column_density_integrand,
-                     -z_max, z_max, limit=3000)
-            )[0]
-        else:
-            c_dens = (
-                2 * romberg(column_density_integrand,
-                            0, z_max, rtol=0.0001, divmax=20)
-            )
+        c_dens = 2 * romberg(column_density_integrand, 0, z_max, rtol=0.0001, divmax=50)
 
         # result is in 1/m^2
         return c_dens
 
-    def _compute_column_density(self):
-        """ Compute the column density on the grid and interpolate the results
+    def _compute_column_density(self) -> None:
+        """Compute the column density on the grid and interpolate the results.
 
-            Computes the fragment column density on a grid and interpolates for
-            fragment column density as a function of arbitrary radius.
+        Notes
+        -----
+        The interpolator returns column density in m^-2, no astropy units
+        attached.
 
-            Notes
-            -----
-            The interpolator returns column density in m^-2, no astropy units
-            attached
         """
+
         if not scipy:
-            raise RequiredPackageUnavailable('scipy')
+            raise RequiredPackageUnavailable("scipy")
+
+        if self.print_progress:
+            print("Computing column densities...")
 
         # make a grid for the column density values
         column_density_grid = self._make_radial_logspace_grid()
-        # vectorize so we can hand the whole grid to our column density
-        # computing function in one line
+        # vectorize so we can hand the whole grid to our function
         cd_vectorized = np.vectorize(self._column_density_at_rho)
         # array now holds corresponding column density values
         column_densities = cd_vectorized(column_density_grid)
 
-        self.vmodel['fast_column_density_grid'] = column_density_grid
-        self.vmodel['column_density_grid'] = column_density_grid * u.m
-        self.vmodel['column_densities'] = column_densities / (u.m ** 2)
+        self.fast_column_density_grid = column_density_grid
+        self.vmr.column_density_grid = column_density_grid * u.m
+        self.vmr.column_density = column_densities / (u.m**2)
         # Interpolation gives column density in m^-2
-        self.vmodel['column_density_interpolation'] = (
-            CubicSpline(
-                column_density_grid,
-                column_densities,
-                bc_type='natural'
-            )
+        self.vmr.column_density_interpolation = CubicSpline(
+            column_density_grid, column_densities, bc_type="natural"
         )
 
-    def calc_num_fragments_theory(self):
-        """ The total number of fragment species we expect in the coma
+    def _calc_num_fragments_theory(self) -> np.float64:
+        """The total number of fragment species we expect in the coma.
 
-            Returns
-            -------
-            float
-                Total number of fragment species we expect in the coma
-                theoretically
+        Returns
+        -------
+        np.float64
+            Total number of fragment species we expect in the coma theoretically
 
-            Notes
-            -----
-            This needs to be rewritten to better handle time dependence; the
-            original implementation was designed for abrupt but small parent
-            production changes.
+        Notes
+        -----
+        Outbursts/time dependent production in general will make this result
+        poor due to the grid being sized to capture a certain fraction of
+        parents/fragments at the oldest (first) production rate.  The farther
+        you get from this base production, the farther the model will deviate
+        from capturing the requested percentage of particles.
+
         """
 
-        # TODO: Re-implement this as differential equations with parent
-        # photodissociation as a source of fragments, and fragment
-        # photodissociation as a sink
-        vp = self.parent['v_outflow']
-        vf = self.fragment['v_photo']
-        p_tau_T = self.parent['tau_T']
-        f_tau_T = self.fragment['tau_T']
-        p_tau_d = self.parent['tau_d']
-        t_perm = self.vmodel['t_perm_flow'].to(u.s).value
+        vp = self.parent.v_outflow
+        vf = self.fragment.v_photo
+        p_tau_T = self.parent.tau_T
+        f_tau_T = self.fragment.tau_T
+        p_tau_d = self.parent.tau_d
+        t_perm = self.vmr.t_perm_flow.to(u.s).value
 
         alpha = f_tau_T * p_tau_T / p_tau_d
 
-        max_r = self.vmodel['max_grid_radius'].value
-        last_density_element = len(self.vmodel['fast_radial_density']) - 1
-        edge_adjust = (
-            (np.pi * max_r * max_r * (vf + vp) *
-             self.vmodel['fast_radial_density'][last_density_element])
-        )
+        max_r = self.vmr.max_grid_radius.value
+        edge_adjust = np.pi * max_r * max_r * (vf + vp) * self.fast_voldens[-1]
 
-        num_time_slices = 10000
+        num_time_slices = 1000
+
         # array starting at tperm (farthest back in time we expect something to
         # hang around), stepped down to zero (when the observation takes place)
-        time_slices = np.linspace(t_perm, 0, num_time_slices, endpoint=False)
+        time_slices = np.linspace(t_perm, 0, num_time_slices, endpoint=True)
 
+        # estimate based on discrete-time source and sink model
         theory_total = 0
-        for i, t in enumerate(time_slices[:-1], start=0):
-            if t > t_perm:
-                t1 = t_perm
-            else:
-                t1 = t
-            t1 /= p_tau_T
-
-            if i != (num_time_slices - 1):
-                t2 = time_slices[i + 1]
-            else:
-                t2 = 0
-            t2 /= p_tau_T
-            mult_factor = -np.e ** (-t1) + np.e ** (-t2)
+        for i, t in enumerate(time_slices[:-1]):
+            extinction_one = t / p_tau_T
+            extinction_two = time_slices[i + 1] / p_tau_T
+            mult_factor = -np.e ** (-extinction_one) + np.e ** (-extinction_two)
             theory_total += self.production_at_time(t) * mult_factor
 
-        theory_total *= alpha
-        theory_total -= edge_adjust
+        return theory_total * alpha - edge_adjust
 
-        return theory_total
+    def _calc_num_fragments_grid(self) -> np.float64:
+        """Total number of fragments in the coma.
 
-    def calc_num_fragments_grid(self):
-        """ Total number of fragments in the coma.
+        Calculates the total number of fragments by integrating the density grid
+        over its volume
 
-            Calculates the total number of fragment species by integrating the
-            density grid over its volume
 
-            Returns
-            -------
-            float
-                Number of fragments in the coma based on our grid calculations
+        Returns
+        -------
+        np.float64
+            Number of fragments in the coma based on our grid calculations
 
-            Notes
-            -----
-            Outbursts/time dependent production in general will make this
-            result poor due to the grid being sized to capture a certain
-            fraction of parents/fragments at the oldest (first) production
-            rate.  The farther you get from this base production, the farther
-            the model will deviate from capturing the requested percentage of
-            particles.
+
+        Notes
+        -----
+        Outbursts/time dependent production in general will make this result
+        poor due to the grid being sized to capture a certain fraction of
+        parents/fragments at the oldest (first) production rate.  The farther
+        you get from this base production, the farther the model will deviate
+        from capturing the requested percentage of particles.
+
         """
-        max_r = self.vmodel['max_grid_radius'].value
+
+        max_r = self.vmr.max_grid_radius.value
 
         def vol_integrand(r, r_func):
-            return (r_func(r) * r ** 2)
+            return r_func(r) * r**2
 
         r_int = romberg(
-            vol_integrand, 0, max_r,
-            args=(self.vmodel['r_dens_interpolation'], ),
-            rtol=0.0001, divmax=20)
+            vol_integrand,
+            0,
+            max_r,
+            args=(self.vmr.volume_density_interpolation,),
+            rtol=0.0001,
+            divmax=20,
+        )
         return 4 * np.pi * r_int
 
-    def _column_density(self, rho):
-        """ Gives fragment column density at arbitrary impact parameter
+    def _column_density(self, rho) -> np.float64:
+        """Gives fragment column density at arbitrary impact parameter.
 
-            Parameters
-            ----------
-            rho : float
-                Impact parameter, in meters, no astropy units attached
+        Parameters
+        ----------
+        rho : np.float64
+            Impact parameter, in meters, no astropy units attached.
 
-            Returns
-            -------
-            float
-                Fragment column density at given impact parameter, in m^-2
+
+        Returns
+        -------
+        np.float64
+            Fragment column density at given impact parameter, in m^-2, no
+            astropy units.
+
         """
-        return self.vmodel['column_density_interpolation'](rho)
 
-    def _volume_density(self, r):
-        """ Gives fragment volume density at arbitrary radius
+        if rho < self.fast_column_density_grid[0]:
+            return self.vmr.column_density[0].value
+        if rho > self.vmr.max_grid_radius.value:
+            return 0
+        return self.vmr.column_density_interpolation(rho)
 
-            Parameters
-            ----------
-            r : float
-                Distance from nucles, in meters, no astropy units attached
+    def _volume_density(self, r) -> np.float64:
+        """Gives fragment volume density at arbitrary radius.
 
-            Returns
-            -------
-            float
-                Fragment volume density at specified radius
+
+        Parameters
+        ----------
+        r : np.float64
+            Distance from nucleus, in meters, no astropy units attached.
+
+
+        Returns
+        -------
+        np.float64
+            Fragment volume density at specified radius, in m^-3, no astropy
+            units.
+
+
+        Notes
+        -----
+        When asked for a value at a radius smaller than the first grid point, we
+        have two choices: return a value based on the interpolation of the
+        volume density, or return the value of the closest grid point to the
+        nucleus. This function returns the closest grid point to the nucleus,
+        because the model does not say anything about what happens inside the
+        collision sphere - so we approximate by clamping the value as constant.
+        We can't trust the interpolation outside of the grid because the density
+        values can get very large or become negative.
+
+        Outside the radius of the grid, the volume density is approximated with
+        exponential decay based on the total lifetime of the fragment.
+
         """
-        return self.vmodel['r_dens_interpolation'](r)
+
+        if r < self.fast_voldens_grid[0]:
+            return self.fast_voldens[0]
+        if r > self.vmr.max_grid_radius.value:
+            diff = r - self.vmr.max_grid_radius.value
+            guess = self.fast_voldens[-1] * np.exp(
+                -diff / (self.fragment.tau_T * self.fragment.v_photo)
+            )
+            return guess
+        return self.vmr.volume_density_interpolation(r)

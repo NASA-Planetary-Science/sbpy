@@ -10,6 +10,17 @@
 New Features
 ------------
 
+sbpy.activity
+^^^^^^^^^^^^^
+
+- Added ``VectorialModel.binned_production`` constructor for compatibility with
+  time-dependent production implemented in the original FORTRAN vectorial model
+  code by Festou. [#336]
+
+- Added ``VMResult``, ``VMFragmentSputterPolar``, ``VMParams``,
+  ``VMGridParams``, ``VMFragment``, and ``VMParent`` dataclasses to expose
+  details of ``VectorialModel`` results that may be of interest. [#336]
+
 sbpy.data
 ^^^^^^^^^
 
@@ -21,10 +32,9 @@ sbpy.data
 
 - Added ``DataClass.__contains__`` to enable `in` operator for ``DataClass``
   objects. [#357]
-
+  
 - Added ``DataClass.add_row``, ``DataClass.vstack``
   methods. [#367]
-
 
 sbpy.photometry
 ^^^^^^^^^^^^^^^
@@ -48,6 +58,15 @@ sbpy.data
 - Asteroids with A/ designations (e.g., A/2019 G2) are correctly identified by
   ``Names`` as asteroids.  Improved handling of interstellar object (I/)
   designations: they do not parse as cometary or asteroidal. [#334, #340]
+
+
+API Changes
+-----------
+
+sbpy.activity
+^^^^^^^^^^^^^
+
+- ``VectorialModel`` now no longer takes an ``angular_substeps`` parameter. [#336]
 
 
 0.3.0 (2022-04-28)
