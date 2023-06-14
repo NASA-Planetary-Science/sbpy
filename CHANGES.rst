@@ -10,6 +10,17 @@
 New Features
 ------------
 
+sbpy.activity
+^^^^^^^^^^^^^
+
+- Added ``VectorialModel.binned_production`` constructor for compatibility with
+  time-dependent production implemented in the original FORTRAN vectorial model
+  code by Festou. [#336]
+
+- Added ``VMResult``, ``VMFragmentSputterPolar``, ``VMParams``,
+  ``VMGridParams``, ``VMFragment``, and ``VMParent`` dataclasses to expose
+  details of ``VectorialModel`` results that may be of interest. [#336]
+
 sbpy.data
 ^^^^^^^^^
 
@@ -21,17 +32,18 @@ sbpy.data
 
 - Added ``DataClass.__contains__`` to enable `in` operator for ``DataClass``
   objects. [#357]
+  
+- Added ``DataClass.add_row``, ``DataClass.vstack``
+  methods. [#367]
 
-sbpy.activity
-^^^^^^^^^^^^^
+sbpy.photometry
+^^^^^^^^^^^^^^^
 
-- Added ``VectorialModel.binned_production`` constructor for compatibility with
-  time-dependent production implemented in the original FORTRAN vectorial model
-  code by Festou. [#336]
+- Added parameter constraints to the IAU disk-integrated phase function models,
+  such as ``HG``, ``HG1G2``, ``HG12``, and ``HG12_Pen16``. [#366]
 
-- Added ``VMResult``, ``VMFragmentSputterPolar``, ``VMParams``,
-  ``VMGridParams``, ``VMFragment``, and ``VMParent`` dataclasses to expose
-  details of ``VectorialModel`` results that may be of interest. [#336]
+- Replaced ``NonmonotonicPhaseFunctionWarning`` with
+  ``InvalidPhaseFunctionWarning``. [#366]
 
 
 Bug Fixes

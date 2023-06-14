@@ -96,25 +96,33 @@ model parameters:
       ---- ----
       3.31 0.12
 
-Note that model set is not supported.  Only one model can be initialized with
-the first set of valid parameters in the input `~sbpy.data.DataClass`.
+Note that in this case, model set is not supported.  Only one model can be
+initialized with the first set of valid parameters in the input
+`~sbpy.data.DataClass`.
 
 To fit a photometric model, one may follow the standard procedure defined in
 `astropy.modeling` submodule, first initializing a model, then using one of
 the fitter classes defined in `astropy.modeling.fitting`
-submodule, such as `~astropy.modeling.fitting.LevMarLSQFitter`.
+submodule, such as `~astropy.modeling.fitting.SLSQPLSQFitter`.  Note that
+the `~sbpy.photometry.HG1G2` model requires that the G1 and G2 parameters
+are bounded within [0, 1], as well as an inequality constraint,
+0 <= 1 - G1 - G2 <= 1.  These constraints are implemented in sbpy via the
+`bounds` parameter of `~astropy.modeling.Parameter` and the `ineqcons`
+parameter of `~astropy.modeling.Model`.  Some fitters, such as
+`astropy.modeling.LevMarLSQFitter`, do not support constrained fit via
+the `ineqcons` parameter, though.
 
   >>> import numpy as np
   >>> import astropy.units as u
-  >>> from astropy.modeling.fitting import LevMarLSQFitter
+  >>> from astropy.modeling.fitting import SLSQPLSQFitter
   >>> # generate data to be fitted
   >>> model1 = HG(3.34 * u .mag, 0.12)
   >>> alpha = np.linspace(0, 40, 20) * u.deg
   >>> mag = model1(alpha) + (np.random.rand(20)*0.2 - 0.1) * u.mag
   >>> # fit new model
-  >>> fitter = LevMarLSQFitter()
+  >>> fitter = SLSQPLSQFitter()
   >>> model2 = HG()
-  >>> model2 = fitter(model2, alpha, mag)
+  >>> model2 = fitter(model2, alpha, mag, verblevel=0)
 
 Alternatively, one may use the class method
 `~sbpy.photometry.DiskIntegratedPhaseFunc.from_obs` to
@@ -122,11 +130,11 @@ initialize a model directly from an `~sbpy.data.Obs` object by fitting the
 data contained therein.
 
   >>> # use class method .from_obs
-  >>> from astropy.modeling.fitting import LevMarLSQFitter
-  >>> fitter = LevMarLSQFitter()
+  >>> from astropy.modeling.fitting import SLSQPLSQFitter
+  >>> fitter = SLSQPLSQFitter()
   >>> from sbpy.data import Obs
   >>> obs = Obs.from_dict({'alpha': alpha, 'mag': mag})
-  >>> model3 = HG12.from_obs(obs, fitter, 'mag')
+  >>> model3 = HG12.from_obs(obs, fitter, 'mag', verblevel=0)
 
 One can also initialize a model set from multiple columns in the input
 `~sbpy.data.Obs` object if it contains more than one columns of brightness
@@ -136,9 +144,9 @@ measurements.  The columns to be fitted are specified by a keyward argument
   >>> # Initialize model set
   >>> model4 = HG(5.2 * u.mag, 0.18)
   >>> mag4 = model4(alpha) + (np.random.rand(20)*0.2 - 0.1) * u.mag
-  >>> fitter = LevMarLSQFitter()
+  >>> fitter = SLSQPLSQFitter()
   >>> obs = Obs.from_dict({'alpha': alpha, 'mag': mag, 'mag1': mag4})
-  >>> model5 = HG.from_obs(obs, fitter, fields=['mag', 'mag1'])
+  >>> model5 = HG.from_obs(obs, fitter, fields=['mag', 'mag1'], verblevel=0)
 
 .. _filter-bandpasses:
 

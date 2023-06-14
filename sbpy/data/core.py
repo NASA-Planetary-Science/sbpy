@@ -7,9 +7,10 @@ sbpy.data core module
 created on June 22, 2017
 """
 
+from collections.abc import Mapping
 from copy import deepcopy
 from numpy import ndarray, array, hstack, iterable
-from astropy.table import QTable, Column
+from astropy.table import QTable, Table, Column, Row, vstack
 from astropy.time import Time
 from astropy.coordinates import Angle
 import astropy.units as u
@@ -661,12 +662,15 @@ class DataClass():
         else:
             return False
 
-    def _translate_columns(self, target_colnames):
+    def _translate_columns(self, target_colnames, ignore_missing=False):
         """Translate target_colnames to the corresponding column names
         present in this object's table. Returns a list of actual column
         names present in this object that corresponds to target_colnames
-        (order is preserved). Raises KeyError if not all columns are
-        present or one or more columns could not be translated.
+        (order is preserved). If `ignore_missing == False` (default),
+        raises a `KeyError` if a match cannot be found for an input column
+        name (neither in this object nor defined in `Conf.fieldnames`).
+        If `ignore_missing == True`, then the problemtic column name will
+        be silently carried over and returned.
         """
 
         if not isinstance(target_colnames, (list, ndarray, tuple)):
@@ -674,19 +678,19 @@ class DataClass():
 
         translated_colnames = deepcopy(target_colnames)
         for idx, colname in enumerate(target_colnames):
-            # colname is already a column name in self.table
-            if colname in self.field_names:
-                continue
-            # colname is an alternative column name
-            else:
+            if colname not in self.field_names:
+                # colname not already in self.table
                 for alt in Conf.fieldnames[
                             Conf.fieldname_idx.get(colname, slice(0))]:
+                    # defined in `Conf.fieldnames`
                     if alt in self.field_names:
                         translated_colnames[idx] = alt
                         break
                 else:
-                    raise KeyError('field "{:s}" not available.'.format(
-                        colname))
+                    # undefined colname
+                    if not ignore_missing:
+                        raise KeyError('field "{:s}" not available.'.format(
+                            colname))
 
         return translated_colnames
 
@@ -934,3 +938,116 @@ class DataClass():
                 ):
                     raise FieldError('Field {} does not have units of {}'
                                      .format(test_field, str(dim.unit)))
+
+    def add_row(self, vals, names=None, units=None):
+        """Add a new row to the end of DataClass.
+
+        This is similar to `astropy.table.Table.add_row`, but allows for
+        a set of different columns in the new row from the original DataClass
+        object.  It also allows for aliases of column names.
+
+        Parameters
+        ----------
+        vals : `~astropy.table.Row`, tuple, list, dict
+            Row to be added
+        names : iterable of strings, optional
+            The names of columns if not implicitly specified in ``vals``.
+            Takes precedence over the column names in ``vals`` if any.
+        units : str or list-like, optional
+            Unit labels (as provided by `~astropy.units.Unit`) in which
+            the data provided in ``rows`` will be stored in the underlying
+            table. If None, the units as provided by ``rows``
+            are used. If the units provided in ``units`` differ from those
+            used in ``rows``, ``rows`` will be transformed to the units
+            provided in ``units``. Must have the same length as ``names``
+            and the individual data rows in ``rows``. Default: None
+
+        Notes
+        -----
+        If a time is included in ``vals``, it can either be an explicit
+        `~astropy.time.Time` object, or a number, `~astropy.units.Quantity`
+        object, or string that can be inferred to be a time by the existing
+        column of the same name or by its position in the sequence.  In
+        this case, the type of time values must be valid to initialize
+        an `~astropy.time.Time` object with format='jd' or 'isot', and
+        the scale of time is default to the scale of the corresponding
+        existing column of time.
+
+        Examples
+        --------
+        >>> import astropy.units as u
+        >>> from sbpy.data import DataClass
+        >>>
+        >>> data = DataClass.from_dict(
+        ...         {'rh': [1, 2, 3] * u.au, 'delta': [1, 2, 3] * u.au})
+        >>> row = {'rh': 4 * u.au, 'delta': 4 * u.au, 'phase': 15 * u.deg}
+        >>> data.add_row(row)
+        """
+        if isinstance(vals, Row):
+            vals = DataClass.from_table(vals)
+        else:
+            if isinstance(vals, Mapping):
+                keys_list = list(vals.keys())
+                vals_list = [vals[k] for k in keys_list]
+                vals = vals_list
+                if names is None:
+                    names = keys_list
+            else:
+                # assume it's an iterable that can be taken as columns
+                if names is None:
+                    # if names of columns are not specified, default to the
+                    # existing names and orders
+                    names = self.field_names
+            # check if any astropy Time columns
+            for i, k in enumerate(names):
+                if k in self and isinstance(self[k], Time):
+                    vals[i] = Time(vals[i], scale=self[k].scale,
+                                   format='isot' if isinstance(vals[i], str)
+                                   else 'jd')
+            vals = DataClass.from_rows(vals, names, units=units)
+        self.vstack(vals)
+
+    def vstack(self, data, **kwargs):
+        """Stack another DataClass object to the end of DataClass
+
+        Similar to `~astropy.table.Table.vstack`, the DataClass object
+        to be stacked doesn't have to have the same set of columns as
+        the existing object.  The `join_type` keyword parameter will be
+        used to decide how to process the different sets of columns.
+
+        Joining will be in-place.
+
+        Parameters
+        ----------
+        data : `~sbpy.data.DataClass`, dict, `~astropy.table.Table`
+            Object to be joined with the current object
+        kwargs : dict
+            Keyword parameters accepted by `~astropy.table.Table.vstack`.
+
+        Examples
+        --------
+        >>> import astropy.units as u
+        >>> from sbpy.data import DataClass
+        >>>
+        >>> data1 = DataClass.from_dict(
+        ...         {'rh': [1, 2, 3] * u.au, 'delta': [1, 2, 3] * u.au})
+        >>> data2 = DataClass.from_dict(
+        ...         {'rh': [4, 5] * u.au, 'phase': [15, 15] * u.deg})
+        >>> data1.vstack(data2)
+        """
+        # check and process input data
+        if isinstance(data, dict):
+            data = DataClass.from_dict(data)
+        elif isinstance(data, Table):
+            data = DataClass.from_table(data)
+        if not isinstance(data, DataClass):
+            raise ValueError('DataClass, dict, or astorpy.table.Table are '
+                             'expected, but {} is received.'.
+                             format(type(data)))
+
+        # adjust input column names for alises
+        alt = self._translate_columns(data.field_names, ignore_missing=True)
+        data.table.rename_columns(data.field_names, alt)
+
+        # join with the input table
+        self.table = vstack([self.table, data.table], **kwargs)
