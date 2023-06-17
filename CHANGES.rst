@@ -1,5 +1,5 @@
-0.4.0 (release date TBD)
-========================
+0.4.0 (2023-06-17)
+==================
 
 * Updated minimum supported versions:
   - Python 3.8
