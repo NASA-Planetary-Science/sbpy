@@ -107,7 +107,7 @@ class Obs(Ephem):
         service : str, optional
             Service from which to acquire data: ``'jplhorizons'``,
             ``'mpc'``, or ``'miriade'``, corresponding to the
-            `JPL Horizons system <https://ssd.jpl.nasa.gov/horizons.cgi>`_
+            `JPL Horizons system <https://ssd.jpl.nasa.gov/horizons/>`_
             (using `~sbpy.data.Ephem.from_horizons`),
             the `Minor Planet Center ephemeris service
             <https://minorplanetcenter.net/iau/MPEph/MPEph.html>`_

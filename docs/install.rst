@@ -12,7 +12,7 @@ care of with installation using pip:
 * `numpy <https://numpy.org/>`__ 1.17.0 or later
 * `astropy <https://www.astropy.org/>`__ 4.0 or later
 * `astroquery <https://astroquery.readthedocs.io/en/latest/>`__ 0.4.5 or later: For retrieval of online data, e.g., ephemerides and orbits.
-* `scipy <https://www.scipy.org/>`__: For numerical integrations in `sbpy.activity.gas` and `sbpy.photometry`, among others.
+* `scipy <https://scipy.org/>`__: For numerical integrations in `sbpy.activity.gas` and `sbpy.photometry`, among others.
 * `synphot <https://github.com/spacetelescope/synphot_refactor>`__ 1.0.0 or later: For calibration with respect to the Sun and Vega, filtering spectra through bandpasses.
 
 Optional dependencies

@@ -311,7 +311,7 @@ are always given in km. This makes sense for large objects - but what about
 meter-sized objects like near-Earth asteroids?
 
 Following the
-`Zen of Python <https://www.python.org/dev/peps/pep-0020/>`_ (explicit
+`Zen of Python <https://peps.python.org/pep-0020/>`_ (explicit
 is better than implicit), we require that units are explicitly
 defined:
 
@@ -389,16 +389,16 @@ methods.
 
 
 
-.. _JPL Horizons: https://ssd.jpl.nasa.gov/horizons.cgi
+.. _JPL Horizons: https://ssd.jpl.nasa.gov/horizons/
 .. _Minor Planet Center: https://minorplanetcenter.net/
 .. _IMCCE: http://vo.imcce.fr/webservices/miriade/
-.. _Lowell Observatory: https://asteroid.lowell.edu
+.. _Lowell Observatory: https://asteroid.lowell.edu/gui/
 .. _PyEphem: https://rhodesmill.org/pyephem
 .. _REBOUND: https://github.com/hannorein/rebound
 .. _OpenOrb: https://github.com/oorb/oorb
 .. _SpiceyPy: https://github.com/AndrewAnnex/SpiceyPy
 .. _web-API: https://minorplanetcenter.net/search_db
-.. _Solar System Object Image Search function of the Canadian Astronomy Data Centre: http://www.cadc-ccda.hia-iha.nrc-cnrc.gc.ca/en/ssois/
+.. _Solar System Object Image Search function of the Canadian Astronomy Data Centre: https://www.cadc-ccda.hia-iha.nrc-cnrc.gc.ca/en/ssois/
 .. _skybot: http://vo.imcce.fr/webservices/skybot/
 .. _small bodies data ferret: https://sbnapps.psi.edu/ferret
 .. _github wiki: https://github.com/mommermi/sbpy/wiki

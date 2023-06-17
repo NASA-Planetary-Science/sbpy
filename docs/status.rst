@@ -13,7 +13,7 @@ The current development version is **v0.4dev**; its status is as follows:
     :alt: GitHub testing status
 
 .. image:: https://codecov.io/gh/NASA-Planetary-Science/sbpy/branch/main/graph/badge.svg
-    :target: https://codecov.io/gh/NASA-Planetary-Science/sbpy
+    :target: https://app.codecov.io/gh/NASA-Planetary-Science/sbpy
     :alt: codecov status
 
 .. image:: https://readthedocs.org/projects/sbpy/badge/?version=latest

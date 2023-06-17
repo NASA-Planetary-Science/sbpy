@@ -57,7 +57,7 @@ class Orbit(DataClass):
                       epochs=None, center='500@10',
                       **kwargs):
         """Load target orbital elements from
-        `JPL Horizons <https://ssd.jpl.nasa.gov/horizons.cgi>`_ using
+        `JPL Horizons <https://ssd.jpl.nasa.gov/horizons/>`_ using
         `astroquery.jplhorizons.HorizonsClass.elements`
 
         Parameters
@@ -102,7 +102,7 @@ class Orbit(DataClass):
         -----
         * For detailed explanations of the queried fields, refer to
           `astroquery.jplhorizons.HorizonsClass.elements` and the
-          `JPL Horizons documentation <https://ssd.jpl.nasa.gov/?horizons_doc>`_.
+          `JPL Horizons documentation <https://ssd.jpl.nasa.gov/horizons/manual.html>`_.
         * By default, elements are provided in the J2000.0 reference
           system and relative to the ecliptic and mean equinox of the
           reference epoch. Different settings can be chosen using
