@@ -4,9 +4,9 @@ Status Page
 ===========
 
 This page indicates the development status of `sbpy`. The development
-is expected to conclude in 2021.
+is expected to conclude in 2024.
 
-The current development version is **v0.4dev**; its status is as follows:
+The current development version is **v0.5.dev**; its status is as follows:
 
 .. image:: https://github.com/NASA-Planetary-Science/sbpy/actions/workflows/ci_cron_weekly.yml/badge.svg
     :target: https://github.com/NASA-Planetary-Science/sbpy/actions
@@ -237,13 +237,13 @@ classes.
                 <em>sbpy.activity.gas</em>
             </td>
             <td align='center'>
-                <span class="dev"></span>
+                <span class="stable"></span>
             </td>
             <td align='center'>
                 MSK / MdVB
             </td>
              <td>
-                Haser model implemented; Vectorial model partially tested;
+                Haser and Vectorial models implemented
             </td>
         </tr>
         <tr>
