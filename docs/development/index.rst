@@ -15,7 +15,7 @@ Communicating with the developers
 
 We would prefer any communication with the development team to go
 through the `github issue system
-<https://guides.github.com/features/issues/>`_. This way, all
+<https://docs.github.com/issues>`_. This way, all
 communications are centralized in one place and accessible to
 everyone. `sbpy` issues can be posted `here
 <https://github.com/NASA-Planetary-Science/sbpy/issues>`__.
@@ -96,7 +96,7 @@ Technical requirements
 * code must adhere to `astropy's contributing guidelines
   <https://www.astropy.org/contribute.html>`__, the guidelines
   described in this document and `PEP8
-  <https://www.python.org/dev/peps/pep-0008/>`_
+  <https://peps.python.org/pep-0008/>`_
 * code must be accompanied by corresponding tests; 100% of the
   implemented tests must pass, a test coverage >= 90% is required; if
   possible, results should be checked against results from the

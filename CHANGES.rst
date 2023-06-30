@@ -1,10 +1,12 @@
-0.4.0 (release date TBD)
-========================
+0.4.0 (2023-06-30)
+==================
 
-* Dropped support for Python 3.7, minimum supported version is 3.8.
-
-* Bumped minimum supported versions for `numpy` to 1.18, `astropy` to 4.3, `synphot`
-  to 1.1, `astroquery` to 4.6.
+* Updated minimum supported versions:
+  - Python 3.8
+  - `numpy` 1.18
+  - `astropy` 4.3
+  - `synphot` 1.1
+  - `astroquery` 0.4.5
 
 
 New Features
@@ -21,20 +23,25 @@ sbpy.activity
   ``VMGridParams``, ``VMFragment``, and ``VMParent`` dataclasses to expose
   details of ``VectorialModel`` results that may be of interest. [#336]
 
+sbpy.calib
+^^^^^^^^^^
+
+- Added a model spectrum of the Sun from STScI's CALSPEC database (Bohlin et al.
+  2014, PASP 126, 711, DOI:10.1086/677655). [#371]
+
 sbpy.data
 ^^^^^^^^^
 
-- Added ``Orbit.tisserand`` to calculate the Tisserand parameter of small
-  body's orbits with respect to planets. [#325]
+- Added ``Orbit.tisserand`` to calculate the Tisserand parameter of small body's
+  orbits with respect to planets. [#325]
 
-- Added ``Orbit.D_criterion`` to evaluate the D-criterion between two sets
-  of orbital elements. [#325]
+- Added ``Orbit.D_criterion`` to evaluate the D-criterion between two sets of
+  orbital elements. [#325]
 
 - Added ``DataClass.__contains__`` to enable `in` operator for ``DataClass``
   objects. [#357]
   
-- Added ``DataClass.add_row``, ``DataClass.vstack``
-  methods. [#367]
+- Added ``DataClass.add_row``, ``DataClass.vstack`` methods. [#367]
 
 sbpy.photometry
 ^^^^^^^^^^^^^^^
@@ -42,12 +49,39 @@ sbpy.photometry
 - Added parameter constraints to the IAU disk-integrated phase function models,
   such as ``HG``, ``HG1G2``, ``HG12``, and ``HG12_Pen16``. [#366]
 
+Documentation
+^^^^^^^^^^^^^
+
+- Index page has been reorganized. [#337]
+
+
+API Changes
+-----------
+
+sbpy.activity
+^^^^^^^^^^^^^
+
+- ``VectorialModel`` now no longer takes an ``angular_substeps`` parameter. [#336]
+
+sbpy.data
+^^^^^^^^^
+
+- IAU HG series functions moved from `sbpy.photometry.core` to `sbpy.photometry.iau`. [#354]
+
+sbpy.photometry
+^^^^^^^^^^^^^^^
+
 - Replaced ``NonmonotonicPhaseFunctionWarning`` with
   ``InvalidPhaseFunctionWarning``. [#366]
 
 
 Bug Fixes
 ---------
+
+sbpy.calib
+^^^^^^^^^^
+
+- Updated STScI URLs for solar spectra (Castelli and Kurucz models). [#345]
 
 sbpy.data
 ^^^^^^^^^
@@ -58,15 +92,6 @@ sbpy.data
 - Asteroids with A/ designations (e.g., A/2019 G2) are correctly identified by
   ``Names`` as asteroids.  Improved handling of interstellar object (I/)
   designations: they do not parse as cometary or asteroidal. [#334, #340]
-
-
-API Changes
------------
-
-sbpy.activity
-^^^^^^^^^^^^^
-
-- ``VectorialModel`` now no longer takes an ``angular_substeps`` parameter. [#336]
 
 
 0.3.0 (2022-04-28)

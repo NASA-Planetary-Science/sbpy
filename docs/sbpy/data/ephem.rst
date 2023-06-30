@@ -14,7 +14,7 @@ JPL Horizons (`~sbpy.data.Ephem.from_horizons`)
 location, and the ephemeris epoch.  For instance, the following few lines will
 query for ephemerides of asteroid Ceres on a given date and for the position of
 Mauna Kea Observatory (IAU observatory code 568) from the `JPL Horizons service
-<https://ssd.jpl.nasa.gov/horizons.cgi>`_:
+<https://ssd.jpl.nasa.gov/horizons/>`_:
 
 .. doctest-remote-data:: 
 

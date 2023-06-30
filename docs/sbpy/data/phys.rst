@@ -5,7 +5,7 @@ Physical Data Objects (`sbpy.data.Phys`)
 `~sbpy.data.Phys` is designed to contain and query physical properties for
 small bodies; functions to query these properties are
 available. `~sbpy.data.Phys.from_sbdb` queries the `JPL Small-body
-Database Browser (SBDB) <https://ssd.jpl.nasa.gov/sbdb.cgi>`_ for physical
+Database Browser (SBDB) <https://ssd.jpl.nasa.gov/tools/sbdb_lookup.html>`_ for physical
 properties and stores the data in a `~sbpy.data.Phys` object, offering
 the same functionality as all the other `~sbpy.data` functions,
 including the use of `~astropy.units`.

@@ -7,7 +7,7 @@ Orbit Queries
 
 `~sbpy.data.Orbit.from_horizons` enables the query of Solar System
 body osculating elements from the `JPL Horizons service
-<https://ssd.jpl.nasa.gov/horizons.cgi>`_:
+<https://ssd.jpl.nasa.gov/horizons/>`_:
 
 .. doctest-remote-data::
     
