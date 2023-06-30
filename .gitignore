@@ -63,6 +63,7 @@ distribute-*.tar.gz
 *py#
 .firebase
 .tmp
+coverage.xml
 
 # Mac OSX
 .DS_Store
