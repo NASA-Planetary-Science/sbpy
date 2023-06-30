@@ -1,4 +1,4 @@
-0.4.0 (2023-06-17)
+0.4.0 (2023-06-30)
 ==================
 
 * Updated minimum supported versions:
@@ -27,7 +27,7 @@ sbpy.calib
 ^^^^^^^^^^
 
 - Added a model spectrum of the Sun from STScI's CALSPEC database (Bohlin et al.
-  2014, PASP 126, 711, DOI:10.1086/677655).
+  2014, PASP 126, 711, DOI:10.1086/677655). [#371]
 
 sbpy.data
 ^^^^^^^^^
@@ -52,16 +52,21 @@ sbpy.photometry
 Documentation
 ^^^^^^^^^^^^^
 
-- Index page has been reorganized.
+- Index page has been reorganized. [#337]
 
 
 API Changes
 -----------
 
+sbpy.activity
+^^^^^^^^^^^^^
+
+- ``VectorialModel`` now no longer takes an ``angular_substeps`` parameter. [#336]
+
 sbpy.data
 ^^^^^^^^^
 
-- IAU HG series functions moved from `sbpy.data.core` to `sbpy.data.iau`.
+- IAU HG series functions moved from `sbpy.photometry.core` to `sbpy.photometry.iau`. [#354]
 
 sbpy.photometry
 ^^^^^^^^^^^^^^^
@@ -76,7 +81,7 @@ Bug Fixes
 sbpy.calib
 ^^^^^^^^^^
 
-- Updated STScI URLs for solar spectra (Castelli and Kurucz models).
+- Updated STScI URLs for solar spectra (Castelli and Kurucz models). [#345]
 
 sbpy.data
 ^^^^^^^^^
@@ -87,15 +92,6 @@ sbpy.data
 - Asteroids with A/ designations (e.g., A/2019 G2) are correctly identified by
   ``Names`` as asteroids.  Improved handling of interstellar object (I/)
   designations: they do not parse as cometary or asteroidal. [#334, #340]
-
-
-API Changes
------------
-
-sbpy.activity
-^^^^^^^^^^^^^
-
-- ``VectorialModel`` now no longer takes an ``angular_substeps`` parameter. [#336]
 
 
 0.3.0 (2022-04-28)
