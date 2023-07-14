@@ -25,27 +25,41 @@ class ThermalClass(abc.ABC):
     such as integration of total flux based on a temperature distribution.
     """
 
-    @u.quantity_input(rh=u.km, R=u.km)
-    def __init__(self, rh, R, albedo=0.1, emissivity=1., beaming=1.):
+    @quantity_to_dataclass(rh=(Ephem, 'rh'))
+    @dataclass_input(phys=Phys)
+    def __init__(self, rh, phys):
         """
         Parameters
         ----------
-        rh : u.Quantity
-            Heliocentric distance
-        R : u.Quantity
-            Radius of asteroid
-        albedo : float, u.Quantity
-            Bolometric Bond albedo
-        emissivity : float, u.Quantity
-            Emissivity of surface
-        beaming : float, u.Quantity
-            Beaming parameter
+        rh : `~sbpy.data.Ephem`, dict_like, number, or
+            `~astropy.units.Quantity`
+            If `~sbpy.data.Ephem` or dict_like, ephemerides of the object that
+            can include the heliocentric distance via keywords `r`.  If float
+            or `~astropy.units.Quantity`, then the heliocentric distance of an
+            object.  If heliocentric distance is not found, then it will be
+            assumed to be 1 au. If no unit is provided via type
+            `~astropy.units.Quantity`, then au is assumed
+        phys : `~sbpy.data.Phys`, dict_like
+            Physical properties of the object.  It can include the radius (or
+            diameter), bolometric Bond albedo, emissivity, and IR beaming
+            parameter of the object via keywords `R` (or `D`), `A`,
+            `emissivity`, and `eta`, or the equivalent names, respectively.
+            If any of the quantities is not specified, the following rules
+            will be follwed:
+                radius (or diameter) : raise a `ValueError`
+                albedo : default to 0.1
+                emissivity : default to 0.95
+                beaming : default to 1
+            If no unit is specified for radius (or diameter), then default to
+            km.
         """
-        self.rh = rh
-        self.R = R
-        self.albedo = albedo
-        self.emissivity = emissivity
-        self.beaming = beaming
+        self.r = u.Quantity(rh['r'] if 'r' in rh else 1., u.au)
+        if 'R' not in phys:
+            raise ValueError('Radius of the object is missing.')
+        self.R = u.Quantity(phys['R'], u.km)
+        self.A = phys['A'] if 'A' in phys else 0.1
+        self.emissivity = phys['emissivity'] if 'emissivity' in phys else 0.95
+        self.beaming = phys['eta'] if 'eta' in phys else 1.
 
     @abc.abstractmethod
     def T(self, lon, lat):
@@ -101,7 +115,7 @@ class ThermalClass(abc.ABC):
 
     @staticmethod
     @u.quantity_input(sublon=u.deg, sublat=u.deg)
-    def _transfer_to_bodyframe(sublon, sublat):
+    def _xform_to_bodyframe(sublon, sublat):
         """Calculate transformation matrix.
 
         The numerical integration to calculate total flux density is performed
@@ -121,7 +135,8 @@ class ThermalClass(abc.ABC):
                        [0, 90], 2).T
         return m
 
-    @u.quantity_input(wave_freq=u.m, delta=u.m, lon=u.deg, lat=u.deg,
+    @quantity_to_dataclass(eph=(Ephem, 'delta'))
+    @u.quantity_input(wave_freq=u.m, lon=u.deg, lat=u.deg,
                       equivalencies=u.spectral())
     def fluxd(self, wave_freq, delta, sublon, sublat, unit='W m-2 um-1',
             error=False, epsrel=1e-3, **kwargs):
@@ -131,8 +146,14 @@ class ThermalClass(abc.ABC):
         ----------
         wave_freq : u.Quantity
             Wavelength or frequency of observations
-        delta : u.Quantity
-            Observer range
+        delta : `~sbpy.data.Ephem`, dict_like, number, or
+            `~astropy.units.Quantity`
+            If `~sbpy.data.Ephem` or dict_like, ephemerides of the object that
+            can include the observer distance via keywords `delta`.  If float
+            or `~astropy.units.Quantity`, then the observer distance of an
+            object.  If observer distance is not found, then it will be
+            assumed to be 1 au. If no unit is provided via type
+            `~astropy.units.Quantity`, then au is assumed
         sublon : u.Quantity
             Observer longitude in target-fixed frame
         sublat : u.Quantity
@@ -151,8 +172,9 @@ class ThermalClass(abc.ABC):
         u.Quantity : Integrated flux density if `error = False`,
             or flux density and numerical error if `error = True`.
         """
+        delta_ = u.Quantity(delta['delta'], u.km)
         unit = unit + ' sr-1'
-        m = self._transfer_to_bodyframe(sublon, sublat)
+        m = self._xform_to_bodyframe(sublon, sublat)
         f = dblquad(self._int_func,
                     -np.pi/2,
                     np.pi/2,
@@ -162,7 +184,7 @@ class ThermalClass(abc.ABC):
                     epsrel=epsrel,
                     **kwargs
                    )
-        flx = u.Quantity(f, unit) * ((self.R / delta)**2).to('sr',
+        flx = u.Quantity(f, unit) * ((self.R / delta_)**2).to('sr',
             u.dimensionless_angles()) * self.emissivity
         if error:
             return flx
@@ -221,8 +243,8 @@ class NonRotThermalModel(ThermalClass):
 
     @property
     def Tss(self):
-        f_sun = const.L_sun / (4 * np.pi * self.rh**2)
-        return (((1 - self.albedo) * f_sun / (self.beaming * self.emissivity
+        f_sun = const.L_sun / (4 * np.pi * self.r**2)
+        return (((1 - self.A) * f_sun / (self.beaming * self.emissivity
             * const.sigma_sb)) ** 0.25).decompose()
 
     @u.quantity_input(lon=u.deg, lat=u.deg)
@@ -253,8 +275,8 @@ class FastRotThermalModel(ThermalClass):
 
     @property
     def Tss(self):
-        f_sun = const.L_sun / (4 * np.pi * self.rh**2)
-        return (((1 - self.albedo) * f_sun / (np.pi * self.emissivity
+        f_sun = const.L_sun / (4 * np.pi * self.r**2)
+        return (((1 - self.A) * f_sun / (np.pi * self.emissivity
             * const.sigma_sb)) ** 0.25).decompose()
 
     @u.quantity_input(lon=u.deg, lat=u.deg)
