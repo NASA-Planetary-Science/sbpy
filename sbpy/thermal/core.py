@@ -53,13 +53,14 @@ class ThermalClass(abc.ABC):
             If no unit is specified for radius (or diameter), then default to
             km.
         """
-        self.r = u.Quantity(rh['r'] if 'r' in rh else 1., u.au)
-        if 'R' not in phys:
+        self.r = u.Quantity(rh['r'][0] if 'r' in rh else 1., u.au)
+        try:
+            self.R = u.Quantity(phys['R'][0], u.km)
+        except KeyError:
             raise ValueError('Radius of the object is missing.')
-        self.R = u.Quantity(phys['R'], u.km)
-        self.A = phys['A'] if 'A' in phys else 0.1
-        self.emissivity = phys['emissivity'] if 'emissivity' in phys else 0.95
-        self.beaming = phys['eta'] if 'eta' in phys else 1.
+        self.A = phys['A'][0] if 'A' in phys else 0.1
+        self.emissivity = phys['emissivity'][0] if 'emissivity' in phys else 0.95
+        self.beaming = phys['eta'][0] if 'eta' in phys else 1.
 
     @abc.abstractmethod
     def T(self, lon, lat):
@@ -101,7 +102,7 @@ class ThermalClass(abc.ABC):
         -------
         float : Integral function to calculate total flux density.
         """
-        _, lon1, lat1 = xyz2sph(m.dot(sph2xyz(lon, lat)))
+        lon1, lat1 = xyz2sph(*m.dot(sph2xyz(lon, lat)))
         T = self.T(lon1 * u.rad, lat1 * u.rad)
         if np.isclose(T, 0 * u.K):
             return 0.
@@ -124,19 +125,18 @@ class ThermalClass(abc.ABC):
         this frame to the body-fixed frame to facilitate the calculation of
         surface temperature.
         """
-        coslat = np.cos(sublat).value
-        if abs(coslat) < np.finfo(type(coslat)).resolution:
+        los = sph2xyz(sublon.to_value('rad'), sublat.to_value('rad'))
+        if np.isclose(norm(np.cross(los, [0, 0, 1])), 0):
             if sublat.value > 0:
                 m = np.array([[0, 0, -1], [0, 1, 0], [1, 0, 0]])
             else:
                 m = np.array([[0, 0, 1], [0, 1, 0], [-1, 0, 0]])
         else:
-            m = twovec([sublon.to_value('deg'), sublat.to_value('deg')], 0,
-                       [0, 90], 2).T
+            m = twovec(sph2xyz(sublon.to_value('rad'), sublat.to_value('rad')),
+                       0, [0, 0, 1], 2).T
         return m
 
-    @quantity_to_dataclass(eph=(Ephem, 'delta'))
-    @u.quantity_input(wave_freq=u.m, lon=u.deg, lat=u.deg,
+    @u.quantity_input(wave_freq=u.m, delta=u.au, lon=u.deg, lat=u.deg,
                       equivalencies=u.spectral())
     def fluxd(self, wave_freq, delta, sublon, sublat, unit='W m-2 um-1',
             error=False, epsrel=1e-3, **kwargs):
@@ -172,7 +172,7 @@ class ThermalClass(abc.ABC):
         u.Quantity : Integrated flux density if `error = False`,
             or flux density and numerical error if `error = True`.
         """
-        delta_ = u.Quantity(delta['delta'], u.km)
+        delta_ = u.Quantity(delta, u.km)
         unit = unit + ' sr-1'
         m = self._xform_to_bodyframe(sublon, sublat)
         f = dblquad(self._int_func,

@@ -1,13 +1,12 @@
 # Thermal models
 
+__all__ = ['STM', 'NEATM', 'FRM']
+
 import numpy as np
 import astropy.units as u
 from sbpy.bib import cite
 from .core import NonRotThermalModel, FastRotThermalModel
-from ..data import dataclass_input, quantity_to_dataclass
-
-
-__all__ = ['STM', 'NEATM', 'FRM']
+from ..data import Phys, Ephem, dataclass_input, quantity_to_dataclass
 
 
 class STM(NonRotThermalModel):
@@ -70,7 +69,7 @@ class FRM(FastRotThermalModel):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    @quantity_to_dataclass(delta=(Ephem, 'delta'))
+    @dataclass_input(delta=Ephem)
     def fluxd(self, wave_freq, delta, **kwargs):
         """Calculate total flux density.
 
@@ -104,7 +103,7 @@ class NEATM(NonRotThermalModel):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    @u.quantity_input(phase=u.deg)
+    @dataclass_input(eph=Ephem)
     def fluxd(self, wave_freq, eph, **kwargs):
         """Calculate total flux density.
 
@@ -124,5 +123,7 @@ class NEATM(NonRotThermalModel):
         """
         delta = u.Quantity(eph['delta'] if 'delta' in eph else 1., u.au)
         sublon = u.Quantity(eph['phase'] if 'phase' in eph else 0., u.deg)
+        if hasattr(sublon, '__len__'):
+            sublon = sublon[0]
         sublat = 0. * u.deg
         return super().fluxd(wave_freq, delta, sublon, sublat, **kwargs)
