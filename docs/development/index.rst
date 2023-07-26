@@ -121,7 +121,9 @@ Technical requirements
 * customized exceptions and warnings are encouraged, and should
   ultimately be derived from the base classes in `sbpy.exceptions`
 * if you use `~sbpy.data.DataClass` objects, extend the :ref:`field
-  name list` list  where it makes sense
+  name list` list where it makes sense
+* consider using the `sbpy.utils.decorators.requires` decorator to test for the
+  presence of optional dependencies.
 * a CHANGELOG entry is required as of v0.2; update the :doc:`/status`
   where applicable
 
