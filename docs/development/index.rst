@@ -122,13 +122,13 @@ Technical requirements
   ultimately be derived from the base classes in `sbpy.exceptions`
 * if you use `~sbpy.data.DataClass` objects, extend the :ref:`field
   name list` list where it makes sense
-* consider using the `sbpy.utils.decorators.requires` or
-  `sbpy.utils.decorators.optional` decorators to test for the presence of
-  optional dependencies.
-  * `~sbpy.utils.decorators.requires` raises an exception if a package cannot be imported.
-  * `~sbpy.utils.decorators.optional` warns the user if a package cannot be imported.
-* a CHANGELOG entry is required as of v0.2; update the :doc:`/status`
-  where applicable
+* consider using the sbpy function and decorator helpers to test for the
+  presence of optional dependencies:
+    * `~sbpy.utils.requires` and `~sbpy.utils.decorators.requires` raise an
+      exception if a package cannot be imported.
+    * `~sbpy.utils.optional` and `~sbpy.utils.decorators.optional` warn the user
+      if a package cannot be imported.
+* a CHANGELOG entry is required; also update the :doc:`/status` where applicable
 
 
 

@@ -2,5 +2,5 @@
 
 """For common non-sub-module specific utility functions."""
 
-from . import decorators
 from .core import *
+from . import decorators
