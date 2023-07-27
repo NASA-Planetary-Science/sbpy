@@ -4,11 +4,12 @@
 
 __all__ = ["requires", "optional"]
 
-from warnings import warn
 from functools import wraps
-from ..exceptions import RequiredPackageUnavailable, OptionalPackageUnavailable
+from . import core
+from ..exceptions import RequiredPackageUnavailable
 
-def requires(*packages):
+
+def requires(*packages, message=None):
     """Decorator that verifies the arguments are valid packages.
 
     Parameters
@@ -33,30 +34,31 @@ def requires(*packages):
     >>> f()
     Traceback (most recent call last):
     ...
-    sbpy.exceptions.RequiredPackageUnavailable: unavailable_package is required for sbpy.utils.decorators.f.
+    sbpy.exceptions.RequiredPackageUnavailable: `unavailable_package` is required. (sbpy.utils.decorators.f)
 
     """
 
     def decorator(wrapped_function):
+        function_name = ".".join(
+            (wrapped_function.__module__, wrapped_function.__qualname__)
+        )
+        _message = ("" if message is None else f"{message} ") + f"({function_name})"
+
         @wraps(wrapped_function)
         def wrapper(*func_args, **func_kwargs):
-            for package in packages:
-                try:
-                    __import__(package)
-                except ImportError:
-                    function_name = '.'.join((wrapped_function.__module__,
-                                              wrapped_function.__qualname__))
-                    raise RequiredPackageUnavailable(
-                        f"{package} is required for {function_name}."
-                    )
+            try:
+                core.requires(*packages, message=_message)
+            except RequiredPackageUnavailable as exc:
+                # trim a couple levels of the traceback to clean up error messages
+                raise exc.with_traceback(exc.__traceback__.tb_next.tb_next)
             return wrapped_function(*func_args, **func_kwargs)
-        
+
         return wrapper
 
     return decorator
 
 
-def optional(*packages, note=None):
+def optional(*packages, message=None):
     """Decorator that warns if the arguments are not valid packages.
 
     Parameters
@@ -64,9 +66,9 @@ def optional(*packages, note=None):
     *modules : str
         The names of packages to test.
 
-    note : str
-        An additional note to show the user, e.g., a description of the fallback
-        behavior.
+    message : str
+        An additional message to show the user, e.g., a description of the
+        fallback behavior.
 
 
     Warnings
@@ -82,29 +84,25 @@ def optional(*packages, note=None):
     >>> @optional("unavailable_package")
     ... def f():
     ...     pass
-    >>> f()  # doctest: +IGNORE_OUTPUT
+    >>> f()  # doctest: +SKIP
     sbpy/utils/decorators.py::sbpy.utils.decorators.optional
     ...
-    OptionalPackageUnavailable: Optional package unavailable_package is not available for sbpy.utils.decorators.f.
+    OptionalPackageUnavailable: Optional package `unavailable_package` is unavailable. (sbpy.utils.decorators.f)
 
     """
+    # the doctest line is skipped to avoid polluting the testing suite with a warning
 
     def decorator(wrapped_function):
+        function_name = ".".join(
+            (wrapped_function.__module__, wrapped_function.__qualname__)
+        )
+        _message = ("" if message is None else f"{message} ") + f"({function_name})"
+
         @wraps(wrapped_function)
         def wrapper(*func_args, **func_kwargs):
-            for package in packages:
-                try:
-                    __import__(package)
-                except ImportError:
-                    function_name = '.'.join((wrapped_function.__module__,
-                                              wrapped_function.__qualname__))
-                    warn(OptionalPackageUnavailable(
-                        f"Optional package {package} is not available "
-                        f"for {function_name}."
-                        + ("" if note is None else note)
-                    ))
+            core.optional(*packages, message=_message)
             return wrapped_function(*func_args, **func_kwargs)
-        
+
         return wrapper
 
     return decorator
