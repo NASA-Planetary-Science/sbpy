@@ -1,11 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import sys
-import mock
+from unittest import mock
 import pytest
 import numpy as np
 import astropy.units as u
-import synphot
+
 from ..dust import *
 from ..core import CircularAperture
 from ...calib import solar_fluxd
@@ -18,6 +18,7 @@ Wm2um = u.W / u.m**2 / u.um
 
 
 def box(center, width):
+    synphot = pytest.importorskip("synphot")
     return synphot.SpectralElement(
         synphot.Box1D, x_0=center * u.um, width=width * u.um)
 
@@ -36,9 +37,9 @@ def test_phase_HalleyMarcus(phase, value):
     (15, 5.8720e-01),
     (14.5, (6.0490e-01 + 5.8720e-01) / 2)
 ))
+@mock.patch.dict(sys.modules, {'scipy': None})
 def test_phase_HalleyMarcus_linear_interp(phase, value):
-    with mock.patch.dict(sys.modules, {'scipy': None}):
-        assert np.isclose(phase_HalleyMarcus(phase * u.deg), value)
+    assert np.isclose(phase_HalleyMarcus(phase * u.deg), value)
 
 
 class TestAfrho:
@@ -102,6 +103,9 @@ class TestAfrho:
             synphot.units.convert_flux(6182, 11.97 * u.ABmag, u.STmag)
 
         """
+    
+        pytest.importorskip("synphot")
+
         eph = Ephem.from_dict(dict(rh=rh * u.au, delta=delta * u.au))
 
         cal = {}
@@ -249,6 +253,9 @@ class TestEfrho:
           * Added a significant figure to Encke εfρ: 31 → 31.1.
 
         """
+
+        pytest.importorskip("synphot")
+
         eph = dict(rh=rh * u.au, delta=delta * u.au)
         efrho = (Efrho.from_fluxd(wfb, fluxd0, rho, eph, Tscale=1.1, B=B, T=T)
                  .to('cm'))

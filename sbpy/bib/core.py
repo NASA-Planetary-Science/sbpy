@@ -26,7 +26,15 @@ import warnings
 from functools import wraps
 from collections import OrderedDict, defaultdict
 import atexit
+
+try:
+    import ads
+except ImportError:
+    ads = None
+
 from astropy import log
+
+from ..exceptions import RequiredPackageUnavailable
 
 
 def register(task, citations):
@@ -238,7 +246,9 @@ def to_text(filter=None):
         the bibcodes.
 
     """
-    import ads
+
+    if ads is None:
+        raise RequiredPackageUnavailable("requires ads")
 
     output = ''
     for task, ref in _filter(filter).items():
@@ -328,7 +338,9 @@ def _to_format(format, filter=None):
         for each reference.
 
     """
-    import ads
+
+    if ads is None:
+        raise RequiredPackageUnavailable("requires ads")
 
     output = ''
     for task, ref in _filter(filter).items():

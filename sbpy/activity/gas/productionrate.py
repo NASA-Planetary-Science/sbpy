@@ -13,10 +13,23 @@ import tempfile
 import numpy as np
 import astropy.constants as con
 import astropy.units as u
-from astroquery.jplspec import JPLSpec
-from astroquery.lamda import Lamda
+
+try:
+    import astroquery
+    from astroquery.jplspec import JPLSpec
+    from astroquery.lamda import Lamda
+except ImportError:
+    astroquery = None
+
+try:
+    import pyradex
+except ImportError:
+    pyradex = None
+
 from ...bib import register
 from ...data import Phys
+from ...exceptions import RequiredPackageUnavailable
+from ...utils.decorators import requires
 
 __all__ = ['LTE', 'NonLTE', 'einstein_coeff',
            'intensity_conversion', 'beta_factor', 'total_number',
@@ -24,7 +37,7 @@ __all__ = ['LTE', 'NonLTE', 'einstein_coeff',
 
 __doctest_requires__ = {
     "LTE.from_Drahus": ["astropy>=5.0", "astroquery>=0.4.7"],
-    "NonLTE.from_pyradex": ["astroquery>=0.4.7"],
+    "NonLTE.from_pyradex": ["astroquery>=0.4.7", "pyradex"],
     "from_Haser": ["astroquery>=0.4.7"],
 }
 
@@ -244,6 +257,9 @@ def beta_factor(mol_data, ephemobj):
     r = (orb['r'])
 
     if not isinstance(mol_data['mol_tag'][0], str):
+        if astroquery is None:
+            raise RequiredPackageUnavailable(f"mol_tag = {mol_data['mol_tag'][0]} requires astroquery")
+
         cat = JPLSpec.get_species_table()
         mol = cat[cat['TAG'] == mol_data['mol_tag'][0]]
         name = mol['NAME'].data[0]
@@ -643,12 +659,13 @@ class LTE():
 
 class NonLTE():
     """
-    Class method for non LTE production rate models
-    Not Yet implemented
+    Class for non LTE production rate models.
 
     """
 
-    def from_pyradex(self, integrated_flux, mol_data, line_width=1.0 * u.km / u.s,
+    @staticmethod
+    @requires(pyradex, astroquery)
+    def from_pyradex(integrated_flux, mol_data, line_width=1.0 * u.km / u.s,
                      escapeProbGeom='lvg', iter=100,
                      collider_density={'H2': 900*2.2}):
         """
@@ -769,12 +786,6 @@ class NonLTE():
         submillimetre line observations. A&A, November 4 2004.
 
         """
-
-        try:
-            import pyradex
-        except ImportError:
-            raise ImportError('Pyradex not installed. Please see \
-            https://github.com/keflavich/pyradex/blob/master/INSTALL.rst')
 
         if not isinstance(mol_data, Phys):
             raise ValueError('mol_data must be a `sbpy.data.phys` instance.')

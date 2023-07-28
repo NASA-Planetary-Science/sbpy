@@ -74,7 +74,7 @@ Renormalize to 1.0 μm:
 Spectral Reddening
 ------------------
 
-Linear spectral reddening is enabled by class `~sbpy.spectroscopy.Reddening`,
+Linear spectral reddening is enabled by the class `~sbpy.spectroscopy.Reddening`,
 which is based on `~synphot.spectrum.BaseUnitlessSpectrum`.
 
 Initialize a `~sbpy.spectroscopy.Reddening` class from a spectral gradient:

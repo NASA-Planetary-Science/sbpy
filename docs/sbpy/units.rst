@@ -9,8 +9,10 @@ Introduction
   >>> import sbpy.units
   >>> sbpy.units.enable()    # doctest: +IGNORE_OUTPUT
 
-This will make them searchable via strings, such as
-``u.Unit('mag(VEGA)')``.
+This will make them searchable via strings, such as:
+
+  >> print(u.Unit("mag(VEGA)"))
+  VEGAmag
 
 
 Spectral Gradient Units
@@ -42,6 +44,8 @@ With the synphot package, sbpy has the capability to convert between flux densit
 sbpy defines two new spectral flux density units: ``VEGA`` and ``JM``.  ``VEGA`` represents the flux density of Vega.  ``JM`` represents the flux density zeropoint of the Johnson-Morgan system, assuming Vega has a magnitude of 0.03 at all wavelengths (`Johnson et al. 1966 <https://ui.adsabs.harvard.edu/abs/1966CoLPL...4...99J>`_, `Bessell & Murphy 2012 <https://ui.adsabs.harvard.edu/abs/2012PASP..124..140B>`_).  Two magnitude units are also defined: ``VEGAmag`` and ``JMmag``.
 
 Unit conversions between flux density and Vega-based magnitudes use the `astropy.units equivalency system <https://docs.astropy.org/en/stable/units/equivalencies.html#unit-equivalencies>`_.  sbpy's :func:`~sbpy.units.spectral_density_vega` provides the equivalencies, which astropy would use to convert the units.  The function requires a wavelength, frequency, or bandpass:
+
+.. doctest-requires:: synphot
 
   >>> import astropy.units as u
   >>> from sbpy.units import VEGAmag, spectral_density_vega
@@ -111,6 +115,8 @@ phase angle can be calculated:
   >>> cross_sec = np.pi * (radius)**2
   >>> ref = mag.to('1/sr', reflectance('V', cross_section=cross_sec))
 
+.. doctest-requires:: synphot
+
   >>> from sbpy.photometry import bandpass
   >>> V = bandpass('Johnson V')
   >>> ref = 0.0287 / u.sr
@@ -120,6 +126,8 @@ phase angle can be calculated:
   459.69 km
 
 `~sbpy.units.reflectance` also supports conversion between a flux spectrum and a reflectance spectrum:
+
+.. doctest-requires:: synphot
 
   >>> wave = [1.046, 1.179, 1.384, 1.739, 2.416] * u.um
   >>> flux = [1.636e-18, 1.157e-18, 8.523e-19, 5.262e-19, 1.9645e-19] \

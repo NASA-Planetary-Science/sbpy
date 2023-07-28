@@ -8,16 +8,10 @@ from ...units import JMmag, VEGAmag
 from ...photometry import bandpass
 from .. import *
 
-try:
-    import scipy
-
-    HAS_SCIPY = True
-except ImportError:
-    HAS_SCIPY = False
-
 
 class TestSun:
     def test___repr__(self):
+        pytest.importorskip("synphot")
         with solar_spectrum.set("E490_2014LR"):
             assert repr(Sun.from_default()) == (
                 "<Sun: E490-00a (2014) low resolution reference "
@@ -28,6 +22,7 @@ class TestSun:
         assert repr(sun) == "<Sun>"
 
     def test_from_builtin(self):
+        pytest.importorskip("synphot")
         sun = Sun.from_builtin("E490_2014LR")
         assert (
             sun.description
@@ -39,6 +34,7 @@ class TestSun:
             Sun.from_builtin("not a solar spectrum")
 
     def test_from_default(self):
+        pytest.importorskip("synphot")
         with solar_spectrum.set("E490_2014LR"):
             sun = Sun.from_default()
             assert (
@@ -47,19 +43,22 @@ class TestSun:
             )
 
     def test_call_single_wavelength(self):
+        pytest.importorskip("synphot")
         with solar_spectrum.set("E490_2014"):
             sun = solar_spectrum.get()
             f = sun(0.5555 * u.um)
             assert np.isclose(f.value, 1897)
 
     def test_call_single_frequency(self):
+        pytest.importorskip("synphot")
         with solar_spectrum.set("E490_2014"):
             sun = solar_spectrum.get()
             f = sun(3e14 * u.Hz)
             assert np.isclose(f.value, 2.49484251e14)
 
-    @pytest.mark.skipif("not HAS_SCIPY")
     def test_sun_observe_wavelength_array(self):
+        pytest.importorskip("scipy")
+        pytest.importorskip("synphot")
         from scipy.integrate import trapz
 
         unit = "W/(m2 um)"
@@ -91,6 +90,7 @@ class TestSun:
         """Colina et al. V=-26.75 mag, for zero-point flux density
         36.7e-10 ergs/s/cm2/Å.
         """
+        pytest.importorskip("synphot")
         sun = Sun.from_builtin("E490_2014")
         V = bandpass("johnson v")
         weff, fluxd = sun.observe_bandpass(V, unit="erg/(s cm2 AA)")
@@ -104,6 +104,7 @@ class TestSun:
         agreement is good.
 
         """
+        pytest.importorskip("synphot")
         sun = Sun.from_builtin("E490_2014")
         V = bandpass("johnson v")
         fluxd = sun.observe(V, unit=JMmag)
@@ -116,6 +117,7 @@ class TestSun:
         optical.
 
         """
+        pytest.importorskip("synphot")
         sun = Sun.from_builtin("E490_2014")
         V = bandpass("johnson v")
         fluxd = sun.observe(V, unit=u.ABmag)
@@ -128,6 +130,7 @@ class TestSun:
         optical.
 
         """
+        pytest.importorskip("synphot")
         sun = Sun.from_builtin("E490_2014")
         V = bandpass("johnson v")
         fluxd = sun.observe(V, unit=u.STmag)
@@ -140,6 +143,7 @@ class TestSun:
         assert np.isclose(fluxd.value, -26.76)
 
     def test_meta(self):
+        pytest.importorskip("synphot")
         sun = Sun.from_builtin("E490_2014")
         assert sun.meta is None
 
@@ -152,6 +156,7 @@ class TestSun:
         NaNs in Kurucz file should not affect this calculation.
 
         """
+        pytest.importorskip("synphot")
         sun = Sun.from_builtin("Kurucz1993")
         V = bandpass("johnson v")
         fluxd = sun.observe(V, unit=u.ABmag)
@@ -171,7 +176,7 @@ class TestSun:
 
         2022-06-05: sbpy calculates 184.5 ergs/s/cm^2/A; agreement within 0.2%
         """
-
+        pytest.importorskip("synphot")
         sun = Sun.from_builtin("Castelli1996")
         V = bandpass("johnson v")
         fluxd = sun.observe(V, unit="erg/(s cm2 AA)")
@@ -180,7 +185,7 @@ class TestSun:
     @pytest.mark.remote_data
     def test_calspec(self):
         """Verify CALSPEC solar model calibration."""
-
+        pytest.importorskip("synphot")
         sun = Sun.from_builtin("calspec")
         V = bandpass("johnson v")
         fluxd = sun.observe(V, unit=VEGAmag)

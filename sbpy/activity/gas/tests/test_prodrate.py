@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import pytest
 import numpy as np
 import astropy.units as u
 from .. import Haser, photo_timescale
@@ -85,6 +86,8 @@ class TestProductionRate:
 
     def test_Haser_prodrate(self):
         """Test a set of dummy values."""
+
+        pytest.importorskip("scipy")
 
         temp_estimate = 47. * u.K
         vgas = 0.8 * u.km / u.s

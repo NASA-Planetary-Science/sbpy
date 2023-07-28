@@ -15,8 +15,6 @@ from abc import ABC, abstractmethod
 
 # distutils is deprecated in python 3.10 and will be removed in 3.12 (PEP 632).
 # Migration from distutils.log -> logging
-from distutils.log import warn
-import warnings
 from dataclasses import dataclass
 from typing import Callable, Tuple
 
@@ -27,14 +25,15 @@ try:
     import scipy
     from scipy import special
     from scipy.integrate import quad, dblquad, romberg
-    from scipy.interpolate import CubicSpline
+    from scipy.interpolate import CubicSpline, PPoly
 except ImportError:
     scipy = None
+    PPoly = None
 
 from ... import bib
 from ... import data as sbd
 from ... import units as sbu
-from ...exceptions import RequiredPackageUnavailable, TestingNeeded
+from ...utils.decorators import requires
 from ..core import (
     Aperture,
     RectangularAperture,
@@ -415,6 +414,7 @@ class GasComa(ABC):
 
         """
 
+    @requires("scipy")
     def _integrate_volume_density(self, rho, epsabs=1.49e-8):
         """Integrate volume density along the line of sight.
 
@@ -441,9 +441,6 @@ class GasComa(ABC):
 
         """
 
-        if not scipy:
-            raise RequiredPackageUnavailable("scipy")
-
         def f(s, rho2):
             r = np.sqrt(rho2 + s**2)
             return self._volume_density(r)
@@ -462,6 +459,7 @@ class GasComa(ABC):
 
         return sigma, err
 
+    @requires("scipy")
     def _integrate_column_density(self, aper, epsabs=1.49e-8):
         """Integrate column density over an aperture.
 
@@ -486,9 +484,6 @@ class GasComa(ABC):
             Estimated integration error.
 
         """
-
-        if not scipy:
-            raise RequiredPackageUnavailable("scipy")
 
         if isinstance(aper, (CircularAperture, AnnularAperture)):
             if isinstance(aper, CircularAperture):
@@ -622,16 +617,13 @@ class Haser(GasComa):
 
     def _iK0(self, x):
         """Integral of the modified Bessel function of 2nd kind, 0th order."""
-        if not scipy:
-            raise RequiredPackageUnavailable("scipy")
         return special.iti0k0(x)[1]
 
     def _K1(self, x):
         """Modified Bessel function of 2nd kind, 1st order."""
-        if not scipy:
-            raise RequiredPackageUnavailable("scipy")
         return special.k1(x)
 
+    @requires("scipy")
     @bib.cite({"model": "1978Icar...35..360N"})
     def _column_density(self, rho):
         sigma = (self.Q / self.v).to_value("1/m") / rho / 2 / np.pi
@@ -647,6 +639,7 @@ class Haser(GasComa):
             )
         return sigma
 
+    @requires("scipy")
     def _total_number(self, aper):
         # Inspect aper and handle as appropriate
         if isinstance(aper, (RectangularAperture, GaussianAperture)):
@@ -876,8 +869,8 @@ class VMResult:
     fragment_sputter: VMFragmentSputterPolar = None
     solid_angle_sputter: VMFragmentSputterPolar = None
 
-    volume_density_interpolation: scipy.interpolate.PPoly = None
-    column_density_interpolation: scipy.interpolate.PPoly = None
+    volume_density_interpolation: PPoly = None
+    column_density_interpolation: PPoly = None
 
     collision_sphere_radius: u.Quantity = None
     max_grid_radius: u.Quantity = None
@@ -971,15 +964,6 @@ class VectorialModel(GasComa):
         max_fragment_lifetimes=8.0,
         print_progress=False,
     ):
-        # warnings.warn(
-        #     "Literature tests with the Vectorial model are generally"
-        #     " in agreement at the 20% level or better.  The cause"
-        #     " for the differences with the Festou FORTRAN code are"
-        #     " not yet precisely known.  Help testing this feature is"
-        #     " appreciated.",
-        #     TestingNeeded,
-        # )
-
         super().__init__(base_q, parent["v_outflow"][0])
 
         # Calculations are done internally in meters and seconds to match the
@@ -1585,6 +1569,7 @@ class VectorialModel(GasComa):
         # Tag with proper units
         self.vmr.volume_density = self.fast_voldens / (u.m**3)
 
+    @requires("scipy")
     def _interpolate_volume_density(self) -> None:
         """Interpolate the volume density as a function of radial distance
         from the nucleus.
@@ -1593,9 +1578,6 @@ class VectorialModel(GasComa):
         arbitrary radius.
 
         """
-
-        if not scipy:
-            raise RequiredPackageUnavailable("scipy")
 
         if self.print_progress:
             print("Interpolating radial fragment density...")
@@ -1652,6 +1634,7 @@ class VectorialModel(GasComa):
         # result is in 1/m^2
         return c_dens
 
+    @requires("scipy")
     def _compute_column_density(self) -> None:
         """Compute the column density on the grid and interpolate the results.
 
@@ -1661,9 +1644,6 @@ class VectorialModel(GasComa):
         attached.
 
         """
-
-        if not scipy:
-            raise RequiredPackageUnavailable("scipy")
 
         if self.print_progress:
             print("Computing column densities...")

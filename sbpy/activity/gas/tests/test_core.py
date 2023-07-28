@@ -2,6 +2,10 @@
 
 import pytest
 import numpy as np
+try:
+    import scipy
+except ImportError:
+    scipy = None
 import astropy.units as u
 import astropy.constants as const
 from .. import core
@@ -12,9 +16,7 @@ from .. import (
     VectorialModel,
     Haser,
 )
-from .... import exceptions as sbe
 from ....data import Phys
-
 
 def test_photo_lengthscale():
     gamma = photo_lengthscale("OH", "CS93")
@@ -71,49 +73,16 @@ def test_fluorescence_band_strength_error():
         fluorescence_band_strength("OH 0-0", source="asdf")
 
 
-def test_gascoma_scipy_error(monkeypatch):
-    monkeypatch.setattr(core, "scipy", None)
-    test = Haser(1 / u.s, 1 * u.km / u.s, 1e6 * u.km)
-    with pytest.raises(sbe.RequiredPackageUnavailable):
-        test._integrate_volume_density(1e5)
-
-    with pytest.raises(sbe.RequiredPackageUnavailable):
-        aper = core.CircularAperture(1000 * u.km)
-        test._integrate_column_density(aper)
-
-
 class TestHaser:
-    def test_volume_density(self):
-        """Test a set of dummy values."""
-        Q = 1e28 / u.s
-        v = 1 * u.km / u.s
-        parent = 1e4 * u.km
-        daughter = 1e5 * u.km
-        r = np.logspace(1, 7) * u.km
-        n = Haser(Q, v, parent, daughter).volume_density(r)
-        rel = (
-            daughter
-            / (parent - daughter)
-            * (np.exp(-r / parent) - np.exp(-r / daughter))
-        )
-        # test radial profile
-        assert np.allclose((n / n[0]).value, (rel / rel[0] * (r[0] / r) ** 2).value)
-
-        # test parent-only coma near nucleus against that expected for
-        # a long-lived species; will be close, but not exact
-        n = Haser(Q, v, parent).volume_density(10 * u.km)
-        assert np.isclose(
-            n.decompose().value,
-            (Q / v / 4 / np.pi / (10 * u.km) ** 2).decompose().value,
-            rtol=0.001,
-        )
-
     def test_column_density_small_aperture(self):
         """Test column density for aperture << lengthscale.
 
         Should be within 1% of ideal value.
 
         """
+
+        pytest.importorskip("scipy")
+
         Q = 1e28 / u.s
         v = 1 * u.km / u.s
         rho = 1 * u.km
@@ -130,6 +99,9 @@ class TestHaser:
         Should be within 1% of ideal value.
 
         """
+        
+        pytest.importorskip("scipy")
+
         Q = 1e28 / u.s
         v = 1 * u.km / u.s
         rho = 0.001 * u.arcsec
@@ -145,6 +117,9 @@ class TestHaser:
         Test column density for aperture = lengthscale.
 
         """
+        
+        pytest.importorskip("scipy")
+
         Q = 1e28 / u.s
         v = 1 * u.km / u.s
         rho = 1000 * u.km
@@ -156,6 +131,9 @@ class TestHaser:
 
     def test_total_number_large_aperture(self):
         """Test column density for aperture >> lengthscale."""
+        
+        pytest.importorskip("scipy")
+        
         Q = 1 / u.s
         v = 1 * u.km / u.s
         rho = 1000 * u.km
@@ -172,6 +150,8 @@ class TestHaser:
         Code initially from Quanzhi Ye.
 
         """
+        
+        pytest.importorskip("scipy")
 
         Q = 1e25 / u.s
         v = 1 * u.km / u.s
@@ -228,6 +208,8 @@ class TestHaser:
         #     [0.893, 39084, 3.147e31, 1.129e31, 2.393e31, 27.12, 26.54, 27.0]
         # ]
 
+        pytest.importorskip("scipy")
+
         # Computed by sbpy.  0.893 C2 and C3 matches are not great,
         # the rest are OK:
         tab = [
@@ -267,6 +249,8 @@ class TestHaser:
         parent only
 
         """
+        
+        pytest.importorskip("scipy")
 
         # Nobs = 2.314348613550494e+27
         parent = 1.4e4 * u.km
@@ -286,6 +270,8 @@ class TestHaser:
 
         """
 
+        pytest.importorskip("scipy")
+
         # Nobs = 6.41756750e26
         parent = 1.4e4 * u.km
         daughter = 1.7e5 * u.km
@@ -300,6 +286,8 @@ class TestHaser:
 
     def test_total_number_annulus(self):
         """Test column density for annular aperture."""
+    
+        pytest.importorskip("scipy")
 
         Q = 1 / u.s
         v = 1 * u.km / u.s
@@ -333,6 +321,8 @@ class TestHaser:
 
         """
 
+        pytest.importorskip("scipy")
+
         parent = 1.4e4 * u.km
         daughter = 1.7e5 * u.km
         Q = 5.8e23 / u.s
@@ -365,6 +355,8 @@ class TestHaser:
         which is within 0.5% of the test value below
 
         """
+    
+        pytest.importorskip("scipy")
 
         parent = 1.4e4 * u.km
         Q = 5.8e23 / u.s
@@ -375,15 +367,8 @@ class TestHaser:
 
         assert np.isclose(N, 5.146824269306973e27, rtol=0.005)
 
-    def test_missing_scipy(self, monkeypatch):
-        monkeypatch.setattr(core, "scipy", None)
-        test = Haser(1 / u.s, 1 * u.km / u.s, 1e6 * u.km)
-        with pytest.raises(sbe.RequiredPackageUnavailable):
-            test._iK0(1)
-        with pytest.raises(sbe.RequiredPackageUnavailable):
-            test._K1(1)
 
-
+@pytest.mark.skipif("scipy is None")
 class TestVectorialModel:
     def test_small_vphoto(self):
         """

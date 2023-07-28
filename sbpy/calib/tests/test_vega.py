@@ -1,5 +1,5 @@
-import sys
 import inspect
+import importlib
 import pytest
 import numpy as np
 import astropy.units as u
@@ -8,16 +8,15 @@ from ...photometry import bandpass
 from .. import core
 from .. import *
 
-try:
-    import scipy
-    HAS_SCIPY = True
-except ImportError:
-    HAS_SCIPY = False
+pytest.importorskip("synphot")
 
+def patched_import_module(name):
+    if name == "synphot":
+        raise ModuleNotFoundError
+    __import__(name)
 
 class Star(core.SpectralStandard):
     pass
-
 
 class TestVega:
     def test___repr__(self):
@@ -37,7 +36,7 @@ class TestVega:
         assert np.isclose(fluxd.value, fluxd0.value)
 
     def test_source_error(self, monkeypatch):
-        monkeypatch.setattr(core, 'synphot', None)
+        monkeypatch.setattr(importlib, "import_module", patched_import_module)
         vega = Vega.from_default()
         with pytest.raises(UndefinedSourceError):
             vega.source

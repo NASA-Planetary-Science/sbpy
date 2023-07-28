@@ -10,11 +10,6 @@ from ... import exceptions as sbe
 from .. import orbit as sbo
 from ..orbit import Orbit
 
-try:
-    import pyoorb  # noqa
-except ImportError:
-    pyoorb = None
-
 # CERES and CERES2 retrieved from Horizons on 24 Sep 2021
 CERES = {
     'targetname': '1 Ceres (A801 AA)',
@@ -56,15 +51,11 @@ CERES2 = {  # CERES epoch + 100 days
 }
 
 
-@pytest.mark.skipif('pyoorb is None')
 class TestOOTransform:
-    def test_missing_pyoorb(self, monkeypatch):
-        monkeypatch.setattr(sbo, 'pyoorb', None)
-        with pytest.raises(sbe.RequiredPackageUnavailable):
-            Orbit.from_dict(CERES).oo_transform('CART')
-
     def test_oo_transform_kep(self):
         """ test oo_transform method"""
+
+        pytest.importorskip("pyoorb")
 
         orbit = Orbit.from_dict(CERES)
 
@@ -90,6 +81,8 @@ class TestOOTransform:
 
     def test_oo_transform_com(self):
         """ test oo_transform method"""
+
+        pytest.importorskip("pyoorb")
 
         orbit = Orbit.from_dict(CERES)
 
@@ -121,6 +114,8 @@ class TestOOTransform:
 
     def test_timescales(self):
         """ test with input in UTC scale """
+        pytest.importorskip("pyoorb")
+
         orbit = Orbit.from_dict(CERES)
         orbit['epoch'] = orbit['epoch'].utc
 
@@ -141,15 +136,12 @@ class TestOOTransform:
         assert kep_orbit['epoch'].scale == 'utc'
 
 
-@pytest.mark.skipif('pyoorb is None')
 class TestOOPropagate:
-    def test_missing_pyoorb(self, monkeypatch):
-        monkeypatch.setattr(sbo, 'pyoorb', None)
-        with pytest.raises(sbe.RequiredPackageUnavailable):
-            Orbit.from_dict(CERES).oo_transform('CART')
 
     def test_oo_propagate(self):
         """ test oo_propagate method"""
+        
+        pytest.importorskip("pyoorb")
 
         orbit = Orbit.from_dict(CERES)
         future_orbit = Orbit.from_dict(CERES2)

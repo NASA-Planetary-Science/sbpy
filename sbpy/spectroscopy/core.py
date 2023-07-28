@@ -6,28 +6,16 @@ created on June 23, 2017
 """
 
 import numpy as np
-import astropy.constants as con
 import astropy.units as u
-from astropy.time import Time
-from astroquery.jplhorizons import Horizons, conf
-from astropy import log
-from ..bib import register
-from ..data import Phys
-
-
-try:
-    from synphot import SpectralElement
-except ImportError:
-    class SpectralElement:
-        pass
 
 
 __all__ = ['Spectrum', 'SpectralModel', 'SpectralGradient']
 
 __doctest_requires__ = {
-    "SpectralGradient": ["astropy>=5.3"],
-    "SpectralGradient.from_color": ["astropy>=5.3"],
-    "SpectralGradient.renormalize": ["astropy>=5.3"],
+    "SpectralGradient": ["astropy>=5.3", "synphot"],
+    "SpectralGradient.from_color": ["astropy>=5.3", "synphot"],
+    "SpectralGradient.to_color": ["synphot"],
+    "SpectralGradient.renormalize": ["astropy>=5.3", "synphot"],
 }
 
 

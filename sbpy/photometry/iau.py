@@ -7,17 +7,20 @@ created on July, 2022
 
 """
 
+
+__all__ = ['HG', 'HG12', 'HG1G2', 'HG12_Pen16']
+
+__doctest_requires__ = {
+    "HG*": ["scipy"],
+}
+
 import warnings
 from collections import OrderedDict
 import numpy as np
-from scipy.integrate import quad
 from astropy.modeling import Parameter
 import astropy.units as u
 from .core import DiskIntegratedPhaseFunc, InvalidPhaseFunctionWarning
 from ..bib import cite
-
-
-__all__ = ['HG', 'HG12', 'HG1G2', 'HG12_Pen16']
 
 
 # define the bounds of various model parameters
