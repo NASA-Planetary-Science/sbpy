@@ -26,17 +26,20 @@ __all__ = [
     'projected_size',
 ]
 
+__doctest_requires__ = {
+    "spectral_density_vega": ["synphot"]
+}
+
 from warnings import warn
 import numpy as np
 import astropy.units as u
 import astropy.constants as const
-from ..exceptions import SbpyWarning
 from ..calib import (
     Vega, Sun, vega_fluxd, FilterLookupError, UndefinedSourceError
 )
 from .. import data as sbd
-from ..spectroscopy.sources import SinglePointSpectrumError, SynphotRequired
-from ..exceptions import OptionalPackageUnavailable, SbpyWarning
+from ..spectroscopy.sources import SinglePointSpectrumError
+from ..exceptions import RequiredPackageUnavailable, OptionalPackageUnavailable, SbpyWarning
 
 
 VEGA = u.def_unit(['VEGA', 'VEGAflux'],
@@ -152,7 +155,7 @@ def spectral_density_vega(wfb):
                 lambda f_phys, fluxd0=fluxd0.value: f_phys / fluxd0,
                 lambda f_vega, fluxd0=fluxd0.value: f_vega * fluxd0
             ))
-        except SynphotRequired:
+        except RequiredPackageUnavailable:
             warn(OptionalPackageUnavailable(
                 'synphot is required for Vega-based magnitude conversions'
                 ' with {}'.format(wfb)))

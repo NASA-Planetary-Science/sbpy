@@ -7,13 +7,7 @@ from astropy.time import Time
 
 from ... import exceptions as sbe
 from ... import bib
-from .. import ephem
 from .. import Ephem, Orbit
-
-try:
-    import pyoorb
-except ImportError:
-    pyoorb = None
 
 # retreived from Horizons on 23 Apr 2020
 CERES = {
@@ -36,14 +30,10 @@ CERES = {
 }
 
 
-@pytest.mark.skipif('pyoorb is None')
 class TestEphemFromOorb:
-    def test_missing_pyoorb(self, monkeypatch):
-        monkeypatch.setattr(ephem, 'pyoorb', None)
-        with pytest.raises(sbe.RequiredPackageUnavailable):
-            Ephem.from_oo(CERES)
-
     def test_units(self):
+        pytest.importorskip("pyoorb")
+
         orbit1 = Orbit.from_dict(CERES)
         eph1 = Ephem.from_oo(orbit1)
 
@@ -66,17 +56,23 @@ class TestEphemFromOorb:
             assert u.isclose(eph1[k], eph2[k])
 
     def test_basic(self):
+        pytest.importorskip("pyoorb")
+
         orbit = Orbit.from_dict(CERES)
         oo_ephem = Ephem.from_oo(orbit, scope='basic')
         assert 'dec_rate' not in oo_ephem.field_names
 
     def test_timescale(self):
+        pytest.importorskip("pyoorb")
+
         orbit = Orbit.from_dict(CERES)
         epoch = Time.now()
         oo_ephem = Ephem.from_oo(orbit, epochs=epoch, scope='basic')
         assert oo_ephem['epoch'].scale == epoch.scale
 
     def test_bib(self):
+        pytest.importorskip("pyoorb")
+
         with bib.Tracking():
             orbit = Orbit.from_dict(CERES)
             oo_ephem = Ephem.from_oo(orbit, scope='basic')

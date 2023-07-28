@@ -16,6 +16,7 @@ import numpy as np
 from abc import ABC
 import astropy.units as u
 from astropy.utils.data import download_file, _is_url
+from astropy.utils.decorators import deprecated
 
 try:
     import synphot
@@ -26,7 +27,11 @@ except ImportError:
     class SpectralElement:
         pass
 
+    class BaseUnitlessSpectrum:
+        pass
+
 from ..exceptions import SbpyException
+from ..utils.decorators import requires
 
 __doctest_requires__ = {
     'SpectralSource': ['synphot'],
@@ -37,7 +42,7 @@ __doctest_requires__ = {
 class SinglePointSpectrumError(SbpyException):
     """Single point provided, but multiple values expected."""
 
-
+@deprecated("v0.4.1")
 class SynphotRequired(SbpyException):
     pass
 
@@ -65,15 +70,13 @@ class SpectralSource(ABC):
 
     """
 
+    @requires("synphot")
     def __init__(self, source, description=None):
-        if synphot is None:
-            raise SynphotRequired(
-                'synphot required for {}.'.format(self.__class__.__name__))
-
         self._source = source
         self._description = description
 
     @classmethod
+    @requires("synphot")
     def from_array(cls, wave, fluxd, meta=None, **kwargs):
         """Create standard from arrays.
 
@@ -93,9 +96,6 @@ class SpectralSource(ABC):
             Passed to object initialization.
 
         """
-        if synphot is None:
-            raise ImportError(
-                'synphot required for {}.'.format(cls.__name__))
 
         source = synphot.SourceSpectrum(
             synphot.Empirical1D, points=wave, lookup_table=fluxd,
@@ -104,6 +104,7 @@ class SpectralSource(ABC):
         return cls(source, **kwargs)
 
     @classmethod
+    @requires("synphot")
     def from_file(cls, filename, wave_unit=None, flux_unit=None,
                   cache=True, **kwargs):
         """Load the source spectrum from a file.
@@ -127,10 +128,6 @@ class SpectralSource(ABC):
             Passed to object initialization.
 
         """
-
-        if synphot is None:
-            raise ImportError(
-                'synphot required for {}.'.format(cls.__name__))
 
         if filename.lower().endswith(('.fits', '.fit', '.fz')):
             read_spec = synphot.specio.read_fits_spec
@@ -504,6 +501,7 @@ class BlackbodySource(SpectralSource):
 
     """
 
+    @requires("synphot")
     def __init__(self, T=None):
         super().__init__(None, description='πB(T)')
 
@@ -529,14 +527,20 @@ class Reddening(BaseUnitlessSpectrum):
     ----------
     S : `~SpectralGradient`
         The spectral gradient to redden.
+
     """
+
     @u.quantity_input(S=u.percent / u.um)
+    @requires("synphot")
     def __init__(self, S):
+
         if getattr(S, 'wave0', None) is None:
             raise ValueError("Normalization wavelength in `S` (.wave0) is "
                              "required by not available.")
+
         wv = [1, 2] * S.wave0
         df = (S.wave0 * S).to('').value
+
         super().__init__(
             synphot.Empirical1D, points=wv, lookup_table=[1, 1+df],
             fill_value=None)

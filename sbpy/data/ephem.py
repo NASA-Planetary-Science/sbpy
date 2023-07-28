@@ -15,23 +15,28 @@ import numpy as np
 from numpy import ndarray, hstack, iterable
 from astropy.time import Time
 from astropy.table import vstack, Column, QTable
-from astropy.coordinates import Angle
+from astropy.coordinates import Angle, EarthLocation
 import astropy.units as u
-from astroquery.jplhorizons import Horizons
-from astroquery.mpc import MPC
-from astroquery.imcce import Miriade
-from astroquery.exceptions import InvalidQueryError
-from astropy.coordinates import EarthLocation
+
+# optional imports
+try:
+    from astroquery.jplhorizons import Horizons
+    from astroquery.mpc import MPC
+    from astroquery.imcce import Miriade
+    from astroquery.exceptions import InvalidQueryError
+except ImportError:
+    pass
 
 try:
     import pyoorb
 except ImportError:
-    pyoorb = None
+    pass
 
 from ..bib import cite
 from .core import DataClass, Conf, QueryError, TimeScaleWarning
 from ..exceptions import RequiredPackageUnavailable
 from .orbit import Orbit, OpenOrbError
+from ..utils.decorators import requires
 
 __all__ = ['Ephem']
 
@@ -45,8 +50,9 @@ class Ephem(DataClass):
     """Class for querying, manipulating, and calculating ephemerides"""
 
     @classmethod
-    @cite({'data source': '1996DPS....28.2504G'})
-    @cite({'software: astroquery': '2019AJ....157...98G'})
+    @requires("astroquery")
+    @cite({'data source': '1996DPS....28.2504G',
+           'software: astroquery': '2019AJ....157...98G'})
     def from_horizons(cls, targetids, id_type='smallbody',
                       epochs=None, location='500', **kwargs):
         """Load target ephemerides from
@@ -246,9 +252,10 @@ class Ephem(DataClass):
         return cls.from_table(all_eph)
 
     @classmethod
+    @requires("astroquery")
     @cite({'data source':
-           'https://minorplanetcenter.net/iau/MPEph/MPEph.html'})
-    @cite({'software: astroquery': '2019AJ....157...98G'})
+           'https://minorplanetcenter.net/iau/MPEph/MPEph.html',
+           'software: astroquery': '2019AJ....157...98G'})
     def from_mpc(cls, targetids, epochs=None, location='500', ra_format=None,
                  dec_format=None, **kwargs):
         """Load ephemerides from the
@@ -464,8 +471,9 @@ class Ephem(DataClass):
         return cls.from_table(all_eph)
 
     @classmethod
-    @cite({'data source': 'http://vo.imcce.fr/webservices/miriade/'})
-    @cite({'software: astroquery': '2019AJ....157...98G'})
+    @requires("astroquery")
+    @cite({'data source': 'http://vo.imcce.fr/webservices/miriade/',
+           'software: astroquery': '2019AJ....157...98G'})
     def from_miriade(cls, targetids, objtype='asteroid',
                      epochs=None, location='500', **kwargs):
         """Load target ephemerides from
@@ -643,6 +651,7 @@ class Ephem(DataClass):
         return cls.from_table(all_eph)
 
     @classmethod
+    @requires("oorb")
     @cite({'method': '2009M&PS...44.1853G',
            'software': 'https://github.com/oorb/oorb'})
     def from_oo(cls, orbit, epochs=None, location='500', scope='full',

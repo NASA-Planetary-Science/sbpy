@@ -161,6 +161,8 @@ A few filter bandpasses are included with `sbpy` for internal tests and your con
 
 For other bandpasses, obtain the photon-counting relative spectral response curves as a two-column file.  If the first column is wavelength in Angstroms, and the second is the response, then read the file with:
 
+.. doctest-requires:: synphot
+
   >>> from synphot import SpectralElement             # doctest: +SKIP
   >>> bp = SpectralElement.from_file('filename.txt')  # doctest: +SKIP
 

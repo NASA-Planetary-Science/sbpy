@@ -1,14 +1,19 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import importlib
 import pytest
 import numpy as np
 import astropy.units as u
 from .. import data
 
+def patched_import_module(name):
+    if name == "scipy":
+        raise ModuleNotFoundError
+    __import__(name)
 
 class TestOHFluorescenceSA88:
     def test_linear_interpolation(self, monkeypatch):
-        monkeypatch.setattr(data, 'scipy', None)
+        monkeypatch.setattr(importlib, "import_module", patched_import_module)
         model = data.OHFluorescenceSA88('0-0')
         LN = model(-1 * u.km / u.s)
         assert np.isclose(LN.value, 1.54e-15)

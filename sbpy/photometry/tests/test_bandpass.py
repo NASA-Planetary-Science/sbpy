@@ -1,11 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import sys
-import mock
+from unittest import mock
 import pytest
 import numpy as np
-from ..bandpass import *
 
+synphot = pytest.importorskip("synphot")
+
+from ..bandpass import *
 
 @pytest.mark.parametrize('name, avgwave', (
     ('2mass j', 12410.52630476),
@@ -41,7 +43,7 @@ def test_bandpass(name, avgwave):
     assert np.isclose(bp.avgwave().value, avgwave)
 
 
+@mock.patch.dict(sys.modules, {'synphot': None})
 def test_bandpass_synphot():
-    with mock.patch.dict(sys.modules, {'synphot': None}):
         with pytest.raises(ImportError):
             bandpass('sdss u')

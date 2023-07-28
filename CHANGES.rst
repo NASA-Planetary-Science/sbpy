@@ -1,3 +1,39 @@
+0.4.1 (unreleased)
+==================
+
+- Revised required and optional packages:
+  - Only numpy and astropy are required; synphot, ads, and astroquery are now optional dependences.
+  - Created an option to install a recommended list of packages, e.g., ``pip install sbpy[recommended]``.
+
+
+New Features
+------------
+
+sbpy.utils.decorators
+^^^^^^^^^^^^^^^^^^^^^
+
+- Added the `requires` function decorator to test for the presence of optional
+  packages.
+
+- Added the  `optional` function decorator to test for the presence of optional
+  packages.
+
+
+API Changes
+-----------
+
+sbpy.sources
+^^^^^^^^^^^^
+* Deprecated ``SynphotRequired``.  Use ``sbpy.execptions.RequiredPackageUnavailable``.
+
+
+Bug Fixes
+---------
+* ``sbpy.sources.SpectralSource`` now correctly raises
+  ``RequiredPackageUnavailable`` when ``synphot`` is not available, replacing a
+  locally defined ``SynphotRequired`` or the generic ``ImportError``.
+
+
 0.4.0 (2023-06-30)
 ==================
 

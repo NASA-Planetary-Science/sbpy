@@ -3,44 +3,34 @@
 import pytest
 import numpy as np
 import astropy.units as u
-import synphot
+
 from ... import units as sbu
 from ... import bib
 from ...photometry import bandpass
-from ...spectroscopy import sources
 from ..core import SpectralStandard
-from .. import core as calib_core
 from .. import *
 
 
 class Star(SpectralStandard):
     pass
 
-
 class TestSpectralStandard:
     def test_from_array(self):
+        pytest.importorskip("synphot")
         w = u.Quantity(np.linspace(0.3, 1.0), 'um')
         f = u.Quantity(np.ones(len(w)), 'W/(m2 um)')
         s = Star.from_array(w, f)
         assert np.allclose(f.value, s(w, f.unit).value)
 
-    def test_from_array_importerror(self, monkeypatch):
-        monkeypatch.setattr(sources, 'synphot', None)
-        with pytest.raises(ImportError):
-            s = Star.from_array(None, None)
-
-    # from_file tested by Sun and Vega
-
-    def test_from_file_importerror(self, monkeypatch):
-        monkeypatch.setattr(sources, 'synphot', None)
-        with pytest.raises(ImportError):
-            s = Star.from_file(None)
+    # from_file() is tested by Sun and Vega
 
     def test_description(self):
+        pytest.importorskip("synphot")
         s = Star(None, description='asdf')
         assert s.description == 'asdf'
 
     def test_wave(self):
+        synphot = pytest.importorskip("synphot")
         w = u.Quantity(np.linspace(0.3, 1.0), 'um')
         f = u.Quantity(np.ones(len(w)), 'W/(m2 um)')
         source = synphot.SourceSpectrum(synphot.Empirical1D, points=w,
@@ -49,6 +39,7 @@ class TestSpectralStandard:
         assert np.allclose(s.wave.to(w.unit).value, w.value)
 
     def test_fluxd(self):
+        synphot = pytest.importorskip("synphot")
         w = u.Quantity(np.linspace(0.3, 1.0), 'um')
         f = u.Quantity(np.ones(len(w)), 'W/(m2 um)')
         source = synphot.SourceSpectrum(synphot.Empirical1D, points=w,
@@ -57,6 +48,7 @@ class TestSpectralStandard:
         assert np.allclose(s.fluxd.to(f.unit).value, f.value)
 
     def test_source(self):
+        synphot = pytest.importorskip("synphot")
         w = u.Quantity(np.linspace(0.3, 1.0), 'um')
         f = u.Quantity(np.ones(len(w)), 'W/(m2 um)')
         source = synphot.SourceSpectrum(synphot.Empirical1D, points=w,
@@ -68,6 +60,7 @@ class TestSpectralStandard:
     # meta tested by Sun
 
     def test_call_frequency(self):
+        pytest.importorskip("synphot")
         nu = u.Quantity(np.linspace(300, 1000), 'THz')
         f = u.Quantity(0.5 * nu.value + 0.1, 'Jy')
         s = Star.from_array(nu, f)
@@ -75,6 +68,7 @@ class TestSpectralStandard:
         assert np.allclose(s(nu).value, 0.5 * nu.value + 0.1, rtol=0.002)
 
     def test_observe_units(self):
+        pytest.importorskip("synphot")
         w = u.Quantity(np.linspace(0.3, 1.0), 'um')
         f = u.Quantity(np.ones(len(w)) * 0.35 / w.value, 'W/(m2 um)')
         s = Star.from_array(w, f)
@@ -92,6 +86,7 @@ class TestSpectralStandard:
             a.value, d.to(a.unit, u.spectral_density(w)).value)
 
     def test_observe_wavelength(self):
+        pytest.importorskip("synphot")
         w = u.Quantity(np.linspace(0.3, 1.0), 'um')
         f = u.Quantity(np.ones(len(w)) * 0.35 / w.value, 'W/(m2 um)')
         s = Star.from_array(w, f)
@@ -100,6 +95,7 @@ class TestSpectralStandard:
         assert np.isclose(s.observe(w, interpolate=True).value[1], 1.0)
 
     def test_observe_frequency(self):
+        pytest.importorskip("synphot")
         nu = u.Quantity(np.linspace(300, 1000), 'THz')
         f = u.Quantity(np.ones(len(nu)) * nu.value / 350, 'Jy')
         s = Star.from_array(nu, f)
@@ -107,6 +103,8 @@ class TestSpectralStandard:
         assert np.isclose(s.observe(nu).value[1], 1.0, rtol=0.004)
 
     def test_observe_bandpass(self):
+        synphot = pytest.importorskip("synphot")
+
         w = u.Quantity(np.linspace(0.3, 1.0), 'um')
         f = u.Quantity(np.ones(len(w)), 'W/(m2 um)')
         s = Star.from_array(w, f)
@@ -127,6 +125,7 @@ class TestSpectralStandard:
         assert np.allclose(fluxd.value, [1, 1])
 
     def test_observe_singlepointspectrumerror(self):
+        pytest.importorskip("synphot")
         w = u.Quantity(np.linspace(0.3, 1.0), 'um')
         f = u.Quantity(np.ones(len(w)), 'W/(m2 um)')
         s = Star.from_array(w, f)
@@ -136,6 +135,7 @@ class TestSpectralStandard:
             s.observe([1] * u.um)
 
     def test_observe_filter_name(self):
+        pytest.importorskip("synphot")
         s = Star(None)
         s._fluxd_state = solar_fluxd
         with solar_fluxd.set({'B': 0.327 * u.ABmag}):
@@ -145,18 +145,9 @@ class TestSpectralStandard:
         with pytest.raises(FilterLookupError):
             fluxd = s.observe_filter_name('B', unit=u.ABmag)
 
-    def test_observe_synphotrequired(self, monkeypatch):
-        s = Star(None)
-
-        monkeypatch.setattr(calib_core, 'synphot', None)
-
-        with pytest.raises(sources.SynphotRequired):
-            s.observe_bandpass([None])
-
-        with pytest.raises(sources.SynphotRequired):
-            s.observe_spectrum([1, 2, 3] * u.um)
-
     def test_observe_bad_wfb(self):
+        synphot = pytest.importorskip("synphot")
+
         w = u.Quantity(np.linspace(0.3, 1.0), 'um')
         f = u.Quantity(np.ones(len(w)), 'W/(m2 um)')
         source = synphot.SourceSpectrum(synphot.Empirical1D, points=w,
@@ -166,6 +157,8 @@ class TestSpectralStandard:
             s.observe(np.arange(5))
 
     def test_bibcode(self):
+        pytest.importorskip("synphot")
+
         w = u.Quantity(np.linspace(0.3, 1.0), 'um')
         f = u.Quantity(np.ones(len(w)) * 0.35 / w.value, 'W/(m2 um)')
         s = Star.from_array(w, f, bibcode='asdf', description='fdsa')
@@ -177,6 +170,8 @@ class TestSpectralStandard:
         bib.reset()
 
     def test_observe_vegamag(self):
+        pytest.importorskip("synphot")
+
         w = u.Quantity(np.linspace(0.3, 1.0), 'um')
         f = u.Quantity(np.ones(len(w)), 'W/(m2 um)')
         s = Star.from_array(w, f)
@@ -185,11 +180,11 @@ class TestSpectralStandard:
         # -18.60 is -2.5 * log10(3636e-11)
         assert np.isclose(mag.value, -18.60, atol=0.02)
 
-    @pytest.mark.parametrize('wfb, test, atol', (
-        ((bandpass('johnson v'), bandpass('cousins i')),
-         0.0140 * sbu.VEGAmag, 0.004),
-        ((600 * u.nm, 750 * u.nm), -0.2422 * u.ABmag, 0.001)
-    ))
+    @pytest.mark.parametrize(
+        'wfb, test, atol',
+        ((('johnson v', 'cousins i'), 0.0140 * sbu.VEGAmag, 0.004),
+         ((600 * u.nm, 750 * u.nm), -0.2422 * u.ABmag, 0.001))
+    )
     def test_color_index(self, wfb, test, atol):
         """Test color index.
 
@@ -205,6 +200,11 @@ class TestSpectralStandard:
             -0.7268 - -0.4846 = -0.2422
 
         """
+
+        pytest.importorskip("synphot")
+
+        if type(wfb) is str:
+            wfb = bandpass(wfb)
         w = u.Quantity(np.linspace(0.3, 1.0), 'um')
         f = u.Quantity(np.ones(len(w)) * w.value**-3, 'W/(m2 um)')
         s = Star.from_array(w, f)
@@ -212,6 +212,8 @@ class TestSpectralStandard:
         assert np.isclose(ci.value, test.value, atol=atol)
 
     def test_color_index_typeerror(self):
+        pytest.importorskip("synphot")
+
         w = u.Quantity(np.linspace(0.3, 1.0), 'um')
         f = u.Quantity(np.ones(len(w)) * w.value**-3, 'W/(m2 um)')
         s = Star.from_array(w, f)
@@ -221,9 +223,11 @@ class TestSpectralStandard:
 
 class Test_solar_spectrum:
     def test_validate_str(self):
+        pytest.importorskip("synphot")
         assert isinstance(solar_spectrum.validate('E490_2014'), Sun)
 
     def test_validate_Sun(self):
+        pytest.importorskip("synphot")
         wave = [1, 2] * u.um
         fluxd = [1, 2] * u.Jy
         sun = Sun.from_array(wave, fluxd, description='dummy source')
@@ -238,32 +242,36 @@ class Test_solar_spectrum:
         ('E490_2014LR', solar_sources.SolarSpectra.E490_2014LR))
     )
     def test_set_string(self, name, source):
+        pytest.importorskip("synphot")
         with solar_spectrum.set(name):
             assert solar_spectrum.get().description == source['description']
 
-    @pytest.mark.skipif('True')
     @pytest.mark.remote_data
     @pytest.mark.parametrize('name,source', (
         ('Kurucz1993', solar_sources.SolarSpectra.Kurucz1993),
         ('Castelli1996', solar_sources.SolarSpectra.Castelli1996))
     )
     def test_set_string_remote(self, name, source):
+        pytest.importorskip("synphot")
         with solar_spectrum.set(name):
             assert solar_spectrum.get().description == source['description']
 
     def test_set_source(self):
+        pytest.importorskip("synphot")
         wave = [1, 2] * u.um
         fluxd = [1, 2] * u.Jy
         source = Sun.from_array(wave, fluxd, description='dummy source')
         with solar_spectrum.set(source):
             assert solar_spectrum.get().description == 'dummy source'
 
-
 class Test_vega_spectrum:
     def test_validate_str(self):
+        pytest.importorskip("synphot")
+        # pytest.importorskip("synphot")
         assert isinstance(vega_spectrum.validate('Bohlin2014'), Vega)
 
     def test_validate_Vega(self):
+        pytest.importorskip("synphot")
         wave = [1, 2] * u.um
         fluxd = [1, 2] * u.Jy
         vega = Vega.from_array(wave, fluxd, description='dummy source')
@@ -274,11 +282,13 @@ class Test_vega_spectrum:
             vega_spectrum.validate(1)
 
     def test_set_string(self):
+        pytest.importorskip("synphot")
         with vega_spectrum.set('Bohlin2014'):
             assert vega_spectrum.get(
             ).description == vega_sources.VegaSpectra.Bohlin2014['description']
 
     def test_set_source(self):
+        pytest.importorskip("synphot")
         wave = [1, 2] * u.um
         fluxd = [1, 2] * u.Jy
         source = Vega.from_array(wave, fluxd, description='dummy source')

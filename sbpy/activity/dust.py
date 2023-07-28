@@ -10,7 +10,10 @@ All things dust coma related.
 
 __all__ = ["phase_HalleyMarcus", "Afrho", "Efrho"]
 
-__doctest_requires__ = {"Afrho.to_fluxd": ["astropy>=5.3"]}
+__doctest_requires__ = {
+    "Afrho.to_fluxd": ["astropy>=5.3", "synphot"],
+    "Efrho.to_fluxd": ["synphot"],
+}
 
 from warnings import warn
 import abc
@@ -19,15 +22,16 @@ import numpy as np
 import astropy.units as u
 
 try:
-    from astropy.utils.misc import InheritDocstrings
+    import scipy
+    from scipy.interpolate import splrep, splev
 except ImportError:
-    InheritDocstrings = None
+    scipy = None
 
 from .. import bib
 from ..calib import Sun
 from ..spectroscopy import BlackbodySource
+from ..utils import optional
 from .. import data as sbd
-from .. import exceptions as sbe
 from .. import units as sbu
 from ..spectroscopy.sources import SinglePointSpectrumError
 from .core import Aperture
@@ -95,11 +99,6 @@ def phase_HalleyMarcus(phase):
     5.8720e-01
 
     """
-    try:
-        import scipy
-        from scipy.interpolate import splrep, splev
-    except ImportError:
-        scipy = None
 
     th = np.arange(181)
     ph = np.array(
@@ -290,14 +289,9 @@ def phase_HalleyMarcus(phase):
 
     _phase = np.abs(u.Quantity(phase, "deg").value)
 
-    if scipy:
+    if optional("scipy"):
         Phi = splev(_phase, splrep(th, ph))
     else:
-        warn(
-            sbe.OptionalPackageUnavailable(
-                "scipy is not present, using linear interpolation."
-            )
-        )
         Phi = np.interp(_phase, th, ph)
 
     if np.iterable(_phase):
