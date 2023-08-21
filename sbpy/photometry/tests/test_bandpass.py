@@ -9,6 +9,7 @@ synphot = pytest.importorskip("synphot")
 
 from ..bandpass import *
 
+
 @pytest.mark.parametrize('name, avgwave', (
     ('2mass j', 12410.52630476),
     ('2mass h', 16513.66475736),

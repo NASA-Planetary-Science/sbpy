@@ -12,6 +12,7 @@ import os
 from astropy.utils.data import get_pkg_data_path
 from ..utils.decorators import requires
 
+
 @requires("synphot")
 def bandpass(name):
     """Retrieve bandpass transmission spectrum from sbpy.

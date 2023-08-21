@@ -14,6 +14,7 @@ from .. import *
 class Star(SpectralStandard):
     pass
 
+
 class TestSpectralStandard:
     def test_from_array(self):
         pytest.importorskip("synphot")
@@ -263,6 +264,7 @@ class Test_solar_spectrum:
         source = Sun.from_array(wave, fluxd, description='dummy source')
         with solar_spectrum.set(source):
             assert solar_spectrum.get().description == 'dummy source'
+
 
 class Test_vega_spectrum:
     def test_validate_str(self):

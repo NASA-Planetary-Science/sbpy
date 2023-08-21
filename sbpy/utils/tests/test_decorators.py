@@ -3,6 +3,7 @@ import pytest
 from ..decorators import requires, optional
 from ...exceptions import RequiredPackageUnavailable, OptionalPackageUnavailable
 
+
 def test_requires():
     @requires("unavailable_package")
     def f():
@@ -10,6 +11,7 @@ def test_requires():
 
     with pytest.raises(RequiredPackageUnavailable):
         f()
+
 
 def test_optional():
     @optional("unavailable_package")

@@ -10,13 +10,16 @@ from .. import *
 
 pytest.importorskip("synphot")
 
+
 def patched_import_module(name):
     if name == "synphot":
         raise ModuleNotFoundError
     __import__(name)
 
+
 class Star(core.SpectralStandard):
     pass
+
 
 class TestVega:
     def test___repr__(self):

@@ -43,6 +43,7 @@ try:
     from synphot import SpectralElement
 except ImportError:
     synphot = None
+
     class SpectralElement:
         pass
 

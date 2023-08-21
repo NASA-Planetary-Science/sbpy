@@ -129,7 +129,7 @@ def test_reflectance_ref(fluxd, wfb, f_sun, ref):
     """
 
     pytest.importorskip("synphot")
-    
+
     wfb = bandpass(wfb) if type(wfb) is str else wfb
     xsec = 6.648e5 * u.km**2
 

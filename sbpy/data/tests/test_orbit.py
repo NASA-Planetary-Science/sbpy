@@ -140,7 +140,7 @@ class TestOOPropagate:
 
     def test_oo_propagate(self):
         """ test oo_propagate method"""
-        
+
         pytest.importorskip("pyoorb")
 
         orbit = Orbit.from_dict(CERES)

@@ -6,6 +6,7 @@ from sbpy.data import Phys
 
 pytest.importorskip("astroquery")
 
+
 @pytest.mark.remote_data
 def test_from_sbdb():
     """ test from_sbdb method"""

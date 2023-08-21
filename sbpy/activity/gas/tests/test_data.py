@@ -6,32 +6,34 @@ import numpy as np
 import astropy.units as u
 from .. import data
 
+
 def patched_import_module(name):
     if name == "scipy":
         raise ModuleNotFoundError
     __import__(name)
 
+
 class TestOHFluorescenceSA88:
     def test_linear_interpolation(self, monkeypatch):
         monkeypatch.setattr(importlib, "import_module", patched_import_module)
-        model = data.OHFluorescenceSA88('0-0')
+        model = data.OHFluorescenceSA88("0-0")
         LN = model(-1 * u.km / u.s)
         assert np.isclose(LN.value, 1.54e-15)
 
     def test_tau(self):
-        model = data.OHFluorescenceSA88('0-0')
+        model = data.OHFluorescenceSA88("0-0")
         assert np.isclose(model.tau[0].value, 2.87e5)
 
     def test_inversion(self):
-        model = data.OHFluorescenceSA88('0-0')
+        model = data.OHFluorescenceSA88("0-0")
         assert np.isclose(model.inversion[0], -0.304)
 
     def test_rdot_error(self):
-        model = data.OHFluorescenceSA88('0-0')
+        model = data.OHFluorescenceSA88("0-0")
         with pytest.raises(ValueError):
             model(-61 * u.km / u.s)
 
     def test_rh_error(self):
-        model = data.OHFluorescenceSA88('0-0')
+        model = data.OHFluorescenceSA88("0-0")
         with pytest.raises(ValueError):
-            model({'rdot': 1 * u.km / u.s, 'rh': 0.4 * u.au})
+            model({"rdot": 1 * u.km / u.s, "rh": 0.4 * u.au})

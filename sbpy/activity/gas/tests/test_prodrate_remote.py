@@ -13,6 +13,7 @@ from .. import (Haser, photo_timescale, LTE, NonLTE, einstein_coeff,
                 intensity_conversion, beta_factor, total_number, from_Haser)
 from ....data import Ephem, Phys
 
+
 class MockPyradex:
     """
     Class to be the mock return value of NonLTE.from_pyradex

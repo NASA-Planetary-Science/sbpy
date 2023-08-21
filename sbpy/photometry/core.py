@@ -15,7 +15,7 @@ __doctest_requires__ = {
      "DiskIntegratedPhaseFunc.from_obs",
      "LinearPhaseFunc",
      "LinearPhaseFunc._phase_integral"
-    ): ["scipy"],
+     ): ["scipy"],
 }
 
 from collections import OrderedDict
