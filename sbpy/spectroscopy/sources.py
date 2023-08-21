@@ -43,7 +43,7 @@ class SinglePointSpectrumError(SbpyException):
     """Single point provided, but multiple values expected."""
 
 
-@deprecated("v0.4.1")
+@deprecated("v0.5.0")
 class SynphotRequired(SbpyException):
     pass
 

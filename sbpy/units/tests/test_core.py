@@ -130,7 +130,13 @@ def test_reflectance_ref(fluxd, wfb, f_sun, ref):
 
     pytest.importorskip("synphot")
 
-    wfb = bandpass(wfb) if type(wfb) is str else wfb
+    try:
+        # passes for "Johnson V", but fails for "V" band
+        # we will set "V" band to a specific value below
+        wfb = bandpass(wfb) if type(wfb) is str else wfb
+    except KeyError:
+        pass
+
     xsec = 6.648e5 * u.km**2
 
     with vega_fluxd.set({'V': u.Quantity(3.589e-9, 'erg/(s cm2 AA)')}):
@@ -162,7 +168,12 @@ def test_reflectance_xsec(fluxd, wfb, f_sun, radius):
 
     pytest.importorskip("synphot")
 
-    wfb = bandpass(wfb) if type(wfb) is str else wfb
+    try:
+        # passes for "Johnson V", but fails for "V" band
+        # we will set "V" band to a specific value below
+        wfb = bandpass(wfb) if type(wfb) is str else wfb
+    except KeyError:
+        pass
 
     ref = 0.02865984 / u.sr
     with vega_fluxd.set({'V': u.Quantity(3.589e-9, 'erg/(s cm2 AA)')}):

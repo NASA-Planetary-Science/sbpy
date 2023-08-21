@@ -4,10 +4,8 @@ import sys
 from unittest import mock
 import pytest
 import numpy as np
-
-synphot = pytest.importorskip("synphot")
-
 from ..bandpass import *
+from ...exceptions import RequiredPackageUnavailable
 
 
 @pytest.mark.parametrize('name, avgwave', (
@@ -44,7 +42,12 @@ def test_bandpass(name, avgwave):
     assert np.isclose(bp.avgwave().value, avgwave)
 
 
-@mock.patch.dict(sys.modules, {'synphot': None})
 def test_bandpass_synphot():
-        with pytest.raises(ImportError):
-            bandpass('sdss u')
+    # skip if synphot is available
+    try:
+        import synphot
+        pytest.skip()
+    except ImportError:
+        pass
+    with pytest.raises(RequiredPackageUnavailable):
+        bandpass('sdss u')

@@ -651,7 +651,7 @@ class Ephem(DataClass):
         return cls.from_table(all_eph)
 
     @classmethod
-    @requires("oorb")
+    @requires("pyoorb")
     @cite({'method': '2009M&PS...44.1853G',
            'software': 'https://github.com/oorb/oorb'})
     def from_oo(cls, orbit, epochs=None, location='500', scope='full',
