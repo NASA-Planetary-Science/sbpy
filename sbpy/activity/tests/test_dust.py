@@ -103,7 +103,7 @@ class TestAfrho:
             synphot.units.convert_flux(6182, 11.97 * u.ABmag, u.STmag)
 
         """
-    
+
         pytest.importorskip("synphot")
 
         eph = Ephem.from_dict(dict(rh=rh * u.au, delta=delta * u.au))

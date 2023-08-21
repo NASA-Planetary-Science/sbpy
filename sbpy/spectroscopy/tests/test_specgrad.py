@@ -11,8 +11,10 @@ try:
 except ModuleNotFoundError:
     # do nothing function so that the TestSpectralGradient class can compile
     synphot = None
+
     def bandpass(bp):
         pass
+
 
 @pytest.mark.skipif("synphot is None")
 class TestSpectralGradient():

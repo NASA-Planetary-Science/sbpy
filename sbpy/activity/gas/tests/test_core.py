@@ -18,6 +18,7 @@ from .. import (
 )
 from ....data import Phys
 
+
 def test_photo_lengthscale():
     gamma = photo_lengthscale("OH", "CS93")
     assert gamma == 1.6e5 * u.km
@@ -99,7 +100,7 @@ class TestHaser:
         Should be within 1% of ideal value.
 
         """
-        
+
         pytest.importorskip("scipy")
 
         Q = 1e28 / u.s
@@ -117,7 +118,7 @@ class TestHaser:
         Test column density for aperture = lengthscale.
 
         """
-        
+
         pytest.importorskip("scipy")
 
         Q = 1e28 / u.s
@@ -131,9 +132,9 @@ class TestHaser:
 
     def test_total_number_large_aperture(self):
         """Test column density for aperture >> lengthscale."""
-        
+
         pytest.importorskip("scipy")
-        
+
         Q = 1 / u.s
         v = 1 * u.km / u.s
         rho = 1000 * u.km
@@ -150,7 +151,7 @@ class TestHaser:
         Code initially from Quanzhi Ye.
 
         """
-        
+
         pytest.importorskip("scipy")
 
         Q = 1e25 / u.s
@@ -249,7 +250,7 @@ class TestHaser:
         parent only
 
         """
-        
+
         pytest.importorskip("scipy")
 
         # Nobs = 2.314348613550494e+27
@@ -286,7 +287,7 @@ class TestHaser:
 
     def test_total_number_annulus(self):
         """Test column density for annular aperture."""
-    
+
         pytest.importorskip("scipy")
 
         Q = 1 / u.s
@@ -355,7 +356,7 @@ class TestHaser:
         which is within 0.5% of the test value below
 
         """
-    
+
         pytest.importorskip("scipy")
 
         parent = 1.4e4 * u.km

@@ -15,6 +15,7 @@ from ...units import hundred_nm
 V = bandpass('johnson v')
 I = bandpass('cousins i')
 
+
 class Star(SpectralSource):
     def __init__(self):
         super().__init__(synphot.SourceSpectrum(

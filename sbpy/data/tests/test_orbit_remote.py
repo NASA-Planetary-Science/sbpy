@@ -140,7 +140,7 @@ class TestOOTransform:
 
     def test_timescales(self):
         pytest.importorskip("pyoorb")
-        
+
         orbit = Orbit.from_horizons('Ceres')
         orbit['epoch'] = orbit['epoch'].tdb
 

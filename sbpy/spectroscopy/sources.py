@@ -42,6 +42,7 @@ __doctest_requires__ = {
 class SinglePointSpectrumError(SbpyException):
     """Single point provided, but multiple values expected."""
 
+
 @deprecated("v0.4.1")
 class SynphotRequired(SbpyException):
     pass
