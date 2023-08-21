@@ -36,7 +36,8 @@ from ..spectroscopy.sources import SpectralSource
 from ..exceptions import SbpyException
 from .. import bib
 from . import solar_sources, vega_sources
-from ..utils.decorators import optional, requires
+from ..utils.decorators import requires
+from ..utils import optional
 
 try:
     import synphot
@@ -129,17 +130,16 @@ class SpectralStandard(SpectralSource, ABC):
         return cls.from_file(**parameters)
 
     @classmethod
-    @optional("synphot")
     def from_default(cls):
         """Initialize new spectral standard from current default.
 
         The spectrum will be ``None`` if `synphot` is not available.
 
         """
-        if synphot is None:
-            standard = cls(None)
-        else:
+        if optional("synphot"):
             standard = cls._spectrum_state.get()
+        else:
+            standard = cls(None)
         return standard
 
     @classmethod

@@ -474,7 +474,7 @@ class Orbit(DataClass):
 
         return Orbit._from_oo(oo_orbits, orbittype, timescale)
 
-    @requires("oorb")
+    @requires("pyoorb")
     @cite({'method': '2009M&PS...44.1853G',
            'software': 'https://github.com/oorb/oorb'})
     def oo_transform(self, orbittype, ephfile='de430'):
@@ -589,7 +589,7 @@ class Orbit(DataClass):
 
         return orbits
 
-    @requires("oorb")
+    @requires("pyoorb")
     @cite({'method': '2009M&PS...44.1853G',
            'software': 'https://github.com/oorb/oorb'})
     def oo_propagate(self, epochs, dynmodel='N', ephfile='de430'):
