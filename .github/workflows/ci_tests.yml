@@ -45,10 +45,10 @@ jobs:
 
         - name: Python 3.10 with all optional dependencies, measuring coverage
           linux: py310-test-alldeps-cov
+          coverage: codecov
           
         - name: Python 3.8 with oldest supported versions
           linux: py38-test-oldestdeps
-          coverage: codecov
 
   macos-tests:
     name: Python 3.10 with all optional dependencies (MacOS)
