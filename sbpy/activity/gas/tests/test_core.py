@@ -421,6 +421,7 @@ class TestVectorialModel:
             coma.vmr.num_fragments_grid, num_fragments_grid, rtol=0.02
         )
 
+    @pytest.mark.slow
     def test_time_dependent_function(self):
         """
         Test handing off a time dependence to the model with zero additional
@@ -463,6 +464,7 @@ class TestVectorialModel:
             coma_steady.vmr.num_fragments_grid, coma_q_t.vmr.num_fragments_grid, rtol=0.02
         )
 
+    @pytest.mark.slow
     def test_binned_production_one_element_list(self):
         """
         Initialize a comet with the fortran-version style of specifying time
@@ -506,6 +508,7 @@ class TestVectorialModel:
             coma_steady.vmr.num_fragments_grid, coma_binned.vmr.num_fragments_grid, rtol=0.02
         )
 
+    @pytest.mark.slow
     def test_binned_production_multi_element_list(self):
         """
         Initialize a comet with the fortran-version style of specifying time
@@ -604,6 +607,7 @@ class TestVectorialModel:
             coma.vmr.num_fragments_theory, coma.total_number(ap), rtol=0.02
         )
 
+    @pytest.mark.slow
     def test_model_symmetry(self):
         """
         The symmetry of the model allows the parent production to be
@@ -681,6 +685,7 @@ class TestVectorialModel:
             [1.3366, 0.8720, 560e-14, 4.03e-4, 2.035e28],
         ),
     )
+    @pytest.mark.slow
     def test_festou92(self, rh, delta, flux, g, Q):
         """Compare to Festou et al. 1992 production rates of comet 6P/d'Arrest.
 
@@ -755,6 +760,7 @@ class TestVectorialModel:
             [2.0715, 1.7930, 1.01e32, 1.88e29],
         ),
     )
+    @pytest.mark.slow
     def test_combi93(self, rh, delta, N, Q):
         """Compare to results of Combi et al. 1993.
 
@@ -794,6 +800,7 @@ class TestVectorialModel:
         Q_model = (Q0 * N / N0).to(Q.unit)
         assert u.allclose(Q, Q_model, rtol=0.13)
 
+    @pytest.mark.slow
     def test_vm_fortran(self):
         """Compare to results from vm.f.
 
