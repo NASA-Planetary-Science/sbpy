@@ -48,7 +48,7 @@ jobs:
           toxargs: -v
           posargs: -n=4 --run-slow
 
-          - name: Python 3.8 with oldest supported versions
+        - name: Python 3.8 with oldest supported versions
           linux: py38-test-oldestdeps
           coverage: codecov
 
