@@ -90,7 +90,8 @@ class TestHaser:
         parent = 1e4 * u.km
         N_avg = 2 * Haser(Q, v, parent).column_density(rho)
         ideal = Q / v / 2 / rho
-        assert np.isclose(N_avg.decompose().value, ideal.decompose().value, rtol=0.001)
+        assert np.isclose(N_avg.decompose().value,
+                          ideal.decompose().value, rtol=0.001)
 
     def test_column_density_small_angular_aperture(self):
         """Test column density for angular aperture << lengthscale.
@@ -109,9 +110,11 @@ class TestHaser:
         eph = dict(delta=1 * u.au)
         parent = 1e4 * u.km
         N_avg = 2 * Haser(Q, v, parent).column_density(rho, eph)
-        rho_km = (rho * eph["delta"] * 725.24 * u.km / u.arcsec / u.au).to("km")
+        rho_km = (rho * eph["delta"] * 725.24 *
+                  u.km / u.arcsec / u.au).to("km")
         ideal = Q / v / 2 / rho_km
-        assert np.isclose(N_avg.to_value("1/m2"), ideal.to_value("1/m2"), rtol=0.001)
+        assert np.isclose(N_avg.to_value("1/m2"),
+                          ideal.to_value("1/m2"), rtol=0.001)
 
     def test_column_density(self):
         """
@@ -296,8 +299,10 @@ class TestHaser:
         parent = 10 * u.km
         N = Haser(Q, v, parent).total_number(aper)
 
-        N1 = Haser(Q, v, parent).total_number(core.CircularAperture(aper.dim[0]))
-        N2 = Haser(Q, v, parent).total_number(core.CircularAperture(aper.dim[1]))
+        N1 = Haser(Q, v, parent).total_number(
+            core.CircularAperture(aper.dim[0]))
+        N2 = Haser(Q, v, parent).total_number(
+            core.CircularAperture(aper.dim[1]))
 
         assert np.allclose(N, N2 - N1)
 
@@ -369,7 +374,7 @@ class TestHaser:
         assert np.isclose(N, 5.146824269306973e27, rtol=0.005)
 
 
-@pytest.mark.skipif(scipy is None)
+@pytest.mark.skipif(scipy is None, reason="requires scipy")
 class TestVectorialModel:
     def test_small_vphoto(self):
         """
@@ -396,7 +401,8 @@ class TestVectorialModel:
         # Fragment molecule is OH, but v_photo is modified to be smaller than
         # v_outflow
         fragment = Phys.from_dict(
-            {"tau_T": photo_timescale("OH") * 0.93, "v_photo": 0.5 * u.km / u.s}
+            {"tau_T": photo_timescale("OH") * 0.93,
+             "v_photo": 0.5 * u.km / u.s}
         )
 
         coma = VectorialModel(
@@ -433,7 +439,8 @@ class TestVectorialModel:
         )
         # Fragment molecule is OH
         fragment = Phys.from_dict(
-            {"tau_T": photo_timescale("OH") * 0.93, "v_photo": 1.05 * u.km / u.s}
+            {"tau_T": photo_timescale("OH") * 0.93,
+             "v_photo": 1.05 * u.km / u.s}
         )
 
         coma_steady = VectorialModel(
@@ -477,7 +484,8 @@ class TestVectorialModel:
         )
         # Fragment molecule is OH
         fragment = Phys.from_dict(
-            {"tau_T": photo_timescale("OH") * 0.93, "v_photo": 1.05 * u.km / u.s}
+            {"tau_T": photo_timescale("OH") * 0.93,
+             "v_photo": 1.05 * u.km / u.s}
         )
 
         coma_binned = VectorialModel.binned_production(
@@ -516,7 +524,8 @@ class TestVectorialModel:
         )
         # Fragment molecule is OH
         fragment = Phys.from_dict(
-            {"tau_T": photo_timescale("OH") * 0.93, "v_photo": 1.05 * u.km / u.s}
+            {"tau_T": photo_timescale("OH") * 0.93,
+             "v_photo": 1.05 * u.km / u.s}
         )
 
         coma_binned = VectorialModel.binned_production(
@@ -552,7 +561,8 @@ class TestVectorialModel:
         )
         # Fragment molecule is OH
         fragment = Phys.from_dict(
-            {"tau_T": photo_timescale("OH") * 0.93, "v_photo": 1.05 * u.km / u.s}
+            {"tau_T": photo_timescale("OH") * 0.93,
+             "v_photo": 1.05 * u.km / u.s}
         )
 
         coma = VectorialModel(base_q=base_q, parent=parent, fragment=fragment)
@@ -580,7 +590,8 @@ class TestVectorialModel:
         )
         # Fragment molecule is OH
         fragment = Phys.from_dict(
-            {"tau_T": photo_timescale("OH") * 0.93, "v_photo": 1.05 * u.km / u.s}
+            {"tau_T": photo_timescale("OH") * 0.93,
+             "v_photo": 1.05 * u.km / u.s}
         )
 
         coma = VectorialModel(base_q=base_q, parent=parent, fragment=fragment)
@@ -625,7 +636,8 @@ class TestVectorialModel:
         )
         # Fragment molecule is OH
         fragment = Phys.from_dict(
-            {"tau_T": photo_timescale("OH") * 0.93, "v_photo": 1.05 * u.km / u.s}
+            {"tau_T": photo_timescale("OH") * 0.93,
+             "v_photo": 1.05 * u.km / u.s}
         )
 
         coma = VectorialModel(
@@ -703,7 +715,8 @@ class TestVectorialModel:
         )
         # Fragment molecule is OH
         fragment = Phys.from_dict(
-            {"tau_T": 160000 * (rh / u.au) ** 2 * u.s, "v_photo": 1.05 * u.km / u.s}
+            {"tau_T": 160000 * (rh / u.au) ** 2 * u.s,
+             "v_photo": 1.05 * u.km / u.s}
         )
 
         # https://pds.nasa.gov/ds-view/pds/viewInstrumentProfile.jsp?INSTRUMENT_ID=LWP&INSTRUMENT_HOST_ID=IUE
@@ -770,7 +783,8 @@ class TestVectorialModel:
 
         # Fragment molecule is OH
         fragment = Phys.from_dict(
-            {"tau_T": 2.0e5 * (rh / u.au) ** 2 * u.s, "v_photo": 1.05 * u.km / u.s}
+            {"tau_T": 2.0e5 * (rh / u.au) ** 2 * u.s,
+             "v_photo": 1.05 * u.km / u.s}
         )
 
         Q0 = 2e29 / u.s
@@ -910,7 +924,8 @@ class TestVectorialModel:
         sigma0_rho = x[::2] * u.km
         sigma0 = x[1::2] / u.cm**2
         # absolute tolerance: 3 significant figures
-        sigma0_atol = 1.1 * 10 ** (np.floor(np.log10(sigma0.value)) - 2) * sigma0.unit
+        sigma0_atol = 1.1 * \
+            10 ** (np.floor(np.log10(sigma0.value)) - 2) * sigma0.unit
         sigma0_atol_revised = sigma0_atol * 40
 
         # evaluate the model
