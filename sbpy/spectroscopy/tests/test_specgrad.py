@@ -16,7 +16,7 @@ except ModuleNotFoundError:
         pass
 
 
-@pytest.mark.skipif("synphot is None")
+@pytest.mark.skipif(synphot is None, reason="requires synphot")
 class TestSpectralGradient():
     def test_new(self):
         S = SpectralGradient(100 / u.um, wave=(525, 575) * u.nm)
