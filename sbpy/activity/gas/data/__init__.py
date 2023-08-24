@@ -16,7 +16,7 @@ from astropy.utils.data import get_pkg_data_path
 
 from .... import data as sbd
 from .... import bib
-from ....utils import optional
+from ....utils import optional_packages
 
 photo_lengthscale = {   # (value, {key feature: ADS bibcode})
     'H2O': {
@@ -122,7 +122,7 @@ class OHFluorescenceSA88:
         self._LN = u.Quantity(self.table5[k].data * self.scales[i],
                               'erg / s')
 
-        if optional("scipy"):
+        if optional_packages("scipy"):
             from scipy.interpolate import splrep
             self._tck = splrep(self.rdot.value, self.LN.value)
             self._interp = self._spline

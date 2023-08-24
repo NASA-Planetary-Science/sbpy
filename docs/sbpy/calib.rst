@@ -103,7 +103,7 @@ The `~astropy.utils.state.ScienceState` objects `~sbpy.calib.solar_fluxd` and `~
     >>> from sbpy.calib import Sun, solar_fluxd, vega_fluxd
     >>> import sbpy.units as sbu
 
-    .. doctest-requires:: astropy>=5.3
+.. doctest-requires:: astropy>=5.3
 
     >>> from sbpy.calib import Sun, solar_fluxd, vega_fluxd
     >>> import sbpy.units as sbu
@@ -184,13 +184,15 @@ When the requested spectral resolution is comparable to the spectral resolution 
 
 Compare interpolation and rebinning for the E490 low-resolution solar spectrum, using the stored wavelengths of the spectrum.  Initialize a `~sbpy.calib.Sun` object with the low-resolution spectrum.
 
+.. doctest-requires:: synphot
+
     >>> import numpy as np
     >>> from sbpy.calib import Sun
     >>> sun = Sun.from_builtin('E490_2014LR')
 
 Inspect a sub-set of the data for this example.
 
-.. doctest-requires:: astropy>=5.3
+.. doctest-requires:: astropy>=5.3, synphot
 
     >>> wave = sun.wave[430:435]
     >>> S = sun.fluxd[430:435]
@@ -202,22 +204,25 @@ Inspect a sub-set of the data for this example.
 Interpolate with observe() and compare to the original values.
 
 .. testsetup::
-.. doctest-requires:: astropy<5.3
+.. doctest-requires:: astropy<5.3, synphot
 
     >>> wave = sun.wave[430:435]
     >>> S = sun.fluxd[430:435]
-
     >>> S_interp = sun.observe(wave, interpolate=True)
     >>> np.allclose(S.value, S_interp.value)
     True
 
 Re-bin with observe using the same wavelengths as band centers.
 
+.. doctest-requires:: synphot
+
     >>> S_rebin = sun.observe(wave)
     >>> np.allclose(S.value, S_rebin.value)
     False
 
 Inspect the differences.
+
+.. doctest-requires:: synphot
 
     >>> print((S_rebin - S) / (S_rebin + S) * 2)    # doctest: +FLOAT_CMP
     [-0.00429693  0.00281266 -0.00227604  0.00412338 -0.00132301]

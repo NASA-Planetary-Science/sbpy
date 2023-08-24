@@ -124,8 +124,8 @@ Technical requirements
   name list` list where it makes sense
 * consider using the sbpy function and decorator helpers to test for the
   presence of optional dependencies:
-  * `~sbpy.utils.requires` and `~sbpy.utils.decorators.requires` raise an exception if a package cannot be imported.
-  * `~sbpy.utils.optional` and `~sbpy.utils.decorators.optional` warn the user if a package cannot be imported.
+  * `~sbpy.utils.required_packages` and `~@sbpy.utils.decorators.requires` raise an exception if a package cannot be imported.
+  * `~sbpy.utils.optional_packages` and `~@sbpy.utils.decorators.optionally_uses` warn the user if a package cannot be imported.
 * a CHANGELOG entry is required; also update the :doc:`/status` where applicable
 
 

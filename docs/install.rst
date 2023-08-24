@@ -25,10 +25,10 @@ Optional dependencies
   rate calculations related to cometary activity (`~sbpy.activity.gas.NonLTE`).
 * `scipy <https://scipy.org/>`__: 1.3 or later, for numerical integrations in `sbpy.activity.gas` and `sbpy.photometry`, among others.  **Recommended**
 * `synphot <https://github.com/spacetelescope/synphot_refactor>`__ 1.1.1 or later, for calibration with respect to the Sun and Vega, filtering spectra through bandpasses.  **Recommended**
-* `ginga <https://ejeschke.github.io/ginga/>`__ and `photutils
-  <https://photutils.readthedocs.io/en/stable/>`__: To interactively enhance
+* `ginga <https://ejeschke.github.io/ginga/>`__ : To interactively enhance
   images of comets with the `~sbpy.imageanalysis.CometaryEnhancement` Ginga
   plugin.
+* `photutils <https://photutils.readthedocs.io/en/stable/>`__: For centroiding within the Cometary Enhancements Ginga plugin.
 
 
 Using pip

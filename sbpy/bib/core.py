@@ -34,7 +34,7 @@ except ImportError:
 
 from astropy import log
 
-from ..exceptions import RequiredPackageUnavailable
+from ..utils.decorators import requires
 
 
 def register(task, citations):
@@ -228,6 +228,7 @@ def show(filter=None):
     return output
 
 
+@requires("ads")
 def to_text(filter=None):
     """Convert bibcodes to human readable text.
 
@@ -246,9 +247,6 @@ def to_text(filter=None):
         the bibcodes.
 
     """
-
-    if ads is None:
-        raise RequiredPackageUnavailable("requires ads")
 
     output = ''
     for task, ref in _filter(filter).items():
@@ -316,6 +314,7 @@ def to_text(filter=None):
     return output
 
 
+@requires("ads")
 def _to_format(format, filter=None):
     """Convert bibcodes to a range of different output formats.
 
@@ -338,9 +337,6 @@ def _to_format(format, filter=None):
         for each reference.
 
     """
-
-    if ads is None:
-        raise RequiredPackageUnavailable("requires ads")
 
     output = ''
     for task, ref in _filter(filter).items():

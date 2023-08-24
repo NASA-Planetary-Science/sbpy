@@ -37,7 +37,7 @@ from ..exceptions import SbpyException
 from .. import bib
 from . import solar_sources, vega_sources
 from ..utils.decorators import requires
-from ..utils import optional
+from ..utils import optional_packages
 
 try:
     import synphot
@@ -136,7 +136,7 @@ class SpectralStandard(SpectralSource, ABC):
         The spectrum will be ``None`` if `synphot` is not available.
 
         """
-        if optional("synphot"):
+        if optional_packages("synphot"):
             standard = cls._spectrum_state.get()
         else:
             standard = cls(None)

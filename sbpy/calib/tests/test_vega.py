@@ -1,5 +1,5 @@
 import inspect
-import importlib
+from unittest.mock import patch
 import pytest
 import numpy as np
 import astropy.units as u
@@ -32,13 +32,9 @@ class TestVega:
         fluxd = vega(5557.5 * u.AA, unit=fluxd0.unit)
         assert np.isclose(fluxd.value, fluxd0.value)
 
+    @patch.dict("sys.modules", {"synphot": None})
     def test_source_error(self):
         # Only test when synphot is not available.
-        try:
-            import synphot
-            pytest.skip()
-        except ImportError:
-            pass
         vega = Vega.from_default()
         with pytest.raises(UndefinedSourceError):
             vega.source

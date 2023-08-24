@@ -15,22 +15,20 @@ __doctest_requires__ = {
     "Efrho.to_fluxd": ["synphot"],
 }
 
-from warnings import warn
 import abc
 
 import numpy as np
 import astropy.units as u
 
 try:
-    import scipy
     from scipy.interpolate import splrep, splev
 except ImportError:
-    scipy = None
+    pass
 
 from .. import bib
 from ..calib import Sun
 from ..spectroscopy import BlackbodySource
-from ..utils import optional
+from ..utils import optional_packages
 from .. import data as sbd
 from .. import units as sbu
 from ..spectroscopy.sources import SinglePointSpectrumError
@@ -289,7 +287,7 @@ def phase_HalleyMarcus(phase):
 
     _phase = np.abs(u.Quantity(phase, "deg").value)
 
-    if optional("scipy"):
+    if optional_packages("scipy"):
         Phi = splev(_phase, splrep(th, ph))
     else:
         Phi = np.interp(_phase, th, ph)

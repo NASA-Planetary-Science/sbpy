@@ -6,15 +6,16 @@ created on March 12, 2019
 
 """
 
-__all__ = ["requires", "optional"]
+__all__ = ["required_packages", "optional_packages"]
 
 from importlib import import_module
 from warnings import warn
 from ..exceptions import RequiredPackageUnavailable, OptionalPackageUnavailable
 
 
-def requires(*packages, message=None):
+def required_packages(*packages, message=None):
     """Verifies the arguments are valid packages.
+
 
     Parameters
     ----------
@@ -34,8 +35,8 @@ def requires(*packages, message=None):
     Examples
     --------
 
-    >>> from sbpy.utils import requires
-    >>> requires("unavailable_package")
+    >>> from sbpy.utils import required_packages
+    >>> required_packages("unavailable_package")
     Traceback (most recent call last):
     ...
     sbpy.exceptions.RequiredPackageUnavailable: `unavailable_package` is required.
@@ -47,11 +48,13 @@ def requires(*packages, message=None):
             import_module(package)
         except ModuleNotFoundError as exc:
             _message = "" if message is None else "  " + message
-            raise RequiredPackageUnavailable(f"`{package}` is required.{_message}") from None
+            raise RequiredPackageUnavailable(
+                f"`{package}` is required.{_message}") from None
 
 
-def optional(*packages, message=None):
+def optional_packages(*packages, message=None):
     """Decorator that warns if the arguments are not valid packages.
+
 
     Parameters
     ----------
@@ -78,8 +81,8 @@ def optional(*packages, message=None):
     Examples
     --------
 
-    >>> from sbpy.utils import optional
-    >>> optional("unavailable_package")  # doctest: +SKIP
+    >>> from sbpy.utils import optional_packages
+    >>> optional_packages("unavailable_package")  # doctest: +SKIP
     OptionalPackageUnavailable: Optional package `unavailable_package` is unavailable.
 
     """

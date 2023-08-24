@@ -484,7 +484,7 @@ class SpectralSource(ABC):
         red_spec._source = red_spec.source * r
         if red_spec.description is not None:
             red_spec._description = '{} reddened by {} at {}'.format(
-                    red_spec.description, S, S.wave0)
+                red_spec.description, S, S.wave0)
         return red_spec
 
 
