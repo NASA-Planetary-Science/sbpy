@@ -1,22 +1,24 @@
 from warnings import catch_warnings
 import pytest
-from ..decorators import requires, optional
+from ..decorators import requires, optionally_uses
 from ...exceptions import RequiredPackageUnavailable, OptionalPackageUnavailable
 
 
-def test_requires():
-    @requires("unavailable_package")
-    def f():
-        pass
+@requires("unavailable_package")
+def f_required():
+    pass
 
+
+@optionally_uses("unavailable_package")
+def f_optional():
+    pass
+
+
+def test_requires():
     with pytest.raises(RequiredPackageUnavailable):
-        f()
+        f_required()
 
 
 def test_optional():
-    @optional("unavailable_package")
-    def f():
-        pass
-
     with pytest.warns(OptionalPackageUnavailable):
-        f()
+        f_optional()

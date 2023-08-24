@@ -369,7 +369,7 @@ class TestHaser:
         assert np.isclose(N, 5.146824269306973e27, rtol=0.005)
 
 
-@pytest.mark.skipif("scipy is None")
+@pytest.mark.skipif(scipy is None)
 class TestVectorialModel:
     def test_small_vphoto(self):
         """

@@ -60,6 +60,8 @@ Unit conversions between flux density and Vega-based magnitudes use the `astropy
 
 To use a bandpass, define and pass a `synphot.spectrum.SpectralElement`.  A limited set of bandpasses are distributed with sbpy (see :ref:`filter-bandpasses`):
 
+.. doctest-requires:: synphot
+
   >>> from sbpy.units import VEGAmag, spectral_density_vega
   >>> from sbpy.photometry import bandpass
   >>> V = bandpass('Johnson V')

@@ -1,22 +1,29 @@
-0.4.1 (unreleased)
+0.5.0 (unreleased)
 ==================
 
 - Revised required and optional packages:
-  - Only numpy and astropy are required; synphot, ads, and astroquery are now optional dependences.
-  - Created an option to install a recommended list of packages, e.g., ``pip install sbpy[recommended]``.
+
+  - Only numpy and astropy are required; scipy, synphot, ads, and astroquery are
+    now optional dependences.
+
+  - Created an option to install a recommended list of packages, e.g., ``pip
+    install sbpy[recommended]``.
 
 
 New Features
 ------------
 
+sbpy.utils
+^^^^^^^^^^
+
+- New `required_packages` and `optional_packages` functions to test for the
+  presence of required and optional packages.
+
 sbpy.utils.decorators
 ^^^^^^^^^^^^^^^^^^^^^
 
-- Added the `requires` function decorator to test for the presence of optional
-  packages.
-
-- Added the  `optional` function decorator to test for the presence of optional
-  packages.
+- New `requires` and  `optionally_uses` function decorators to simplify testing
+  for required and optional packages.
 
 
 API Changes

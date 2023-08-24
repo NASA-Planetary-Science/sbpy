@@ -30,6 +30,7 @@ from ...bib import register
 from ...data import Phys
 from ...exceptions import RequiredPackageUnavailable
 from ...utils.decorators import requires
+from ...utils import required_packages
 
 __all__ = ['LTE', 'NonLTE', 'einstein_coeff',
            'intensity_conversion', 'beta_factor', 'total_number',
@@ -257,8 +258,8 @@ def beta_factor(mol_data, ephemobj):
     r = (orb['r'])
 
     if not isinstance(mol_data['mol_tag'][0], str):
-        if astroquery is None:
-            raise RequiredPackageUnavailable(f"mol_tag = {mol_data['mol_tag'][0]} requires astroquery")
+        required_packages(
+            "astroquery", f"mol_tag = {mol_data['mol_tag'][0]} requires astroquery")
 
         cat = JPLSpec.get_species_table()
         mol = cat[cat['TAG'] == mol_data['mol_tag'][0]]
@@ -664,7 +665,7 @@ class NonLTE():
     """
 
     @staticmethod
-    @requires(pyradex, astroquery)
+    @requires("pyradex", "astroquery")
     def from_pyradex(integrated_flux, mol_data, line_width=1.0 * u.km / u.s,
                      escapeProbGeom='lvg', iter=100,
                      collider_density={'H2': 900*2.2}):

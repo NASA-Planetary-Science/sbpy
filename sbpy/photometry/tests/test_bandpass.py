@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+from unittest.mock import patch
 import pytest
 import numpy as np
 from ..bandpass import *
@@ -44,13 +45,7 @@ def test_bandpass(name, avgwave):
     assert np.isclose(bp.avgwave().value, avgwave)
 
 
+@patch.dict("sys.modules", {"synphot": None})
 def test_bandpass_synphot():
-    # skip if synphot is available
-    try:
-        import synphot
-
-        pytest.skip()
-    except ImportError:
-        pass
     with pytest.raises(RequiredPackageUnavailable):
         bandpass("sdss u")

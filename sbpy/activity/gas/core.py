@@ -88,7 +88,8 @@ def photo_lengthscale(species, source=None):
         for k, v in sorted(data.items()):
             summary += "\n{} [{}]".format(k, ", ".join(v.keys()))
 
-        raise ValueError("Invalid species {}.  Choose from:{}".format(species, summary))
+        raise ValueError(
+            "Invalid species {}.  Choose from:{}".format(species, summary))
 
     gas = data[species]
     source = default_sources[species] if source is None else source
@@ -163,7 +164,8 @@ def photo_timescale(species, source=None):
         for k, v in sorted(data.items()):
             summary += "\n{} [{}]".format(k, ", ".join(v.keys()))
 
-        raise ValueError("Invalid species {}.  Choose from:{}".format(species, summary))
+        raise ValueError(
+            "Invalid species {}.  Choose from:{}".format(species, summary))
 
     gas = data[species]
     source = default_sources[species] if source is None else source
@@ -1275,11 +1277,13 @@ class VectorialModel(GasComa):
         # occupy)
         # NOTE: Equation (16) of Festou 1981 where alpha is the percent
         # destruction of molecules
-        parent_beta_r = -np.log(1.0 - self.model_params.parent_destruction_level)
+        parent_beta_r = - \
+            np.log(1.0 - self.model_params.parent_destruction_level)
         parent_r = parent_beta_r * vp * self.parent.tau_T
         self.vmr.coma_radius = parent_r * u.m
 
-        fragment_beta_r = -np.log(1.0 - self.model_params.fragment_destruction_level)
+        fragment_beta_r = - \
+            np.log(1.0 - self.model_params.fragment_destruction_level)
         # Calculate the time needed to hit a steady, permanent production of
         # fragments
         perm_flow_radius = self.vmr.coma_radius.value + (
@@ -1508,7 +1512,8 @@ class VectorialModel(GasComa):
 
                 # differential addition to the density integrating along dr,
                 # similar to eq. (36) Festou 1981
-                n_r = (p_extinction * f_extinction * q_r_eps) / (sep_dist**2 * v)
+                n_r = (p_extinction * f_extinction *
+                       q_r_eps) / (sep_dist**2 * v)
 
                 sputter += n_r * dr
 
@@ -1564,7 +1569,8 @@ class VectorialModel(GasComa):
         # Equivalent to summing over j for sin(theta[j]) *
         # fragment_sputter[i][j] with numpy magic
         self.solid_angle_sputter = np.sin(thetas) * self.fragment_sputter
-        self.fast_voldens = 2.0 * np.pi * np.sum(self.solid_angle_sputter, axis=1)
+        self.fast_voldens = 2.0 * np.pi * \
+            np.sum(self.solid_angle_sputter, axis=1)
 
         # Tag with proper units
         self.vmr.volume_density = self.fast_voldens / (u.m**3)
@@ -1629,7 +1635,8 @@ class VectorialModel(GasComa):
         def column_density_integrand(z):
             return self._volume_density(np.sqrt(z**2 + rhosq))
 
-        c_dens = 2 * romberg(column_density_integrand, 0, z_max, rtol=0.0001, divmax=50)
+        c_dens = 2 * romberg(column_density_integrand, 0,
+                             z_max, rtol=0.0001, divmax=50)
 
         # result is in 1/m^2
         return c_dens
@@ -1704,7 +1711,8 @@ class VectorialModel(GasComa):
         for i, t in enumerate(time_slices[:-1]):
             extinction_one = t / p_tau_T
             extinction_two = time_slices[i + 1] / p_tau_T
-            mult_factor = -np.e ** (-extinction_one) + np.e ** (-extinction_two)
+            mult_factor = -np.e ** (-extinction_one) + \
+                np.e ** (-extinction_two)
             theory_total += self.production_at_time(t) * mult_factor
 
         return theory_total * alpha - edge_adjust

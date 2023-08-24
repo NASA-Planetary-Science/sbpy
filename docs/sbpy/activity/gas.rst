@@ -83,6 +83,8 @@ daughter species.  It is included with some calculation enhancements based on
 Newburn and Johnson (1978).  With `~sbpy.activity.gas.Haser`, we may compute the
 column density and total number of molecules within an aperture:
 
+.. doctest-requires:: scipy
+
   >>> Q = 1e28 / u.s        # production rate
   >>> v = 0.8 * u.km / u.s  # expansion speed
   >>> parent = gas.photo_lengthscale('H2O')
@@ -94,6 +96,8 @@ column density and total number of molecules within an aperture:
   1.161357452192558e+30
 
 The gas coma models work with sbpy's apertures:
+
+.. doctest-requires:: scipy
 
   >>> from sbpy.activity import AnnularAperture
   >>> ap = AnnularAperture((5000, 10000) * u.km)
@@ -125,6 +129,8 @@ number of molecules in an aperture.  Parent and daughter data is provided via
 +------------------+-----------+------+-------------------------------------------------------+
 | daughter         | v_photo   | m/s  | photodissociation velocity (v_R)                      |
 +------------------+-----------+------+-------------------------------------------------------+
+
+.. doctest-requires:: scipy
 
   >>> from sbpy.data import Phys
   >>> water = Phys.from_dict({
