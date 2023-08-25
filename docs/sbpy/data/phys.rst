@@ -13,8 +13,11 @@ including the use of `~astropy.units`.
 As an example, the following code will query the properties for a
 small number of asteroids:
 
+.. doctest-requires:: astroquery
+.. doctest-remote-data:: 
+
     >>> from sbpy.data import Phys
-    >>> phys = Phys.from_sbdb(['Ceres', '12893', '3552'])  # doctest: +REMOTE_DATA
+    >>> phys = Phys.from_sbdb(['Ceres', '12893', '3552'])
     >>> phys['targetname', 'H', 'diameter'] # doctest: +SKIP
     <QTable length=3>
             targetname            H    diameter
@@ -47,7 +50,8 @@ from `~sbpy.data.Phys.from_jplspec` include the following data:
     | Lower level energy in Joules
     | Degrees of freedom
 
-.. doctest-skip::
+.. doctest-requires:: astroquery
+.. doctest-remote-data:: 
 
     >>> from sbpy.data.phys import Phys
     >>> import astropy.units as u
@@ -55,7 +59,7 @@ from `~sbpy.data.Phys.from_jplspec` include the following data:
     >>> transition_freq = (230.53799 * u.GHz).to('MHz')
     >>> mol_tag = '^CO$'
     >>> mol_data = Phys.from_jplspec(temp_estimate, transition_freq, mol_tag)
-    >>> mol_data
+    >>> mol_data  # doctest: +SKIP
     <QTable length=1>
     Transition frequency Temperature ... Degrees of freedom Molecule Identifier
             MHz               K      ...
