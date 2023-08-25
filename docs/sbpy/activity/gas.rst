@@ -48,6 +48,8 @@ Some sources provide values for the quiet and active Sun (Huebner et al. 1992):
 
 With the :doc:`../bib`, the citation may be discovered:
 
+.. doctest-requires:: ads
+
   >>> from sbpy import bib
   >>> bib.reset()             # clear any old citations
   >>> with bib.Tracking():

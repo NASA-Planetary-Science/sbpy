@@ -83,9 +83,12 @@ The model class can also be initialized by a subclass of ``sbpy``'s
 `~sbpy.data.DataClass`, such as `~sbpy.data.Phys`, as long as it contains the
 model parameters:
 
+.. doctest-requires:: astroquery
+.. doctest-remote-data:: 
+
   >>> from sbpy.data import Phys
-  >>> phys = Phys.from_sbdb('Ceres')    # doctest: +REMOTE_DATA
-  >>> m = HG.from_phys(phys)            # doctest: +REMOTE_DATA
+  >>> phys = Phys.from_sbdb('Ceres')
+  >>> m = HG.from_phys(phys)
   INFO: Model initialized for 1 Ceres (A801 AA). [sbpy.photometry.core]
   >>> print(m)                          # doctest: +SKIP
   Model: HG
