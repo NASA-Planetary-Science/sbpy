@@ -15,11 +15,10 @@ import astropy.constants as con
 import astropy.units as u
 
 try:
-    import astroquery
     from astroquery.jplspec import JPLSpec
     from astroquery.lamda import Lamda
 except ImportError:
-    astroquery = None
+    pass
 
 try:
     import pyradex
@@ -28,7 +27,6 @@ except ImportError:
 
 from ...bib import register
 from ...data import Phys
-from ...exceptions import RequiredPackageUnavailable
 from ...utils.decorators import requires
 from ...utils import required_packages
 
@@ -259,7 +257,7 @@ def beta_factor(mol_data, ephemobj):
 
     if not isinstance(mol_data['mol_tag'][0], str):
         required_packages(
-            "astroquery", f"mol_tag = {mol_data['mol_tag'][0]} requires astroquery")
+            "astroquery", message=f"mol_tag = {mol_data['mol_tag'][0]} requires astroquery")
 
         cat = JPLSpec.get_species_table()
         mol = cat[cat['TAG'] == mol_data['mol_tag'][0]]
