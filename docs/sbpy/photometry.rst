@@ -134,6 +134,7 @@ initialize a model directly from an `~sbpy.data.Obs` object by fitting the
 data contained therein.
 
 .. doctest-requires:: scipy
+
   >>> # use class method .from_obs
   >>> from astropy.modeling.fitting import SLSQPLSQFitter
   >>> fitter = SLSQPLSQFitter()
