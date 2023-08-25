@@ -166,11 +166,21 @@ planet to be specified simultaneously:
 .. doctest-remote-data::
 
     >>> import numpy as np
-    >>> chariklo = Orbit.from_horizons('chariklo', id_type='name')
-    >>> T = chariklo.tisserand(planet=['599', '699', '799', '899'])
+    >>> import astropy.units as u
+    >>> from astropy.time import Time
+    >>> chariklo = Orbit.from_dict({
+    ...     "e": 0.16778,
+    ...     "a": 15.78694 * u.au,
+    ...     "incl": 23.39153 * u.deg,
+    ...     "Omega": 300.44770 * u.deg,
+    ...     "w": 242.01787 * u.deg,
+    ...     "n": 0.015713 * u.deg / u.day,
+    ...     "M":  113.36375 * u.deg,
+    ... })
+    >>> T = chariklo.tisserand(planet=['599', '699', '799', '899'], epoch=Time("2023-08-25"))
     >>> with np.printoptions(precision=3):
     ...     print(T)  # doctest: +FLOAT_CMP
-    [3.485 2.931 2.858 3.224]
+    [3.482 2.93  2.859 3.225]
 
 `~sbpy.Orbit` also provides a method to compare the orbits of two objects
 in terms of the "D-criterion" (`Jopek 1993 <https://ui.adsabs.harvard.edu/abs/1993Icar..106..603J/abstract>`_).  The `~sbpy.Orbit.D_criterion` method
@@ -183,16 +193,37 @@ D_criterion:
 .. doctest-requires:: astroquery
 .. doctest-remote-data::
 
-    >>> comets = Orbit.from_horizons(['252P', 'P/2016 BA14'],
-    ...     id_type='designation', closest_apparition=True)
+    >>> import numpy as np
+    >>> import astropy.units as u
+    >>> from astropy.time import Time
+    >>>
+    >>> comet_252P = Orbit.from_dict({  # P/2016 BA14
+    ...     "e": 0.67309,
+    ...     "q": 0.99605 * u.au,
+    ...     "incl": 10.42220 * u.deg,
+    ...     "Omega": 190.94850 * u.deg,
+    ...     "w": 343.31047 * u.deg,
+    ...     "n": 0.18533 * u.deg / u.day,
+    ...     "Tp": Time("2016-03-15 06:19:30", scale="tdb")
+    ... })
+    >>>
+    >>> comet_460P = Orbit.from_dict({  # P/2016 BA14
+    ...     "e": 0.66625,
+    ...     "q": 1.00858 * u.au,
+    ...     "incl": 18.91867 * u.deg,
+    ...     "Omega": 180.53368 * u.deg,
+    ...     "w": 351.89672 * u.deg,
+    ...     "n": 0.18761 * u.deg / u.day,
+    ...     "Tp": Time("2016-03-15 12:24:19", scale="tdb")
+    ... })
     >>>
     >>> # Southworth & Hawkins function
-    >>> D_SH = comets[0].D_criterion(comets[1])
+    >>> D_SH = comet_252P.D_criterion(comet_460P)
     >>> # Drummond function
-    >>> D_D = comets[0].D_criterion(comets[1], version='d')
+    >>> D_D = comet_252P.D_criterion(comet_460P, version='d')
     >>> # hybrid function
-    >>> D_H = comets[0].D_criterion(comets[1], version='h')
+    >>> D_H = comet_252P.D_criterion(comet_460P, version='h')
     >>> print('D_SH = {:.4f}, D_D = {:.4f}, D_H = {:.4f}'.
     ...    format(D_SH, D_D, D_H))
-    D_SH = 0.1560, D_D = 0.0502, D_H = 0.1556
+    D_SH = 0.1562, D_D = 0.0503, D_H = 0.1558
 
