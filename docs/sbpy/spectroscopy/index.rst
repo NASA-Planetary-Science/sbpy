@@ -29,6 +29,8 @@ re-normalization to other wavelengths.
 inverse length.  For convenience, `sbpy` includes a
 `~sbpy.units.hundred_nm` unit, which is equal to 100 nm:
 
+.. These imports are needed for astropy versions < 5.3 because the next
+   doctest block only executes for versions >=5.3.
 .. testsetup::
 .. doctest-requires:: astropy<5.3
 
