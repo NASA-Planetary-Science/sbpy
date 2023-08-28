@@ -9,7 +9,7 @@ Orbit Queries
 body osculating elements from the `JPL Horizons service
 <https://ssd.jpl.nasa.gov/horizons/>`_:
 
-.. doctest-requires:: astroquery
+.. .. doctest-requires:: astroquery
 .. doctest-remote-data::
 
     >>> from sbpy.data import Orbit
@@ -31,7 +31,7 @@ scale of the desired epoch is not supported by the query function and
 hence converted to a scale that is supported (``tdb`` in this case).
 The following fields are available in this object:
 
-.. doctest-requires:: astroquery
+.. .. doctest-requires:: astroquery
 .. doctest-remote-data::
 
     >>> elem.field_names
@@ -44,7 +44,7 @@ epoch (current time) are queried. Similar to
 parameter on to that function. Furthermore, it is possible to query
 orbital elements for a number of targets:
 
-.. doctest-requires:: astroquery
+.. .. doctest-requires:: astroquery
 .. doctest-remote-data::
 
     >>> epoch = Time('2018-08-03 14:20', scale='tdb')
@@ -64,7 +64,7 @@ Alternatively, orbital elements can also be queried from the `Minor
 Planet Center <https://minorplanetcenter.net/iau/MPEph/MPEph.html>`_,
 although in this case only the most recent elements are accessible:
 
-.. doctest-requires:: astroquery
+.. .. doctest-requires:: astroquery
 .. doctest-remote-data::
 
     >>> elem = Orbit.from_mpc(['3552', '12893'])
@@ -93,7 +93,7 @@ using `OpenOrb <https://github.com/oorb/oorb>`_.
 In order to transform some current orbits to a state vector in
 cartesian coordinates, one could use the following code:
 
-.. doctest-requires:: astroquery, oorb
+.. .. doctest-requires:: astroquery, oorb
 .. doctest-remote-data::
 
     >>> elem = Orbit.from_horizons(['Ceres', 'Pallas', 'Vesta'])
@@ -120,7 +120,7 @@ propagated to either as `~astropy.time.Time` object, or as float in
 terms of Julian date. The following example propagates the current
 orbit of Ceres back to year 2000:
 
-.. doctest-requires:: astroquery, oorb
+.. .. doctest-requires:: astroquery, oorb
 .. doctest-remote-data::
 
     >>> elem = Orbit.from_horizons('Ceres')
@@ -148,7 +148,7 @@ parameter with respect to Jupiter is used in the dynamical classification of
 comets.  The Tisserand parameter can be calculated by `~sbpy.Orbit.tisserand`
 as follows:
 
-.. doctest-requires:: astroquery
+.. .. doctest-requires:: astroquery
 .. doctest-remote-data::
 
     >>> epoch = Time(2449400.5, format='jd', scale='tdb')
@@ -162,7 +162,7 @@ One can also specify the planet with respect to which the Tisserand parameter
 is calculated with optional parameter `planet`.  It also allows multiple
 planet to be specified simultaneously:
 
-.. doctest-requires:: astroquery
+.. .. doctest-requires:: astroquery
 .. doctest-remote-data::
 
     >>> import numpy as np
@@ -190,7 +190,7 @@ Drummond function (`Drummond 1991 <https://ui.adsabs.harvard.edu/abs/1981Icar...
 The code example below demonstrates the calculation of three versions of
 D_criterion:
 
-.. doctest-requires:: astroquery
+.. .. doctest-requires:: astroquery
 .. doctest-remote-data::
 
     >>> import numpy as np
