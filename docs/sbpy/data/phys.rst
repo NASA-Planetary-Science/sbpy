@@ -13,7 +13,7 @@ including the use of `~astropy.units`.
 As an example, the following code will query the properties for a
 small number of asteroids:
 
-.. doctest-requires:: astroquery
+.. .. doctest-requires:: astroquery
 .. doctest-remote-data:: 
 
     >>> from sbpy.data import Phys
@@ -50,7 +50,7 @@ from `~sbpy.data.Phys.from_jplspec` include the following data:
     | Lower level energy in Joules
     | Degrees of freedom
 
-.. doctest-requires:: astroquery
+.. .. doctest-requires:: astroquery
 .. doctest-remote-data:: 
 
     >>> from sbpy.data.phys import Phys
