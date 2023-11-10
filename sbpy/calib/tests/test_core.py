@@ -289,7 +289,6 @@ class Test_solar_spectrum:
 class Test_vega_spectrum:
     def test_validate_str(self):
         pytest.importorskip("synphot")
-        # pytest.importorskip("synphot")
         assert isinstance(vega_spectrum.validate("Bohlin2014"), Vega)
 
     def test_validate_Vega(self):
