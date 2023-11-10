@@ -721,7 +721,6 @@ class Orbit(DataClass):
             in_orbits=in_orbits._to_oo(),
             in_epoch=ooepoch,
             in_dynmodel=dynmodel)
-        print(oo_orbits, err)
 
         if err != 0:
             OpenOrbError('pyoorb failed with error code {:d}'.format(err))

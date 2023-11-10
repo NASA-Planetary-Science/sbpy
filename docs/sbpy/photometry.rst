@@ -83,7 +83,7 @@ The model class can also be initialized by a subclass of ``sbpy``'s
 `~sbpy.data.DataClass`, such as `~sbpy.data.Phys`, as long as it contains the
 model parameters:
 
-.. doctest-requires:: astroquery
+.. .. doctest-requires:: astroquery
 .. doctest-remote-data:: 
 
   >>> from sbpy.data import Phys
