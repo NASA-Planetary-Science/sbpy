@@ -22,6 +22,10 @@ __all__ = [
     'to_mnras'
 ]
 
+__doctest_requires__ = {
+    "cite": ["ads"],
+}
+
 import warnings
 from functools import wraps
 from collections import OrderedDict, defaultdict

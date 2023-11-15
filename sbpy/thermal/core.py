@@ -7,6 +7,10 @@ created on June 27, 2017
 
 __all__ = ['ThermalClass', 'STM', 'FRM', 'NEATM']
 
+__doctest_requires__ = {
+    "ThermalClass.flux": "astroquery"
+}
+
 
 class ThermalClass():
 

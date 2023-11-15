@@ -44,6 +44,8 @@ class TestHG:
 
     @pytest.mark.remote_data
     def test_from_phys(self):
+        pytest.importorskip("astroquery")
+
         # test initialization from `sbpy.data.DataClass`
         phys = Phys.from_sbdb('Ceres')
         m = HG.from_phys(phys)
@@ -241,6 +243,8 @@ class TestHG1G2:
 
     @pytest.mark.remote_data
     def test_from_phys(self):
+        pytest.importorskip("astroquery")
+
         # initialization with Phys, will cause exception because G1, G2 are
         # not generally unavailable.
         phys = Phys.from_sbdb(['Ceres'])
