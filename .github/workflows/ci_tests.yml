@@ -45,10 +45,8 @@ jobs:
 
         - name: Python 3.10 with all optional dependencies, measuring coverage
           linux: py310-test-alldeps-cov
+          posargs: --remote-data
           coverage: codecov
-          
-        - name: Python 3.8 with oldest supported versions
-          linux: py38-test-oldestdeps
 
   macos-tests:
     name: Python 3.10 with all optional dependencies (MacOS)
@@ -75,4 +73,4 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install tox
       - name: Test with tox
-        run: tox -e py310-test-alldeps
+        run: tox -e py310-test-alldeps -- --remote-data
