@@ -100,7 +100,7 @@ class TestOrbitFromMPC:
         assert len(a) == 1
 
     def test_multiple(self):
-        a = Orbit.from_mpc(['1P', '2P', '3P'])
+        a = Orbit.from_mpc(["1P", "2P", "4P"])
         assert len(a) == 3
 
     def test_break(self):

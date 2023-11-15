@@ -9,6 +9,12 @@ Class for storing and querying physical properties
 created on June 04, 2017
 """
 
+__all__ = ["Phys"]
+
+__doctest_requires__ = {
+    "Phys.from_sbdb": ["astroquery"],
+}
+
 from collections import OrderedDict
 
 import numpy as np
@@ -25,8 +31,6 @@ from .core import DataClass
 from ..bib import cite
 from ..exceptions import SbpyException
 from ..utils.decorators import requires
-
-__all__ = ['Phys']
 
 
 class JPLSpecQueryFailed(SbpyException):

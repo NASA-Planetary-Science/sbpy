@@ -7,7 +7,16 @@ sbpy data.Orbit Module
 Class for querying, manipulating, integrating, and fitting orbital elements.
 
 created on June 04, 2017
+
 """
+
+__all__ = ['Orbit', 'OrbitError', 'OpenOrbError']
+
+__doctest_requires__ = {
+    ("Orbit.oo_propagate", "Orbit.oo_transform"): ["pyoorb", "astroquery"],
+    ("Orbit.D_criterion", "Orbit.tisserand", "Orbit.from_horizons", "Orbit.from_mpc"): ["astroquery"],
+}
+
 import os
 import itertools
 from warnings import warn
@@ -33,9 +42,6 @@ from ..bib import cite, register
 from ..exceptions import RequiredPackageUnavailable, SbpyException
 from . import Conf, DataClass, QueryError, TimeScaleWarning
 from ..utils.decorators import requires
-
-
-__all__ = ['Orbit', 'OrbitError', 'OpenOrbError']
 
 
 class OrbitError(SbpyException):

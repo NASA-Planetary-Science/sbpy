@@ -42,7 +42,8 @@ __all__ = ['Ephem']
 
 
 __doctest_requires__ = {
-    ('Ephem.from_oo',): ['pyoorb']
+    ("Ephem.from_oo",): ["pyoorb"],
+    ("Ephem.from_horizons", "Ephem.from_miriade", "Ephem.from_mpc"): ["astroquery"],
 }
 
 

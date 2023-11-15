@@ -16,6 +16,7 @@ __doctest_requires__ = {
      "LinearPhaseFunc",
      "LinearPhaseFunc._phase_integral"
      ): ["scipy"],
+    ("DiskIntegratedPhaseFunc.from_phys", "DiskIntegratedPhaseFunc.to_phys"): ["astroquery"],
 }
 
 from collections import OrderedDict
