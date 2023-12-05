@@ -20,7 +20,6 @@ sphinx:
   fail_on_warning: true
 
 python:
-  system_packages: true
   install:
     - method: pip
       path: .
