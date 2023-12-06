@@ -37,6 +37,7 @@ class TestSpectralGradient():
          0.21 * u.mag, 12 * u.percent / hundred_nm, 2),
         ((bandpass('SDSS g'), bandpass('SDSS r')),
          -0.15 * u.mag, -10 * u.percent / hundred_nm, 0.5),
+         ((500, 600) * u.nm, 3, 100 * u.percent / hundred_nm, 0.01),
     ))
     def test_from_color(self, wfb, color, S0, atol):
         """Test from color to spectral gradient.
