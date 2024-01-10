@@ -11,15 +11,11 @@ from ..orbit import Orbit, QueryError
 from ..names import TargetNameParseError
 from ... import bib
 
-try:
-    import pyoorb
-except ImportError:
-    pyoorb = None
+pytest.importorskip("astroquery")
 
 
 @pytest.mark.remote_data
 class TestOrbitFromHorizons:
-
     def test_now(self):
         # current epoch
         now = Time.now()
@@ -104,7 +100,7 @@ class TestOrbitFromMPC:
         assert len(a) == 1
 
     def test_multiple(self):
-        a = Orbit.from_mpc(['1P', '2P', '3P'])
+        a = Orbit.from_mpc(["1P", "2P", "4P"])
         assert len(a) == 3
 
     def test_break(self):
@@ -112,11 +108,12 @@ class TestOrbitFromMPC:
             Orbit.from_mpc('does not exist')
 
 
-@pytest.mark.skipif('pyoorb is None')
 @pytest.mark.remote_data
 class TestOOTransform:
     def test_oo_transform(self):
         """ test oo_transform method"""
+
+        pytest.importorskip("pyoorb")
 
         orbit = Orbit.from_horizons('Ceres')
 
@@ -142,6 +139,7 @@ class TestOOTransform:
         u.isclose(orbit['epoch'][0].utc.jd, kep_orbit['epoch'][0].utc.jd)
 
     def test_timescales(self):
+        pytest.importorskip("pyoorb")
 
         orbit = Orbit.from_horizons('Ceres')
         orbit['epoch'] = orbit['epoch'].tdb
@@ -170,11 +168,12 @@ class TestOOTransform:
         assert kep_orbit['epoch'].scale == 'tdb'
 
 
-@pytest.mark.skipif('pyoorb is None')
 @pytest.mark.remote_data
 class TestOOPropagate:
     def test_oo_propagate(self):
         """ test oo_propagate method"""
+
+        pytest.importorskip("pyoorb")
 
         orbit = Orbit.from_horizons('Ceres')
         epoch = Time(Time.now().jd + 100, format='jd', scale='utc')

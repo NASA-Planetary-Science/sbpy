@@ -8,22 +8,15 @@ __all__ = [
     'OHFluorescenceSA88'
 ]
 
-from warnings import warn
-
 import numpy as np
-try:
-    import scipy
-    from scipy import interpolate
-except ImportError:
-    scipy = None
 
 import astropy.units as u
 from astropy.io import ascii
-from astropy.utils.data import get_pkg_data_filename
+from astropy.utils.data import get_pkg_data_path
 
 from .... import data as sbd
-from .... import exceptions as sbe
 from .... import bib
+from ....utils import optional_packages
 
 photo_lengthscale = {   # (value, {key feature: ADS bibcode})
     'H2O': {
@@ -113,7 +106,7 @@ class OHFluorescenceSA88:
              '0-1', '0-2', '1-2', '2-0', '2-1']
 
     def __init__(self, band):
-        fn = get_pkg_data_filename('schleicher88.txt')
+        fn = get_pkg_data_path('schleicher88.txt')
         self.table5 = ascii.read(fn)
         self._rdot = self.table5['rdot'].data * u.km / u.s
         self._inversion = self.table5['I']
@@ -129,16 +122,16 @@ class OHFluorescenceSA88:
         self._LN = u.Quantity(self.table5[k].data * self.scales[i],
                               'erg / s')
 
-        if scipy:
-            self._tck = interpolate.splrep(self.rdot.value, self.LN.value)
+        if optional_packages("scipy"):
+            from scipy.interpolate import splrep
+            self._tck = splrep(self.rdot.value, self.LN.value)
             self._interp = self._spline
         else:
-            warn(sbe.OptionalPackageUnavailable(
-                'scipy unavailable, using linear interpolation.'))
             self._interp = self._linear
 
     def _spline(self, rdot, rh):
-        return interpolate.splev(rdot, self._tck, ext=2) / rh**2
+        from scipy.interpolate import splev
+        return splev(rdot, self._tck, ext=2) / rh**2
 
     def _linear(self, rdot, rh):
         return np.interp(rdot, self.rdot.value, self.LN.value) / rh**2

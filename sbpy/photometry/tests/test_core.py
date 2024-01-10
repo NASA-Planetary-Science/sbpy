@@ -133,6 +133,7 @@ class TestLinear():
             linphase.to_ref(10 * u.deg)
 
     def test_props(self):
+        pytest.importorskip("scipy")
         linphase = LinearPhaseFunc(5 * u.mag, 2.29 * u.mag/u.rad,
                                    radius=300 * u.km, wfb='V')
         assert np.isclose(linphase.geomalb, 0.0487089)
@@ -148,6 +149,7 @@ class TestLinear():
         assert np.allclose(module, module_test)
 
     def test_fit(self):
+        pytest.importorskip("scipy")
         pha = np.linspace(0, 60, 100) * u.deg
         mag = LinearPhaseFunc(5 * u.mag, 0.04 * u.mag/u.deg)(pha) + \
             (np.random.rand(100)*0.2-0.1) * u.mag

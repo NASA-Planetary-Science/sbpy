@@ -14,10 +14,7 @@ from astropy.tests.helper import assert_quantity_allclose
 from ... import bib
 from .. import Ephem, Orbit, QueryError
 
-try:
-    import pyoorb
-except ImportError:
-    pyoorb = None
+pytest.importorskip("astroquery")
 
 # retreived from Horizons on 23 Apr 2020
 CERES = {
@@ -407,10 +404,11 @@ class TestEphemFromMiriade:
 
 
 @pytest.mark.remote_data
-@pytest.mark.skipif('pyoorb is None')
 class TestEphemFromOorb:
     def test_by_comparison(self):
         """test from_oo method"""
+
+        pytest.importorskip("pyoorb")
 
         orbit = Orbit.from_horizons('Ceres')
         horizons_ephem = Ephem.from_horizons('Ceres', location='500')

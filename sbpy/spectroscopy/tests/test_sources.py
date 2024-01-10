@@ -5,10 +5,9 @@ import numpy as np
 import astropy.units as u
 from astropy.modeling.models import BlackBody
 import astropy.constants as const
-import synphot
-from .. import sources
-from ..sources import (BlackbodySource, SpectralSource, SynphotRequired,
-                       Reddening)
+synphot = pytest.importorskip("synphot")
+
+from ..sources import (BlackbodySource, SpectralSource, Reddening)
 from ..core import SpectralGradient
 from ...photometry import bandpass
 from ...units import hundred_nm
@@ -24,11 +23,6 @@ class Star(SpectralSource):
 
 
 class TestSpectralSource:
-    def test_init_error(self, monkeypatch):
-        with pytest.raises(SynphotRequired):
-            monkeypatch.setattr(sources, 'synphot', None)
-            Star()
-
     @pytest.mark.parametrize('wfb, interpolate', (
         ([V], False),
         ([1] * u.um, True),

@@ -7,33 +7,41 @@ sbpy data.Orbit Module
 Class for querying, manipulating, integrating, and fitting orbital elements.
 
 created on June 04, 2017
+
 """
+
+__all__ = ['Orbit', 'OrbitError', 'OpenOrbError']
+
+__doctest_requires__ = {
+    ("Orbit.oo_propagate", "Orbit.oo_transform"): ["pyoorb", "astroquery"],
+    ("Orbit.D_criterion", "Orbit.tisserand", "Orbit.from_horizons", "Orbit.from_mpc"): ["astroquery"],
+}
+
 import os
 import itertools
+from warnings import warn
 import numpy as np
 from numpy import array, ndarray, double, arange
 from astropy.time import Time
 from astropy.table import vstack, QTable
-from astroquery.jplhorizons import Horizons
-from astroquery.mpc import MPC
 import astropy.units as u
-from warnings import warn
+
+# optional imports
+try:
+    from astroquery.jplhorizons import Horizons
+    from astroquery.mpc import MPC
+except ImportError:
+    pass
 
 try:
     import pyoorb
 except ImportError:
-    pyoorb = None
+    pass
 
 from ..bib import cite, register
 from ..exceptions import RequiredPackageUnavailable, SbpyException
 from . import Conf, DataClass, QueryError, TimeScaleWarning
-
-try:
-    import pyoorb
-except ImportError:
-    pyoorb = None
-
-__all__ = ['Orbit', 'OrbitError', 'OpenOrbError']
+from ..utils.decorators import requires
 
 
 class OrbitError(SbpyException):
@@ -51,8 +59,9 @@ class Orbit(DataClass):
     elements"""
 
     @classmethod
-    @cite({'data source': '1996DPS....28.2504G'})
-    @cite({'software: astroquery': '2019AJ....157...98G'})
+    @requires("astroquery")
+    @cite({'data source': '1996DPS....28.2504G',
+           'software: astroquery': '2019AJ....157...98G'})
     def from_horizons(cls, targetids, id_type='smallbody',
                       epochs=None, center='500@10',
                       **kwargs):
@@ -193,9 +202,9 @@ class Orbit(DataClass):
         return cls.from_table(all_elem)
 
     @classmethod
-    @cite({'data source':
-           'https://minorplanetcenter.net/iau/MPEph/MPEph.html'})
-    @cite({'software: astroquery': '2019AJ....157...98G'})
+    @requires("astroquery")
+    @cite({'data source': 'https://minorplanetcenter.net/iau/MPEph/MPEph.html',
+           'software: astroquery': '2019AJ....157...98G'})
     def from_mpc(cls, targetids, id_type=None, target_type=None, **kwargs):
         """Load latest orbital elements from the
         `Minor Planet Center <https://minorplanetcenter.net>`_.
@@ -471,6 +480,7 @@ class Orbit(DataClass):
 
         return Orbit._from_oo(oo_orbits, orbittype, timescale)
 
+    @requires("pyoorb")
     @cite({'method': '2009M&PS...44.1853G',
            'software': 'https://github.com/oorb/oorb'})
     def oo_transform(self, orbittype, ephfile='de430'):
@@ -585,6 +595,7 @@ class Orbit(DataClass):
 
         return orbits
 
+    @requires("pyoorb")
     @cite({'method': '2009M&PS...44.1853G',
            'software': 'https://github.com/oorb/oorb'})
     def oo_propagate(self, epochs, dynmodel='N', ephfile='de430'):
@@ -716,7 +727,6 @@ class Orbit(DataClass):
             in_orbits=in_orbits._to_oo(),
             in_epoch=ooepoch,
             in_dynmodel=dynmodel)
-        print(oo_orbits, err)
 
         if err != 0:
             OpenOrbError('pyoorb failed with error code {:d}'.format(err))

@@ -9,9 +9,24 @@ created on June 23, 2017
 __all__ = ['DiskIntegratedPhaseFunc', 'LinearPhaseFunc',
            'InvalidPhaseFunctionWarning']
 
+__doctest_requires__ = {
+    ("DiskIntegratedPhaseFunc",
+     "DiskIntegratedPhaseFunc._phase_integral",
+     "DiskIntegratedPhaseFunc.from_obs",
+     "LinearPhaseFunc",
+     "LinearPhaseFunc._phase_integral"
+     ): ["scipy"],
+    ("DiskIntegratedPhaseFunc.from_phys", "DiskIntegratedPhaseFunc.to_phys"): ["astroquery"],
+}
+
 from collections import OrderedDict
 import numpy as np
-from scipy.integrate import quad
+
+try:
+    from scipy.integrate import quad
+except ImportError:
+    quad = None
+
 from astropy.modeling import (Fittable1DModel, Parameter)
 import astropy.units as u
 from astropy import log
@@ -19,6 +34,7 @@ from ..data import (Phys, Obs, Ephem, dataclass_input,
                     quantity_to_dataclass)
 from ..units import reflectance
 from ..exceptions import SbpyWarning
+from ..utils.decorators import requires
 
 
 class InvalidPhaseFunctionWarning(SbpyWarning):
@@ -650,6 +666,7 @@ class DiskIntegratedPhaseFunc(Fittable1DModel):
         else:
             return out
 
+    @requires("scipy")
     def _phase_integral(self, integrator=quad):
         """Calculate phase integral with numerical integration
 

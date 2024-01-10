@@ -15,8 +15,6 @@ from abc import ABC, abstractmethod
 
 # distutils is deprecated in python 3.10 and will be removed in 3.12 (PEP 632).
 # Migration from distutils.log -> logging
-from distutils.log import warn
-import warnings
 from dataclasses import dataclass
 from typing import Callable, Tuple
 
@@ -27,14 +25,15 @@ try:
     import scipy
     from scipy import special
     from scipy.integrate import quad, dblquad, romberg
-    from scipy.interpolate import CubicSpline
+    from scipy.interpolate import CubicSpline, PPoly
 except ImportError:
     scipy = None
+    PPoly = None
 
 from ... import bib
 from ... import data as sbd
 from ... import units as sbu
-from ...exceptions import RequiredPackageUnavailable, TestingNeeded
+from ...utils.decorators import requires
 from ..core import (
     Aperture,
     RectangularAperture,
@@ -89,7 +88,8 @@ def photo_lengthscale(species, source=None):
         for k, v in sorted(data.items()):
             summary += "\n{} [{}]".format(k, ", ".join(v.keys()))
 
-        raise ValueError("Invalid species {}.  Choose from:{}".format(species, summary))
+        raise ValueError(
+            "Invalid species {}.  Choose from:{}".format(species, summary))
 
     gas = data[species]
     source = default_sources[species] if source is None else source
@@ -164,7 +164,8 @@ def photo_timescale(species, source=None):
         for k, v in sorted(data.items()):
             summary += "\n{} [{}]".format(k, ", ".join(v.keys()))
 
-        raise ValueError("Invalid species {}.  Choose from:{}".format(species, summary))
+        raise ValueError(
+            "Invalid species {}.  Choose from:{}".format(species, summary))
 
     gas = data[species]
     source = default_sources[species] if source is None else source
@@ -415,6 +416,7 @@ class GasComa(ABC):
 
         """
 
+    @requires("scipy")
     def _integrate_volume_density(self, rho, epsabs=1.49e-8):
         """Integrate volume density along the line of sight.
 
@@ -441,9 +443,6 @@ class GasComa(ABC):
 
         """
 
-        if not scipy:
-            raise RequiredPackageUnavailable("scipy")
-
         def f(s, rho2):
             r = np.sqrt(rho2 + s**2)
             return self._volume_density(r)
@@ -462,6 +461,7 @@ class GasComa(ABC):
 
         return sigma, err
 
+    @requires("scipy")
     def _integrate_column_density(self, aper, epsabs=1.49e-8):
         """Integrate column density over an aperture.
 
@@ -486,9 +486,6 @@ class GasComa(ABC):
             Estimated integration error.
 
         """
-
-        if not scipy:
-            raise RequiredPackageUnavailable("scipy")
 
         if isinstance(aper, (CircularAperture, AnnularAperture)):
             if isinstance(aper, CircularAperture):
@@ -622,16 +619,13 @@ class Haser(GasComa):
 
     def _iK0(self, x):
         """Integral of the modified Bessel function of 2nd kind, 0th order."""
-        if not scipy:
-            raise RequiredPackageUnavailable("scipy")
         return special.iti0k0(x)[1]
 
     def _K1(self, x):
         """Modified Bessel function of 2nd kind, 1st order."""
-        if not scipy:
-            raise RequiredPackageUnavailable("scipy")
         return special.k1(x)
 
+    @requires("scipy")
     @bib.cite({"model": "1978Icar...35..360N"})
     def _column_density(self, rho):
         sigma = (self.Q / self.v).to_value("1/m") / rho / 2 / np.pi
@@ -647,6 +641,7 @@ class Haser(GasComa):
             )
         return sigma
 
+    @requires("scipy")
     def _total_number(self, aper):
         # Inspect aper and handle as appropriate
         if isinstance(aper, (RectangularAperture, GaussianAperture)):
@@ -876,8 +871,8 @@ class VMResult:
     fragment_sputter: VMFragmentSputterPolar = None
     solid_angle_sputter: VMFragmentSputterPolar = None
 
-    volume_density_interpolation: scipy.interpolate.PPoly = None
-    column_density_interpolation: scipy.interpolate.PPoly = None
+    volume_density_interpolation: PPoly = None
+    column_density_interpolation: PPoly = None
 
     collision_sphere_radius: u.Quantity = None
     max_grid_radius: u.Quantity = None
@@ -971,15 +966,6 @@ class VectorialModel(GasComa):
         max_fragment_lifetimes=8.0,
         print_progress=False,
     ):
-        # warnings.warn(
-        #     "Literature tests with the Vectorial model are generally"
-        #     " in agreement at the 20% level or better.  The cause"
-        #     " for the differences with the Festou FORTRAN code are"
-        #     " not yet precisely known.  Help testing this feature is"
-        #     " appreciated.",
-        #     TestingNeeded,
-        # )
-
         super().__init__(base_q, parent["v_outflow"][0])
 
         # Calculations are done internally in meters and seconds to match the
@@ -1291,11 +1277,13 @@ class VectorialModel(GasComa):
         # occupy)
         # NOTE: Equation (16) of Festou 1981 where alpha is the percent
         # destruction of molecules
-        parent_beta_r = -np.log(1.0 - self.model_params.parent_destruction_level)
+        parent_beta_r = - \
+            np.log(1.0 - self.model_params.parent_destruction_level)
         parent_r = parent_beta_r * vp * self.parent.tau_T
         self.vmr.coma_radius = parent_r * u.m
 
-        fragment_beta_r = -np.log(1.0 - self.model_params.fragment_destruction_level)
+        fragment_beta_r = - \
+            np.log(1.0 - self.model_params.fragment_destruction_level)
         # Calculate the time needed to hit a steady, permanent production of
         # fragments
         perm_flow_radius = self.vmr.coma_radius.value + (
@@ -1524,7 +1512,8 @@ class VectorialModel(GasComa):
 
                 # differential addition to the density integrating along dr,
                 # similar to eq. (36) Festou 1981
-                n_r = (p_extinction * f_extinction * q_r_eps) / (sep_dist**2 * v)
+                n_r = (p_extinction * f_extinction *
+                       q_r_eps) / (sep_dist**2 * v)
 
                 sputter += n_r * dr
 
@@ -1580,11 +1569,13 @@ class VectorialModel(GasComa):
         # Equivalent to summing over j for sin(theta[j]) *
         # fragment_sputter[i][j] with numpy magic
         self.solid_angle_sputter = np.sin(thetas) * self.fragment_sputter
-        self.fast_voldens = 2.0 * np.pi * np.sum(self.solid_angle_sputter, axis=1)
+        self.fast_voldens = 2.0 * np.pi * \
+            np.sum(self.solid_angle_sputter, axis=1)
 
         # Tag with proper units
         self.vmr.volume_density = self.fast_voldens / (u.m**3)
 
+    @requires("scipy")
     def _interpolate_volume_density(self) -> None:
         """Interpolate the volume density as a function of radial distance
         from the nucleus.
@@ -1593,9 +1584,6 @@ class VectorialModel(GasComa):
         arbitrary radius.
 
         """
-
-        if not scipy:
-            raise RequiredPackageUnavailable("scipy")
 
         if self.print_progress:
             print("Interpolating radial fragment density...")
@@ -1647,11 +1635,13 @@ class VectorialModel(GasComa):
         def column_density_integrand(z):
             return self._volume_density(np.sqrt(z**2 + rhosq))
 
-        c_dens = 2 * romberg(column_density_integrand, 0, z_max, rtol=0.0001, divmax=50)
+        c_dens = 2 * romberg(column_density_integrand, 0,
+                             z_max, rtol=0.0001, divmax=50)
 
         # result is in 1/m^2
         return c_dens
 
+    @requires("scipy")
     def _compute_column_density(self) -> None:
         """Compute the column density on the grid and interpolate the results.
 
@@ -1661,9 +1651,6 @@ class VectorialModel(GasComa):
         attached.
 
         """
-
-        if not scipy:
-            raise RequiredPackageUnavailable("scipy")
 
         if self.print_progress:
             print("Computing column densities...")
@@ -1724,7 +1711,8 @@ class VectorialModel(GasComa):
         for i, t in enumerate(time_slices[:-1]):
             extinction_one = t / p_tau_T
             extinction_two = time_slices[i + 1] / p_tau_T
-            mult_factor = -np.e ** (-extinction_one) + np.e ** (-extinction_two)
+            mult_factor = -np.e ** (-extinction_one) + \
+                np.e ** (-extinction_two)
             theory_total += self.production_at_time(t) * mult_factor
 
         return theory_total * alpha - edge_adjust

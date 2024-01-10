@@ -60,6 +60,8 @@ management `with` syntax.
 
 Calculate geometric albedo, Bond albedo, and phase integral:
 
+.. doctest-requires:: scipy
+
   >>> import astropy.units as u
   >>> from sbpy.calib import solar_fluxd
   >>> solar_fluxd.set({'V': -26.77 * u.mag})
@@ -81,9 +83,12 @@ The model class can also be initialized by a subclass of ``sbpy``'s
 `~sbpy.data.DataClass`, such as `~sbpy.data.Phys`, as long as it contains the
 model parameters:
 
+.. .. doctest-requires:: astroquery
+.. doctest-remote-data:: 
+
   >>> from sbpy.data import Phys
-  >>> phys = Phys.from_sbdb('Ceres')    # doctest: +REMOTE_DATA
-  >>> m = HG.from_phys(phys)            # doctest: +REMOTE_DATA
+  >>> phys = Phys.from_sbdb('Ceres')
+  >>> m = HG.from_phys(phys)
   INFO: Model initialized for 1 Ceres (A801 AA). [sbpy.photometry.core]
   >>> print(m)                          # doctest: +SKIP
   Model: HG
@@ -112,6 +117,8 @@ parameter of `~astropy.modeling.Model`.  Some fitters, such as
 `astropy.modeling.LevMarLSQFitter`, do not support constrained fit via
 the `ineqcons` parameter, though.
 
+.. doctest-requires:: scipy
+
   >>> import numpy as np
   >>> import astropy.units as u
   >>> from astropy.modeling.fitting import SLSQPLSQFitter
@@ -129,6 +136,8 @@ Alternatively, one may use the class method
 initialize a model directly from an `~sbpy.data.Obs` object by fitting the
 data contained therein.
 
+.. doctest-requires:: scipy
+
   >>> # use class method .from_obs
   >>> from astropy.modeling.fitting import SLSQPLSQFitter
   >>> fitter = SLSQPLSQFitter()
@@ -140,6 +149,8 @@ One can also initialize a model set from multiple columns in the input
 `~sbpy.data.Obs` object if it contains more than one columns of brightness
 measurements.  The columns to be fitted are specified by a keyward argument
 ``fields``.  By default, the column ``'mag'`` will be fitted.
+
+.. doctest-requires:: scipy
 
   >>> # Initialize model set
   >>> model4 = HG(5.2 * u.mag, 0.18)
@@ -154,12 +165,16 @@ Filter Bandpasses
 -----------------
 A few filter bandpasses are included with `sbpy` for internal tests and your convenience.  The function `~sbpy.photometry.bandpass` will return the filter transmission as a `~synphot.spectrum.SpectralElement` (requires `synphot`):
 
+.. doctest-requires:: synphot
+
   >>> from sbpy.photometry import bandpass
   >>> bp = bandpass('Cousins R')
   >>> print(bp.avgwave())    # doctest: +FLOAT_CMP
   6499.914781904409 Angstrom
 
 For other bandpasses, obtain the photon-counting relative spectral response curves as a two-column file.  If the first column is wavelength in Angstroms, and the second is the response, then read the file with:
+
+.. doctest-requires:: synphot
 
   >>> from synphot import SpectralElement             # doctest: +SKIP
   >>> bp = SpectralElement.from_file('filename.txt')  # doctest: +SKIP

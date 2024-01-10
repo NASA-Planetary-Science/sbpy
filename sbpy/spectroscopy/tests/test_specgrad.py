@@ -1,11 +1,22 @@
+import pytest
 import numpy as np
 import astropy.units as u
 import pytest
 from ...units import hundred_nm
-from ...photometry import bandpass
 from ..core import SpectralGradient
 
+try:
+    import synphot
+    from ...photometry import bandpass
+except ModuleNotFoundError:
+    # do nothing function so that the TestSpectralGradient class can compile
+    synphot = None
 
+    def bandpass(bp):
+        pass
+
+
+@pytest.mark.skipif(synphot is None, reason="requires synphot")
 class TestSpectralGradient():
     def test_new(self):
         S = SpectralGradient(100 / u.um, wave=(525, 575) * u.nm)

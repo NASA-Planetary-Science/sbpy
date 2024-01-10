@@ -22,21 +22,22 @@ __doctest_requires__ = {
 
 import os
 from abc import ABC
-from warnings import warn
 from functools import wraps
 import inspect
 import json
 
 import numpy as np
 from astropy.utils.state import ScienceState
-from astropy.utils.data import get_pkg_data_filename
+from astropy.utils.data import get_pkg_data_path
 from astropy.table import Table
 import astropy.units as u
 
-from ..spectroscopy.sources import SpectralSource, SynphotRequired
-from ..exceptions import SbpyException, OptionalPackageUnavailable
+from ..spectroscopy.sources import SpectralSource
+from ..exceptions import SbpyException
 from .. import bib
 from . import solar_sources, vega_sources
+from ..utils.decorators import requires
+from ..utils import optional_packages
 
 try:
     import synphot
@@ -123,7 +124,7 @@ class SpectralStandard(SpectralSource, ABC):
 
         if not _is_url(parameters['filename']):
             # find in the module's location
-            parameters['filename'] = get_pkg_data_filename(
+            parameters['filename'] = get_pkg_data_path(
                 os.path.join('data', parameters['filename']))
 
         return cls.from_file(**parameters)
@@ -135,13 +136,10 @@ class SpectralStandard(SpectralSource, ABC):
         The spectrum will be ``None`` if `synphot` is not available.
 
         """
-        if synphot is None:
-            warn(OptionalPackageUnavailable(
-                'synphot is not installed, returning an empty spectral'
-                ' standard.'))
-            standard = cls(None)
-        else:
+        if optional_packages("synphot"):
             standard = cls._spectrum_state.get()
+        else:
+            standard = cls(None)
         return standard
 
     @classmethod
@@ -235,17 +233,13 @@ class SpectralStandard(SpectralSource, ABC):
         return fluxd
 
     @wraps(SpectralSource.observe_bandpass)
+    @requires("synphot")
     def observe_bandpass(self, *args, **kwargs):
-        if synphot is None:
-            raise SynphotRequired(
-                'synphot is required for observations through bandpass')
         return super().observe_bandpass(*args, **kwargs)
 
     @wraps(SpectralSource.observe_spectrum)
+    @requires("synphot")
     def observe_spectrum(self, *args, **kwargs):
-        if synphot is None:
-            raise SynphotRequired(
-                'synphot is required for observations through bandpass')
         return super().observe_spectrum(*args, **kwargs)
 
     def observe_filter_name(self, filt, unit=None):
@@ -449,7 +443,7 @@ class FluxdScienceState(ScienceState, ABC):
             # only load the data once, save to hidden attribute ``_data``
             data = source.get('data', None)
             if data is None:
-                fn = get_pkg_data_filename(
+                fn = get_pkg_data_path(
                     os.path.join('data', source['filename']))
                 with open(fn, 'r') as inf:
                     phot = json.load(inf)

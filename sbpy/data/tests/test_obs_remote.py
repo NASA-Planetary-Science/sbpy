@@ -9,6 +9,8 @@ from .. import Obs
 from ... import bib
 from ..core import QueryError
 
+pytest.importorskip("astroquery")
+
 
 @pytest.mark.remote_data
 class TestObsfromMPC:

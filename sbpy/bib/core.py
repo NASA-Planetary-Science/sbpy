@@ -22,11 +22,23 @@ __all__ = [
     'to_mnras'
 ]
 
+__doctest_requires__ = {
+    "cite": ["ads"],
+}
+
 import warnings
 from functools import wraps
 from collections import OrderedDict, defaultdict
 import atexit
+
+try:
+    import ads
+except ImportError:
+    ads = None
+
 from astropy import log
+
+from ..utils.decorators import requires
 
 
 def register(task, citations):
@@ -220,6 +232,7 @@ def show(filter=None):
     return output
 
 
+@requires("ads")
 def to_text(filter=None):
     """Convert bibcodes to human readable text.
 
@@ -238,7 +251,6 @@ def to_text(filter=None):
         the bibcodes.
 
     """
-    import ads
 
     output = ''
     for task, ref in _filter(filter).items():
@@ -306,6 +318,7 @@ def to_text(filter=None):
     return output
 
 
+@requires("ads")
 def _to_format(format, filter=None):
     """Convert bibcodes to a range of different output formats.
 
@@ -328,7 +341,6 @@ def _to_format(format, filter=None):
         for each reference.
 
     """
-    import ads
 
     output = ''
     for task, ref in _filter(filter).items():

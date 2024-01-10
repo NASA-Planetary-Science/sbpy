@@ -29,6 +29,8 @@ re-normalization to other wavelengths.
 inverse length.  For convenience, `sbpy` includes a
 `~sbpy.units.hundred_nm` unit, which is equal to 100 nm:
 
+.. These imports are needed for astropy versions < 5.3 because the next
+   doctest block only executes for versions >=5.3.
 .. testsetup::
 .. doctest-requires:: astropy<5.3
 
@@ -47,7 +49,7 @@ inverse length.  For convenience, `sbpy` includes a
 
 Initialize a spectral gradient from a color index:
 
-.. doctest-requires:: astropy>=5.3
+.. doctest-requires:: astropy>=5.3, synphot
 
   >>> w = (550, 650) * u.nm
   >>> SpectralGradient.from_color(w, 0.1 * u.mag)  # doctest: +FLOAT_CMP
@@ -57,6 +59,8 @@ Note we use the dimensionless magnitude unit from `astropy`, i.e., not
 one that carries flux density units such as `astropy.units.ABmag`.
 
 Convert spectral gradient (normalized to 550 nm) to a color index:
+
+.. doctest-requires:: synphot
 
   >>> S = SpectralGradient(10 * u.percent / hundred_nm, wave0=550 * u.nm)
   >>> S.to_color((500, 600) * u.nm)  # doctest: +FLOAT_CMP
@@ -74,7 +78,7 @@ Renormalize to 1.0 μm:
 Spectral Reddening
 ------------------
 
-Linear spectral reddening is enabled by class `~sbpy.spectroscopy.Reddening`,
+Linear spectral reddening is enabled by the class `~sbpy.spectroscopy.Reddening`,
 which is based on `~synphot.spectrum.BaseUnitlessSpectrum`.
 
 Initialize a `~sbpy.spectroscopy.Reddening` class from a spectral gradient:

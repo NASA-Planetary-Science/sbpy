@@ -9,9 +9,11 @@ __all__ = [
 ]
 
 import os
-from astropy.utils.data import get_pkg_data_filename
+from astropy.utils.data import get_pkg_data_path
+from ..utils.decorators import requires
 
 
+@requires("synphot")
 def bandpass(name):
     """Retrieve bandpass transmission spectrum from sbpy.
 
@@ -113,10 +115,7 @@ def bandpass(name):
 
     """
 
-    try:
-        import synphot
-    except ImportError:
-        raise ImportError('synphot is required.')
+    import synphot
 
     name2file = {
         '2mass j': '2mass-j-rsr.txt',
@@ -156,7 +155,7 @@ def bandpass(name):
         'ps1 z': 'nm',
     }
 
-    fn = get_pkg_data_filename(os.path.join(
+    fn = get_pkg_data_path(os.path.join(
         '..', 'photometry', 'data', name2file[name.lower()]))
     bp = synphot.SpectralElement.from_file(
         fn, wave_unit=wave_unit.get(name.lower(), 'AA'))

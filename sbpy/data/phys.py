@@ -9,18 +9,28 @@ Class for storing and querying physical properties
 created on June 04, 2017
 """
 
+__all__ = ["Phys"]
+
+__doctest_requires__ = {
+    "Phys.from_sbdb": ["astroquery"],
+}
+
 from collections import OrderedDict
 
 import numpy as np
 import astropy.units as u
-from astroquery.jplsbdb import SBDB
-from astroquery.jplspec import JPLSpec
+
+# optional package
+try:
+    from astroquery.jplsbdb import SBDB
+    from astroquery.jplspec import JPLSpec
+except ImportError:
+    pass
 
 from .core import DataClass
 from ..bib import cite
 from ..exceptions import SbpyException
-
-__all__ = ['Phys']
+from ..utils.decorators import requires
 
 
 class JPLSpecQueryFailed(SbpyException):
@@ -33,6 +43,7 @@ class Phys(DataClass):
     """Class for storing and querying physical properties"""
 
     @classmethod
+    @requires("astroquery")
     @cite({'software: astroquery': '2019AJ....157...98G'})
     def from_sbdb(cls, targetids, references=False, notes=False):
         """Load physical properties from `JPL Small-Body Database (SBDB)
@@ -181,6 +192,7 @@ class Phys(DataClass):
         return cls.from_columns(coldata, names=columnnames)
 
     @classmethod
+    @requires("astroquery")
     @cite({'software: astroquery': '2019AJ....157...98G'})
     def from_jplspec(cls, temp_estimate, transition_freq, mol_tag):
         """Constants from JPLSpec catalog and energy calculations

@@ -44,6 +44,8 @@ class TestHG:
 
     @pytest.mark.remote_data
     def test_from_phys(self):
+        pytest.importorskip("astroquery")
+
         # test initialization from `sbpy.data.DataClass`
         phys = Phys.from_sbdb('Ceres')
         m = HG.from_phys(phys)
@@ -61,6 +63,7 @@ class TestHG:
             m = HG.from_phys(phys)
 
     def test_to_phys(self):
+        pytest.importorskip("scipy")
         m = HG(3.34 * u.mag, 0.12)
         p = m.to_phys()
         assert isinstance(p, Phys)
@@ -105,12 +108,14 @@ class TestHG:
         assert ceres._unit == 'mag'
 
     def test_props(self):
+        pytest.importorskip("scipy")
         ceres = HG(3.34 * u.mag, 0.12, radius=480 * u.km, wfb='V')
         assert np.isclose(ceres.geomalb, 0.0877745)
         assert np.isclose(ceres.bondalb, 0.03198069)
         assert np.isclose(ceres.phaseint, 0.3643505755292945)
 
     def test_from_obs(self):
+        pytest.importorskip("scipy")
         pha = [0., 6.31578947, 12.63157895, 18.94736842, 25.26315789,
                31.57894737, 37.89473684, 44.21052632, 50.52631579, 56.84210526,
                63.15789474, 69.47368421, 75.78947368, 82.10526316, 88.42105263,
@@ -238,6 +243,8 @@ class TestHG1G2:
 
     @pytest.mark.remote_data
     def test_from_phys(self):
+        pytest.importorskip("astroquery")
+
         # initialization with Phys, will cause exception because G1, G2 are
         # not generally unavailable.
         phys = Phys.from_sbdb(['Ceres'])
@@ -284,6 +291,7 @@ class TestHG1G2:
         assert np.isclose(themis.phaseint, 0.374152)
 
     def test_from_obs(self):
+        pytest.importorskip("scipy")
         pha = [0., 6.31578947, 12.63157895, 18.94736842, 25.26315789,
                31.57894737, 37.89473684, 44.21052632, 50.52631579, 56.84210526,
                63.15789474, 69.47368421, 75.78947368, 82.10526316, 88.42105263,
@@ -383,6 +391,7 @@ class TestHG12:
         assert np.isclose(themis.oe_amp, 0.23412300750840437)
 
     def test_from_obs(self):
+        pytest.importorskip("scipy")
         pha = [0., 6.31578947, 12.63157895, 18.94736842, 25.26315789,
                31.57894737, 37.89473684, 44.21052632, 50.52631579, 56.84210526,
                63.15789474, 69.47368421, 75.78947368, 82.10526316, 88.42105263,
@@ -476,6 +485,7 @@ class TestHG12_Pen16:
         assert np.isclose(themis.phaseint, 0.38042683486452)
 
     def test_from_obs(self):
+        pytest.importorskip("scipy")
         pha = [0., 6.31578947, 12.63157895, 18.94736842, 25.26315789,
                31.57894737, 37.89473684, 44.21052632, 50.52631579, 56.84210526,
                63.15789474, 69.47368421, 75.78947368, 82.10526316, 88.42105263,

@@ -5,16 +5,14 @@ import pytest
 import numpy as np
 import astropy.units as u
 from astropy.io import ascii
-from astropy.utils.data import get_pkg_data_filename
-import synphot
+from astropy.utils.data import get_pkg_data_path
+
 from .. import core
 from ..core import *
 from ...photometry import bandpass
 from ...calib import (vega_spectrum, vega_fluxd, solar_fluxd,
                       solar_spectrum, Sun, Vega)
-
-
-JohnsonV = bandpass('Johnson V')
+from ...exceptions import RequiredPackageUnavailable
 
 
 @pytest.mark.parametrize('unit,test', (
@@ -55,6 +53,9 @@ def test_spectral_density_vega_wf(wf, fluxd, to):
     Flux density at 5557.5 AA is from Bohlin 2014 (0.5% uncertainty).
 
     """
+
+    pytest.importorskip("synphot")
+
     v = fluxd.to(to.unit, spectral_density_vega(wf))
     assert v.unit == to.unit
     if to.unit in (VEGAmag, JMmag):
@@ -86,7 +87,10 @@ def test_spectral_density_vega_bp(filename, fluxd, to, tol):
     agreement with 0.03 mag.
 
     """
-    fn = get_pkg_data_filename(os.path.join(
+
+    synphot = pytest.importorskip("synphot")
+
+    fn = get_pkg_data_path(os.path.join(
         '..', '..', 'photometry', 'data', filename))
     bp = synphot.SpectralElement.from_file(fn)
 
@@ -98,19 +102,14 @@ def test_spectral_density_vega_bp(filename, fluxd, to, tol):
         assert np.isclose(v.value, to.value, rtol=tol)
 
 
-def test_spectral_density_vega_synphot_import_fail(monkeypatch):
-    from ...calib import core as calib_core
-    monkeypatch.setattr(calib_core, 'synphot', None)
-    assert spectral_density_vega([1, 2, 3] * u.um) == []
-
-
 def test_spectral_density_vega_undefinedsourceerror():
+    pytest.importorskip("synphot")
     with vega_spectrum.set(Vega(None)):
         assert spectral_density_vega([1, 2, 3] * u.um) == []
 
 
 @pytest.mark.parametrize('fluxd, wfb, f_sun, ref', (
-    (3.4 * VEGAmag, JohnsonV, None, 0.02865984),
+    (3.4 * VEGAmag, "Johnson V", None, 0.02865984),
     (3.4 * VEGAmag, 5500 * u.AA, None, 0.02774623),
     (1.56644783e-09 * u.Unit('W/(m2 um)'), 'V',
         1839.93273227 * u.Unit('W/(m2 um)'), 0.02865984),
@@ -129,6 +128,15 @@ def test_reflectance_ref(fluxd, wfb, f_sun, ref):
 
     """
 
+    pytest.importorskip("synphot")
+
+    try:
+        # passes for "Johnson V", but fails for "V" band
+        # we will set "V" band to a specific value below
+        wfb = bandpass(wfb) if type(wfb) is str else wfb
+    except KeyError:
+        pass
+
     xsec = 6.648e5 * u.km**2
 
     with vega_fluxd.set({'V': u.Quantity(3.589e-9, 'erg/(s cm2 AA)')}):
@@ -139,7 +147,7 @@ def test_reflectance_ref(fluxd, wfb, f_sun, ref):
 
 
 @pytest.mark.parametrize('fluxd, wfb, f_sun, radius', (
-    (3.4 * VEGAmag, JohnsonV, None, 460.01351274),
+    (3.4 * VEGAmag, "Johnson V", None, 460.01351274),
     (3.4 * VEGAmag, 5500 * u.AA, None, 452.62198065),
     (1.56644783e-09 * u.Unit('W/(m2 um)'), 'V',
         1839.93273227 * u.Unit('W/(m2 um)'), 460.01351274),
@@ -157,6 +165,15 @@ def test_reflectance_xsec(fluxd, wfb, f_sun, radius):
     albedo 0.09).
 
     """
+
+    pytest.importorskip("synphot")
+
+    try:
+        # passes for "Johnson V", but fails for "V" band
+        # we will set "V" band to a specific value below
+        wfb = bandpass(wfb) if type(wfb) is str else wfb
+    except KeyError:
+        pass
 
     ref = 0.02865984 / u.sr
     with vega_fluxd.set({'V': u.Quantity(3.589e-9, 'erg/(s cm2 AA)')}):
@@ -179,12 +196,14 @@ def test_reflectance_spec():
     'data/hi05070405_9000036-avg-spec.txt', data from McLaughlin et al (2014).
     """
 
+    pytest.importorskip("synphot")
+
     ifov = 1e-5 * u.rad
     delta = 15828 * u.km
     rh = 1.5 * u.au
 
     # Tempel 1 spectrum, includes reference solar spectrum
-    fn = get_pkg_data_filename(
+    fn = get_pkg_data_path(
         os.path.join('data', 'hi05070405_9000036-avg-spec.txt'))
     t1 = ascii.read(fn)
     sun = Sun.from_array(t1['wave'] * u.um,

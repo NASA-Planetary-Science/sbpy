@@ -16,6 +16,7 @@ query for ephemerides of asteroid Ceres on a given date and for the position of
 Mauna Kea Observatory (IAU observatory code 568) from the `JPL Horizons service
 <https://ssd.jpl.nasa.gov/horizons/>`_:
 
+.. .. doctest-requires:: astroquery
 .. doctest-remote-data:: 
 
     >>> from sbpy.data import Ephem
@@ -35,6 +36,7 @@ Mauna Kea Observatory (IAU observatory code 568) from the `JPL Horizons service
 The full column name list in the data table can be retrieved with the
 `~sbpy.data.DataClass.field_names` property:
 
+.. .. doctest-requires:: astroquery
 .. doctest-remote-data:: 
 
     >>> eph.field_names
@@ -48,6 +50,7 @@ In the above example a specific epoch was specified, but multiple epochs may be
 requested, or even a range of epochs.  All time references are
 `~astropy.time.Time` objects.
 
+.. .. doctest-requires:: astroquery
 .. doctest-remote-data:: 
 
     >>> epochs = Time(['2022-06-04', '2023-06-04'])
@@ -67,6 +70,7 @@ than a few hundred to prevent corruption of the query (see
 
 To specify a range of epochs:
 
+.. .. doctest-requires:: astroquery
 .. doctest-remote-data:: 
 
     >>> import astropy.units as u
@@ -96,7 +100,8 @@ Mulitple targets
 An additional feature of `~sbpy.data.Ephem.from_horizons` is that you can
 automatically concatenate queries for a number of objects:
 
-.. doctest-remote-data:: 
+.. .. doctest-requires:: astroquery
+.. doctest-remote-data::
 
     >>> epoch1 = Time('2018-08-03 14:20')
     >>> eph = Ephem.from_horizons(['Ceres', 'Pallas', 12893, '1983 SA'],
@@ -130,6 +135,7 @@ codes <https://www.minorplanetcenter.net/iau/lists/ObsCodesF.html>`__ as above,
 or by using `~astropy.coordinates.EarthLocation` as shown in the following
 example:
 
+.. .. doctest-requires:: astroquery
 .. doctest-remote-data:: 
 
     >>> from astropy.coordinates import EarthLocation
@@ -155,6 +161,7 @@ to `~sbpy.data.Ephem.from_horizons` are directly passed on to
 flexibility of the latter function.  For example one may use the
 ``skip_daylight`` keyword argument:
 
+.. .. doctest-requires:: astroquery
 .. doctest-remote-data:: 
 
     >>> epoch1 = Time('2018-08-03 14:20', scale='utc')
@@ -170,6 +177,7 @@ Or, a common option for periodic cometary targets is to limit orbit look-ups to
 the apparition closest to the epochs being queried (requires
 ``id_type='designation'``):
 
+.. .. doctest-requires:: astroquery
 .. doctest-remote-data::
 
     >>> eph = Ephem.from_horizons('2P')   # doctest: +SKIP
@@ -196,12 +204,13 @@ Offering similar functionality, the `~sbpy.data.Ephem.from_mpc` method will
 retrieve ephemerides from the `Minor Planet Center's Ephemeris Service
 <https://minorplanetcenter.net/iau/MPEph/MPEph.html>`_:
 
+.. .. doctest-requires:: astroquery
 .. doctest-remote-data:: 
 
     >>> eph = Ephem.from_mpc('2P', location='568',
     ...                      epochs={'start': Time('2018-10-22'),
     ...                              'stop': Time('2018-10-26'),
-    ...                              'step': 1*u.day})  # doctest: +REMOTE_DATA
+    ...                              'step': 1*u.day})
     >>> eph  # doctest: +SKIP
     <QTable length=5>
     Targetname           Date          ... Moon distance Moon altitude
@@ -223,6 +232,7 @@ Finally, `~sbpy.data.Ephem.from_miriade` will retrieve ephemerides from the
 `Institut de Mécanique Céleste et de Calcul des Éphémérides
 <https://www.imcce.fr/>`_:
 
+.. .. doctest-requires:: astroquery
 .. doctest-remote-data:: 
 
     >>> eph = Ephem.from_miriade('2P', objtype='comet', location='568',

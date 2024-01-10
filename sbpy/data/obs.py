@@ -10,12 +10,18 @@ created on July 3, 2019
 """
 
 from astropy.time import Time
-from astroquery.mpc import MPC
+
+try:
+    from astroquery.mpc import MPC
+except ImportError:
+    pass
+
 from astropy.table import vstack, hstack
 
 from .ephem import Ephem
 from .core import QueryError
 from ..bib import cite
+from ..utils.decorators import requires
 
 __all__ = ['Obs']
 
@@ -24,9 +30,9 @@ class Obs(Ephem):
     """Class for querying, storing, and manipulating observations """
 
     @classmethod
-    @cite({'data source':
-           'https://minorplanetcenter.net/db_search'})
-    @cite({'software: astroquery': '2019AJ....157...98G'})
+    @requires("astroquery")
+    @cite({'data source': 'https://minorplanetcenter.net/db_search',
+           'software: astroquery': '2019AJ....157...98G'})
     def from_mpc(cls, targetid, id_type=None, **kwargs):
         """Load available observations for a target from the
         `Minor Planet Center <https://minorplanetcenter.net>`_ using
@@ -95,6 +101,7 @@ class Obs(Ephem):
 
         return cls.from_table(results)
 
+    @requires("astroquery")
     @cite({'software: astroquery': '2019AJ....157...98G'})
     def supplement(self, service='jplhorizons', id_field='targetname',
                    epoch_field='epoch', location='500',

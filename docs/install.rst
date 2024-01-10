@@ -9,26 +9,26 @@ Requirements
 care of with installation using pip:
 
 * Python 3.8 or later
-* `ads <https://github.com/andycasey/ads/>`__ 0.12 or later, to fetch citation details for bibliography tracking.
 * `astropy <https://www.astropy.org/>`__ 4.3 or later.
-* `astroquery <https://astroquery.readthedocs.io/en/latest/>`__ 0.4.5 or later, for retrieval of online data, e.g., ephemerides and orbits.
 * `numpy <https://numpy.org/>`__ 1.18 or later.
-* `scipy <https://scipy.org/>`__: 1.3 or later, for numerical integrations in `sbpy.activity.gas` and `sbpy.photometry`, among others.
-* `synphot <https://github.com/spacetelescope/synphot_refactor>`__ 1.1.1 or later, for calibration with respect to the Sun and Vega, filtering spectra through bandpasses.
 
 Optional dependencies
 ^^^^^^^^^^^^^^^^^^^^^
 
+* `ads <https://github.com/andycasey/ads/>`__ 0.12 or later, to fetch citation details for bibliography tracking.  **Recommended**
+* `astroquery <https://astroquery.readthedocs.io/en/latest/>`__ 0.4.5 or later, for retrieval of online data, e.g., ephemerides and orbits.  **Recommended**
 * Python extensions for `oorb <https://github.com/oorb/oorb/>`__: For orbit
   transformations (`~sbpy.data.Orbit.oo_transform`) and propagations
   (`~sbpy.data.Orbit.oo_propagate`), as well as ephemerides calculations
   (`~sbpy.data.Ephem.from_oo`).
 * `pyradex <https://github.com/keflavich/pyradex>`__: For non-LTE production
   rate calculations related to cometary activity (`~sbpy.activity.gas.NonLTE`).
-* `ginga <https://ejeschke.github.io/ginga/>`__ and `photutils
-  <https://photutils.readthedocs.io/en/stable/>`__: To interactively enhance
+* `scipy <https://scipy.org/>`__: 1.3 or later, for numerical integrations in `sbpy.activity.gas` and `sbpy.photometry`, among others.  **Recommended**
+* `synphot <https://github.com/spacetelescope/synphot_refactor>`__ 1.1.1 or later, for calibration with respect to the Sun and Vega, filtering spectra through bandpasses.  **Recommended**
+* `ginga <https://ejeschke.github.io/ginga/>`__ : To interactively enhance
   images of comets with the `~sbpy.imageanalysis.CometaryEnhancement` Ginga
   plugin.
+* `photutils <https://photutils.readthedocs.io/en/stable/>`__: For centroiding within the Cometary Enhancements Ginga plugin.
 
 
 Using pip
@@ -39,6 +39,12 @@ The latest stable version of `sbpy` can be installed with:
 .. code-block:: bash
 
     $ pip install sbpy
+
+Recommended dependencies may be installed via:
+
+.. code-block:: bash
+
+    $ pip install sbpy[recommended]
 
 Most optional dependencies may be installed via:
 

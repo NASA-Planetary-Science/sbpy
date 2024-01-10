@@ -7,9 +7,9 @@ name: CI Tests
 on:
   push:
     branches:
-    - main
+      - main
     tags:
-    - '*'
+      - "*"
   pull_request:
     # branches: # only build on PRs against 'main' if you need to further limit when CI is run.
     #    - main
@@ -34,21 +34,21 @@ jobs:
         ARCH_ON_CI: "normal"
         IS_CRON: "false"
       submodules: false
-      coverage: ''
+      coverage: ""
       envs: |
         - name: Code style checks
           linux: codestyle
 
-        - name: Python 3.11 with minimal dependencies and full coverage
+        - name: Python 3.11 with minimal dependencies, measuring coverage
           linux: py311-test-cov
           coverage: codecov
 
-        - name: Python 3.10 with all optional dependencies
-          linux: py310-test-alldeps
+        - name: Python 3.10 with all optional dependencies, measuring coverage
+          linux: py310-test-alldeps-cov
+          coverage: codecov
           
         - name: Python 3.8 with oldest supported versions
           linux: py38-test-oldestdeps
-          coverage: codecov
 
   macos-tests:
     name: Python 3.10 with all optional dependencies (MacOS)
@@ -56,23 +56,23 @@ jobs:
     env:
       ARCH_ON_CI: "normal"
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
-    - name: Set up python
-      uses: actions/setup-python@v4
-      with:
-        python-version: "3.10"
-    - name: Set up gfortran on ${{ matrix.os }}
-      if: runner.os == 'macos'
-      run: |
-        echo `which gfortran-11`
-        sudo ln -sfn /usr/local/bin/gfortran-11 /usr/local/bin/gfortran
-        gfortran --version
-    - name: Install base dependencies
-      run: |
-        python -m pip install --upgrade pip
-        python -m pip install tox
-    - name: Test with tox
-      run: tox -e py310-test-alldeps
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Set up python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+      - name: Set up gfortran on ${{ matrix.os }}
+        if: runner.os == 'macos'
+        run: |
+          echo `which gfortran-11`
+          sudo ln -sfn /usr/local/bin/gfortran-11 /usr/local/bin/gfortran
+          gfortran --version
+      - name: Install base dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install tox
+      - name: Test with tox
+        run: tox -e py310-test-alldeps

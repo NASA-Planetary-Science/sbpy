@@ -6,14 +6,8 @@ import numpy as np
 import astropy.units as u
 from astropy.time import Time
 from astropy.table import Table
-from astroquery.lamda import Lamda
-from astroquery.jplspec import JPLSpec
-import pytest
 
-try:
-    import pyradex
-except ImportError:
-    pyradex = None
+import pytest
 
 from .. import (Haser, photo_timescale, LTE, NonLTE, einstein_coeff,
                 intensity_conversion, beta_factor, total_number, from_Haser)
@@ -268,9 +262,9 @@ See https://github.com/keflavich/pyradex for installment
 '''
 
 
-@pytest.mark.skipif('pyradex is None')
 @pytest.mark.remote_data
 def test_Haser_pyradex():
+    pytest.importorskip("pyradex")
     pytest.importorskip("astroquery", minversion="0.4.7")
 
     co = Table.read(data_path('CO.csv'), format="ascii.csv")
@@ -387,9 +381,9 @@ See https://github.com/keflavich/pyradex for installment
 '''
 
 
-@pytest.mark.skipif('pyradex is None')
 @pytest.mark.remote_data
 def test_pyradex_case():
+    pytest.importorskip("pyradex")
     pytest.importorskip("astroquery", minversion="0.4.7")
 
     transition_freq = (177.196 * u.GHz).to(u.MHz)
@@ -410,9 +404,9 @@ def test_pyradex_case():
     assert np.isclose(cdensity.value[0], 1.134e14)
 
 
-@pytest.mark.skipif('pyradex is None')
 @pytest.mark.remote_data
 def test_Haser_prodrate_pyradex(mock_nonlte):
+    pytest.importorskip("pyradex")
     pytest.importorskip("astroquery", minversion="0.4.7")
 
     co = Table.read(data_path('CO.csv'), format="ascii.csv")
