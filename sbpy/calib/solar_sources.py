@@ -15,7 +15,8 @@ sources = [
     'E490_2014',
     'E490_2014LR',
     'Kurucz1993',
-    'Castelli1996'
+    'Castelli1996',
+    'calspec',
 ]
 
 

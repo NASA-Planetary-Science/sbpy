@@ -40,6 +40,10 @@ Bug Fixes
   ``RequiredPackageUnavailable`` when ``synphot`` is not available, replacing a
   locally defined ``SynphotRequired`` or the generic ``ImportError``.
 
+sbpy.calib
+^^^^^^^^^^
+* Fixed: the CALSPEC solar spectrum was missing from `solar_sources`. [#387]
+
 
 0.4.0 (2023-06-30)
 ==================
