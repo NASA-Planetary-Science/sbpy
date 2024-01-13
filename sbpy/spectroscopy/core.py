@@ -179,14 +179,16 @@ class SpectralGradient(u.SpecificTypeQuantity):
 
         lambda_eff = SpectralGradient._lambda_eff(wfb)
 
-        try:
-            # works for u.Magnitudes and dimensionless u.Quantity
+        if isinstance(color, u.Magnitude):
+            # invert the linear value as `-color` does not work as of Jan 2024
+            # (astropy #6897)
+            alpha = u.Quantity(color, u.dimensionless_unscaled) ** -1
+        elif u.Quantity(color).unit.is_equivalent(u.mag):
+            alpha = (-color).to(u.dimensionless_unscaled, u.logarithmic())
+        else:
             alpha = u.Quantity(color, u.dimensionless_unscaled)
-        except u.UnitConversionError:
-            # works for u.mag
-            alpha = color.to(u.dimensionless_unscaled, u.logarithmic())
 
-        dw = lambda_eff[0] - lambda_eff[1]
+        dw = lambda_eff[1] - lambda_eff[0]
         S = ((2 / dw * (alpha - 1) / (alpha + 1))
              .to(u.percent / hundred_nm))
 
@@ -446,7 +448,8 @@ class Spectrum():
 
         Examples
         --------
-        >>> spec_model = SpectralModel(type='Haser', molecule='H2O')        # doctest: +SKIP
+        >>> spec_model = SpectralModel(type='Haser', molecule='H2O')
+        ... # doctest: +SKIP
 
         >>> spec.fit(spec_model) # doctest: +SKIP
         >>> print(spec.fit_info) # doctest: +SKIP

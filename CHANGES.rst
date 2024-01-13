@@ -40,6 +40,10 @@ Bug Fixes
   ``RequiredPackageUnavailable`` when ``synphot`` is not available, replacing a
   locally defined ``SynphotRequired`` or the generic ``ImportError``.
 
+sbpy.spectroscopy
+^^^^^^^^^^^^^^^^^
+* Fixed: spectral gradient calculations in ``SpectralGradient`` had the wrong sign when color was input as a linear ratio. [#389]
+
 
 0.4.0 (2023-06-30)
 ==================
