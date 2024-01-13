@@ -180,7 +180,9 @@ class SpectralGradient(u.SpecificTypeQuantity):
         lambda_eff = SpectralGradient._lambda_eff(wfb)
 
         if isinstance(color, u.Magnitude):
-            alpha = u.Quantity(-color, u.dimensionless_unscaled)
+            # invert the linear value as `-color` does not work as of Jan 2024
+            # (astropy #6897)
+            alpha = u.Quantity(color, u.dimensionless_unscaled) ** -1
         elif u.Quantity(color).unit.is_equivalent(u.mag):
             alpha = (-color).to(u.dimensionless_unscaled, u.logarithmic())
         else:
