@@ -155,6 +155,68 @@ class TestAfrho:
         afrho = Afrho(10 * u.cm).to_phase(15 * u.deg, 0 * u.deg).to('cm')
         assert np.isclose(afrho.value, 5.8720)
 
+    def test_to_cross_section(self):
+        """
+
+        Compare with Kelley et al. 2021, PSJ, 2, 131.
+
+        The original work missed a factor of rh in the cross-sectional area
+        calculation.  Multiply their G by rh to correct it.
+
+        rh, delta, phase, and m have an additional significant digit over Table
+        1 of Kelley et al. based on a rerun of their lightcurve analysis script
+        on 2024 Jan 14.
+
+        Telescope: Lowell 0.8m
+        Date: 2018-12-04 04:26:25
+        rh: 1.062 au (1.0620)
+        delta: 0.107 au (0.1068)
+        phase: 42.32 deg (42.324)
+        filter: R (calibrated to PS1 r)
+        m: 12.00 +/- 0.02 mag  (12.003)
+        A(theta) f rho: 79.45 cm
+        G: 15.26 km2  --> 16.21
+
+        Ap (PS1 r): 4.19%
+        rho: 5"
+
+        """
+
+        eph = Ephem.from_dict(
+            {
+                "rh": 1.0620 * u.au,
+                "delta": 0.1068 * u.au,
+                "phase": 42.324 * u.deg,
+            }
+        )
+        rho = 5 * u.arcsec
+
+        with solar_fluxd.set({"PS1 r": -26.93 * u.ABmag}):
+            afrho = Afrho.from_fluxd("PS1 r", 12.003 * u.ABmag, rho, eph)
+        assert u.isclose(afrho, 79.45 * u.cm, rtol=0.001)
+
+        a0frho = afrho.to_phase(0 * u.deg, eph["phase"][0])
+        G = a0frho.to_cross_section(0.0419, rho, eph["delta"])
+        assert u.isclose(G, 16.21 * u.km**2, rtol=0.002)
+        assert np.ndim(G) == 0
+
+        # get a 1D array
+        G = Afrho(1, "cm").to_cross_section(0.04, rho, [1, 2] * u.au)
+        assert np.size(G) == 2
+
+    def test_from_cross_section(self):
+        """See test_to_cross_section for notes."""
+        a0frho = Afrho.from_cross_section(
+            16.21 * u.km**2, 0.0419, 5 * u.arcsec, 0.1068 * u.au
+        )
+        afrho = a0frho.to_phase(42.324 * u.deg, 0 * u.deg)
+        assert u.isclose(afrho, 79.45 * u.cm, rtol=0.002)
+        assert np.ndim(afrho) == 0
+
+        # get a 1D array
+        afrho = Afrho.from_cross_section(1 * u.km**2, 0.04, 5 * u.arcsec, [1, 2] * u.au)
+        assert np.size(afrho) == 2
+
     def test_from_fluxd_PR125(self):
         """Regression test for PR#125: User requested Phi was ignored."""
         afrho = Afrho(100 * u.cm)
@@ -271,3 +333,53 @@ class TestEfrho:
         with pytest.raises(ValueError):
             assert Efrho.from_fluxd(1 * u.um, 1 * u.Jy, 1 * u.arcsec, eph,
                                     B=5 * u.m)
+
+    def test_to_cross_section(self):
+        """
+        Based on TestAfrho.test_to_cross_section.
+        """
+
+        eph = Ephem.from_dict(
+            {
+                "rh": 1.0620 * u.au,
+                "delta": 0.1068 * u.au,
+                "phase": 42.324 * u.deg,
+            }
+        )
+        rho = 5 * u.arcsec
+        a0frho = Afrho(222.89862496, "cm")
+
+        Ap = 0.0419
+        A = 4 * Ap
+        epsilon = 1 - Ap
+        ef_af = epsilon / A
+
+        efrho = Efrho(ef_af * a0frho)
+        G = efrho.to_cross_section(epsilon, rho, eph)
+
+        assert u.isclose(G, 16.21 * u.km**2, rtol=0.002)
+        assert np.ndim(G) == 0
+
+        # get a 1D array
+        G = Efrho(1, "cm").to_cross_section(epsilon, rho, [1, 2] * u.au)
+        assert np.size(G) == 2
+
+    def test_from_cross_section(self):
+        """See test_to_cross_section for notes."""
+
+        Ap = 0.0419
+        A = 4 * Ap
+        epsilon = 1 - Ap
+        ef_af = epsilon / A
+        delta = 0.1068 * u.au
+        rho = 5 * u.arcsec
+
+        a0frho = Afrho(222.89862496, "cm")
+
+        efrho = Efrho.from_cross_section(16.21 * u.km**2, epsilon, rho, delta)
+        assert u.isclose(efrho, ef_af * a0frho, rtol=0.002)
+        assert np.ndim(efrho) == 0
+
+        # get a 1D array
+        efrho = Efrho.from_cross_section(1 * u.km**2, epsilon, rho, [1, 2] * u.au)
+        assert np.size(efrho) == 2

@@ -337,8 +337,7 @@ class DustComaQuantity(u.SpecificTypeQuantity, metaclass=abc.ABCMeta):
 
         """
 
-        fluxd1cm = cls(1 * u.cm).to_fluxd(wfb, aper,
-                                          eph, unit=fluxd.unit, **kwargs)
+        fluxd1cm = cls(1 * u.cm).to_fluxd(wfb, aper, eph, unit=fluxd.unit, **kwargs)
 
         if isinstance(fluxd1cm, u.Magnitude):
             coma = cls((fluxd - fluxd1cm).physical * u.cm)
@@ -656,40 +655,47 @@ class Afrho(DustComaQuantity):
 
         Examples
         --------
+        >>> import astropy.units as u
+        >>> from sbpy.activity import Afrho
         >>> afrho = Afrho(1000 * u.cm)
         >>> eph = {"rh": 1 * u.au, "delta": 1 * u.au, "phase": 60 * u.deg}
         >>> aper = 1 * u.arcsec
-        >>> afrho.to_cross_section(0.05, aper, eph)
+        >>> G = afrho.to_cross_section(0.05, aper, eph)  # doctest: +FLOAT_CMP
+        <Quantity 113.92529345 km2>
 
         To account for phase angle, first use ``to_phase``:
         >>> afrho.to_phase(0 * u.deg, eph["phase"]).to_cross_section(0.1, aper, eph)
+        ...                                                    # doctest: +FLOAT_CMP
+        <Quantity km2>
 
         """
 
         # G = pi (rh delta)**2 F_comet / (Ap F_sun)
-        # Ap = A / 4
-        # G = pi 4 * (rh delta)**2 F_comet / (A F_sun)
-        # G A / pi = 4 * (rh delta)**2 F_comet / F_sun
-        #
+        # F_comet / F_sun = G Ap / (pi rh**2 delta**2)
+
         # Afrho = 4 (rh delta)**2 F_comet / (rho F_sun)
-        # Afrho rho = 4 * (rh delta)**2 F_comet / F_sun = G A / pi
-        #
-        # G = Afrho rho pi / A
-        # G = Afrho rho pi / (4 Ap)
+        # F_comet / F_sun = Afrho rho / (4 delta**2 rh**2)
+
+        # G Ap / (pi rh**2 delta**2) = Afrho rho / (4 delta**2 rh**2)
+        # G = Afrho rho pi rh**2 delta**2 / (4 delta**2 rh**2 Ap)
+        # G = pi Afrho rho / (4 Ap)
 
         # rho = effective circular aperture radius at the distance of
-        # the comet.  Keep track of array dimensionality as Ephem
-        # objects can needlessly increase the number of dimensions.
+        # the comet.
         if isinstance(aper, Aperture):
             rho = aper.coma_equivalent_radius()
-            ndim = np.ndim(rho)
         else:
             rho = aper
-            ndim = np.ndim(rho)
         rho = rho.to("km", sbu.projected_size(eph))
 
         G = (self * rho * np.pi / (4 * Ap)).to("km2")
-        return G
+
+        # Avoid allowing the Ephem object to needlessly return an array.
+        ndim = np.ndim(self * aper * Ap)
+        if ndim == 0 and ndim != np.ndim(G) and len(G) == 1:
+            return G[0]
+        else:
+            return G
 
     @classmethod
     @sbd.dataclass_input(eph=sbd.Ephem)
@@ -723,6 +729,8 @@ class Afrho(DustComaQuantity):
 
         Examples
         --------
+        >>> import astropy.units as u
+        >>> from sbpy.activity import Afrho
         >>> eph = {"rh": 1 * u.au, "delta": 1 * u.au}
         >>> aper = 1 * u.arcsec
         >>> Afrho.from_cross_section(1 * u.km**2, 0.05, aper, eph)
@@ -730,7 +738,8 @@ class Afrho(DustComaQuantity):
         """
 
         G1 = cls(1 * u.cm).to_cross_section(Ap, aper, eph)
-        return cls((G / G1).to("") * u.cm)
+        afrho = cls((G / G1).to("") * u.cm)
+        return afrho
 
 
 class Efrho(DustComaQuantity):
@@ -892,37 +901,42 @@ class Efrho(DustComaQuantity):
 
         Examples
         --------
+        >>> import astropy.units as u
+        >>> from sbpy.activity import Efrho
         >>> efrho = Efrho(1000 * u.cm)
         >>> eph = {"rh": 1 * u.au, "delta": 1 * u.au}
         >>> aper = 1 * u.arcsec
-        >>> efrho.to_cross_section(0.95, aper, eph)
+        >>> efrho.to_cross_section(0.95, aper, eph)    # doctest: +FLOAT_CMP
+        <Quantity 7.63443099 km2>
 
         """
 
-        # F_comet = G epsilon pi B(T) / delta**2
-        # G = F_comet delta**2 / (epsilon pi B(T))
-        # G epsilon = F_comet delta**2 / (pi B(T))
+        # F_comet = G epsilon B(T) / delta**2
         #
-        # efrho = F_comet rho / (pi rho_angular**2 B(T))
-        #       = F_comet rho / (pi (rho**2 / delta**2) B(T))
-        #       = F_comet delta**2 / (pi rho B(T))
-        # efrho rho = F_comet delta**2 / (pi B(T)) = G epsilon
+        # efrho = F_comet delta**2 / (pi rho B(T))
+        # F_comet = efrho pi rho B(T) / delta**2
         #
-        # G = efrho rho / epsilon
+        # G epsilon B(T) / delta**2 = efrho pi rho B(T) / delta**2
+        # G epsilon = efrho pi rho
+        #
+        # G = efrho pi rho / epsilon
 
         # rho = effective circular aperture radius at the distance of
-        # the comet.  Keep track of array dimensionality as Ephem
-        # objects can needlessly increase the number of dimensions.
+        # the comet.
         if isinstance(aper, Aperture):
             rho = aper.coma_equivalent_radius()
-            ndim = np.ndim(rho)
         else:
             rho = aper
-            ndim = np.ndim(rho)
         rho = rho.to("km", sbu.projected_size(eph))
 
-        G = (self * rho / epsilon).to("km2")
-        return G
+        G = (self * np.pi * rho / epsilon).to("km2")
+
+        # Avoid allowing the Ephem object to needlessly return an array.
+        ndim = np.ndim(self * aper * epsilon)
+        if ndim == 0 and ndim != np.ndim(G) and len(G) == 1:
+            return G[0]
+        else:
+            return G
 
     @classmethod
     @sbd.dataclass_input(eph=sbd.Ephem)
