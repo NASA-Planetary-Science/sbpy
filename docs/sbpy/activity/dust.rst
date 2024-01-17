@@ -83,6 +83,13 @@ The `Afrho` class may be converted to a flux density, and the original value is 
    >>> print(np.log10(f.value))    # doctest: +FLOAT_CMP
    -13.99
 
+`Afrho` may also be converted to geometric cross sectional area, given geometric albedo, photometric aperture, and observer-comet distance:
+
+   >>> Ap = 0.05  # geometric albedo
+   >>> G = afrho.to_cross_section(Ap, aper, eph)
+   >>> print(G)    # doctest: +FLOAT_CMP
+   25763.15641363505 km2
+
 `Afrho` works seamlessly with `sbpy`'s spectral calibration framework (:ref:`sbpy-calib`) when the `astropy` affiliated package `synphot` is installed.  The solar flux density (via `~sbpy.calib.solar_fluxd`) is not required, but instead the spectral wavelengths or the system transmission of the instrument and filter:
 
 .. doctest-requires:: synphot; astropy>=5.3
@@ -108,18 +115,22 @@ Reproduce the *εfρ* of 246P/NEAT from Kelley et al. (2013).
 
 .. doctest-requires:: synphot
 
-   >>> wave = [15.8, 22.3] * u.um
-   >>> fluxd = [25.75, 59.2] * u.mJy
+   >>> wave = 15.8 * u.um
+   >>> fluxd = 25.75 * u.mJy
    >>> aper = 11.1 * u.arcsec
    >>> eph = Ephem.from_dict({'rh': 4.28 * u.au, 'delta': 3.71 * u.au})
    >>> efrho = Efrho.from_fluxd(wave, fluxd, aper, eph)
-   >>> for i in range(len(wave)):
-   ...     print('{:5.1f} at {:.1f}'.format(efrho[i], wave[i]))    # doctest: +FLOAT_CMP
-   406.2 cm at 15.8 um
-   427.9 cm at 22.3 um
+   >>> print(efrho)    # doctest: +FLOAT_CMP
+   396.71290996643665 cm
 
-Compare to 397.0 cm and 424.6 cm listed in Kelley et al. (2013).
+Compare to 397.0 cm listed in Kelley et al. (2013).
 
+`Efrho` may also be converted to geometric cross sectional area, given emissivity, photometric aperture, and observer-comet distance:
+
+   >>> epsilon = 0.95  # geometric albedo
+   >>> G = efrho.to_cross_section(epsilon, aper, eph)
+   >>> print(G)    # doctest: +FLOAT_CMP
+   391.83188076171695 km2
 
 To/from magnitudes
 ^^^^^^^^^^^^^^^^^^
