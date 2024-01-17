@@ -16,7 +16,7 @@ Introduction
 Apertures
 ---------
 
-Four photometric apertures are defined:
+Four photometric aperture classes are defined, primarily for use with cometary comae:
 
   * `~sbpy.activity.CircularAperture`: a circle,
   * `~sbpy.activity.AnnularAperture`: an annulus,
@@ -48,6 +48,10 @@ Ideal comae (constant production rate, free-expansion, infinite lifetime) have *
   >>> sba.CircularAperture(ap.coma_equivalent_radius())  # doctest: +FLOAT_CMP
   <CircularAperture: radius 1669.4204086589311 km>
 
+Through the ``coma_equivalent_radius()`` method, all apertures may be used to initialize a ``CircularAperture`` instance using the :func:`~sbpy.activity.CircularAperture.from_coma_equivalent` method:
+
+  >>> sba.CircularAperture.from_coma_equivalent(ap)
+  <CircularAperture: radius 1669.4204086589311 km>
 
 Reference/API
 -------------
