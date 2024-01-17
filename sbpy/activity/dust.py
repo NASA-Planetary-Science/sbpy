@@ -32,7 +32,7 @@ from ..utils import optional_packages
 from .. import data as sbd
 from .. import units as sbu
 from ..spectroscopy.sources import SinglePointSpectrumError
-from .core import Aperture
+from .core import CircularAperture
 
 
 @bib.cite(
@@ -337,8 +337,7 @@ class DustComaQuantity(u.SpecificTypeQuantity, metaclass=abc.ABCMeta):
 
         """
 
-        fluxd1cm = cls(1 * u.cm).to_fluxd(wfb, aper,
-                                          eph, unit=fluxd.unit, **kwargs)
+        fluxd1cm = cls(1 * u.cm).to_fluxd(wfb, aper, eph, unit=fluxd.unit, **kwargs)
 
         if isinstance(fluxd1cm, u.Magnitude):
             coma = cls((fluxd - fluxd1cm).physical * u.cm)
@@ -380,12 +379,8 @@ class DustComaQuantity(u.SpecificTypeQuantity, metaclass=abc.ABCMeta):
         # rho = effective circular aperture radius at the distance of
         # the comet.  Keep track of array dimensionality as Ephem
         # objects can needlessly increase the number of dimensions.
-        if isinstance(aper, Aperture):
-            rho = aper.coma_equivalent_radius()
-            ndim = np.ndim(rho)
-        else:
-            rho = aper
-            ndim = np.ndim(rho)
+        rho = CircularAperture.from_coma_equivalent(aper)
+        ndim = np.ndim(rho)
         rho = rho.to("km", sbu.projected_size(eph))
 
         ndim = max(ndim, np.ndim(self))
