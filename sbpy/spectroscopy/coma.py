@@ -25,13 +25,14 @@ __all__ = ["Scattered", "Thermal"]
 class Scattered(Fittable1DModel):
     """Light scattered from coma dust.
 
-    Does not account for geometric albedo or phase function:
+    Does not directly account for geometric albedo or phase function:
 
         F_lambda = cross_section * F_sun * R_lambda(S) / pi / rh**2 / delta**2
 
-    where R is the spectral reddening function, F_sun is the flux density of the
-    Sun at 1 au, rh is the heliocentric distance scale factor for the solar
-    flux density, and delta is the observer-coma distance.
+    where ``R`` is the spectral reddening function, ``F_sun`` is the flux
+    density of the Sun at 1 au, ``rh`` is the heliocentric distance scale factor
+    for the solar flux density, ``delta`` is the observer-coma distance, and
+    ``cross_section`` is the effective cross sectional area of the dust.
 
 
     Parameters
@@ -45,14 +46,19 @@ class Scattered(Fittable1DModel):
     cross_section : float or `~astropy.units.Quantity`, optional
         Cross-sectional area of the dust.  For float input, km**2 is assumed.
 
-    S : float or `~astropy.units.Quantity`, optional
-        Spectral gradient at 550 nm.  For float input, %/100 nm is assumed.
+    S : float, `~astropy.units.Quantity`, or
+    `~sbpy.spectroscopy.SpectralGradient`, optional
+        Spectral gradient.  For float input, %/100 nm is assumed.  For float or
+        quantity input, the wavelength of normalization is 550 nm.
 
     """
 
     n_inputs = 1
     n_outputs = 1
-    input_units = {"cross_section": u.km**2, "S": u.percent / sbu.hundred_nm}
+
+    input_units = {"x": u.um}
+    _input_units_allow_dimensionless = True
+    input_units_equivalencies = {"x": u.spectral()}
 
     cross_section = Parameter(
         description="cross-sectional area of dust", default=1, unit=u.km**2
@@ -66,6 +72,10 @@ class Scattered(Fittable1DModel):
         self.sun = Sun.from_default()
         self.eph = eph
         self.unit = u.Unit(unit)
+        if "S" in kwargs and isinstance(kwargs["S"], SpectralGradient):
+            kwargs["S"] = u.Quantity(
+                kwargs["S"].renormalize(550 * u.nm), u.percent / sbu.hundred_nm
+            )
         super().__init__(*args, **kwargs)
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
@@ -101,7 +111,7 @@ class Scattered(Fittable1DModel):
             / self.delta**2
             / self.rh.to_value(u.au) ** 2
         ).to(self.unit)
-        return spec if u.Quantity(wave).unit.is_equivalent(u.um) else spec.value
+        return spec if hasattr(cross_section, "unit") else spec.value
 
     # def fit_deriv(self, wave, cross_section, S):
     #     spec = self.evaluate(wave, cross_section, S)
@@ -131,12 +141,13 @@ class Scattered(Fittable1DModel):
 class Thermal(Fittable1DModel):
     """Thermal emission from coma dust.
 
-    Simple blackbody model:
+    Simple blackbody model, does not directly account for thermal emissivity.
 
         F_lambda = cross_section * B_lambda(T) / delta**2
 
-    where B_lambda is the Planck function, and ``T = Tscale * 278 / sqrt(rh)``
-    is the dust temperature.
+    where ``B_lambda`` is the Planck function, ``T = Tscale * 278 / sqrt(rh)``
+    is the dust temperature, and ``cross_section`` is the effective cross
+    sectional area.
 
 
     Parameters
@@ -148,7 +159,8 @@ class Thermal(Fittable1DModel):
         Unit of the resultant spectrum (spectral flux density).
 
     cross_section : float or `~astropy.units.Quantity`, optional
-        Cross-sectional area of the dust.  For float input, km**2 is assumed.
+        Effective cross-sectional area of the dust.  For float input, km**2 is
+        assumed.
 
     Tscale : float or `~astropy.units.Quantity`, optional
         LTE blackbody sphere temperature scale factor: ``T = Tscale * 278 /
@@ -158,13 +170,20 @@ class Thermal(Fittable1DModel):
 
     n_inputs = 1
     n_outputs = 1
-    input_units = {"cross_section": u.km**2}
+
+    input_units = {"x": u.um}
+    _input_units_allow_dimensionless = True
+    input_units_equivalencies = {"x": u.spectral()}
 
     cross_section = Parameter(
-        description="cross-sectional area of dust", default=1, unit=u.km**2
+        description="effective emission cross-sectional area of dust",
+        default=1,
+        unit=u.km**2,
     )
     Tscale = Parameter(
-        description="LTE blackbody sphere temperature scale factor", default=1.0
+        description="LTE blackbody sphere temperature scale factor",
+        default=1.0,
+        min=0,
     )
 
     @sbd.dataclass_input(eph=sbd.Ephem)
@@ -188,6 +207,31 @@ class Thermal(Fittable1DModel):
         return self.eph["delta"][0]
 
     def evaluate(self, wave, cross_section, Tscale):
+        """Evaluate the model.
+
+
+        Parameters
+        ----------
+        x : float, `~numpy.ndarray`, or `~astropy.units.Quantity`
+            Frequency or wavelength at which to compute the blackbody. If no
+            units are given, then micrometer is assumed.
+
+        cross_section : float or `~astropy.units.Quantity`, optional
+            Effective cross-sectional area of the dust.  If no units are given,
+            then km**2 is assumed.
+
+        Tscale : float or `~astropy.units.Quantity`, optional
+            LTE blackbody sphere temperature scale factor: ``T = Tscale * 278 /
+            sqrt(rh)``.
+
+
+        Returns
+        -------
+        y : number, `~numpy.ndarray`, or `~astropy.units.Quantity`
+            Spectrum.
+
+        """
+
         _wave = u.Quantity(wave, u.um)
         _cross_section = u.Quantity(cross_section, u.km**2)
         T = Tscale * u.Quantity(278, u.K) / np.sqrt(self.rh.to_value("au"))
@@ -198,23 +242,22 @@ class Thermal(Fittable1DModel):
         else:
             F_bb = B.observe(_wave, unit=self.unit)
 
-        spec = (_cross_section * F_bb / self.delta**2).to(self.unit)
-        return spec if u.Quantity(wave).unit.is_equivalent(u.um) else spec.value
+        spec = (_cross_section * (F_bb / np.pi) / self.delta**2).to(self.unit)
+        return spec if hasattr(cross_section, "unit") else spec.value
 
-    @u.quantity_input(wave=u.m)
-    def efrho(self, wave, aper):
-        """Convert spectrum to εfρ quantity.
+    def efrho(self, epsilon, aper):
+        """Convert to εfρ quantity.
 
 
         Parameters
         ----------
-        wave : `~astropy.units.Quantity`
-            Spectral wavelengths.
+        epsilon : float
+            Grain emissivity.
 
         aper : `~astropy.units.Quantity` or `~sbpy.activity.Aperture`
-            Aperture of the observation as a circular radius (length
-            or angular units), or as an `~sbpy.activity.Aperture`.
+            Aperture of the observation as a circular radius (length or angular
+            units), or as an `~sbpy.activity.Aperture` object.
 
         """
 
-        return Efrho.from_fluxd(wave, self(wave), aper, self.eph, Tscale=self.Tscale)
+        return Efrho.from_cross_section(self.cross_section, epsilon, aper, self.delta)
