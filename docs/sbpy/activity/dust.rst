@@ -83,12 +83,14 @@ The `Afrho` class may be converted to a flux density, and the original value is 
    >>> print(np.log10(f.value))    # doctest: +FLOAT_CMP
    -13.99
 
-`Afrho` may also be converted to geometric cross sectional area, given geometric albedo, photometric aperture, and observer-comet distance:
+`Afrho` may also be converted to/from geometric cross sectional area, given geometric albedo, photometric aperture, and observer-comet distance:
 
    >>> Ap = 0.05  # geometric albedo
    >>> G = afrho.to_cross_section(Ap, aper, eph)
    >>> print(G)    # doctest: +FLOAT_CMP
    25763.15641363505 km2
+   >>> print(Afrho.from_cross_section(G, Ap, aper, eph))
+   6029.9024895289485 cm
 
 `Afrho` works seamlessly with `sbpy`'s spectral calibration framework (:ref:`sbpy-calib`) when the `astropy` affiliated package `synphot` is installed.  The solar flux density (via `~sbpy.calib.solar_fluxd`) is not required, but instead the spectral wavelengths or the system transmission of the instrument and filter:
 
@@ -108,7 +110,7 @@ The `Afrho` class may be converted to a flux density, and the original value is 
 
 Thermal emission with *εfρ*
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   
+
 The `Efrho` class has the same functionality as the `Afrho` class.  The most important difference is that *εfρ* is calculated using a Planck function and temperature.  `sbpy` follows common practice and parameterizes the temperature as a constant scale factor of :math:`T_{BB} = 278\,r_h^{1/2}`\  K, the equilibrium temperature of a large blackbody sphere at a distance :math:`r_h` from the Sun.
 
 Reproduce the *εfρ* of 246P/NEAT from Kelley et al. (2013).
@@ -125,12 +127,14 @@ Reproduce the *εfρ* of 246P/NEAT from Kelley et al. (2013).
 
 Compare to 397.0 cm listed in Kelley et al. (2013).
 
-`Efrho` may also be converted to geometric cross sectional area, given emissivity, photometric aperture, and observer-comet distance:
+`Efrho` may also be converted to/from geometric cross sectional area, given emissivity, photometric aperture, and observer-comet distance:
 
    >>> epsilon = 0.95  # geometric albedo
    >>> G = efrho.to_cross_section(epsilon, aper, eph)
    >>> print(G)    # doctest: +FLOAT_CMP
    391.83188076171695 km2
+   >>> print(Efrho.from_cross_section(G, epsilon, aper, eph))    # doctest: +FLOAT_CMP
+   396.7129099664366 cm
 
 To/from magnitudes
 ^^^^^^^^^^^^^^^^^^
