@@ -4,12 +4,14 @@ import pytest
 import numpy as np
 import astropy.units as u
 from astropy.modeling import fitting
-from ..sources import BlackbodySource, SpectralSource, Reddening
+from ..sources import BlackbodySource, Reddening
 from ..coma import Scattered, Thermal
 from ..core import SpectralGradient
 from ...activity.dust import Afrho, Efrho
 from ...calib import Sun
 from ...units import hundred_nm
+
+pytest.importorskip("synphot")
 
 
 class TestScattered:
