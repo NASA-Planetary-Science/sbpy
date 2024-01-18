@@ -337,13 +337,7 @@ class DustComaQuantity(u.SpecificTypeQuantity, metaclass=abc.ABCMeta):
 
         """
 
-        fluxd1cm = cls(1 * u.cm).to_fluxd(
-            wfb,
-            aper,
-            eph,
-            unit=fluxd.unit,
-            **kwargs,
-        )
+        fluxd1cm = cls(1 * u.cm).to_fluxd(wfb, aper, eph, unit=fluxd.unit, **kwargs)
 
         if isinstance(fluxd1cm, u.Magnitude):
             coma = cls((fluxd - fluxd1cm).physical * u.cm)
