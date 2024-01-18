@@ -379,7 +379,7 @@ class DustComaQuantity(u.SpecificTypeQuantity, metaclass=abc.ABCMeta):
         # rho = effective circular aperture radius at the distance of
         # the comet.  Keep track of array dimensionality as Ephem
         # objects can needlessly increase the number of dimensions.
-        rho = CircularAperture.from_coma_equivalent(aper)
+        rho = CircularAperture.from_coma_equivalent(aper).dim
         ndim = np.ndim(rho)
         rho = rho.to("km", sbu.projected_size(eph))
 
