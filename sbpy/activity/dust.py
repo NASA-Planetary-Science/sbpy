@@ -32,7 +32,7 @@ from ..utils import optional_packages
 from .. import data as sbd
 from .. import units as sbu
 from ..spectroscopy.sources import SinglePointSpectrumError
-from .core import Aperture
+from .core import CircularAperture
 
 
 @bib.cite(
@@ -337,8 +337,7 @@ class DustComaQuantity(u.SpecificTypeQuantity, metaclass=abc.ABCMeta):
 
         """
 
-        fluxd1cm = cls(1 * u.cm).to_fluxd(wfb, aper,
-                                          eph, unit=fluxd.unit, **kwargs)
+        fluxd1cm = cls(1 * u.cm).to_fluxd(wfb, aper, eph, unit=fluxd.unit, **kwargs)
 
         if isinstance(fluxd1cm, u.Magnitude):
             coma = cls((fluxd - fluxd1cm).physical * u.cm)
@@ -380,12 +379,8 @@ class DustComaQuantity(u.SpecificTypeQuantity, metaclass=abc.ABCMeta):
         # rho = effective circular aperture radius at the distance of
         # the comet.  Keep track of array dimensionality as Ephem
         # objects can needlessly increase the number of dimensions.
-        if isinstance(aper, Aperture):
-            rho = aper.coma_equivalent_radius()
-            ndim = np.ndim(rho)
-        else:
-            rho = aper
-            ndim = np.ndim(rho)
+        rho = CircularAperture.from_coma_equivalent(aper).dim
+        ndim = np.ndim(rho)
         rho = rho.to("km", sbu.projected_size(eph))
 
         ndim = max(ndim, np.ndim(self))
@@ -628,6 +623,120 @@ class Afrho(DustComaQuantity):
 
         return self * Phi(to_phase) / Phi(from_phase)
 
+    @sbd.dataclass_input(eph=sbd.Ephem)
+    @sbd.quantity_to_dataclass(eph=(sbd.Ephem, "delta"))
+    def to_cross_section(self, Ap, aper, eph):
+        """Convert from Afρ to dust geometric cross-sectional area.
+
+
+        Parameters
+        ----------
+        Ap : float
+            Grain geometric albedo.  Note that A in the Afρ quantity is ``4 *
+            Ap`` (A'Hearn et al. 1984).
+
+        aper : `~astropy.units.Quantity` or `~sbpy.activity.Aperture`
+            Aperture of the observation as a circular radius (length
+            or angular units), or as an `~sbpy.activity.Aperture`.
+
+        eph: `~astropy.units.Quantity`, dictionary-like, `~sbpy.data.Ephem`
+            Observer-comet distance, or ephemeris data object with "delta"
+            defined.
+
+
+        Returns
+        -------
+        G : `~astropy.units.Quantity`
+
+
+        Examples
+        --------
+        >>> import astropy.units as u
+        >>> from sbpy.activity import Afrho
+        >>> afrho = Afrho(1000 * u.cm)
+        >>> eph = {"rh": 1 * u.au, "delta": 1 * u.au, "phase": 60 * u.deg}
+        >>> aper = 1 * u.arcsec
+        >>> G = afrho.to_cross_section(0.05, aper, eph)  # doctest: +FLOAT_CMP
+        <Quantity 113.92529345 km2>
+
+        To account for phase angle, first use ``to_phase``:
+        >>> afrho.to_phase(0 * u.deg, eph["phase"]).to_cross_section(0.1, aper, eph)
+        ...                                                    # doctest: +FLOAT_CMP
+        <Quantity km2>
+
+        """
+
+        # G = pi (rh delta)**2 F_comet / (Ap F_sun)
+        # F_comet / F_sun = G Ap / (pi rh**2 delta**2)
+
+        # Afrho = 4 (rh delta)**2 F_comet / (rho F_sun)
+        # F_comet / F_sun = Afrho rho / (4 delta**2 rh**2)
+
+        # G Ap / (pi rh**2 delta**2) = Afrho rho / (4 delta**2 rh**2)
+        # G = Afrho rho pi rh**2 delta**2 / (4 delta**2 rh**2 Ap)
+        # G = pi Afrho rho / (4 Ap)
+
+        # rho = effective circular aperture radius at the distance of
+        # the comet.
+        if isinstance(aper, Aperture):
+            rho = aper.coma_equivalent_radius()
+        else:
+            rho = aper
+        rho = rho.to("km", sbu.projected_size(eph))
+
+        G = (self * rho * np.pi / (4 * Ap)).to("km2")
+
+        # Avoid allowing the Ephem object to needlessly return an array.
+        ndim = np.ndim(self * aper * Ap)
+        if ndim == 0 and ndim != np.ndim(G) and len(G) == 1:
+            return G[0]
+        else:
+            return G
+
+    @classmethod
+    @sbd.dataclass_input(eph=sbd.Ephem)
+    @sbd.quantity_to_dataclass(eph=(sbd.Ephem, "delta"))
+    def from_cross_section(cls, G, Ap, aper, eph):
+        """Initialize from dust geometric cross-sectional area.
+
+
+        Parameters
+        ----------
+        G : `~astropy.units.Quantity`
+            Dust geometric cross-sectional area.
+
+        Ap : float
+            Grain geometric albedo.  Note that A in the Afρ quantity is ``4 *
+            Ap`` (A'Hearn et al. 1984).
+
+        aper : `~astropy.units.Quantity` or `~sbpy.activity.Aperture`
+            Aperture of the observation as a circular radius (length or angular
+            units), or as an `~sbpy.activity.Aperture`.
+
+        eph: `~astropy.units.Quantity`, dictionary-like, `~sbpy.data.Ephem`
+            Observer-comet distance, or ephemeris data object with "delta"
+            defined.
+
+
+        Returns
+        -------
+        G : `~astropy.units.Quantity`
+
+
+        Examples
+        --------
+        >>> import astropy.units as u
+        >>> from sbpy.activity import Afrho
+        >>> eph = {"rh": 1 * u.au, "delta": 1 * u.au}
+        >>> aper = 1 * u.arcsec
+        >>> Afrho.from_cross_section(1 * u.km**2, 0.05, aper, eph)
+
+        """
+
+        G1 = cls(1 * u.cm).to_cross_section(Ap, aper, eph)
+        afrho = cls((G / G1).to("") * u.cm)
+        return afrho
+
 
 class Efrho(DustComaQuantity):
     """Coma dust quantity for thermal emission.
@@ -642,7 +751,7 @@ class Efrho(DustComaQuantity):
         The value(s).
 
     unit : str, `~astropy.units.Unit`, optional
-        The unit of the input value.  Strings must be parseable by
+        The unit of the input value.  Strings must be parsable by
         :mod:`~astropy.units` package.
 
     dtype : `~numpy.dtype`, optional
@@ -760,3 +869,107 @@ class Efrho(DustComaQuantity):
                 )
 
         return B
+
+    @sbd.dataclass_input(eph=sbd.Ephem)
+    @sbd.quantity_to_dataclass(eph=(sbd.Ephem, "delta"))
+    def to_cross_section(self, epsilon, aper, eph):
+        """Convert from εfρ to dust geometric cross-sectional area.
+
+
+        Parameters
+        ----------
+        epsilon : float
+            Grain emissivity.
+
+        aper : `~astropy.units.Quantity` or `~sbpy.activity.Aperture`
+            Aperture of the observation as a circular radius (length
+            or angular units), or as an `~sbpy.activity.Aperture`.
+
+        eph: `~astropy.units.Quantity`, dictionary-like, `~sbpy.data.Ephem`
+            Observer-comet distance, or ephemeris data object with "delta"
+            defined.
+
+
+        Returns
+        -------
+        G : `~astropy.units.Quantity`
+
+
+        Examples
+        --------
+        >>> import astropy.units as u
+        >>> from sbpy.activity import Efrho
+        >>> efrho = Efrho(1000 * u.cm)
+        >>> eph = {"rh": 1 * u.au, "delta": 1 * u.au}
+        >>> aper = 1 * u.arcsec
+        >>> efrho.to_cross_section(0.95, aper, eph)    # doctest: +FLOAT_CMP
+        <Quantity 7.63443099 km2>
+
+        """
+
+        # F_comet = G epsilon B(T) / delta**2
+        #
+        # efrho = F_comet delta**2 / (pi rho B(T))
+        # F_comet = efrho pi rho B(T) / delta**2
+        #
+        # G epsilon B(T) / delta**2 = efrho pi rho B(T) / delta**2
+        # G epsilon = efrho pi rho
+        #
+        # G = efrho pi rho / epsilon
+
+        # rho = effective circular aperture radius at the distance of
+        # the comet.
+        if isinstance(aper, Aperture):
+            rho = aper.coma_equivalent_radius()
+        else:
+            rho = aper
+        rho = rho.to("km", sbu.projected_size(eph))
+
+        G = (self * np.pi * rho / epsilon).to("km2")
+
+        # Avoid allowing the Ephem object to needlessly return an array.
+        ndim = np.ndim(self * aper * epsilon)
+        if ndim == 0 and ndim != np.ndim(G) and len(G) == 1:
+            return G[0]
+        else:
+            return G
+
+    @classmethod
+    @sbd.dataclass_input(eph=sbd.Ephem)
+    @sbd.quantity_to_dataclass(eph=(sbd.Ephem, "delta"))
+    def from_cross_section(cls, G, epsilon, aper, eph):
+        """Initialize from dust geometric cross-sectional area.
+
+
+        Parameters
+        ----------
+        G : `~astropy.units.Quantity`
+            Dust geometric cross-sectional area.
+
+        epsilon : float
+            Grain emissivity.
+
+        aper : `~astropy.units.Quantity` or `~sbpy.activity.Aperture`
+            Aperture of the observation as a circular radius (length
+            or angular units), or as an `~sbpy.activity.Aperture`.
+
+        eph: `~astropy.units.Quantity`, dictionary-like, `~sbpy.data.Ephem`
+            Observer-comet distance, or ephemeris data object with "delta"
+            defined.
+
+
+        Returns
+        -------
+        G : `~astropy.units.Quantity`
+
+
+        Examples
+        --------
+        >>> eph = {"rh": 1 * u.au, "delta": 1 * u.au}
+        >>> aper = 1 * u.arcsec
+        >>> Efrho.from_cross_section(1 * u.km**2, 0.95, aper, eph)
+
+        """
+
+        G1 = Efrho(1 * u.cm).to_cross_section(epsilon, aper, eph)
+        return Efrho((G / G1).to("") * u.cm)
