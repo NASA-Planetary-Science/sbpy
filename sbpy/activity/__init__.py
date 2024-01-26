@@ -1,5 +1,5 @@
 """
-SBPy Module for simulating cometary activity and observations.
+Cometary activity and observations.
 """
 
 from .core import *

@@ -77,6 +77,15 @@ Photometry and Spectroscopy
    sbpy/spectroscopy/sources.rst
    sbpy/photometry.rst
 
+Dynamics and time
+-----------------
+
+.. toctree::
+   :maxdepth: 2
+
+   sbpy/dynamics
+   sbpy/time
+
 Activity
 --------
 

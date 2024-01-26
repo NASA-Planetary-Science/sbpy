@@ -49,7 +49,8 @@ def required_packages(*packages, message=None):
         except ModuleNotFoundError as exc:
             _message = "" if message is None else "  " + message
             raise RequiredPackageUnavailable(
-                f"`{package}` is required.{_message}") from None
+                f"`{package}` is required.{_message}"
+            ) from None
 
 
 def optional_packages(*packages, message=None):
