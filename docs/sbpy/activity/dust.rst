@@ -1,8 +1,11 @@
-Dust comae (`sbpy.activity.dust`)
-=================================
+Dust comae and tails (`sbpy.activity.dust`)
+*******************************************
 
-*Afρ* and *εfρ*
----------------
+Cometary dust is the refractory material released by comets.  This sub-module provides simple photometric models of cometary dust comae.
+
+
+*Afρ* and *εfρ* models
+======================
 
 `sbpy` has two classes to support observations and models of a coma continuum: `~sbpy.activity.dust.Afrho` and `~sbpy.activity.dust.Efrho`.
 
@@ -23,9 +26,9 @@ The *εfρ* parameter is the thermal emission counterpart to *Afρ*, replacing a
 where :math:`T_c` is the spectral temperature of the continuum (Kelley et al. 2013).
 
 *Afρ* and *εfρ* are quantities
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+------------------------------
 
-`Afrho` and `Efrho` are subclasses of `astropy`'s `~astropy.units.Quantity` and carry units of length.
+``Afrho`` and ``Efrho`` are subclasses of `astropy`'s `~astropy.units.Quantity` and carry units of length.
 
    >>> import numpy as np
    >>> import astropy.units as u
@@ -38,7 +41,7 @@ where :math:`T_c` is the spectral temperature of the continuum (Kelley et al. 20
    >>> print(efrho)    # doctest: +FLOAT_CMP
    350.0 cm
 
-They may be converted to other units of length just like any `Quantity`:
+They may be converted to other units of length just like any `~astropy.units.Quantity`:
 
    >>> afrho.to('m')    # doctest: +FLOAT_CMP
    <Afrho 1. m>
@@ -46,7 +49,7 @@ They may be converted to other units of length just like any `Quantity`:
 .. _afrho-to-from-flux-density:
 
 Convert to/from flux density
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+----------------------------
 
 The quantities may be initialized from flux densities.  Here, we reproduce one of the calculations from the original A'Hearn et al. (1984) work:
 
@@ -77,13 +80,13 @@ The solar flux density at 1 au is also needed.  We use 1868 W/(m2 μm).
 
 Which is within a few percent of 6160 cm computed by A'Hearn et al.. The difference is likely due to the assumed solar flux density in the bandpass.
 
-The `Afrho` class may be converted to a flux density, and the original value is recovered.
+The ``Afrho`` class may be converted to a flux density, and the original value is recovered.
 
    >>> f = afrho.to_fluxd('λ5240', aper, eph).to('erg/(s cm2 AA)')
    >>> print(np.log10(f.value))    # doctest: +FLOAT_CMP
    -13.99
 
-`Afrho` works seamlessly with `sbpy`'s spectral calibration framework (:ref:`sbpy-calib`) when the `astropy` affiliated package `synphot` is installed.  The solar flux density (via `~sbpy.calib.solar_fluxd`) is not required, but instead the spectral wavelengths or the system transmission of the instrument and filter:
+``Afrho`` works seamlessly with `sbpy`'s spectral calibration framework (:ref:`sbpy-calib`) when the `astropy` affiliated package `synphot` is installed.  The solar flux density (via `~sbpy.calib.solar_fluxd`) is not required, but instead the spectral wavelengths or the system transmission of the instrument and filter:
 
 .. doctest-requires:: synphot; astropy>=5.3
 
@@ -100,9 +103,9 @@ The `Afrho` class may be converted to a flux density, and the original value is 
    5994.110239075767 cm
 
 Thermal emission with *εfρ*
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   
-The `Efrho` class has the same functionality as the `Afrho` class.  The most important difference is that *εfρ* is calculated using a Planck function and temperature.  `sbpy` follows common practice and parameterizes the temperature as a constant scale factor of :math:`T_{BB} = 278\,r_h^{1/2}`\  K, the equilibrium temperature of a large blackbody sphere at a distance :math:`r_h` from the Sun.
+---------------------------
+
+The ``Efrho`` class has the same functionality as the ``Afrho`` class.  The most important difference is that *εfρ* is calculated using a Planck function and temperature.  `sbpy` follows common practice and parameterizes the temperature as a constant scale factor of :math:`T_{BB} = 278\,r_h^{1/2}`\  K, the equilibrium temperature of a large blackbody sphere at a distance :math:`r_h` from the Sun.
 
 Reproduce the *εfρ* of 246P/NEAT from Kelley et al. (2013).
 
@@ -122,9 +125,9 @@ Compare to 397.0 cm and 424.6 cm listed in Kelley et al. (2013).
 
 
 To/from magnitudes
-^^^^^^^^^^^^^^^^^^
+------------------
 
-`Afrho` and `Efrho` work with `astropy`'s magnitude units.  If the conversion between Vega-based magnitudes is required, then `sbpy`'s calibration framework (:ref:`sbpy-calib`) will be used.
+``Afrho`` and ``Efrho`` also work with `astropy`'s magnitude units.  If the conversion between Vega-based magnitudes is required, then `sbpy`'s calibration framework (:ref:`sbpy-calib`) will be used.
 
 Estimate the *Afρ* of comet C/2012 S1 (ISON) based on Pan-STARRS 1 photometry in the *r* band (Meech et al. 2013)
 
@@ -143,9 +146,9 @@ Estimate the *Afρ* of comet C/2012 S1 (ISON) based on Pan-STARRS 1 photometry i
 
 
 Phase angles and functions
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+--------------------------
 
-Phase angle was not used in the previous section.  In the *Afρ* formalism, "albedo" includes the scattering phase function, and is more precisely written *A(θ)*, where *θ* is the phase angle.  The default behavior for `Afrho` is to compute *A(θ)fρ* as opposed to *A(0°)fρ*.  Returning to the A'Hearn et al. data, we scale *Afρ* to 0° from 3.3° phase using the :func:`~sbpy.activity.Afrho.to_phase` method:
+Phase angle was not used in the previous section.  In the *Afρ* formalism, "albedo" includes the scattering phase function, and is more precisely written *A(θ)*, where *θ* is the phase angle.  The default behavior for ``Afrho`` is to compute *A(θ)fρ* as opposed to *A(0°)fρ*.  Returning to the A'Hearn et al. data, we scale *Afρ* to 0° from 3.3° phase using the :func:`~sbpy.activity.dust.Afrho.to_phase` method:
 
 .. doctest-requires:: scipy
 
@@ -161,7 +164,7 @@ The default phase function is the Halley-Marcus composite phase function (:func:
    >>> print(afrho.to_phase(0 * u.deg, 3.3 * u.deg, Phi=Phi))    # doctest: +FLOAT_CMP
    6809.419810008357 cm
 
-To correct an observed flux density for the phase function, use the ``phasecor`` option of :func:`~sbpy.activity.Afrho.to_fluxd` and :func:`~sbpy.activity.Afrho.from_fluxd` methods:
+To correct an observed flux density for the phase function, use the ``phasecor`` option of :func:`~sbpy.activity.dust.Afrho.to_fluxd` and :func:`~sbpy.activity.dust.Afrho.from_fluxd` methods:
 
 .. doctest-requires:: scipy
 
@@ -178,8 +181,8 @@ To correct an observed flux density for the phase function, use the ``phasecor``
    6886.828824340642 cm
 
 
-Apertures
-^^^^^^^^^
+Using apertures
+---------------
 
 Other apertures may be used, as long as they can be converted into an equivalent radius, assuming a coma with a *1/ρ* surface brightness distribution.  `~sbpy.activity` has a collection of useful geometries.
 
@@ -199,7 +202,11 @@ Other apertures may be used, as long as they can be converted into an equivalent
    σ=5" Gaussian beam =  9442 cm
 
 
+
+
 Reference/API
--------------
+=============
+
 .. automodapi:: sbpy.activity.dust
-   :no-heading:
+   :no-main-docstr:
+   :inherited-members:

@@ -78,6 +78,8 @@ autosectionlabel_prefix_document = True
 # Chooses the sections for labeling by its depth
 autosectionlabel_maxdepth = 2
 
+autodoc_inherit_docstrings = False
+
 # -- Project information ------------------------------------------------------
 
 # This does not *have* to match the package name, but typically does

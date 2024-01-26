@@ -1,14 +1,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-sbpy Activity: Dust
-===================
+sbpy activity.dust.core
+=======================
 
 All things dust coma related.
 
 
 """
 
-__all__ = ["phase_HalleyMarcus", "Afrho", "Efrho"]
+__all__ = ["phase_HalleyMarcus", "DustComaQuantity", "Afrho", "Efrho"]
 
 __doctest_requires__ = {
     "Afrho.to_fluxd": ["astropy>=5.3", "synphot"],
@@ -337,8 +337,7 @@ class DustComaQuantity(u.SpecificTypeQuantity, metaclass=abc.ABCMeta):
 
         """
 
-        fluxd1cm = cls(1 * u.cm).to_fluxd(wfb, aper,
-                                          eph, unit=fluxd.unit, **kwargs)
+        fluxd1cm = cls(1 * u.cm).to_fluxd(wfb, aper, eph, unit=fluxd.unit, **kwargs)
 
         if isinstance(fluxd1cm, u.Magnitude):
             coma = cls((fluxd - fluxd1cm).physical * u.cm)

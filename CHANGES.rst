@@ -4,26 +4,41 @@
 - Revised required and optional packages:
 
   - Only numpy and astropy are required; scipy, synphot, ads, and astroquery are
-    now optional dependences.
+    now optional dependences. [#383]
 
   - Created an option to install a recommended list of packages, e.g., ``pip
-    install sbpy[recommended]``.
+    install sbpy[recommended]``. [#383]
 
 
 New Features
 ------------
 
+sbpy.time
+^^^^^^^^^
+
+- New sub-module to support conversions to NAIF SPICE ephemeris time. [#394]
+
+sbpy.dynamics
+^^^^^^^^^^^^^
+
+- New class to encapsulate dynamical state vectors: `sbpy.dynamics.state.State`. [#394]
+
+- New support for dynamical integrations: `sbpy.dynamics.models`.  Three models
+  are implemented: `FreeExpansion`, `SolarGravity`, and `SolarGravityAndRadiationPressure`.  [#394]
+
+- New ability to produce dust syndynes and synchrones: `sbpy.dynamics.syndynes`.  [#394]
+
 sbpy.utils
 ^^^^^^^^^^
 
 - New `required_packages` and `optional_packages` functions to test for the
-  presence of required and optional packages.
+  presence of required and optional packages. [#383]
 
 sbpy.utils.decorators
 ^^^^^^^^^^^^^^^^^^^^^
 
 - New `requires` and  `optionally_uses` function decorators to simplify testing
-  for required and optional packages.
+  for required and optional packages. [#383]
 
 
 API Changes
@@ -31,14 +46,14 @@ API Changes
 
 sbpy.sources
 ^^^^^^^^^^^^
-* Deprecated ``SynphotRequired``.  Use ``sbpy.execptions.RequiredPackageUnavailable``.
+* Deprecated ``SynphotRequired``.  Use ``sbpy.execptions.RequiredPackageUnavailable``. [#383]
 
 
 Bug Fixes
 ---------
 * ``sbpy.sources.SpectralSource`` now correctly raises
   ``RequiredPackageUnavailable`` when ``synphot`` is not available, replacing a
-  locally defined ``SynphotRequired`` or the generic ``ImportError``.
+  locally defined ``SynphotRequired`` or the generic ``ImportError``. [#383]
 
 
 0.4.0 (2023-06-30)
