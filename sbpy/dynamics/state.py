@@ -25,6 +25,7 @@ except ImportError:
     Self = TypeVar("Self", bound="StateBase")
 
 import numpy as np
+from astropy.utils.introspection import minversion
 from astropy.time import Time
 import astropy.units as u
 from astropy.coordinates import frame_transform_graph, SkyCoord, BaseCoordinateFrame
@@ -102,9 +103,9 @@ class StateBase(abc.ABC):
         frame: Optional[FrameInputTypes] = None,
     ) -> None:
         frame_class: BaseCoordinateFrame = self._get_frame_class(frame)
-        frame_kwargs: dict = {}
 
         # some frames require observation time for coordinate transformations
+        frame_kwargs: dict = {}
         if "obstime" in frame_class.frame_attributes:
             frame_kwargs["obstime"] = t
 
@@ -305,8 +306,10 @@ class StateBase(abc.ABC):
 
         frame_class: BaseCoordinateFrame = self._get_frame_class(frame)
         frame_kwargs: dict = {}
-        if "obstime" in frame_class.get_frame_attr_defaults():
+
+        if "obstime" in frame_class.frame_attributes:
             frame_kwargs["obstime"] = self.t
+
         transformed: BaseCoordinateFrame = self._data.transform_to(
             frame_class(**frame_kwargs)
         )
