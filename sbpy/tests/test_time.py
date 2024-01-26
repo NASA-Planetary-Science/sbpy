@@ -12,4 +12,4 @@ def test_spice_ephemeris_time():
     """
 
     t = Time("2022-08-01", scale="utc")
-    assert np.isclose(t.et, 712584069.1832777)
+    assert np.isclose(t.et, 712584069.1832777, atol=1e-4, rtol=1e-14)
