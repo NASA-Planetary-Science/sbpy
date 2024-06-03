@@ -309,7 +309,7 @@ An ejection velocity can be added to the dust particles.  This is not implemente
 Projecting onto the sky
 -----------------------
 
-Syndynes and synchrones may be projected onto the sky as seen by a telescope.  This requires an observer.  For precision work, the `SynGenerator` source object's `State` should be defined in a heliocentric reference frame.  Typically, the observer will observe in an equatorial reference frame, but your needs may vary.  Here, we generate syndynes in the `~astropy.coordinates.HeliocentricEclipticIAU76` coordinate frame, which is the same J2000 heliocentric ecliptic coordinate frame that `JPL Horizons <https://ssd.jpl.nasa.gov/horizons/manual.html#frames>`_ and the `NAIF SPICE toolkit <https://naif.jpl.nasa.gov/pub/naif/toolkit_docs/C/req/frames.html#Frames%20Supported%20in%20SPICE>`_ use.  We thenand observe the results in the `~astropy.coordinates.ICRS` reference frame:
+Syndynes and synchrones may be projected onto the sky as seen by a telescope.  This requires an observer.  For precision work, the `SynGenerator` source object's `State` should be defined in a heliocentric reference frame.  Typically, the observer will observe in an equatorial reference frame, but your needs may vary.  Here, we generate syndynes in the `~astropy.coordinates.HeliocentricEclipticIAU76` coordinate frame, which is the same J2000 heliocentric ecliptic coordinate frame that `JPL Horizons <https://ssd.jpl.nasa.gov/horizons/manual.html#frames>`_ and the `NAIF SPICE toolkit <https://naif.jpl.nasa.gov/pub/naif/toolkit_docs/C/req/frames.html#Frames%20Supported%20in%20SPICE>`_ use.  We then observe the results in the `~astropy.coordinates.ICRS` reference frame:
 
 .. doctest-requires:: scipy
 
@@ -388,13 +388,13 @@ Generally, we are interested in plotting syndynes and synchrones on an image of 
    >>> 
    >>> # plot all but the last (beta=0) syndyne
    >>> for syndyne in dust.syndynes()[:-1]:
-   ...     plot(ax, coords, label=f"$\\beta={syndyne.beta:.2g}$")
+   ...     plot(ax, syndyne.coords, label=f"$\\beta={syndyne.beta:.2g}$")
    >>> 
    >>> # plot every 5th synchrone
    >>> for synchrone in dust.synchrones()[4::5]:
    ...     plot(
    ...         ax,
-   ...         coords,
+   ...         synchrone.coords,
    ...         ls="--",
    ...         label=f"$\\Delta t={synchrone.age.to(u.d):.2g}$"
    ...     )
