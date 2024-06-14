@@ -546,7 +546,7 @@ class Conf():
         # Physical properties (dependent on other properties)
         {'description': 'Infrared Beaming Parameter',
          'fieldnames': ['eta', 'Eta'],
-         'provenance': ['ephem', 'obs'],
+         'provenance': ['phys', 'obs'],
          'dimension': None},
         {'description': 'Temperature',
          'fieldnames': ['temp', 'Temp', 'temperature', 'Temperature'],
