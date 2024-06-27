@@ -13,6 +13,11 @@
 New Features
 ------------
 
+sbpy.data.ephem
+^^^^^^^^^^^^^^^
+
+- New command-line script: ``sbpy-ephem``.
+
 sbpy.utils
 ^^^^^^^^^^
 
