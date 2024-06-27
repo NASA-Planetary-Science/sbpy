@@ -48,8 +48,19 @@ class Conf:
     fieldnames_info = [
         # General
         {
-            "description": "Target Identifier",
-            "fieldnames": ["targetname", "id", "Object"],
+            "description": "Target Name",
+            "fieldnames": [
+                "targetname",
+                "Targetname",
+                "target",
+                "Target",
+                "name",
+                "Name",
+                "id",
+                "ID",
+                "Object",
+                "object",
+            ],
             "provenance": ["orbit", "ephem", "obs", "phys"],
             "dimension": None,
         },
@@ -61,13 +72,7 @@ class Conf:
         },
         {
             "description": "Target Number",
-            "fieldnames": ["number"],
-            "provenance": ["orbit", "ephem", "obs", "phys"],
-            "dimension": None,
-        },
-        {
-            "description": "Target Name",
-            "fieldnames": ["name"],
+            "fieldnames": ["number", "target number"],
             "provenance": ["orbit", "ephem", "obs", "phys"],
             "dimension": None,
         },
