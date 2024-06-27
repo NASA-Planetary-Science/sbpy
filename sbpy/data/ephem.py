@@ -20,7 +20,7 @@ created on June 04, 2017
 import os
 import argparse
 from warnings import warn
-from typing import Union
+from typing import List, Union
 
 import numpy as np
 from numpy import ndarray, hstack, iterable
@@ -484,12 +484,12 @@ class Ephem(DataClass):
 
     @classmethod
     @requires("astroquery")
-    @cite({'data source': 'http://vo.imcce.fr/webservices/miriade/',
+    @cite({'data source': 'https://vo.imcce.fr/webservices/miriade/',
            'software: astroquery': '2019AJ....157...98G'})
     def from_miriade(cls, targetids, objtype='asteroid',
                      epochs=None, location='500', **kwargs):
         """Load target ephemerides from
-        `IMCCE Miriade <http://vo.imcce.fr/webservices/miriade/>`_ using
+        `IMCCE Miriade <https://vo.imcce.fr/webservices/miriade/>`_ using
         `astroquery.imcce.MiriadeClass.get_ephemerides`
 
         Parameters
@@ -984,14 +984,8 @@ def main():
             epochs=epochs,
             location=args.location,
         )
-
-        # simplify output
-        for k in ["Targetname"]:
-            del eph.table[k]
     elif args.service == "horizons":
-        epochs["step"] = (
-            int(args.step) if args.step.unit == u.dimensionless_unscaled else args.step
-        )
+        epochs["step"] = args.step
 
         # comet specific options: always avoid multiple fragment matches, always
         # return closest apparition
@@ -1020,8 +1014,9 @@ def main():
         eph["epoch"].format = "iso"
         eph["ra"] = eph["ra"].unmasked
         eph["dec"] = eph["dec"].unmasked
-        for k in ["M1", "k1", "solar_presence", "lunar_presence", "targetname"]:
-            del eph.table[k]
+        for k in ["M1", "k1", "solar_presence", "lunar_presence"]:
+            if k in eph.table.colnames:
+                del eph.table[k]
     elif args.service == "miriade":
         if args.step.unit == u.dimensionless_unscaled:
             epochs["number"] = int(args.step)
@@ -1038,8 +1033,7 @@ def main():
 
         # simplify output
         eph["epoch"].format = "iso"
-        for k in ["target"]:
-            del eph.table[k]
+
         for k in eph.field_names:
             if hasattr(eph[k], "unmasked"):
                 eph[k] = eph[k].unmasked
@@ -1057,28 +1051,40 @@ def main():
         eph["ra"].info.format = lambda x: x.to_string()
         eph["dec"].info.format = lambda x: x.to_string()
 
-    # unified output order for most common columns
-    fields = eph.field_names
-    for k in eph._translate_columns(
-        [
-            "RA*cos(Dec)_rate",
-            "DEC_rate",
-            "elong",
-            "phase",
-            "delta",
-            "rh",
-            "dec",
-            "ra",
-            "epoch",
-        ],
-        ignore_missing=True,
-    ):
+    # normalize output for most common columns
+    first_fields: List[str] = [
+        "target",
+        "date",
+        "RA",
+        "Dec",
+        "rh",
+        "delta",
+        "phase",
+        "solarelong",
+        "DEC_rate",
+        "RA*cos(Dec)_rate",
+    ]
+
+    k: str
+    translated: str
+    for k in first_fields:
+        if k not in eph:
+            continue
+        translated = eph._translate_columns(k)[0]
+        eph.table.rename_column(translated, k)
+
+    # re-order
+    fields: List[str] = eph.field_names
+    for k in reversed(first_fields):
         if k not in fields:
             continue
         fields.insert(0, fields.pop(fields.index(k)))
 
-    eph[fields].table.pprint_all()
+    eph = eph[fields]
+    target = eph["target"][0]
+    del eph.table["target"]
 
-
-if __name__ == "__main__":
-    main()
+    print(f"# requested target: {args.target}")
+    print(f"# returned target: {target}")
+    print(f"# location: {args.location}")
+    eph.table.pprint_all()

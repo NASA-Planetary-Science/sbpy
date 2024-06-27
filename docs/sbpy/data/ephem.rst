@@ -325,7 +325,10 @@ For example to get the ephemeris of comet 2P/Encke from the Minor Planet Center
 over the next month::
 
     $ sbpy-ephem mpc 2P
-            Date               RA         Dec       r   Delta Phase Elongation  V   Proper motion Direction
+    # requested target: 2P
+    # returned target: 2P
+    # location: 500
+            date               RA         Dec       rh  delta phase solarelong  V   Proper motion Direction
                                 deg         deg       AU    AU   deg     deg     mag    arcsec / h     deg   
     ----------------------- ----------- ----------- ----- ----- ----- ---------- ---- ------------- ---------
     2024-06-27 00:00:00.000 22:46:17.90 -11:05:59.0 3.079 2.485  17.2      116.7 20.8         18.25     249.6
@@ -359,5 +362,3 @@ over the next month::
     2024-07-25 00:00:00.000 22:23:58.60 -13:03:20.0 3.245 2.331   9.2      149.1 21.0         42.17     251.1
     2024-07-26 00:00:00.000 22:22:52.60 -13:08:49.0  3.25 2.329   8.9      150.3 21.0         42.77     251.2
     2024-07-27 00:00:00.000 22:21:45.60 -13:14:21.0 3.256 2.327   8.5      151.6 21.0         43.34     251.3
-
-Alternatively, the script may be run via ``python3 -m sbpy.data.ephem``.
