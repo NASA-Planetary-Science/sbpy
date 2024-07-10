@@ -24,10 +24,7 @@ class TestSun:
     def test_from_builtin(self):
         pytest.importorskip("synphot")
         sun = Sun.from_builtin("E490_2014LR")
-        assert (
-            sun.description
-            == solar_sources.SolarSpectra.E490_2014LR["description"]
-        )
+        assert sun.description == solar_sources.SolarSpectra.E490_2014LR["description"]
 
     def test_from_builtin_unknown(self):
         with pytest.raises(UndefinedSourceError):
@@ -38,8 +35,7 @@ class TestSun:
         with solar_spectrum.set("E490_2014LR"):
             sun = Sun.from_default()
             assert (
-                sun.description
-                == solar_sources.SolarSpectra.E490_2014LR["description"]
+                sun.description == solar_sources.SolarSpectra.E490_2014LR["description"]
             )
 
     def test_call_single_wavelength(self):
@@ -59,7 +55,7 @@ class TestSun:
     def test_sun_observe_wavelength_array(self):
         pytest.importorskip("scipy")
         pytest.importorskip("synphot")
-        from scipy.integrate import trapz
+        from scipy.integrate import trapezoid
 
         unit = "W/(m2 um)"
 
@@ -78,7 +74,7 @@ class TestSun:
         fluxd1 = np.zeros(len(wave))
         for i in range(len(wave)):
             j = (wave0 >= left_bins[i]) * (wave0 <= right_bins[i])
-            fluxd1[i] = trapz(fluxd0[j] * wave0[j], wave0[j]) / trapz(
+            fluxd1[i] = trapezoid(fluxd0[j] * wave0[j], wave0[j]) / trapezoid(
                 wave0[j], wave0[j]
             )
 
@@ -194,8 +190,6 @@ class TestSun:
     def test_show_builtin(self, capsys):
         Sun.show_builtin()
         captured = capsys.readouterr()
-        sources = inspect.getmembers(
-            Sun._sources, lambda v: isinstance(v, dict)
-        )
+        sources = inspect.getmembers(Sun._sources, lambda v: isinstance(v, dict))
         for k, v in sources:
             assert k in captured.out
