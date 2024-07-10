@@ -68,7 +68,7 @@ To use a bandpass, define and pass a `synphot.spectrum.SpectralElement`.  A limi
   >>> m = 0.0 * VEGAmag
   >>> fluxd = m.to('erg/(cm2 s AA)', spectral_density_vega(V))
   >>> fluxd.value                   # doctest: +FLOAT_CMP
-  3.588524658721229e-09
+  3.5469235114856157e-09
 
 .. _reflectance-equivalencies:
 
