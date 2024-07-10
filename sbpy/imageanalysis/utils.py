@@ -32,10 +32,10 @@ def rarray(shape, yx=None, subsample=0):
     -------
     >>> from sbpy.imageanalysis.utils import rarray
     >>> r = rarray((5, 5))
-    >>> r[2, 2]
+    >>> r[2, 2]  # docest: +FLOAT_CMP
     0.0
     >>> r = rarray((5, 5), yx=(0, 0))
-    >>> r[2, 2]
+    >>> r[2, 2]  # docest: +FLOAT_CMP
     2.8284271247461903
 
     """
@@ -89,10 +89,10 @@ def rebin(a, factor, flux=False, trim=False):
     -------
     >>> from sbpy.imageanalysis.utils import xarray, rebin
     >>> x = xarray((10, 10))
-    >>> x[0, :2].mean()
+    >>> x[0, :2].mean()  # docest: +FLOAT_CMP
     0.5
     >>> x2 = rebin(x, -2)
-    >>> x2[0, 0]
+    >>> x2[0, 0]  # docest: +FLOAT_CMP
     0.5
 
     """
@@ -102,7 +102,7 @@ def rebin(a, factor, flux=False, trim=False):
     def mini(a, factor):
         b = a[::-factor]
         for i in range(-factor - 1):
-            b += a[(i + 1)::-factor]
+            b += a[(i + 1) :: -factor]
         if not flux:
             b = b / -factor
         return b
@@ -132,7 +132,8 @@ def rebin(a, factor, flux=False, trim=False):
             if (_a.shape[i] % factor) != 0:
                 raise ValueError(
                     "Axis {0} must be an integer multiple of "
-                    "the minification factor.".format(i))
+                    "the minification factor.".format(i)
+                )
         f = mini
     else:
         f = magni
@@ -175,7 +176,7 @@ def refine_pixel(func, subsample, yx_pixel, yx, **kwargs):
     >>> from sbpy.imageanalysis.utils import rarray, refine_pixel
     >>> yx = (2, 2)  # the center of the radial array
     >>> r = rarray((5, 5), yx=yx)
-    >>> r[2, 2]
+    >>> r[2, 2]  # docest: +FLOAT_CMP
     0.0
     >>> f = refine_pixel(rarray, 10, (2, 2), yx)
     >>> np.isclose(f, 0.03826, rtol=0.01, atol=0.01)
