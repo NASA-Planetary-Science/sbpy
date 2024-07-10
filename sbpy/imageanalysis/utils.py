@@ -102,7 +102,7 @@ def rebin(a, factor, flux=False, trim=False):
     def mini(a, factor):
         b = a[::-factor]
         for i in range(-factor - 1):
-            b += a[(i + 1) :: -factor]
+            b += a[(i + 1)::-factor]
         if not flux:
             b = b / -factor
         return b
