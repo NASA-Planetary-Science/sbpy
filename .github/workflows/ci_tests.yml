@@ -68,7 +68,7 @@ jobs:
         if: runner.os == 'macos'
         run: |
           echo `which gfortran-11`
-          sudo ln -sfn /usr/local/bin/gfortran-11 /usr/local/bin/gfortran
+          sudo ln -sfn /opt/homebrew/bin/gfortran-11 /usr/local/bin/gfortran
           gfortran --version
       - name: Install base dependencies
         run: |
