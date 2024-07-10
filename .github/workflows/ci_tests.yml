@@ -44,7 +44,7 @@ jobs:
           coverage: codecov
 
         - name: Python 3.10 with all optional dependencies, measuring coverage
-          linux: py310-test-alldeps-cov
+          linux: py310-test-numpy126-alldeps-cov
           coverage: codecov
           
         - name: Python 3.8 with oldest supported versions
