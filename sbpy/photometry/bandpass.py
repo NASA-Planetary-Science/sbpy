@@ -4,9 +4,7 @@ sbpy bandpass Module
 
 """
 
-__all__ = [
-    'bandpass'
-]
+__all__ = ["bandpass"]
 
 import os
 from astropy.utils.data import get_pkg_data_path
@@ -118,45 +116,51 @@ def bandpass(name):
     import synphot
 
     name2file = {
-        '2mass j': '2mass-j-rsr.txt',
-        '2mass h': '2mass-h-rsr.txt',
-        '2mass ks': '2mass-ks-rsr.txt',
-        'atlas c': 'atlas-c.txt',
-        'atlas o': 'atlas-o.txt',
-        'cousins r': 'cousins_r_004_syn.fits',
-        'cousins i': 'cousins_i_004_syn.fits',
-        'johnson u': 'johnson_u_004_syn.fits',
-        'johnson b': 'johnson_b_004_syn.fits',
-        'johnson v': 'johnson_v_004_syn.fits',
-        'ps1 g': 'ps1-gp1.txt',
-        'ps1 r': 'ps1-rp1.txt',
-        'ps1 i': 'ps1-ip1.txt',
-        'ps1 w': 'ps1-wp1.txt',
-        'ps1 y': 'ps1-yp1.txt',
-        'ps1 z': 'ps1-zp1.txt',
-        'sdss u': 'sdss-u.fits',
-        'sdss g': 'sdss-g.fits',
-        'sdss r': 'sdss-r.fits',
-        'sdss i': 'sdss-i.fits',
-        'sdss z': 'sdss-z.fits',
-        'wfc3 f438w': 'wfc3_uvis_f438w_004_syn.fits',
-        'wfc3 f606w': 'wfc3_uvis_f606w_004_syn.fits',
-        'wise w1': 'WISE-RSR-W1.EE.txt',
-        'wise w2': 'WISE-RSR-W2.EE.txt',
-        'wise w3': 'WISE-RSR-W3.EE.txt',
-        'wise w4': 'WISE-RSR-W4.EE.txt',
+        "2mass j": "2mass-j-rsr.txt",
+        "2mass h": "2mass-h-rsr.txt",
+        "2mass ks": "2mass-ks-rsr.txt",
+        "atlas c": "atlas-c.txt",
+        "atlas o": "atlas-o.txt",
+        "cousins r": "cousins_r_004_syn.fits",
+        "cousins i": "cousins_i_004_syn.fits",
+        "johnson u": "johnson_u_004_syn.fits",
+        "johnson b": "johnson_b_004_syn.fits",
+        "johnson v": "johnson_v_004_syn.fits",
+        "ps1 g": "ps1-gp1.txt",
+        "ps1 r": "ps1-rp1.txt",
+        "ps1 i": "ps1-ip1.txt",
+        "ps1 w": "ps1-wp1.txt",
+        "ps1 y": "ps1-yp1.txt",
+        "ps1 z": "ps1-zp1.txt",
+        "sdss u": "sdss-u.fits",
+        "sdss g": "sdss-g.fits",
+        "sdss r": "sdss-r.fits",
+        "sdss i": "sdss-i.fits",
+        "sdss z": "sdss-z.fits",
+        "wfc3 f438w": "wfc3_uvis_f438w_004_syn.fits",
+        "wfc3 f606w": "wfc3_uvis_f606w_004_syn.fits",
+        "wise w1": "WISE-RSR-W1.EE.txt",
+        "wise w2": "WISE-RSR-W2.EE.txt",
+        "wise w3": "WISE-RSR-W3.EE.txt",
+        "wise w4": "WISE-RSR-W4.EE.txt",
     }
     wave_unit = {
-        'ps1 g': 'nm',
-        'ps1 r': 'nm',
-        'ps1 i': 'nm',
-        'ps1 w': 'nm',
-        'ps1 y': 'nm',
-        'ps1 z': 'nm',
+        "ps1 g": "nm",
+        "ps1 r": "nm",
+        "ps1 i": "nm",
+        "ps1 w": "nm",
+        "ps1 y": "nm",
+        "ps1 z": "nm",
     }
 
-    fn = get_pkg_data_path(os.path.join(
-        '..', 'photometry', 'data', name2file[name.lower()]))
-    bp = synphot.SpectralElement.from_file(
-        fn, wave_unit=wave_unit.get(name.lower(), 'AA'))
+    fn = get_pkg_data_path(
+        os.path.join("..", "photometry", "data", name2file[name.lower()])
+    )
+
+    # wave_unit is deprecated for FITS files in synphot 1.4
+    kwargs = {}
+    if name.lower() in wave_unit:
+        kwargs["wave_unit"] = wave_unit[name.lower()]
+
+    bp = synphot.SpectralElement.from_file(fn, **kwargs)
     return bp
