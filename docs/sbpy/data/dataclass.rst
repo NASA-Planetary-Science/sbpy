@@ -166,8 +166,6 @@ propagate this orbit and obtain ephemerides. Since you are dealing
 with a single orbit, the most convenient solution might be to use a
 dictionary to build your object:
 
-.. doctest-requires:: astropy>=5
-
     >>> from sbpy.data import Orbit
     >>> from astropy.time import Time
     >>> import astropy.units as u
@@ -205,8 +203,6 @@ Now assume that you want to build an `~sbpy.data.Obs` object holding
 RA, Dec, and observation midtime for some target that you observed. In
 this case, you can use `~sbpy.data.DataClass.from_columns` as shown
 here:
-
-.. doctest-requires:: astropy>=5
 
     >>> from sbpy.data import Obs
     >>> import astropy.units as u
@@ -334,8 +330,6 @@ otherwise.
 Similarly, if you are interested in the first set of observations in
 ``obs``, you can use:
 
-.. doctest-requires:: astropy>=5
-
     >>> obs[0]
     <QTable length=1>
         ra       dec         t
@@ -356,8 +350,6 @@ combine both examples and do:
 Just like in any `~astropy.table.Table` or `~astropy.table.QTable`
 object, you can use slicing to obtain subset tables from your data,
 for instance:
-
-.. doctest-requires:: astropy>=5
 
     >>> obs['ra', 'dec']
     <QTable length=3>
@@ -419,8 +411,6 @@ object.
 Let's assume you want to add some more observations to your ``obs``
 object:
 
-.. doctest-requires:: astropy>=5
-
     >>> obs.add_row([10.255460 * u.deg, -12.39460 * u.deg, 2451523.94653 * u.d])
     >>> obs
     <QTable length=4>
@@ -436,8 +426,6 @@ object:
 
 or if you want to add a column to your object:
 
-.. doctest-requires:: astropy>=5
-
     >>> obs.apply(['V', 'V', 'R', 'i'], name='filter')
     >>> obs
     <QTable length=4>
@@ -451,8 +439,6 @@ or if you want to add a column to your object:
      10.25546  -12.3946 2451523.94653      i
 
 The same result can be achieved using the following syntax:
-
-.. doctest-requires:: astropy>=5
 
     >>> obs['filter2'] = ['V', 'V', 'R', 'i']
     >>> obs
@@ -468,13 +454,9 @@ The same result can be achieved using the following syntax:
 
 Similarly, existing columns can be modified using:
 
-.. doctest-requires:: astropy>=5
-
     >>> obs['filter'] = ['g', 'i', 'R', 'V']
 
 If you want to stack two observations into a single object:
-
-.. doctest-requires:: astropy>=5
 
     >>> ra = [20.223423, 20.233453, 20.243452] * u.deg
     >>> dec = [12.42123, 12.41562, 12.40435] * u.deg
@@ -605,8 +587,6 @@ Using `~astropy.time.Time` in `~sbpy.data.DataClass` objects is
 straightforward. The following example builds a simple
 `~sbpy.data.Obs` object from a dictionary:
 
-.. doctest-requires:: astropy>=5
-
     >>> from sbpy.data import Obs
     >>> times = ['2018-10-01', '2018-11-01', '2018-12-01']
     >>> obs = Obs.from_dict({'epoch': Time(times), 'mag': [10, 12, 14]*u.mag})
@@ -619,12 +599,6 @@ straightforward. The following example builds a simple
     2018-10-01 00:00:00.000    10.0
     2018-11-01 00:00:00.000    12.0
     2018-12-01 00:00:00.000    14.0
-
-.. doctest-requires:: astropy<5
-
-    >>> from sbpy.data import Obs
-    >>> times = ['2018-10-01', '2018-11-01', '2018-12-01']
-    >>> obs = Obs.from_dict({'epoch': Time(times), 'mag': [10, 12, 14]*u.mag})
 
 The ``'epoch'`` column in ``obs`` can be used like any other field or
 `~astropy.time.Time` object. The following example converts the epoch

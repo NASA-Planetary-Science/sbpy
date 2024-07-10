@@ -11,7 +11,7 @@ All things dust coma related.
 __all__ = ["phase_HalleyMarcus", "Afrho", "Efrho"]
 
 __doctest_requires__ = {
-    "Afrho.to_fluxd": ["astropy>=5.3", "synphot"],
+    "Afrho.to_fluxd": ["synphot"],
     "Efrho.to_fluxd": ["synphot"],
 }
 

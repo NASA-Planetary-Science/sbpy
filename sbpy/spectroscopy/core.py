@@ -12,10 +12,10 @@ import astropy.units as u
 __all__ = ['Spectrum', 'SpectralModel', 'SpectralGradient']
 
 __doctest_requires__ = {
-    "SpectralGradient": ["astropy>=5.3", "synphot"],
-    "SpectralGradient.from_color": ["astropy>=5.3", "synphot"],
+    "SpectralGradient": ["synphot"],
+    "SpectralGradient.from_color": ["synphot"],
     "SpectralGradient.to_color": ["synphot"],
-    "SpectralGradient.renormalize": ["astropy>=5.3", "synphot"],
+    "SpectralGradient.renormalize": ["synphot"],
 }
 
 
