@@ -2,6 +2,8 @@
 #
 # This file performs testing using tox and tox.ini to define and configure the test environments.
 
+# Remove -numpy126 when we support testing with numpy 2.0
+
 name: CI Tests
 
 on:
@@ -75,4 +77,4 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install tox
       - name: Test with tox
-        run: tox -e py310-test-alldeps
+        run: tox -e py310-test-numpy126-alldeps
