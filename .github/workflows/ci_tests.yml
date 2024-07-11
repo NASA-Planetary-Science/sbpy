@@ -35,6 +35,8 @@ jobs:
       setenv: |
         ARCH_ON_CI: "normal"
         IS_CRON: "false"
+      runs-on: |
+        macos: macosx_x86_64
       submodules: false
       coverage: ""
       envs: |
