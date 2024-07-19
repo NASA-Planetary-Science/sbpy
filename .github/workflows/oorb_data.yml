@@ -6,7 +6,7 @@ on:
 jobs:
   oorb-data:
     name: Download OpenOrb data for sbpy testing
-    runs-on: macos-13
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
