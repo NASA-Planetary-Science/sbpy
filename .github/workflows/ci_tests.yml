@@ -27,35 +27,61 @@ env:
 jobs:
   oorb-data:
     uses: ./.github/workflows/oorb_data.yml
-  tests:
+  # tests:
+  #   needs: [oorb-data]
+  #   uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@v1
+  #   secrets:
+  #     CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+  #   with:
+  #     setenv: |
+  #       ARCH_ON_CI: "normal"
+  #       IS_CRON: "false"
+  #       OORB_DATA: "$GITHUB_WORKSPACE/oorb-data/"
+  #     cache-path: oorb-data/
+  #     cache-key: oorb-data
+  #     submodules: false
+  #     coverage: ""
+  #     envs: |
+  #       - name: Code style checks
+  #         linux: codestyle
+
+  #       - name: Python 3.11 with minimal dependencies, measuring coverage
+  #         linux: py311-test-numpy126-cov
+  #         coverage: codecov
+
+  #       - name: Python 3.10 with all optional dependencies, measuring coverage
+  #         linux: py310-test-numpy126-alldeps-cov
+  #         coverage: codecov
+
+  #       - name: Python 3.11 with all optional dependencies (MacOS)
+  #         macos: py311-test-numpy126-alldeps
+  #         runs-on: macos-13
+
+  #       - name: Python 3.9 with oldest supported versions
+  #         linux: py39-test-oldestdeps
+  macos-test:
     needs: [oorb-data]
-    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@v1
-    secrets:
-      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-    with:
-      setenv: |
-        ARCH_ON_CI: "normal"
-        IS_CRON: "false"
-        OORB_DATA: "$GITHUB_WORKSPACE/oorb-data/"
-      cache-path: oorb-data/
-      cache-key: oorb-data
-      submodules: false
-      coverage: ""
-      envs: |
-        - name: Code style checks
-          linux: codestyle
-
-        - name: Python 3.11 with minimal dependencies, measuring coverage
-          linux: py311-test-numpy126-cov
-          coverage: codecov
-
-        - name: Python 3.10 with all optional dependencies, measuring coverage
-          linux: py310-test-numpy126-alldeps-cov
-          coverage: codecov
-
-        - name: Python 3.11 with all optional dependencies (MacOS)
-          macos: py311-test-numpy126-alldeps
-          runs-on: macos-13
-
-        - name: Python 3.9 with oldest supported versions
-          linux: py39-test-oldestdeps
+    runs-on: macos-13
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Restore cached files
+        uses: actions/cache/restore@v4
+        with:
+          path: oorb-data/
+          key: oorb-data
+      - name: Set environment
+        run: |
+          echo "OORB_DATA=$GITHUB_WORKSPACE/oorb-data" >> "$GITHUB_ENV"
+      - name: Download ephemeris, time, and observatory data
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p "$OORB_DATA"
+          python3 .github/scripts/download-oorb-data.py
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
+      - name: Run tests
+        run: |
+          tox -e py311-test-alldeps
