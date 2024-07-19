@@ -28,8 +28,6 @@ Spectral gradients are commonly expressed as % per 100 nm.  This is too subtle a
 
 As a convenience, sbpy defines the `~sbpy.units.hundred_nm` unit, which has an appropriate string representation:
 
-.. doctest-requires:: astropy>=5.3
-
   >>> from sbpy.units import hundred_nm
   >>> print(u.percent / hundred_nm)
   % / (100 nm)
@@ -68,7 +66,7 @@ To use a bandpass, define and pass a `synphot.spectrum.SpectralElement`.  A limi
   >>> m = 0.0 * VEGAmag
   >>> fluxd = m.to('erg/(cm2 s AA)', spectral_density_vega(V))
   >>> fluxd.value                   # doctest: +FLOAT_CMP
-  3.588524658721229e-09
+  3.5469235114856157e-09
 
 .. _reflectance-equivalencies:
 
@@ -82,8 +80,6 @@ scattering cross-section through function `~sbpy.units.reflectance`.
 For example, the absolute magnitude of Ceres in V-band is 3.4 in ``VEGAmag``
 system, the radius is 460 km, its disk-averaged bidirectional reflectance at 0
 phase angle can be calculated:
-
-.. doctest-requires:: astropy>=5.3
 
   >>> import numpy as np
   >>> from astropy import units as u
@@ -102,20 +98,6 @@ phase angle can be calculated:
   0.0287 1 / sr
 
 `~sbpy.units.reflectance` works with `sbpy`'s spectral calibration system (see :ref:`sbpy-calib`):
-
-.. testsetup::
-.. doctest-requires:: astropy<5.3
-
-  >>> import numpy as np
-  >>> from astropy import units as u
-  >>> from sbpy.calib import solar_fluxd, vega_fluxd
-  >>> from sbpy.units import reflectance, VEGAmag, spectral_density_vega
-  >>> solar_fluxd.set({"V": -26.775 * VEGAmag, "V(lambda pivot)": 0.55 * u.um})  # doctest: +IGNORE_OUTPUT
-  >>> vega_fluxd.set({"V": 3.5885e-08 * u.Unit("W / (m2 um)"), "V(lambda pivot)": 0.55 * u.um})  # doctest: +IGNORE_OUTPUT
-  >>> mag = 3.4 * VEGAmag
-  >>> radius = 460 * u.km
-  >>> cross_sec = np.pi * (radius)**2
-  >>> ref = mag.to('1/sr', reflectance('V', cross_section=cross_sec))
 
 .. doctest-requires:: synphot
 

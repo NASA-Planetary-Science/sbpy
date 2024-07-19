@@ -85,7 +85,7 @@ The `Afrho` class may be converted to a flux density, and the original value is 
 
 `Afrho` works seamlessly with `sbpy`'s spectral calibration framework (:ref:`sbpy-calib`) when the `astropy` affiliated package `synphot` is installed.  The solar flux density (via `~sbpy.calib.solar_fluxd`) is not required, but instead the spectral wavelengths or the system transmission of the instrument and filter:
 
-.. doctest-requires:: synphot; astropy>=5.3
+.. doctest-requires:: synphot
 
    >>> wave = [0.4, 0.5, 0.6] * u.um
    >>> print(afrho.to_fluxd(wave, aper, eph))    # doctest: +FLOAT_CMP

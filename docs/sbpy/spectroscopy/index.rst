@@ -29,17 +29,6 @@ re-normalization to other wavelengths.
 inverse length.  For convenience, `sbpy` includes a
 `~sbpy.units.hundred_nm` unit, which is equal to 100 nm:
 
-.. These imports are needed for astropy versions < 5.3 because the next
-   doctest block only executes for versions >=5.3.
-.. testsetup::
-.. doctest-requires:: astropy<5.3
-
-  >>> import astropy.units as u
-  >>> from sbpy.spectroscopy import SpectralGradient
-  >>> from sbpy.units import hundred_nm
-
-.. doctest-requires:: astropy>=5.3
-
   >>> import astropy.units as u
   >>> from sbpy.spectroscopy import SpectralGradient
   >>> from sbpy.units import hundred_nm
@@ -49,7 +38,7 @@ inverse length.  For convenience, `sbpy` includes a
 
 Initialize a spectral gradient from a color index:
 
-.. doctest-requires:: astropy>=5.3, synphot
+.. doctest-requires:: synphot
 
   >>> w = (550, 650) * u.nm
   >>> SpectralGradient.from_color(w, 0.1 * u.mag)  # doctest: +FLOAT_CMP
@@ -67,8 +56,6 @@ Convert spectral gradient (normalized to 550 nm) to a color index:
   <Quantity 0.10866423 mag>
 
 Renormalize to 1.0 μm:
-
-.. doctest-requires:: astropy>=5.3
 
   >>> S = SpectralGradient(10 * u.percent / hundred_nm, wave0=550 * u.nm)
   >>> S.renormalize(1 * u.um)  # doctest: +FLOAT_CMP

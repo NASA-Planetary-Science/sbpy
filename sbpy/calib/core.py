@@ -16,8 +16,8 @@ __doctest_requires__ = {
     'SpectralStandard': ['synphot'],
     'solar_spectrum': ['synphot'],
     'vega_spectrum': ['synphot'],
-    'Sun': ['synphot', 'astropy>=5.3'],
-    'Vega': ['synphot', 'astropy>=5.3'],
+    'Sun': ['synphot'],
+    'Vega': ['synphot'],
 }
 
 import os

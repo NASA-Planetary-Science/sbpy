@@ -35,7 +35,7 @@ __all__ = ['LTE', 'NonLTE', 'einstein_coeff',
            'from_Haser']
 
 __doctest_requires__ = {
-    "LTE.from_Drahus": ["astropy>=5.0", "astroquery>=0.4.7"],
+    "LTE.from_Drahus": ["astroquery>=0.4.7"],
     "NonLTE.from_pyradex": ["astroquery>=0.4.7", "pyradex"],
     "from_Haser": ["astroquery>=0.4.7"],
 }
