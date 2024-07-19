@@ -6,12 +6,7 @@ on:
 jobs:
   oorb-data:
     name: Download OpenOrb data for sbpy testing
-    strategy:
-      matrix:
-        os:
-          - ubuntu-latest
-          - macos-13
-    runs-on: ${{ matrix.os }}
+    runs-on: macos-13
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -20,7 +15,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: oorb-data/
-          key: ${{ runner.os }}-oorb-data
+          key: oorb-data
       - name: Set up Python
         if: steps.cache.outputs.cache-hit != 'true'
         uses: actions/setup-python@v4
@@ -40,4 +35,4 @@ jobs:
         uses: actions/cache@v4
         with:
           path: oorb-data/
-          key: ${{ runner.os }}-oorb-data
+          key: oorb-data
