@@ -45,8 +45,8 @@ jobs:
       - name: Cache data
         uses: actions/cache@v4
         with:
-          path: oorb-data
-          key: oorb-data
+          path: oorb-data/
+          key: oorb-data-${{ github.run_id }}
   tests:
     needs: [oorb-data]
     uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@v1
@@ -58,7 +58,7 @@ jobs:
         IS_CRON: "false"
         OORB_DATA: "oorb-data/"
       cache-path: oorb-data/
-      cache-key: oorb-data
+      cache-key: oorb-data-${{ github.run_id }}
       submodules: false
       coverage: ""
       envs: |
