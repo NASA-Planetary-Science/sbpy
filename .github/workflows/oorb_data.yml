@@ -6,7 +6,12 @@ on:
 jobs:
   oorb-data:
     name: Download OpenOrb data for sbpy testing
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-13
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
