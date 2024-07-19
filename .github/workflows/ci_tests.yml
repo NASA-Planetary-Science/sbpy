@@ -87,4 +87,4 @@ jobs:
           pip install tox
       - name: Run tests
         run: |
-          tox -e py311-test-alldeps
+          tox -e py311-test-numpy126-alldeps
