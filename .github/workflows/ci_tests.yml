@@ -38,7 +38,7 @@ jobs:
         IS_CRON: "false"
         OORB_DATA: "$GITHUB_WORKSPACE/oorb-data/"
       cache-path: oorb-data/
-      cache-key: oorb-data
+      cache-key: ${{ matrix.runner.os }}-oorb-data
       submodules: false
       coverage: ""
       envs: |
