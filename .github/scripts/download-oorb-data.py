@@ -24,7 +24,7 @@ for file_name in files:
     if os.path.exists(fn):
         continue
 
-    url = "/".join(base_url, file_name)
+    url = "/".join((base_url, file_name))
     with urllib.request.urlopen(url) as response:
         with open(fn, "wb") as outf:
             shutil.copyfileobj(response, outf)
