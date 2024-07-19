@@ -48,6 +48,7 @@ jobs:
           path: oorb-data
           key: oorb-data
   tests:
+    needs: [oorb-data]
     uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@v1
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

@@ -28,3 +28,4 @@ for file_name in files:
     with urllib.request.urlopen(url) as response:
         with open(fn, "wb") as outf:
             shutil.copyfileobj(response, outf)
+        print(url, "→", fn)
