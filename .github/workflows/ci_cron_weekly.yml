@@ -36,30 +36,18 @@ jobs:
       submodules: false
       coverage: ""
       envs: |
-        - name: Python 3.11 with minimal dependencies, measuring coverage
-          linux: py311-test-numpy126-cov
-          coverage: codecov
+        - name: Link check
+          linux: linkcheck
 
-        - name: Python 3.10 with all optional dependencies, measuring coverage
-          linux: py310-test-numpy126-alldeps-cov
-          coverage: codecov
-
-        - name: Python 3.11 with all optional dependencies (MacOS)
-          macos: py311-test-numpy126-alldeps
-          runs-on: macos-13
-
-        - name: Python 3.9 with oldest supported versions
-          linux: py39-test-oldestdeps
+        - name: Python 3.11 with dev versions of key dependencies
+          linux: py311-test-devdeps-cov
+          posargs: --verbose
 
   allowed_failures:
     uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@v1
     with:
       submodules: false
       envs: |
-        - name: Link check
-          linux: linkcheck
-
         - name: Python 3.11 with all optional dependencies and remote data
           linux: py311-test-numpy126-alldeps
-          coverage: codecov
-          toxargs: --remote-data
+          posargs: --remote-data --verbose
