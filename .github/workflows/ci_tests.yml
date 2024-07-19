@@ -27,39 +27,36 @@ env:
 jobs:
   oorb-data:
     uses: ./.github/workflows/oorb_data.yml
-  # tests:
-  #   needs: [oorb-data]
-  #   uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@v1
-  #   secrets:
-  #     CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-  #   with:
-  #     setenv: |
-  #       ARCH_ON_CI: "normal"
-  #       IS_CRON: "false"
-  #       OORB_DATA: "$GITHUB_WORKSPACE/oorb-data/"
-  #     cache-path: oorb-data/
-  #     cache-key: oorb-data
-  #     submodules: false
-  #     coverage: ""
-  #     envs: |
-  #       - name: Code style checks
-  #         linux: codestyle
+  tests:
+    needs: [oorb-data]
+    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@v1
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+    with:
+      setenv: |
+        ARCH_ON_CI: "normal"
+        IS_CRON: "false"
+        OORB_DATA: "$GITHUB_WORKSPACE/oorb-data/"
+      cache-path: oorb-data/
+      cache-key: oorb-data
+      submodules: false
+      coverage: ""
+      envs: |
+        - name: Code style checks
+          linux: codestyle
 
-  #       - name: Python 3.11 with minimal dependencies, measuring coverage
-  #         linux: py311-test-numpy126-cov
-  #         coverage: codecov
+        - name: Python 3.11 with minimal dependencies, measuring coverage
+          linux: py311-test-numpy126-cov
+          coverage: codecov
 
-  #       - name: Python 3.10 with all optional dependencies, measuring coverage
-  #         linux: py310-test-numpy126-alldeps-cov
-  #         coverage: codecov
+        - name: Python 3.10 with all optional dependencies, measuring coverage
+          linux: py310-test-numpy126-alldeps-cov
+          coverage: codecov
 
-  #       - name: Python 3.11 with all optional dependencies (MacOS)
-  #         macos: py311-test-numpy126-alldeps
-  #         runs-on: macos-13
-
-  #       - name: Python 3.9 with oldest supported versions
-  #         linux: py39-test-oldestdeps
+        - name: Python 3.9 with oldest supported versions
+          linux: py39-test-oldestdeps
   macos-test:
+    name: Python 3.11 with all optional dependencies (MacOS)
     needs: [oorb-data]
     runs-on: macos-13
     steps:
@@ -74,7 +71,7 @@ jobs:
         run: |
           echo "OORB_DATA=$GITHUB_WORKSPACE/oorb-data" >> "$GITHUB_ENV"
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: 3.11
       - name: Install tox
