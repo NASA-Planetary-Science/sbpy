@@ -35,7 +35,7 @@ jobs:
         id: cache
         uses: actions/cache@v4
         with:
-          path: ${{ env.GITHUB_WORKSPACE }}/oorb-data/
+          path: oorb-data/
           key: oorb-data
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -43,7 +43,7 @@ jobs:
           python-version: 3.x
       - name: Set download location
         run: |
-          echo "OORB_DATA=oorb-data" >> "$GITHUB_ENV"
+          echo "OORB_DATA=$GITHUB_WORKSPACE/oorb-data" >> "$GITHUB_ENV"
       - name: Download ephemeris, time, and observatory data
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
@@ -52,7 +52,7 @@ jobs:
       - name: Cache data
         uses: actions/cache@v4
         with:
-          path: ${{ env.GITHUB_WORKSPACE }}/oorb-data/
+          path: oorb-data/
           key: oorb-data
   tests:
     needs: [oorb-data]
@@ -63,8 +63,8 @@ jobs:
       setenv: |
         ARCH_ON_CI: "normal"
         IS_CRON: "false"
-        OORB_DATA: "oorb-data/"
-      cache-path: ${{ env.GITHUB_WORKSPACE }}/oorb-data/
+        OORB_DATA: "$GITHUB_WORKSPACE/oorb-data/"
+      cache-path: oorb-data/
       cache-key: oorb-data
       submodules: false
       coverage: ""
