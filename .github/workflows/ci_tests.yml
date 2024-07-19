@@ -25,8 +25,28 @@ env:
   IS_CRON: "false"
 
 jobs:
-  # Github Actions supports ubuntu, windows, and macos virtual environments:
-  # https://help.github.com/en/actions/reference/virtual-environments-for-github-hosted-runners
+  oorb-data:
+    name: Download OpenOrb data for sbpy testing
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.x
+      - name: Set download location
+        run: |
+          echo "OORB_DATA=oorb-data" >> "$GITHUB_ENV"
+      - name: Download ephemeris, time, and observatory data
+        run: |
+          mkdir -p "$OORB_DATA"
+          python3 .github/scripts/download-oorb-data.py
+      - name: Cache data
+        uses: actions/cache@v4
+        with:
+          path: oorb-data
+          key: oorb-data
   tests:
     uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@v1
     secrets:
@@ -35,8 +55,9 @@ jobs:
       setenv: |
         ARCH_ON_CI: "normal"
         IS_CRON: "false"
-      runs-on: |
-        macos: macos-13
+        OORB_DATA: "oorb-data/"
+      cache-path: oorb-data/
+      cache-key: oorb-data
       submodules: false
       coverage: ""
       envs: |
@@ -53,6 +74,7 @@ jobs:
 
         - name: Python 3.11 with all optional dependencies (MacOS)
           macos: py311-test-numpy126-alldeps
+          runs-on: macos-13
 
         - name: Python 3.9 with oldest supported versions
           linux: py39-test-oldestdeps
