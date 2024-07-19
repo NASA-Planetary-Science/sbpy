@@ -73,11 +73,6 @@ jobs:
       - name: Set environment
         run: |
           echo "OORB_DATA=$GITHUB_WORKSPACE/oorb-data" >> "$GITHUB_ENV"
-      - name: Download ephemeris, time, and observatory data
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: |
-          mkdir -p "$OORB_DATA"
-          python3 .github/scripts/download-oorb-data.py
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
