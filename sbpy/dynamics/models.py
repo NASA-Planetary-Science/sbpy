@@ -67,7 +67,8 @@ class DynamicalModel(abc.ABC):
         )
         self.solver_kwargs.update(kwargs)
 
-    @abc.abstractclassmethod
+    @classmethod
+    @abc.abstractmethod
     def dx_dt(cls, t: float, rv: np.ndarray, *args) -> np.ndarray:
         """Derivative of position and velocity.
 
@@ -92,7 +93,8 @@ class DynamicalModel(abc.ABC):
 
         """
 
-    @abc.abstractclassmethod
+    @classmethod
+    @abc.abstractmethod
     def df_drv(cls, t: float, rv: np.ndarray, *args) -> np.ndarray:
         """Jacobian matrix, :math:`df/drv`.
 
