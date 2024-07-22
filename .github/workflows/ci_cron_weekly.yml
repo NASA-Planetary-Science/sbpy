@@ -29,7 +29,7 @@ jobs:
         - name: Check dev versions of key dependencies
           python: '3.11'
           toxenv: py311-test-devdeps
-          toxposargs: --remote-data --keep-going
+          toxposargs: --remote-data
 
     steps:
     - name: Checkout code
