@@ -160,13 +160,19 @@ class TestSolarGravity:
         assert u.isclose(solver.GM, const.G * const.M_sun, rtol=1e-12)
 
     @pytest.mark.skipif(
-        "scipy_version[0] < 2 and scipy_version[1] < 8", reason="requires scipy>=1.8"
+        "scipy_version[0] < 2 and scipy_version[1] < 8", reason="requires scipy>=1.10"
     )
     def test_solverfailed(self):
-        # force a solution failure with NaN
         r = [0, 1, 0] * u.au
-        v = [0, -1, np.nan] * u.km / u.s
-        solver = SolarGravity()
+        v = [0, -1, 1] * u.km / u.s
+
+        # force a solution failure with random derivatives
+        class RandomGravity(SolarGravity):
+            @classmethod
+            def dx_dt(cls, t, rv, *args):
+                return np.random.rand(6)
+
+        solver = RandomGravity()
 
         initial = State(r, v, Time("2023-01-01"))
         t_f = initial.t + 1e6 * u.s
