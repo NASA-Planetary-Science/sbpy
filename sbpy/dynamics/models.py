@@ -256,7 +256,7 @@ class SolarGravity(DynamicalModel):
         r = rv[:3]
         r2 = (r**2).sum()
         r1 = np.sqrt(r2)
-        GM_r5 = GM_r3 = cls._GM / (r2 * r2 * r1)
+        GM_r5 = cls._GM / (r2 * r2 * r1)
 
         # df_drv[i, j] = df_i/drv_j
         df_drv = np.zeros((6, 6))
