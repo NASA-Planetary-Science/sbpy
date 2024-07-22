@@ -1,0 +1,38 @@
+# GitHub Actions workflow for downloading oorb ephemeris, time, and observatory data
+
+on:
+  workflow_call:
+
+jobs:
+  oorb-data:
+    name: Download OpenOrb data for sbpy testing
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Check for cached files
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: oorb-data/
+          key: oorb-data
+      - name: Set up Python
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.x
+      - name: Set download location
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          echo "OORB_DATA=$GITHUB_WORKSPACE/oorb-data" >> "$GITHUB_ENV"
+      - name: Download ephemeris, time, and observatory data
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p "$OORB_DATA"
+          python3 .github/scripts/download-oorb-data.py
+      - name: Cache data
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/cache@v4
+        with:
+          path: oorb-data/
+          key: oorb-data

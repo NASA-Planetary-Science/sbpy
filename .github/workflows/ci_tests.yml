@@ -25,9 +25,10 @@ env:
   IS_CRON: "false"
 
 jobs:
-  # Github Actions supports ubuntu, windows, and macos virtual environments:
-  # https://help.github.com/en/actions/reference/virtual-environments-for-github-hosted-runners
+  oorb-data:
+    uses: ./.github/workflows/oorb_data.yml
   tests:
+    needs: [oorb-data]
     uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@v1
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
@@ -35,6 +36,9 @@ jobs:
       setenv: |
         ARCH_ON_CI: "normal"
         IS_CRON: "false"
+        OORB_DATA: "$GITHUB_WORKSPACE/oorb-data/"
+      cache-path: oorb-data/
+      cache-key: oorb-data
       submodules: false
       coverage: ""
       envs: |
@@ -48,33 +52,31 @@ jobs:
         - name: Python 3.10 with all optional dependencies, measuring coverage
           linux: py310-test-numpy126-alldeps-cov
           coverage: codecov
-          
+
         - name: Python 3.9 with oldest supported versions
           linux: py39-test-oldestdeps
-
-  macos-tests:
-    name: Python 3.10 with all optional dependencies (MacOS)
-    runs-on: macos-latest
-    env:
-      ARCH_ON_CI: "normal"
+  macos-test:
+    name: Python 3.11 with all optional dependencies (MacOS)
+    needs: [oorb-data]
+    runs-on: macos-13
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Restore cached files
+        uses: actions/cache/restore@v4
         with:
-          fetch-depth: 0
-      - name: Set up python
-        uses: actions/setup-python@v4
+          path: oorb-data/
+          key: oorb-data
+      - name: Set environment
+        run: |
+          echo "OORB_DATA=$GITHUB_WORKSPACE/oorb-data" >> "$GITHUB_ENV"
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
-      - name: Set up gfortran on ${{ matrix.os }}
-        if: runner.os == 'macos'
+          python-version: 3.11
+      - name: Install tox
         run: |
-          echo `which gfortran-11`
-          sudo ln -sfn /opt/homebrew/bin/gfortran-11 /usr/local/bin/gfortran
-          gfortran --version
-      - name: Install base dependencies
+          pip install tox
+      - name: Run tests
         run: |
-          python -m pip install --upgrade pip
-          python -m pip install tox
-      - name: Test with tox
-        run: tox -e py310-test-numpy126-alldeps
+          tox -e py311-test-numpy126-alldeps
