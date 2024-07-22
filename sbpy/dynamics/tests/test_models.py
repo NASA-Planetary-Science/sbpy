@@ -163,11 +163,10 @@ class TestSolarGravity:
         "scipy_version[0] < 2 and scipy_version[1] < 8", reason="requires scipy>=1.8"
     )
     def test_solverfailed(self):
+        # force a solution failure with NaN
         r = [0, 1, 0] * u.au
-        v = [0, -1, 1] * u.km / u.s
-
-        # force a solution failure
-        solver = SolarGravity(rtol=np.nan)
+        v = [0, -1, np.nan] * u.km / u.s
+        solver = SolarGravity()
 
         initial = State(r, v, Time("2023-01-01"))
         t_f = initial.t + 1e6 * u.s
