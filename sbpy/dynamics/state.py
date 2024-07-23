@@ -17,6 +17,7 @@ __all__ = [
 
 import abc
 from typing import Iterable, List, Optional, Tuple, TypeVar, Union
+from packaging.version import Version
 
 try:
     # python 3.11 feature
@@ -25,7 +26,7 @@ except ImportError:
     Self = TypeVar("Self", bound="StateBase")
 
 import numpy as np
-from astropy.utils.introspection import minversion
+import astropy
 from astropy.time import Time
 import astropy.units as u
 from astropy.coordinates import frame_transform_graph, SkyCoord, BaseCoordinateFrame
@@ -48,6 +49,15 @@ class ArbitraryFrame(BaseCoordinateFrame):
 
     default_representation = cr.CartesianRepresentation
     default_differential = cr.CartesianDifferential
+
+
+if Version("6.1.0") <= Version(astropy.__version__) <= Version("6.1.1"):
+    ArbitraryFrame.separation.__doc__ = ArbitraryFrame.separation.__doc__.replace(
+        ":doc:`astropy:/", ":doc:`astropy:"
+    )
+    ArbitraryFrame.separation_3d.__doc__ = ArbitraryFrame.separation_3d.__doc__.replace(
+        ":doc:`astropy:/", ":doc:`astropy:"
+    )
 
 
 class StateBase(abc.ABC):
