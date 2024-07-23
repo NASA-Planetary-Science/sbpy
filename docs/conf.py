@@ -192,7 +192,10 @@ github_issues_url = 'https://github.com/{0}/issues/'.format(
 
 # --- intersphinx setup
 intersphinx_mapping['astroquery'] = (
-    'https://astroquery.readthedocs.io/en/latest/', None)
+    'https://astroquery.readthedocs.io/en/stable/', None)
 
 intersphinx_mapping['synphot'] = (
-    'https://synphot.readthedocs.io/en/latest/', None)
+    'https://synphot.readthedocs.io/en/stable/', None)
+
+intersphinx_mapping['astropy'] = (
+    'https://docs.astropy.org/en/stable/', None)
