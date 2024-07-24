@@ -15,6 +15,21 @@
 New Features
 ------------
 
+sbpy.time
+^^^^^^^^^
+
+- New sub-module to support conversions to NAIF SPICE ephemeris time. [#394]
+
+sbpy.dynamics
+^^^^^^^^^^^^^
+
+- New class to encapsulate dynamical state vectors: `sbpy.dynamics.state.State`. [#394]
+
+- New support for dynamical integrations: `sbpy.dynamics.models`.  Three models
+  are implemented: `FreeExpansion`, `SolarGravity`, and `SolarGravityAndRadiationPressure`.  [#394]
+
+- New ability to produce dust syndynes and synchrones: `sbpy.dynamics.syndynes`.  [#394]
+
 sbpy.utils
 ^^^^^^^^^^
 
@@ -41,7 +56,7 @@ Bug Fixes
 ---------
 * ``sbpy.sources.SpectralSource`` now correctly raises
   ``RequiredPackageUnavailable`` when ``synphot`` is not available, replacing a
-  locally defined ``SynphotRequired`` or the generic ``ImportError``.
+  locally defined ``SynphotRequired`` or the generic ``ImportError``. [#383]
 
 * Fix `sbpy.photometry.bandpass` crash when reading in SDSS filter transmission
   curves using `synphot` 1.4. [#400]
