@@ -134,6 +134,25 @@ class CircularAperture(Aperture):
         return self.radius
     coma_equivalent_radius.__doc__ = Aperture.coma_equivalent_radius.__doc__
 
+    @classmethod
+    def from_coma_equivalent(cls, aperture):
+        """Initialize based on coma equivalent radius.
+
+
+        Parameters
+        ----------
+        aperture : `Aperture` or `~sbpy.units.Quantity`
+            Another aperture or a radius.
+
+        """
+
+        if isinstance(aperture, Aperture):
+            radius = aperture.coma_equivalent_radius()
+        else:
+            radius = u.Quantity(aperture)
+
+        return cls(radius)
+
 
 class AnnularAperture(Aperture):
     """Annular aperture projected at the distance of the target.

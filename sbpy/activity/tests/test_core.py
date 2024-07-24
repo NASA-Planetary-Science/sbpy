@@ -35,6 +35,17 @@ class TestCircularAperture:
         angle = r.to('arcsec', sbu.projected_size(eph))
         assert np.isclose(aper.as_angle(eph).dim.value, angle.value)
 
+    def test_from_coma_equivalent(self):
+        # test initialization from another aperture
+        shape = [1, 2] * u.arcsec
+        an_aper = AnnularAperture(shape)
+        circ_aper = CircularAperture.from_coma_equivalent(an_aper)
+        assert circ_aper.dim == 1 * u.arcsec
+
+        # test initialization from a radius
+        circ_aper = CircularAperture.from_coma_equivalent(1 * u.arcsec)
+        assert circ_aper.dim == 1 * u.arcsec
+
 
 class TestAnnularAperture:
     def test_str(self):
