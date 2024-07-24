@@ -1,0 +1,77 @@
+# based on astropy
+name: "When Opened"
+
+on:
+  issues:
+    types:
+      - opened
+  pull_request_target:
+    types:
+      - opened
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Reviewer Checklist"
+        uses: actions/github-script@v7
+        if: github.event_name == 'pull_request_target'
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `Thank you for your contribution to sbpy, an Astropy affiliated package! 🌌 This checklist is meant to remind the package maintainers who will review this pull request of some common things to look for.
+
+              - [ ] Do the proposed changes actually accomplish desired goals?
+              - [ ] Do the proposed changes follow the [sbpy coding guidelines](https://sbpy.readthedocs.io/en/latest/development/#contribution-requirements)?
+              - [ ] Are tests added/updated as required? If so, do they follow the [Astropy testing guidelines](https://docs.astropy.org/en/latest/development/testguide.html)?
+              - [ ] Are docs added/updated as required? If so, do they follow the [Astropy documentation guidelines](https://docs.astropy.org/en/latest/development/docguide.html)?
+              - [ ] Is rebase and/or squash necessary? If so, please provide the author with appropriate instructions. Also see instructions for [rebase](https://docs.astropy.org/en/latest/development/development_details.html#rebase-if-necessary) and [squash](https://docs.astropy.org/en/latest/development/development_details.html#squash-if-necessary).
+              - [ ] Did the CI pass? If no, are the failures related?
+              - [ ] Is a change log needed? If yes, did the change log check pass? If no, add the "no-changelog-entry-needed" label.
+              - [ ] Is a milestone added?
+            })
+      - name: Greet new contributors
+        uses: actions/first-interaction@v1
+        with:
+          repo-token: "${{ secrets.GITHUB_TOKEN }}"
+          issue-message: >
+            Welcome to sbpy 👋 and thank you for your first issue!
+
+
+            A project member will respond to you as soon as possible; in
+            the meantime, please double-check the (Astropy) [guidelines for submitting
+            issues](https://github.com/astropy/astropy/blob/main/CONTRIBUTING.md#reporting-issues)
+            and make sure you've provided the requested details.
+
+
+            GitHub issues in the sbpy repository are used to track bug
+            reports and feature requests; If your issue poses a question about
+            how to use sbpy, please instead raise your question in
+            [sbpy Discussions](https://github.com/NASA-Planetary-Science/sbpy/discussions) and close
+            this issue.
+          pr-message: >
+            Welcome to sbpy 👋 and congratulations on your first pull
+            request! 🎉
+
+
+            A project member will respond to you as soon as possible; in the
+            meantime, please have a look over the [Checklist for Contributed
+            Code at Astropy](https://github.com/astropy/astropy/blob/main/CONTRIBUTING.md#checklist-for-contributed-code)
+            and make sure you've addressed as many of the questions there as
+            possible and relevant for sbpy.
+      - name: "Comment Draft PR"
+        uses: actions/github-script@v7
+        if: github.event.pull_request.draft == true
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '👋 Thank you for your draft pull request! Do you know that you can use `[ci skip]` or `[skip ci]` in your commit messages to skip running continuous integration tests until you are ready?'
+            })
