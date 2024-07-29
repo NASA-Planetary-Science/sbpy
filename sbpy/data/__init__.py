@@ -38,7 +38,7 @@ class Conf():
     fieldnames_info = [
         # General
         {'description': 'Target Identifier',
-         'fieldnames': ['targetname', 'id', 'Object'],
+         'fieldnames': ['targetname', 'Targetname', 'id', 'Object', 'object', 'target', 'Target'],
          'provenance': ['orbit', 'ephem', 'obs', 'phys'],
          'dimension': None},
         {'description': 'Target Designation',
