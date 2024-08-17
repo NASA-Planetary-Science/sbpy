@@ -296,14 +296,30 @@ To support generating synchrones at specific times, the :func:`~sbpy.dynamics.sy
 Adding ejection velocity
 ------------------------
 
-An ejection velocity can be added to the dust particles.  This is not implemented in `sbpy`, but is possible by sub-classing `SynGenerator` and overriding the `~sbpy.dynamics.syndynes.SynGenerator.initialize_states` method:
+An ejection velocity can be added to the dust particles.  This is not implemented in `sbpy`, but is possible by sub-classing `SynGenerator` and overriding the `~sbpy.dynamics.syndynes.SynGenerator.initialize_states` method.  In the following example we add 10 km/s to the z-component of the velocity:
 
 .. doctest-requires:: scipy
 
    >>> class AlternativeSynGenerator(SynGenerator):
    ...     def initialize_states(self):
    ...         super().initialize_states()
-   ...         # then modify self.initial_states as needed
+   ...         delta_v = State([0, 0, 0] * u.km, [0, 0, 10] * u.km / u.s, 0)
+   ...         self.initial_states = self.initial_states + delta_v
+   >>>
+   >>> dust_with_delta_v = AlternativeSynGenerator.at_epochs(comet, betas, dates)
+   >>> dust_with_delta_v.initial_states - dust.initial_states
+    <State (<ArbitraryFrame Frame>):
+    r
+     [[0. 0. 0.]
+    [0. 0. 0.]
+    [0. 0. 0.]] km
+    v
+     [[ 0.  0. 10.]
+    [ 0.  0. 10.]
+    [ 0.  0. 10.]] km / s
+    t
+     ['2023-10-01 00:00:00.000' '2023-11-01 00:00:00.000'
+    '2023-12-01 00:00:00.000']>
 
 
 Projecting onto the sky
