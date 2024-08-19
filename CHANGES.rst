@@ -15,15 +15,19 @@
 New Features
 ------------
 
+sbpy.activity
+^^^^^^^^^^^^^
+- New `sbpy.activity.CircularAperture.from_coma_equivalent()` to immediately
+  create a `CircularAperture` from any other `Aperture` given a nominal coma
+  surface brightness distribution. [#393]
+
 sbpy.utils
 ^^^^^^^^^^
-
 - New `required_packages` and `optional_packages` functions to test for the
   presence of required and optional packages.  [#383]
 
 sbpy.utils.decorators
 ^^^^^^^^^^^^^^^^^^^^^
-
 - New `requires` and  `optionally_uses` function decorators to simplify testing
   for required and optional packages.  [#383]
 
