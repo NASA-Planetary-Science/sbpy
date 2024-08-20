@@ -1,14 +1,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-sbpy Activity: Dust
-===================
+sbpy activity.dust.core
+=======================
 
 All things dust coma related.
 
 
 """
 
-__all__ = ["phase_HalleyMarcus", "Afrho", "Efrho"]
+__all__ = ["phase_HalleyMarcus", "DustComaQuantity", "Afrho", "Efrho"]
 
 __doctest_requires__ = {
     "Afrho.to_fluxd": ["synphot"],

@@ -4,9 +4,32 @@
 
 __all__ = ["requires", "optionally_uses"]
 
+from typing import Callable
 from functools import wraps
+from astropy.time import Time
 from . import core
 from ..exceptions import RequiredPackageUnavailable
+
+
+def time_input(func: Callable, **kwargs):
+    """Decorator that validates time inputs.
+
+
+    Examples
+    --------
+
+    from sbpy.utils import time_input
+    @time_input(t=Time)
+    def myfunction(t):
+        return t.mjd
+
+    from sbpy.utils import time_input
+    @time_input(t=Time)
+    def myfunction(t):
+        return t.mjd
+
+
+    """
 
 
 def requires(*packages, message=None):
@@ -43,8 +66,7 @@ def requires(*packages, message=None):
         function_name = ".".join(
             (wrapped_function.__module__, wrapped_function.__qualname__)
         )
-        _message = (
-            "" if message is None else f"{message} ") + f"({function_name})"
+        _message = ("" if message is None else f"{message} ") + f"({function_name})"
 
         @wraps(wrapped_function)
         def wrapper(*func_args, **func_kwargs):
@@ -99,8 +121,7 @@ def optionally_uses(*packages, message=None):
         function_name = ".".join(
             (wrapped_function.__module__, wrapped_function.__qualname__)
         )
-        _message = (
-            "" if message is None else f"{message} ") + f"({function_name})"
+        _message = ("" if message is None else f"{message} ") + f"({function_name})"
 
         @wraps(wrapped_function)
         def wrapper(*func_args, **func_kwargs):
