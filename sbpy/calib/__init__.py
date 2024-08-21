@@ -18,6 +18,7 @@ are downloaded and cached as needed::
   E490_2014LR - Low resolution version of E490 (ASTM 2014).
   Kurucz1993 - Kurucz (1993) model scaled by Colina et al. (1996).
   Castelli1996 - Catelli model spectrum from Colina et al. (1996).
+  calspec - STSCI CALSPEC R~5000 model solar spectrum, Bohlin et al. (2014).
 
 Filter photometry from Willmer (2018).
 

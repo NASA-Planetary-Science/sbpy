@@ -65,6 +65,10 @@ Bug Fixes
 * Fix `sbpy.photometry.bandpass` crash when reading in SDSS filter transmission
   curves using `synphot` 1.4. [#400]
 
+sbpy.calib
+^^^^^^^^^^
+* Fixed: the CALSPEC solar spectrum was missing from `solar_sources`. [#387]
+
 
 0.4.0 (2023-06-30)
 ==================
