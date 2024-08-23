@@ -11,6 +11,7 @@ created on August 28, 2017
 """
 
 import re
+import math
 from ..exceptions import SbpyException
 
 __all__ = ['Names', 'TargetNameParseError', 'natural_sort_key']
@@ -68,6 +69,9 @@ class Names():
     pkd = ('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
            'abcdefghijklmnopqrstuvwxyz')
 
+    # packed numbers translation string with no I
+    pkd_noI = 'ABCDEFGHJKLMNOPQRSTUVWXYZ'
+
     @staticmethod
     def to_packed(s):
         """Convert designation or number to packed identifier.
@@ -94,14 +98,22 @@ class Names():
             s = int(s)
             if s < 100000:
                 return '{:05d}'.format(s)
-            elif s > 619999:
-                raise TargetNameParseError(
-                    '{} cannot be turned into a packed number'.format(s)
-                )
-            else:
+            elif (s > 99999 and s < 620000):
                 mod = (s % 10000)
                 return '{}{:04d}'.format(
                     Names.pkd[int((s - mod) / 10000)], mod)
+            elif (s > 619999 and s < 15396336):
+                s = s - 620000
+                d = ['0', '0', '0', '0']
+                for idx in reversed(range(0, 4)):
+                    d[idx] = Names.pkd[math.floor(s % 62)]
+                    s //= 62
+                return ('~'+''.join(d))
+            else:
+                raise TargetNameParseError(
+                    '{} cannot be turned into a packed number'.format(s)
+                )
+
         elif s.endswith('P-L'):
             return 'PLS{}'.format(s[:4])
         elif s[-3:] in ['T-1', 'T-2', 'T-3']:
@@ -123,42 +135,61 @@ class Names():
                     frag = '0'
                     num = s[6:]
 
-                if num == '':
-                    num = '00'
-                elif len(num) == 1:
-                    num = '0' + num
-                elif len(num) > 2:
-                    try:
+                try:
+                    if num == '':
+                        num = '00'
+                    elif len(num) == 1:
+                        num = '0' + num
+                    elif len(num) > 2:
                         num = Names.pkd[int(num[:-1])]+num[-1]
-                    except (IndexError, ValueError):
-                        raise TargetNameParseError(
-                            ('{} cannot be turned into a '
-                             'packed designation').format(s))
-                return '{}{}{}{}{}'.format(
-                    Names.pkd[int(float(s[:2]))],
-                    s[2:4],
-                    s[5],
-                    num,
-                    frag.lower()
-                )
+                    return '{}{}{}{}{}'.format(
+                        Names.pkd[int(float(s[:2]))],
+                        s[2:4],
+                        s[5],
+                        num,
+                        frag.lower()
+                    )
+                except (IndexError, ValueError):
+                    raise TargetNameParseError(
+                        ('{} cannot be turned into a '
+                         'packed designation').format(s))
             else:
-                yr = s.strip()[:4]
-                yr = Names.pkd[int(yr[:2])] + yr[2:]
-                let = s.strip()[4:7].strip()
-                num = s.strip()[7:].strip()
-                if num == '':
-                    num = '00'
-                elif len(num) == 1:
-                    num = '0' + num
-                elif len(num) > 2:
-                    try:
-                        num = Names.pkd[int(num[:-1])]+num[-1]
-                    except (IndexError, ValueError):
-                        raise TargetNameParseError(
-                            ('{} cannot be turned into a '
-                             'packed designation').format(s))
-            return (yr + let[0] + num + let[1])
+                try:
+                    yr = s.strip()[:4]
+                    yr = Names.pkd[int(yr[:2])] + yr[2:]
+                    let = s.strip()[4:7].strip()
+                    num = s.strip()[7:].strip()
 
+                    if num == '':
+                        return (yr + let[0] + '00' + let[1])
+                    elif len(num) == 1:
+                        return (yr + let[0] + '0' + num + let[1])
+                    elif len(num) > 1:
+                        obj_num = int(num)*25 + Names.pkd_noI.find(let[1]) + 1
+                        # use original packed desigs for first 15500 objs per month
+                        if obj_num < 15501:
+                            num = Names.pkd[int(num[:-1])]+num[-1]
+                            return (yr + let[0] + num + let[1])
+                        # use extended packed desigs for >15500 objs per month
+                        elif obj_num < 14791837:
+                            obj_num = obj_num - 15501
+                            year = Names.pkd[int(yr[1:])]
+                            month = let[0]
+                            d = ['0', '0', '0', '0']
+                            for idx in reversed(range(0, 4)):
+                                d[idx] = Names.pkd[math.floor(obj_num % 62)]
+                                obj_num //= 62
+                            return ('_'+Names.pkd[int(yr[1:])]+let[0]+''.join(d))
+                        # if more than maximum of 14,791,836 objects per half-month
+                        # accommodated by the extended provisional designation scheme
+                        else:
+                            raise TargetNameParseError(
+                                ('{} cannot be turned into a '
+                                 'packed number or designation').format(s))
+                except (IndexError, ValueError):
+                    raise TargetNameParseError(
+                        ('{} cannot be turned into a '
+                         'packed number or designation').format(s))
         else:
             raise TargetNameParseError(
                 ('{} cannot be turned into a '
@@ -189,6 +220,17 @@ class Names():
             return int(p)
         elif p[0].isalpha() and p[1:].isdigit():
             return int(str(Names.pkd.find(p[0])) + p[1:])
+        elif p[0] == '~' and p[1:].isalnum():
+            if len(p) == 5:
+                obj_num = 620000 + Names.pkd.find(p[1])*(62**3) \
+                    + Names.pkd.find(p[2])*(62**2) \
+                    + Names.pkd.find(p[3])*(62) \
+                    + Names.pkd.find(p[4])
+                return int(obj_num)
+            else:
+                raise TargetNameParseError(
+                    ('{} cannot be turned into an '
+                     'unpacked designation').format(p))
 
         # old designation style, e.g.: 1989AB
         if (len(p.strip()) < 7 and p[:4].isdigit() and p[4:6].isalpha()):
@@ -216,6 +258,27 @@ class Names():
                 (str(Names.pkd.find(p[4])) + p[5]).lstrip('0'),
                 '-{}'.format(p[6].upper()) if p[6].islower() else ''
             )
+        # MPC extended packed provisional designation
+        elif p[0] == '_':
+            if (
+                (p[1].isalpha() and p[1].isupper())
+                and re.search("[A-H,J-Y]", p[2])
+                and p[3:].isalnum()
+                and len(p) == 7
+            ):
+                obj_num = 15501 + Names.pkd.find(p[3])*(62**3) \
+                    + Names.pkd.find(p[4])*(62**2) \
+                    + Names.pkd.find(p[5])*(62) \
+                    + Names.pkd.find(p[6])
+                return '20{} {}{}{}'.format(
+                    str(Names.pkd.find(p[1])),
+                    p[2],
+                    Names.pkd_noI[((obj_num-1) % 25)],
+                    math.floor((obj_num-1)/25))
+            else:
+                raise TargetNameParseError(
+                    ('{} cannot be turned into an '
+                     'unpacked designation').format(p))
         else:
             # nothing to do
             return p

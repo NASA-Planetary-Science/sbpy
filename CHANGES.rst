@@ -1,3 +1,17 @@
+0.6.0 (unreleased)
+==================
+
+New Features
+------------
+
+sbpy.names
+^^^^^^^^^^
+- Added functionality to `sbpy.Names.from_packed()` and
+  `sbpy.Names.to_packed()` to handle new extended provisional designations
+  to be implemented by the MPC in anticipation of higher asteroid discovery
+  rates in the LSST survey era [#406]
+
+
 0.5.0 (2024-08-28)
 ==================
 
