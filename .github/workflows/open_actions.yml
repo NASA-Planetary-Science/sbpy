@@ -24,14 +24,13 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               body: `Thank you for your contribution to sbpy, an Astropy affiliated package! 🌌 This checklist is meant to remind the package maintainers who will review this pull request of some common things to look for.
-
               - [ ] Do the proposed changes actually accomplish desired goals?
               - [ ] Do the proposed changes follow the [sbpy coding guidelines](https://sbpy.readthedocs.io/en/latest/development/#contribution-requirements)?
               - [ ] Are tests added/updated as required? If so, do they follow the [Astropy testing guidelines](https://docs.astropy.org/en/latest/development/testguide.html)?
               - [ ] Are docs added/updated as required? If so, do they follow the [Astropy documentation guidelines](https://docs.astropy.org/en/latest/development/docguide.html)?
               - [ ] Is rebase and/or squash necessary? If so, please provide the author with appropriate instructions. Also see instructions for [rebase](https://docs.astropy.org/en/latest/development/development_details.html#rebase-if-necessary) and [squash](https://docs.astropy.org/en/latest/development/development_details.html#squash-if-necessary).
               - [ ] Did the CI pass? If no, are the failures related?
-              - [ ] Is a change log needed? If yes, did the change log check pass? If no, add the "no-changelog-entry-needed" label.
+              - [ ] Is a change log needed? If yes, did the change log check pass? If no, add the "no-changelog-entry-needed" label.`
               - [ ] Is a milestone added?
             })
       - name: Greet new contributors
