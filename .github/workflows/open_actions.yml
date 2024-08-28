@@ -30,8 +30,8 @@ jobs:
               - [ ] Are docs added/updated as required? If so, do they follow the [Astropy documentation guidelines](https://docs.astropy.org/en/latest/development/docguide.html)?
               - [ ] Is rebase and/or squash necessary? If so, please provide the author with appropriate instructions. Also see instructions for [rebase](https://docs.astropy.org/en/latest/development/development_details.html#rebase-if-necessary) and [squash](https://docs.astropy.org/en/latest/development/development_details.html#squash-if-necessary).
               - [ ] Did the CI pass? If no, are the failures related?
-              - [ ] Is a change log needed? If yes, did the change log check pass? If no, add the "no-changelog-entry-needed" label.`
-              - [ ] Is a milestone added?
+              - [ ] Is a change log needed? If yes, did the change log check pass? If no, add the "no-changelog-entry-needed" label.
+              - [ ] Is a milestone added?`
             })
       - name: Greet new contributors
         uses: actions/first-interaction@v1
