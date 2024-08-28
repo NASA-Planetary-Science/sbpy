@@ -9,7 +9,7 @@ import numpy as np
 import astropy.units as u
 
 
-__all__ = ['Spectrum', 'SpectralModel', 'SpectralGradient']
+__all__ = ["Spectrum", "SpectralModel", "SpectralGradient"]
 
 __doctest_requires__ = {
     "SpectralGradient": ["synphot"],
@@ -91,16 +91,14 @@ class SpectralGradient(u.SpecificTypeQuantity):
     _equivalent_unit = u.meter**-1
     _include_easy_conversion_members = False
 
-    def __new__(cls, value, unit=None, wave=None, wave0=None,
-                dtype=None, copy=True):
-        S = super().__new__(cls, value, unit=unit, dtype=dtype,
-                            copy=copy)
+    def __new__(cls, value, unit=None, wave=None, wave0=None, dtype=None, copy=True):
+        S = super().__new__(cls, value, unit=unit, dtype=dtype, copy=copy)
 
         if wave is not None:
             if np.size(wave) != 2:
                 raise ValueError(
-                    'Two wavelengths must be provided, got {}'
-                    .format(np.size(wave)))
+                    "Two wavelengths must be provided, got {}".format(np.size(wave))
+                )
             S.wave = S._lambda_eff(wave)
 
         if wave0 is None and wave is not None:
@@ -180,15 +178,14 @@ class SpectralGradient(u.SpecificTypeQuantity):
         lambda_eff = SpectralGradient._lambda_eff(wfb)
 
         if isinstance(color, u.Magnitude):
-            alpha = u.Quantity(-color, u.dimensionless_unscaled)
+            alpha = u.Quantity(-1 * color, u.dimensionless_unscaled)
         elif u.Quantity(color).unit.is_equivalent(u.mag):
             alpha = (-color).to(u.dimensionless_unscaled, u.logarithmic())
         else:
             alpha = u.Quantity(color, u.dimensionless_unscaled)
 
         dw = lambda_eff[1] - lambda_eff[0]
-        S = ((2 / dw * (alpha - 1) / (alpha + 1))
-             .to(u.percent / hundred_nm))
+        S = (2 / dw * (alpha - 1) / (alpha + 1)).to(u.percent / hundred_nm)
 
         return SpectralGradient(S, wave=lambda_eff)
 
@@ -287,7 +284,7 @@ class SpectralGradient(u.SpecificTypeQuantity):
         """
 
         if self.wave0 is None:
-            raise ValueError('wave0 attribute must be defined.')
+            raise ValueError("wave0 attribute must be defined.")
 
         delta = wave0 - self.wave0
         S0 = 1 + self.to(delta.unit**-1) * delta
@@ -296,8 +293,9 @@ class SpectralGradient(u.SpecificTypeQuantity):
         return S
 
 
-class SpectralModel():
+class SpectralModel:
     """Range of spectral models"""
+
     def haser():
         """Haser model
 
@@ -312,7 +310,7 @@ class SpectralModel():
         """Reflectance spectrum (asteroids)"""
 
 
-class Spectrum():
+class Spectrum:
 
     def __init__(self, flux, dispersionaxis, unit):
         self.flux = flux
@@ -320,7 +318,7 @@ class Spectrum():
         self.unit = unit
 
     @classmethod
-    def read(cls, filename, columns='auto'):
+    def read(cls, filename, columns="auto"):
         """Read spectrum from file
 
         Parameters
@@ -343,7 +341,7 @@ class Spectrum():
 
         """
 
-    def write(self, filename, columns='all'):
+    def write(self, filename, columns="all"):
         """Write spectrum to file
 
         Parameters
@@ -416,7 +414,7 @@ class Spectrum():
 
         """
 
-    def integrated_flux(self, frequency, interval=1*u.km/u.s):
+    def integrated_flux(self, frequency, interval=1 * u.km / u.s):
         """
         Calculate integrated flux of emission line.
 
