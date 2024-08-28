@@ -52,9 +52,10 @@ Most optional dependencies may be installed via:
 
     $ pip install sbpy[all]
 
-`oorb` and `pyradex` are left for the user to install manually.
+`pyradex` and the ephemeris data for `oorb` are left for the user to install
+manually.
 
-The latest development version of `sbpy` can be easily installed using:
+The latest development version of `sbpy` can be installed using:
 
 .. code-block:: bash
 

@@ -3,10 +3,10 @@
 Status Page
 ===========
 
-This page indicates the development status of `sbpy`. The development
-is expected to conclude in 2024.
+This page indicates the development status of `sbpy`. The initial development is
+expected to conclude in 2025.
 
-The current development version is **v0.5.dev**; its status is as follows:
+The current development version is **v0.6.dev**; its status is as follows:
 
 .. image:: https://github.com/NASA-Planetary-Science/sbpy/actions/workflows/ci_cron_weekly.yml/badge.svg
     :target: https://github.com/NASA-Planetary-Science/sbpy/actions
@@ -24,11 +24,10 @@ The current development version is **v0.5.dev**; its status is as follows:
 Current development status
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The current development status of `sbpy` sub-modules is indicated in
-the following tables.  The column `Dev` indicates the lead developer
-(MM: Michael Mommert, MSK: Michael S. Kelley, MdVB: Miguel de
-Val-Borro, JYL: Jian-Yang Li) for the respective sub-packages and
-classes.
+The current development status of `sbpy` sub-modules is indicated in the
+following tables.  The column `Dev` indicates the lead developer (MM: Michael
+Mommert, MSK: Michael S. Kelley, MdVB: Miguel de Val-Borro, JYL: Jian-Yang Li,
+HH: Henry Hsieh) for the respective sub-packages and classes.
 
 .. raw:: html
 
@@ -133,7 +132,7 @@ classes.
                 <span class="stable"></span>
             </td>
             <td align='center'>
-                MM / MdVB
+                MM / MdVB / HH
             </td>
              <td>
                 Lowell ASTORB functionality TBD 
@@ -178,7 +177,7 @@ classes.
                 MM
             </td>
             <td>
-	        OpenOrb ranging to be implemented
+	        OpenOrb ranging may be implemented
             </td>
         </tr>
         <tr>
@@ -189,10 +188,10 @@ classes.
                 <span class="stable"></span>
             </td>
             <td align='center'>
-                MM
+                MM / HH
             </td>
             <td>
-                waiting for Lowell ASTORB functionality for physical properties queries
+                Lowell ASTORB functionality is TBD
             </td>
         </tr>
     </table>
@@ -223,13 +222,13 @@ classes.
                 <em>sbpy.activity.dust</em>
             </td>
             <td align='center'>
-                <span class="dev"></span>
+                <span class="stable"></span>
             </td>
             <td align='center'>
                 MSK
             </td>
             <td>
-                Halley-Marcus phase function implemented; *Afρ* and *εfρ* classes fully implemented; syndynes and synchrones TBD
+                Implemented Halley-Marcus phase function; *Afρ* and *εfρ* classes; syndynes and synchrones
             </td>
         </tr>
         <tr>
@@ -454,7 +453,7 @@ classes.
                 MSK / MdVB
             </td>
             <td>
-                `synphot` integration complete, basic quantities (bandpass filtering, color index) complete
+                `synphot` integration complete, basic quantities (bandpass filtering, color index) complete; compatibility/integration with spectools TBD
             </td>
         </tr>
         <tr>
@@ -501,7 +500,7 @@ classes.
                 <span class="dev"></span>
             </td>
             <td align='center'>
-                JYL / MM
+                MSK / JYL / MM
             </td>
             <td>
                 currently under development

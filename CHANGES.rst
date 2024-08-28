@@ -1,10 +1,10 @@
-0.5.0 (unreleased)
+0.5.0 (2024-08-28)
 ==================
 
 - Revised required and optional packages:
 
   - Only numpy and astropy are required; scipy, synphot, ads, and astroquery are
-    now optional dependences.  [#383]
+    now optional dependencies.  [#383]
 
   - Created an option to install a recommended list of packages, e.g., ``pip
     install sbpy[recommended]``.  [#383]
