@@ -10,7 +10,8 @@ For an overview on the expected structure and functionality of `sbpy`, please
 refer to the :doc:`about` page; the :doc:`status` page provides an overview on
 the implementation status of all modules and functions.
 
-The development of `sbpy` is expected to conclude with version 1.0 in 2024.
+The initial development of `sbpy` is expected to conclude with version 1.0 in
+2025.
 
 	       
 **************
