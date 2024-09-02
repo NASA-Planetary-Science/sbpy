@@ -93,6 +93,30 @@ def nonremote_request(self, request_type, url, **kwargs):
             ),
             ("data", ""),
         ): "TestEphemerisCLI-2p-miriade.txt",
+        (
+            ("URL", "http://vo.imcce.fr/webservices/miriade/ephemcc_query.php"),
+            (
+                "params",
+                "-name=1&-type=Asteroid&-ep=2460538.5&-step=1.000000d&-nbd=61.0&-observer=500&-output=--jul&-tscale=UTC&-theory=INPOP&-teph=1&-tcoor=1&-rplane=1&-oscelem=ASTORB&-mime=votable",
+            ),
+            ("data", ""),
+        ): "TestEphemerisCLI-ceres-miriade.txt",
+        (
+            ("URL", "https://cgi.minorplanetcenter.net/cgi-bin/mpeph2.cgi"),
+            ("params", ""),
+            (
+                "data",
+                "ty=e&TextArea=1&uto=0&igd=n&ibh=n&fp=y&adir=N&tit=&bu=&c=500&d=2024-08-16+000000&i=1&u=d&l=61&raty=a&s=t&m=h",
+            ),
+        ): "TestEphemerisCLI-ceres-mpc.txt",
+        (
+            ("URL", "https://ssd.jpl.nasa.gov/api/horizons.api"),
+            (
+                "params",
+                "format=text&EPHEM_TYPE=OBSERVER&QUANTITIES=%271%2C3%2C9%2C19%2C20%2C23%2C24%2C27%2C33%27&COMMAND=%221%3B%22&SOLAR_ELONG=%220%2C180%22&LHA_CUTOFF=0&CSV_FORMAT=YES&CAL_FORMAT=BOTH&ANG_FORMAT=DEG&APPARENT=AIRLESS&REF_SYSTEM=ICRF&EXTRA_PREC=NO&CENTER=%27500%27&START_TIME=%222024-08-16+00%3A00%3A00.000%22&STOP_TIME=%222024-10-15+00%3A00%3A00.000%22&STEP_SIZE=%221d%22&SKIP_DAYLT=NO",
+            ),
+            ("data", ""),
+        ): "TestEphemerisCLI-ceres-horizons.txt",
     }
 
     try:
@@ -247,6 +271,23 @@ class TestEphemCLI:
         row = str(cli.eph.table[0]).splitlines()[-1].split()
         assert row[2] == "22:39:45.78"
         assert row[3] == "-85:45:59.3"
+
+    @pytest.mark.parametrize(
+        "service, target",
+        [("horizons", "1 Ceres (A801 AA)"), ("mpc", "1"), ("miriade", "Ceres")],
+    )
+    def test_asteroid(self, service, target, patch_request):
+        """Test services with a comet designation"""
+
+        pytest.importorskip("astroquery")
+
+        cmd = f"{service} 1 --start=2024-08-16"
+        if service == "horizons":
+            cmd += " --id-type=smallbody"
+        cli = EphemerisCLI(cmd.split())
+
+        assert cli.eph["date"][0].iso == "2024-08-16 00:00:00.000"
+        assert cli.eph.meta["target"] == target
 
     @pytest.mark.parametrize(
         "service, target",
