@@ -112,9 +112,13 @@ numbers and unpacked ones:
 
     >>> Names.from_packed('J95A01A')
     '1995 AA1'
+    >>> Names.from_packed('_RD0aEM')
+    '2027 DZ6190'
     >>> Names.from_packed('G3693')
     163693
     >>> Names.to_packed('1995 AA1')
     'J95A01A'
+    >>> Names.to_packed('2027 DZ6190')
+    '_RD0aEM'
     >>> Names.to_packed('163693')
     'G3693'

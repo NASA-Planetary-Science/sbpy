@@ -102,6 +102,12 @@ def test_from_packed():
 
     Test values from https://www.minorplanetcenter.net/iau/info/PackedDes.html
 
+    Test values for extended permanent designations from
+    https://www.minorplanetcenter.net/iau/info/PackedDes.html
+
+    Test values for extended provisional designations from
+    https://minorplanetcenter.net/mpcops/documentation/provisional-designation-definition/
+
     """
 
     # minor planets
@@ -129,6 +135,22 @@ def test_from_packed():
     assert Names.from_packed('K33L89c') == '2033 L89-C'
     assert Names.from_packed('K88AA30') == '2088 A103'
 
+    # extended permanent designations
+    assert Names.from_packed('~0000') == 620000
+    assert Names.from_packed('~000z') == 620061
+    assert Names.from_packed('~AZaz') == 3140113
+    assert Names.from_packed('~zzzz') == 15396335
+
+    # extended provisional designations
+    assert Names.from_packed('_QC0000') == '2026 CA620'
+    assert Names.from_packed('_QC0aEM') == '2026 CZ6190'
+    assert Names.from_packed('_QCzzzz') == '2026 CL591673'
+    assert Names.from_packed('_PD0000') == '2025 DA620'
+    assert Names.from_packed('_QD000N') == '2026 DY620'
+    assert Names.from_packed('_RD0aEM') == '2027 DZ6190'
+    assert Names.from_packed('_SEZZZZ') == '2028 EA339749'
+    assert Names.from_packed('_TFzzzz') == '2029 FL591673'
+
     # a few other tests
     assert Names.from_packed('50000') == 50000
     assert Names.from_packed('A0345') == 100345
@@ -141,6 +163,12 @@ def test_to_packed():
     """Test packed numbers and designations.
 
     Test values from https://www.minorplanetcenter.net/iau/info/PackedDes.html
+
+    Test values for extended permanent designations from
+    https://www.minorplanetcenter.net/iau/info/PackedDes.html
+
+    Test values for extended provisional designations from
+    https://minorplanetcenter.net/mpcops/documentation/provisional-designation-definition/
 
     """
 
@@ -168,6 +196,22 @@ def test_to_packed():
     assert Names.to_packed('2048 X13') == 'K48X130'
     assert Names.to_packed('2033 L89-C') == 'K33L89c'
     assert Names.to_packed('2088 A103') == 'K88AA30'
+
+    # extended permanent designations
+    assert Names.to_packed('620000') == '~0000'
+    assert Names.to_packed('620061') == '~000z'
+    assert Names.to_packed('3140113') == '~AZaz'
+    assert Names.to_packed('15396335') == '~zzzz'
+
+    # extended provisional designations
+    assert Names.to_packed('2026 CA620') == '_QC0000'
+    assert Names.to_packed('2026 CZ6190') == '_QC0aEM'
+    assert Names.to_packed('2026 CL591673') == '_QCzzzz'
+    assert Names.to_packed('2025 DA620') == '_PD0000'
+    assert Names.to_packed('2026 DY620') == '_QD000N'
+    assert Names.to_packed('2027 DZ6190') == '_RD0aEM'
+    assert Names.to_packed('2028 EA339749') == '_SEZZZZ'
+    assert Names.to_packed('2029 FL591673') == '_TFzzzz'
 
     # a few other tests
     assert Names.to_packed('50000') == '50000'
@@ -224,10 +268,39 @@ def test_parse_asteroid():
 
 def test_break_packed():
     with pytest.raises(TargetNameParseError):
-        Names.to_packed('620000')
-
-    with pytest.raises(TargetNameParseError):
         Names.to_packed('2015 this will not work')
 
     with pytest.raises(TargetNameParseError):
         Names.to_packed('thiswillnotwork')
+
+
+def test_raises_error():
+    with pytest.raises(TargetNameParseError):
+        Names.to_packed('2011 AA123456789')
+
+    with pytest.raises(TargetNameParseError):
+        Names.to_packed('2011 A123456789')
+
+    with pytest.raises(TargetNameParseError):
+        Names.to_packed('2026 CL591674')
+
+    with pytest.raises(TargetNameParseError):
+        Names.to_packed('1989 A')
+
+    with pytest.raises(TargetNameParseError):
+        Names.to_packed('15396336')
+
+    with pytest.raises(TargetNameParseError):
+        Names.from_packed('~555555')
+
+    with pytest.raises(TargetNameParseError):
+        Names.from_packed('_QCzzzz0')
+
+    with pytest.raises(TargetNameParseError):
+        Names.from_packed('_Qczzzz')
+
+    with pytest.raises(TargetNameParseError):
+        Names.from_packed('_QCzz_z')
+
+    with pytest.raises(TargetNameParseError):
+        Names.from_packed('_qCzzzz')
