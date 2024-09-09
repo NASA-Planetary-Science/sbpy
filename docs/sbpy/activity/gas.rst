@@ -148,9 +148,9 @@ number of molecules in an aperture.  Parent and daughter data is provided via
   >>> Q = 1e28 / u.s        # water production rate
   >>> coma = gas.VectorialModel(Q, water, hydroxyl)
   >>> print(coma.column_density(10 * u.km))    # doctest: +FLOAT_CMP
-  2.8976722840952486e+17 1 / m2
+  2.8974972922255264e+17 1 / m2
   >>> print(coma.total_number(1000 * u.km))    # doctest: +FLOAT_CMP
-  6.995158827300034e+29
+  6.995084479934798e+29
 
 Production Rate calculations
 ----------------------------
