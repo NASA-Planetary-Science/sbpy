@@ -1636,7 +1636,7 @@ class VectorialModel(GasComa):
             return self._volume_density(np.sqrt(z**2 + rhosq))
 
         c_dens = 2 * quad(column_density_integrand, 0,
-                          z_max, rtol=0.0001)
+                          z_max, epsrel=0.0001)
 
         # result is in 1/m^2
         return c_dens
@@ -1750,7 +1750,7 @@ class VectorialModel(GasComa):
             0,
             max_r,
             args=(self.vmr.volume_density_interpolation,),
-            rtol=0.0001,
+            epsrel=0.0001,
         )
         return 4 * np.pi * r_int
 
