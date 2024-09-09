@@ -12,6 +12,15 @@ sbpy.names
   rates in the LSST survey era [#406]
 
 
+Other Changes and Additions
+---------------------------
+
+sbpy.activity.gas
+^^^^^^^^^^^^^^^^^
+- Replaced calls to the deprecated function `scipy.integrate.romberg` with
+  `scipy.integrate.quad`.  [#412]
+
+
 0.5.0 (2024-08-28)
 ==================
 
