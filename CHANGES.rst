@@ -11,6 +11,11 @@ sbpy.names
   to be implemented by the MPC in anticipation of higher asteroid discovery
   rates in the LSST survey era [#406]
 
+API Changes
+-----------
+- Deprecated `sbpy.ginga_plugins` in favor of using `sbpy-ginga` at
+  https://github.com/NASA-Planetary-Science/sbpy-ginga
+
 
 0.5.0 (2024-08-28)
 ==================
