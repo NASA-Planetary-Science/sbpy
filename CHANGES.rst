@@ -14,7 +14,7 @@ sbpy.names
 API Changes
 -----------
 - Deprecated `sbpy.ginga_plugins` in favor of using `sbpy-ginga` at
-  https://github.com/NASA-Planetary-Science/sbpy-ginga
+  https://github.com/NASA-Planetary-Science/sbpy-ginga [#413]
 
 
 0.5.0 (2024-08-28)
