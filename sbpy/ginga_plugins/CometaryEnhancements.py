@@ -135,8 +135,8 @@ class CometaryEnhancements(LocalPlugin):
         # Add a deprecation warning
         hbox = Widgets.HBox()
         text_area = Widgets.TextArea()
-        text_area.append_text("This tool is from the deprecated sbpy.ginga_plugins module.  "
-                              "Use the sbpy-ginga module instead.")
+        text_area.append_text("This tool is from the deprecated sbpy.ginga_plugins "
+                              "module.  Use the sbpy-ginga module instead.")
         hbox.add_widget(text_area)
         vbox.add_widget(hbox)
 
