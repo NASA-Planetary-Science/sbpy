@@ -8,6 +8,7 @@ Ginga and available in the Operations menu.
 
 from warnings import warn
 from sbpy.exceptions import OptionalPackageUnavailable
+from astropy.utils.decorators import deprecated
 
 try:
     from ginga.GingaPlugin import LocalPlugin
@@ -30,6 +31,7 @@ except ImportError:
 from sbpy.imageanalysis import CometaryEnhancement
 
 
+@deprecated("0.6", alternative="sbpy_ginga.cometary_enhancements.CometaryEnhancements")
 class CometaryEnhancements(LocalPlugin):
     """Ginga plugin for on-the-fly cometary image enhancements."""
 
@@ -129,6 +131,14 @@ class CometaryEnhancements(LocalPlugin):
         tabw.add_widget(rho_vbox, title='1/rho')
 
         vbox.add_widget(tabw)
+
+        # Add a deprecation warning
+        hbox = Widgets.HBox()
+        text_area = Widgets.TextArea()
+        text_area.append_text("This tool is from the deprecated sbpy.ginga_plugins "
+                              "module.  Use the sbpy-ginga module instead.")
+        hbox.add_widget(text_area)
+        vbox.add_widget(hbox)
 
         # scroll bars will allow lots of content to be accessed
         top.add_widget(sw, stretch=1)

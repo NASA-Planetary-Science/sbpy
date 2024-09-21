@@ -2,7 +2,7 @@
 import os
 from warnings import warn
 
-from astropy.utils.exceptions import AstropyWarning
+from astropy.utils.exceptions import AstropyWarning, AstropyDeprecationWarning
 
 try:
     from ginga.misc.Bunch import Bunch
@@ -12,6 +12,12 @@ except ImportError:
     ))
 
     Bunch = None
+
+warn(
+    "sbpy.ginga_plugins is deprecated.  Use the `sbpy_ginga` module instead.",
+    AstropyDeprecationWarning,
+    stacklevel=2,
+)
 
 # path to these plugins
 p_path = os.path.split(__file__)[0]
