@@ -24,7 +24,7 @@ import astropy.units as u
 try:
     import scipy
     from scipy import special
-    from scipy.integrate import quad, dblquad, romberg
+    from scipy.integrate import quad, dblquad
     from scipy.interpolate import CubicSpline, PPoly
 except ImportError:
     scipy = None
@@ -1635,8 +1635,8 @@ class VectorialModel(GasComa):
         def column_density_integrand(z):
             return self._volume_density(np.sqrt(z**2 + rhosq))
 
-        c_dens = 2 * romberg(column_density_integrand, 0,
-                             z_max, rtol=0.0001, divmax=50)
+        c_dens = 2 * quad(column_density_integrand, 0,
+                          z_max, epsrel=0.0001)[0]
 
         # result is in 1/m^2
         return c_dens
@@ -1745,14 +1745,13 @@ class VectorialModel(GasComa):
         def vol_integrand(r, r_func):
             return r_func(r) * r**2
 
-        r_int = romberg(
+        r_int = quad(
             vol_integrand,
             0,
             max_r,
             args=(self.vmr.volume_density_interpolation,),
-            rtol=0.0001,
-            divmax=20,
-        )
+            epsrel=0.0001,
+        )[0]
         return 4 * np.pi * r_int
 
     def _column_density(self, rho) -> np.float64:
