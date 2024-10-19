@@ -272,6 +272,18 @@ class TestEphemCLI:
         assert row[2] == "22:39:45.78"
         assert row[3] == "-85:45:59.3"
 
+    def test_start_stop_order(self):
+        with pytest.raises(ValueError):
+            cli = EphemerisCLI(
+                [
+                    "horizons",
+                    "C/1995 O1",
+                    "--start=2025-01-01",
+                    "--stop=2024-01-01",
+                    "--debug",
+                ]
+            )
+
     @pytest.mark.parametrize(
         "service, target",
         [("horizons", "1 Ceres (A801 AA)"), ("mpc", "1"), ("miriade", "Ceres")],

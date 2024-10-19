@@ -13,6 +13,7 @@ created on June 04, 2017
 """
 
 import os
+import sys
 import enum
 import argparse
 from warnings import warn
@@ -894,7 +895,7 @@ class Ephem(DataClass):
 class EphemerisCLI:
     """Command-line interface for ephemeris generation.
 
-    Use this class via the commaline-line script ``sbpy-ephem``.
+    Use this class via the command line-line script ``sbpy-ephem``.
 
 
     Parameters
@@ -920,9 +921,17 @@ class EphemerisCLI:
         self.eph: Ephem = self._format_eph(self.eph)
 
     @classmethod
-    def run(cls):  # pragma: no cover
+    def run(cls) -> None:  # pragma: no cover
         """Command-line script entry point."""
-        cli = cls()
+        try:
+            cli = cls()
+        except Exception as e:
+            # check for debug flag
+            if any([x == "--debug" for x in sys.argv]):
+                raise e
+            print(str(e), file=sys.stderr)
+            sys.exit(1)
+
         print(
             f"""# requested target: {cli.args.target}
 # returned target: {cli.eph.meta['target']}
@@ -1038,7 +1047,15 @@ class EphemerisCLI:
             help="target identifer type",
         )
 
-        return parser.parse_args(argv)
+        parser.add_argument("--debug", action="store_true", help="print debugging information")
+
+        args = parser.parse_args(argv)
+
+        # parameter checks:
+        if args.stop is not None and args.start > args.stop:
+            raise ValueError("start cannot be after stop")
+        
+        return args
 
     @staticmethod
     def _format_epochs(args) -> Dict[str, Any]:
