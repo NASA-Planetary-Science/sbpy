@@ -272,7 +272,7 @@ class TestEphemCLI:
         assert row[2] == "22:39:45.78"
         assert row[3] == "-85:45:59.3"
 
-    def test_start_stop_order(self):
+    def test_start_stop_order(self, patch_request):
         with pytest.raises(ValueError):
             cli = EphemerisCLI(
                 [
