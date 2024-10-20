@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import pytest
-from numpy import abs
 import warnings
 
 from numpy.testing import assert_allclose
@@ -12,7 +11,9 @@ from astropy.coordinates import EarthLocation
 from astropy.tests.helper import assert_quantity_allclose
 
 from ... import bib
-from .. import Ephem, Orbit, QueryError
+from ..core import QueryError
+from ..ephem import Ephem, EphemerisCLI
+from ..orbit import Orbit
 
 pytest.importorskip("astroquery")
 
@@ -426,3 +427,23 @@ class TestEphemFromOorb:
         u.isclose(horizons_ephem['hlon'][0], oo_ephem['hlon'][0])
         u.isclose(horizons_ephem['hlat'][0], oo_ephem['hlat'][0])
         u.isclose(horizons_ephem['EL'][0], oo_ephem['EL'][0])
+
+
+@pytest.mark.remote_data()
+class TestEphemCLI:
+    @pytest.mark.parametrize("service", ("horizons", "mpc", "miriade"))
+    def test_services(self, service):
+        """Spot check results from the services."""
+        cli = EphemerisCLI(
+            f"{service} ceres --start=2024-01-01 --step=3d --stop=2024-01-31".split()
+        )
+        assert len(cli.eph) == 11
+        assert cli.eph["date"][0].iso == "2024-01-01 00:00:00.000"
+        assert cli.eph["date"][-1].iso == "2024-01-31 00:00:00.000"
+
+        cli = EphemerisCLI(
+            f"{service} ceres --start=2024-01-01 --step=3d --number=10".split()
+        )
+        assert len(cli.eph) == 11
+        assert cli.eph["date"][0].iso == "2024-01-01 00:00:00.000"
+        assert cli.eph["date"][-1].iso == "2024-01-31 00:00:00.000"

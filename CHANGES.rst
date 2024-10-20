@@ -11,6 +11,10 @@ sbpy.names
   to be implemented by the MPC in anticipation of higher asteroid discovery
   rates in the LSST survey era [#406]
 
+sbpy.data.ephem
+^^^^^^^^^^^^^^^
+
+- New command-line script: ``sbpy-ephem``.
 
 Other Changes and Additions
 ---------------------------

@@ -249,7 +249,7 @@ class HG12BaseClass(DiskIntegratedPhaseFunc):
 
     @property
     def oe_amp(self):
-        """Opposition effect amplitude, :math:`\zeta-1`
+        r"""Opposition effect amplitude, :math:`\zeta-1`
         Based on Muinonen et al. (2010) Eq. 24)
         """
         tmp = float(self._G1+self._G2)

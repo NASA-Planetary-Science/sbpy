@@ -310,3 +310,42 @@ The properties computed by pyoorb and listed in the resulting table are defined
 in the `pyoorb documentation
 <https://github.com/oorb/oorb/tree/master/python>`_. Note that this function
 requires pyoorb to be installed, which is not a requirement for `sbpy`.
+
+
+Executable scripts
+------------------
+
+Ephemerides may be generated from the command line using the ``sbpy-ephem``
+script installed during sbpy's installation.  The script supports ephemeris
+generation from Horizons, the Minor Planet Center, and Miriade.
+
+For example, to display the ephemeris of comet 2P/Encke from the Minor Planet
+Center:
+
+.. code:: bash
+
+    $ sbpy-ephem mpc 2P
+    # requested target: 2P
+    # returned target: 2P
+    # location: 500
+              date               RA         Dec       rh  delta phase solarelong  V   Proper motion Direction
+                                deg         deg       AU    AU   deg     deg     mag    arcsec / h     deg   
+    ----------------------- ----------- ----------- ----- ----- ----- ---------- ---- ------------- ---------
+    2024-08-17 00:00:00.000 21:55:57.10 -15:12:47.0 3.368 2.356   0.9      177.1 21.1         47.72     253.7
+    2024-08-18 00:00:00.000 21:54:41.20 -15:18:06.0 3.373 2.361   0.7      177.5 21.1         47.54     253.9
+    2024-08-19 00:00:00.000 21:53:25.60 -15:23:21.0 3.378 2.367   0.8      177.4 21.1         47.32     254.0
+    2024-08-20 00:00:00.000 21:52:10.30 -15:28:32.0 3.383 2.372   1.0      176.7 21.2         47.07     254.1
+    2024-08-21 00:00:00.000 21:50:55.30 -15:33:38.0 3.388 2.378   1.3      175.8 21.2         46.79     254.3
+    2024-08-22 00:00:00.000 21:49:40.70 -15:38:40.0 3.393 2.385   1.6      174.7 21.2         46.47     254.4
+    2024-08-23 00:00:00.000 21:48:26.50 -15:43:37.0 3.398 2.391   1.9      173.5 21.3         46.13     254.6
+    2024-08-24 00:00:00.000 21:47:12.90 -15:48:29.0 3.403 2.398   2.3      172.3 21.3         45.75     254.7
+    2024-08-25 00:00:00.000 21:45:59.80 -15:53:16.0 3.408 2.406   2.6      171.1 21.3         45.34     254.9
+    2024-08-26 00:00:00.000 21:44:47.30 -15:57:57.0 3.413 2.413   3.0      169.9 21.4          44.9     255.0
+    2024-08-27 00:00:00.000 21:43:35.40 -16:02:33.0 3.418 2.421   3.3      168.7 21.4         44.44     255.2
+    2024-08-28 00:00:00.000 21:42:24.30 -16:07:04.0 3.423  2.43   3.7      167.4 21.4         43.94     255.3
+    2024-08-29 00:00:00.000 21:41:13.90 -16:11:28.0 3.427 2.438   4.0      166.2 21.5         43.41     255.5
+    2024-08-30 00:00:00.000 21:40:04.30 -16:15:47.0 3.432 2.447   4.4      165.0 21.5         42.86     255.6
+    ...
+
+A limited number of input parameters are supported.  Run with the ``--help``
+option for more details.
