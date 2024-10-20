@@ -967,19 +967,19 @@ class EphemerisCLI:
             "--location",
             "-l",
             default="500",
-            help="observer location",
+            help="observer location as a Minor Planet Center observatory code, e.g., G37",
         )
         parser.add_argument(
             "--start",
             default=today,
             type=Time,
-            help="start time, default today (UTC)",
+            help="start time (e.g., YYYY-MM-DD), default today [UTC]",
         )
         parser.add_argument(
             "--step",
             default="1 d",
             type=u.Quantity,
-            help="ephemeris step size with units",
+            help="ephemeris step size with units (d, h, min)",
         )
 
         stop_number_mutex = parser.add_mutually_exclusive_group()
@@ -987,7 +987,7 @@ class EphemerisCLI:
             "--stop",
             "--end",
             type=Time,
-            help="stop time (UTC)",
+            help="stop time (e.g., YYYY-MM-DD) [UTC]",
         )
         stop_number_mutex.add_argument(
             "--number",
@@ -1001,7 +1001,7 @@ class EphemerisCLI:
             "-r",
             default="hmsdms",
             choices=("hmsdms", "deg"),
-            help="RA, Dec coordinate format",
+            help="RA, Dec coordinate output format",
         )
 
         horizons: argparse._ArgumentGroup = parser.add_argument_group(
@@ -1054,7 +1054,7 @@ class EphemerisCLI:
         # parameter checks:
         if args.stop is not None and args.start > args.stop:
             raise ValueError("start cannot be after stop")
-        
+
         return args
 
     @staticmethod
