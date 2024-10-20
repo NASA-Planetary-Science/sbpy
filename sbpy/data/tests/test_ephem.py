@@ -273,6 +273,10 @@ class TestEphemCLI:
         assert row[3] == "-85:45:59.3"
 
     def test_start_stop_order(self, patch_request):
+        """Test start > stop."""
+
+        pytest.importorskip("astroquery")
+
         with pytest.raises(ValueError):
             cli = EphemerisCLI(
                 [
