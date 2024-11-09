@@ -130,7 +130,12 @@ class Names():
             ):
                 if s[-2] == '-':
                     frag = s[-1]
-                    num = s[6:-2]
+                    if len(s[:-2]) > 6:
+                        num = s[6:-2]
+                    else:
+                        raise TargetNameParseError(
+                            ('{} cannot be turned into a '
+                             'packed designation').format(s))
                 else:
                     frag = '0'
                     num = s[6:]
