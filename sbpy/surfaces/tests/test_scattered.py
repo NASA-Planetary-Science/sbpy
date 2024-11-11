@@ -38,9 +38,11 @@ def test_scattered_sunlight():
         # albedo * F_i / rh**2 * cos(45)**2
         # 0.1 * 1 / 2 / 2
         expected = 0.025 * u.W / (u.m**2 * u.um * u.sr)
-        result = surface.sunlight_from_vectors(0.55 * u.um, n, rs, ro)
+        result = surface.scattered_sunlight_from_vectors(0.55 * u.um, n, rs, ro)
         assert u.isclose(result, expected)
 
         # again to test branching to Sun.observe
-        result = surface.sunlight_from_vectors((0.549, 0.55, 0.551) * u.um, n, rs, ro)
+        result = surface.scattered_sunlight_from_vectors(
+            (0.549, 0.55, 0.551) * u.um, n, rs, ro
+        )
         assert u.allclose(result[1], expected, rtol=0.01)
