@@ -95,6 +95,13 @@ Activity
 
    sbpy/activity/index.rst
 
+Surfaces and Shapes
+-------------------
+
+.. toctree:: :maxdepth: 2
+   
+   sbpy/surfaces
+
 Miscellaneous
 -------------
 
