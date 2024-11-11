@@ -7,14 +7,31 @@ import astropy.units as u
 from .surface import Surface
 from .lambertian import LambertianSurface
 from ..calib import Sun
-from ..units.typing import SpectralQuantity, SpectralRadianceQuantity, UnitLike
+from ..units.typing import SpectralQuantity, SpectralFluxDensityQuantity, UnitLike
 
 
-class ScatteredSunlight(Surface):
-    """Abstract base class to observe light scattered by a surface illuminated by the Sun."""
+class ScatteredLight(Surface):
+    """Abstract base class to observe light scattered by a surface."""
 
     @u.quantity_input
     def radiance(
+        self,
+        F_i: SpectralFluxDensityQuantity,
+        i: u.physical.angle,
+        e: u.physical.angle,
+        phi: u.physical.angle,
+    ) -> u.Quantity:
+        """Observed light reflected from a surface."""
+        return F_i * self.reflectance(i, e, phi) / u.sr
+
+    radiance.__doc__ += Surface.radiance.__doc__[Surface.radiance.__doc__.index("\n") :]
+
+
+class ScatteredSunlight(ScatteredLight):
+    """Abstract base class to observe sunlight scattered by a surface."""
+
+    @u.quantity_input
+    def sunlight(
         self,
         wave_freq: SpectralQuantity,
         i: u.physical.angle,
@@ -23,7 +40,7 @@ class ScatteredSunlight(Surface):
         rh: u.physical.length,
         unit: UnitLike = "W/(m2 sr um)",
     ) -> u.Quantity:
-        """Observed radiance from a surface.
+        """Radiance from sunlight scattered by a surface.
 
 
         Parameters
@@ -31,6 +48,9 @@ class ScatteredSunlight(Surface):
         wave_freq : `astropy.units.Quantity`
             Wavelength or frequency at which to evaluate the Sun.  Arrays are
             evaluated with `sbpy.calib.core.Sun.observe()`.
+
+        rh : `~astropy.units.Quantity`
+            Heliocentric distance.
 
         i : `~astropy.units.Quantity`
             Angle from normal of incident light.
@@ -40,9 +60,6 @@ class ScatteredSunlight(Surface):
 
         phi : `~astropy.units.Quantity`
             Source-target-observer (phase) angle.
-
-        rh : `~astropy.units.Quantity`
-            Heliocentric distance.
 
         unit : `~astropy.units.Unit`, optional
             Unit of the return value.
@@ -56,16 +73,17 @@ class ScatteredSunlight(Surface):
         """
 
         sun = Sun.from_default()
+        flux_density_unit = u.Unit(unit) * u.sr
         if wave_freq.size == 1:
-            F_i = sun(wave_freq)
+            F_i = sun(wave_freq, unit=flux_density_unit)
         else:
-            F_i = sun.observe(wave_freq)
+            F_i = sun.observe(wave_freq, unit=flux_density_unit)
 
         F_i /= rh.to_value("au") ** 2
-        return (F_i * self.reflectance(i, e, phi) / u.sr).to(unit)
+        return self.radiance(F_i, i, e, phi).to(unit)
 
     @u.quantity_input
-    def radiance_from_vectors(
+    def sunlight_from_vectors(
         self,
         wave_freq: SpectralQuantity,
         n: np.ndarray[3],
@@ -73,7 +91,7 @@ class ScatteredSunlight(Surface):
         ro: u.physical.length,
         unit: UnitLike = "W/(m2 sr um)",
     ) -> u.Quantity:
-        """Observed radiance from a surface.
+        """Observed sunlight reflected from a surface.
 
 
         Parameters
@@ -88,11 +106,8 @@ class ScatteredSunlight(Surface):
         rs : `~astropy.units.Quantity`
             Radial vector from the surface to the light source.
 
-        ro : `numpy.ndarray`
+        ro : `~astropy.units.Quantity`
             Radial vector from the surface to the observer.
-
-        rh : `~astropy.units.Quantity`
-            Heliocentric distance.
 
         unit : `~astropy.units.Unit`, optional
             Unit of the return value.
@@ -106,9 +121,9 @@ class ScatteredSunlight(Surface):
         """
         rh = np.linalg.norm(rs).to("au")
         i, e, phi = self._vectors_to_angles(n, rs, ro)
-        return self.radiance(wave_freq, i, e, phi, rh, unit=unit)
+        return self.sunlight(wave_freq, rh, i, e, phi, unit=unit)
 
-    __doc__ += Surface.__doc__[Surface.__doc__.index("\n") + 1 :]
+    __doc__ += Surface.__doc__[Surface.__doc__.index("\n") + 1 :]  # noqa: E203
 
 
 class LambertianSurfaceScatteredSunlight(LambertianSurface, ScatteredSunlight):
@@ -118,4 +133,4 @@ class LambertianSurfaceScatteredSunlight(LambertianSurface, ScatteredSunlight):
 
     """
 
-    __doc__ += Surface.__doc__[Surface.__doc__.index("\n") :]
+    __doc__ += Surface.__doc__[Surface.__doc__.index("\n") :]  # noqa: E203
