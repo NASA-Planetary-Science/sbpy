@@ -24,7 +24,9 @@ class ScatteredLight(Surface):
         """Observed light reflected from a surface."""
         return F_i * self.reflectance(i, e, phi) / u.sr
 
-    radiance.__doc__ += Surface.radiance.__doc__[Surface.radiance.__doc__.index("\n") :]
+    radiance.__doc__ += Surface.radiance.__doc__[
+        Surface.radiance.__doc__.index("\n") :  # noqa: E203
+    ]
 
 
 class ScatteredSunlight(ScatteredLight):
