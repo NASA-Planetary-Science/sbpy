@@ -16,7 +16,7 @@ __all__ = [
 ]
 
 import abc
-from typing import Iterable, List, Optional, Tuple, TypeVar, Union
+from typing import Iterable, Optional, TypeVar, Union
 from packaging.version import Version
 
 try:
@@ -204,7 +204,7 @@ class StateBase(abc.ABC):
             frame=self.frame,
         )
 
-    def __abs__(self) -> Tuple[u.Quantity, u.Quantity]:
+    def __abs__(self) -> tuple[u.Quantity, u.Quantity]:
         """Return the magnitude of the position and velocity."""
         r = np.sqrt(np.sum(self.r**2, axis=-1))
         v = np.sqrt(np.sum(self.v**2, axis=-1))
@@ -347,11 +347,11 @@ class State(StateBase):
         """
 
         frame: BaseCoordinateFrame = states[0].frame
-        states_: List[State] = [state.transform_to(frame) for state in states]
+        states_: list[State] = [state.transform_to(frame) for state in states]
 
-        r: List[u.Quantity] = [state.r for state in states_]
-        v: List[u.Quantity] = [state.v for state in states_]
-        t: List[Union[u.Quantity, Time]] = [state.t for state in states_]
+        r: list[u.Quantity] = [state.r for state in states_]
+        v: list[u.Quantity] = [state.v for state in states_]
+        t: list[Union[u.Quantity, Time]] = [state.t for state in states_]
 
         return State(r, v, t, frame=frame)
 
@@ -399,8 +399,8 @@ class State(StateBase):
 
         """
 
-        rectangular: Tuple[str] = ("x", "y", "z", "vx", "vy", "vz", "date")
-        spherical: Tuple[str] = (
+        rectangular: tuple[str] = ("x", "y", "z", "vx", "vy", "vz", "date")
+        spherical: tuple[str] = (
             "ra",
             "dec",
             "Delta",
