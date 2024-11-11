@@ -13,10 +13,8 @@ __all__ = [
 
 from abc import ABC, abstractmethod
 
-# distutils is deprecated in python 3.10 and will be removed in 3.12 (PEP 632).
-# Migration from distutils.log -> logging
 from dataclasses import dataclass
-from typing import Callable, Tuple
+from typing import Callable
 
 import numpy as np
 import astropy.units as u
@@ -1354,7 +1352,7 @@ class VectorialModel(GasComa):
 
     def _outflow_axis_sampling(
         self, x: np.float64, y: np.float64, theta: np.float64
-    ) -> Tuple[np.ndarray, np.ndarray]:
+    ) -> tuple[np.ndarray, np.ndarray]:
         """Construct a list of points along the outflow axis, sampled to be
         more dense around the minimum distance to (x, y).
 

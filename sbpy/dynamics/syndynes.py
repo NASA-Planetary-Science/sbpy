@@ -20,7 +20,7 @@ __all__ = [
 import abc
 import time
 import logging
-from typing import Iterable, List, Tuple, Union, Optional, TypeVar
+from typing import Iterable, Union, Optional, TypeVar
 
 try:
     # python 3.11 feature
@@ -327,7 +327,7 @@ class SynCollection:
         if len(self) == 0:
             return Ephem()
 
-        tables: List[Ephem] = [s.to_ephem().table for s in self]
+        tables: list[Ephem] = [s.to_ephem().table for s in self]
 
         return Ephem.from_table(
             vstack(tables, metadata_conflicts="error"),
@@ -477,7 +477,7 @@ class SynGenerator:
 
         """
 
-        states: List[State] = []
+        states: list[State] = []
         for age in self.ages:
             t_i: Time = self.source.t - age
             state = self.solver.solve(self.source, t_i, 0)
@@ -497,7 +497,7 @@ class SynGenerator:
 
         logger: logging.Logger = logging.getLogger()
 
-        particles: List[State] = []
+        particles: list[State] = []
         t0: float = time.monotonic()
         for i in range(self.betas.size):
             for j in range(self.ages.size):
@@ -603,7 +603,7 @@ class SynGenerator:
 
         return Synchrones([self.synchrone(i) for i in range(len(self.ages))])
 
-    def source_orbit(self, dt: u.Quantity) -> Union[State, Tuple[State, SkyCoord]]:
+    def source_orbit(self, dt: u.Quantity) -> Union[State, tuple[State, SkyCoord]]:
         """Calculate and observe the orbit of the dust source.
 
 
@@ -627,7 +627,7 @@ class SynGenerator:
 
         """
 
-        states: List[State] = []
+        states: list[State] = []
         for i in range(len(dt)):
             t: Time = self.source.t + dt[i]
             states.append(self.solver.solve(self.source, t, 0))
