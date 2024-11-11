@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import pytest
 import numpy as np
 from astropy import units as u
 
@@ -24,6 +25,7 @@ def test_scattered_light():
 
 
 def test_scattered_sunlight():
+    pytest.importorskip("synphot")
 
     surface = LambertianSurfaceScatteredSunlight({"albedo": 0.1})
 
