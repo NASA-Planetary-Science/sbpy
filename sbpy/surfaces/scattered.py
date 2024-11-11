@@ -31,7 +31,7 @@ class ScatteredSunlight(ScatteredLight):
     """Abstract base class to observe sunlight scattered by a surface."""
 
     @u.quantity_input
-    def sunlight(
+    def scattered_sunlight(
         self,
         wave_freq: SpectralQuantity,
         rh: u.physical.length,
@@ -83,7 +83,7 @@ class ScatteredSunlight(ScatteredLight):
         return self.radiance(F_i, i, e, phi).to(unit)
 
     @u.quantity_input
-    def sunlight_from_vectors(
+    def scattered_sunlight_from_vectors(
         self,
         wave_freq: SpectralQuantity,
         n: np.ndarray[3],
@@ -121,7 +121,7 @@ class ScatteredSunlight(ScatteredLight):
         """
         rh = np.linalg.norm(rs).to("au")
         i, e, phi = self._vectors_to_angles(n, rs, ro)
-        return self.sunlight(wave_freq, rh, i, e, phi, unit=unit)
+        return self.scattered_sunlight(wave_freq, rh, i, e, phi, unit=unit)
 
     __doc__ += Surface.__doc__[Surface.__doc__.index("\n") + 1 :]  # noqa: E203
 
