@@ -34,10 +34,10 @@ class ScatteredSunlight(ScatteredLight):
     def sunlight(
         self,
         wave_freq: SpectralQuantity,
+        rh: u.physical.length,
         i: u.physical.angle,
         e: u.physical.angle,
         phi: u.physical.angle,
-        rh: u.physical.length,
         unit: UnitLike = "W/(m2 sr um)",
     ) -> u.Quantity:
         """Radiance from sunlight scattered by a surface.
