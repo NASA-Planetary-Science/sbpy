@@ -7,8 +7,23 @@ from ...calib import Sun, solar_spectrum
 from ..scattered import LambertianSurfaceScatteredSunlight
 
 
-def test_radiance_from_vectors():
-    # also tests radiance()
+def test_scattered_light():
+
+    surface = LambertianSurfaceScatteredSunlight({"albedo": 0.1})
+
+    F_i = 1 * u.Unit("W/(m2 um)")
+    n = np.array([1, 0, 0])
+    rs = [1, 1, 0] * u.au
+    ro = [1, -1, 0] * u.au
+
+    # albedo * F_i / rh**2 * cos(45)**2
+    # 0.1 * 1 / 2
+    expected = 0.05 * u.W / (u.m**2 * u.um * u.sr)
+    result = surface.radiance_from_vectors(F_i, n, rs, ro)
+    assert u.isclose(result, expected)
+
+
+def test_scattered_sunlight():
 
     surface = LambertianSurfaceScatteredSunlight({"albedo": 0.1})
 
@@ -23,9 +38,9 @@ def test_radiance_from_vectors():
         # albedo * F_i / rh**2 * cos(45)**2
         # 0.1 * 1 / 2 / 2
         expected = 0.025 * u.W / (u.m**2 * u.um * u.sr)
-        result = surface.radiance_from_vectors(0.55 * u.um, n, rs, ro)
+        result = surface.sunlight_from_vectors(0.55 * u.um, n, rs, ro)
         assert u.isclose(result, expected)
 
         # again to test branching to Sun.observe
-        result = surface.radiance_from_vectors((0.549, 0.55, 0.551) * u.um, n, rs, ro)
+        result = surface.sunlight_from_vectors((0.549, 0.55, 0.551) * u.um, n, rs, ro)
         assert u.allclose(result[1], expected, rtol=0.01)
