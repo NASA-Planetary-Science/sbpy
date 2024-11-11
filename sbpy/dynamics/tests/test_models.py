@@ -159,9 +159,6 @@ class TestSolarGravity:
         solver = SolarGravity()
         assert u.isclose(solver.GM, const.G * const.M_sun, rtol=1e-12)
 
-    @pytest.mark.skipif(
-        "scipy_version[0] < 2 and scipy_version[1] < 8", reason="requires scipy>=1.10"
-    )
     def test_solverfailed(self):
         r = [0, 1, 0] * u.au
         v = [0, -1, 1] * u.km / u.s
