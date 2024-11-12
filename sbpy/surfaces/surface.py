@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from typing import Tuple
 from abc import ABC, abstractmethod
 
 import numpy as np
@@ -153,7 +152,7 @@ class Surface(ABC):
         n: np.ndarray[3],
         rs: u.physical.length,
         ro: np.ndarray[3],
-    ) -> Tuple[u.physical.angle, u.physical.angle, u.physical.angle]:
+    ) -> tuple:
         n_hat = n / np.linalg.norm(n)
         rs_hat = rs / np.linalg.norm(rs)
         ro_hat = ro / np.linalg.norm(ro)
