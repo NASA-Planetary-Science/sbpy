@@ -21,13 +21,15 @@ class TestingSurface(Surface):
         return F_i * self.reflectance(i, e, phi) / u.sr
 
 
-def test_cos():
-    a = Angle([0, 30, 45, 60, 90], "deg")
-    result = Surface._cos(a)
-    expected = [1, np.sqrt(3) / 2, 1 / np.sqrt(2), 0.5, 0]
+def test_min_zero_cos():
+    a = Angle([-91, -90, 0, 30, 45, 60, 90, 91], "deg")
+    result = Surface._min_zero_cos(a)
+    expected = [0, 0, 1, np.sqrt(3) / 2, 1 / np.sqrt(2), 0.5, 0, 0]
     assert np.allclose(result, expected)
 
-    assert np.isclose(Surface._cos(90 * u.deg), 0)
+    # test scalars
+    for i in range(len(a)):
+        assert np.isclose(Surface._min_zero_cos(a[i]), expected[i])
 
 
 def test_radiance():

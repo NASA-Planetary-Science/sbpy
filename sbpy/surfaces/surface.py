@@ -32,17 +32,17 @@ class Surface(ABC):
         self.phys = phys
 
     @staticmethod
-    def _cos(a: u.physical.angle) -> u.Quantity:
-        """Use to ensure that cos(90 deg) equals 0."""
+    def _min_zero_cos(a: u.physical.angle) -> u.Quantity:
+        """Use to ensure that cos(>=90 deg) equals 0."""
 
         # handle scalars separately
-        if a.ndim == 0 and u.isclose(a, 90 * u.deg):
+        if a.ndim == 0 and u.isclose(np.abs(a), 90 * u.deg):
             return u.Quantity(0)
 
         x = np.cos(a)
-        x[u.isclose(a, 90 * u.deg)] = 0
+        x[u.isclose(np.abs(a), 90 * u.deg)] = 0
 
-        return x
+        return np.maximum(x, 0)
 
     @abstractmethod
     def absorptance(self, i: u.physical.angle) -> u.Quantity:
