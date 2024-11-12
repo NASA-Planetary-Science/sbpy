@@ -16,6 +16,10 @@ API Changes
 - Deprecated `sbpy.ginga_plugins` in favor of using `sbpy-ginga` at
   https://github.com/NASA-Planetary-Science/sbpy-ginga [#413]
 
+sbpy.data.ephem
+^^^^^^^^^^^^^^^
+
+- New command-line script: ``sbpy-ephem``.
 
 Other Changes and Additions
 ---------------------------

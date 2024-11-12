@@ -1,0 +1,283 @@
+API VERSION: 1.2
+API SOURCE: NASA/JPL Horizons API
+
+*******************************************************************************
+JPL/HORIZONS                Hale-Bopp (C/1995 O1)          2024-Aug-16 13:11:45
+Rec #:90002212 (+COV) Soln.date: 2022-Aug-01_01:56:46     # obs: 66 (1993-2022)
+ 
+IAU76/J2000 helio. ecliptic osc. elements (au, days, deg., period=Julian yrs):
+ 
+  EPOCH=  2459837.5 ! 2022-Sep-15.0000000 (TDB)    RMSW= n.a.
+   EC= .9949810027633206   QR= .890537663547794    TP= 2450537.1349071441
+   OM= 282.7334213961641   W= 130.4146670659176    IN= 89.28759424740302
+   A= 177.4333839117583    MA= 3.878386339423163   ADIST= 353.9762301599687
+   PER= 2363.5304681429    N= .000417014           ANGMOM= .02292857
+   DAN= 5.00538            DDN= 1.07996            L= 101.8968625
+   B= 49.580132            MOID= .0878151          TP= 1997-Mar-29.6349071441
+ 
+Comet physical (GM= km^3/s^2; RAD= km):
+   GM= n.a.                RAD= 30.
+   M1=  4.8      M2=  n.a.     k1=  4.     k2= n.a.     PHCOF= n.a.
+COMET comments 
+1: soln ref.= JPL#226, data arc: 1993-04-27 to 2022-07-09
+2: k1=4.;
+*******************************************************************************
+
+
+*******************************************************************************
+Ephemeris / API_USER Fri Aug 16 13:11:45 2024 Pasadena, USA      / Horizons    
+*******************************************************************************
+Target body name: Hale-Bopp (C/1995 O1)           {source: JPL#226}
+Center body name: Earth (399)                     {source: DE441}
+Center-site name: GEOCENTRIC
+*******************************************************************************
+Start time      : A.D. 2024-Aug-16 00:00:00.0000 UT      
+Stop  time      : A.D. 2024-Oct-15 00:00:00.0000 UT      
+Step-size       : 1440 minutes
+*******************************************************************************
+Target pole/equ : undefined
+Target radii    : 30. km                                                       
+Center geodetic : 0.0, 0.0, -6378.137             {E-lon(deg),Lat(deg),Alt(km)}
+Center cylindric: 0.0, 0.0, 0.0                   {E-lon(deg),Dxy(km),Dz(km)}
+Center pole/equ : ITRF93                          {East-longitude positive}
+Center radii    : 6378.137, 6378.137, 6356.752 km {Equator_a, b, pole_c}       
+Target primary  : Sun
+Vis. interferer : MOON (R_eq= 1737.400) km        {source: DE441}
+Rel. light bend : Sun                             {source: DE441}
+Rel. lght bnd GM: 1.3271E+11 km^3/s^2                                          
+Small-body perts: Yes                             {source: SB441-N16}
+Atmos refraction: NO (AIRLESS)
+RA format       : DEG
+Time format     : BOTH
+Calendar mode   : Mixed Julian/Gregorian
+EOP file        : eop.240815.p241108                                           
+EOP coverage    : DATA-BASED 1962-JAN-20 TO 2024-AUG-15. PREDICTS-> 2024-NOV-07
+Units conversion: 1 au= 149597870.700 km, c= 299792.458 km/s, 1 day= 86400.0 s 
+Table cut-offs 1: Elevation (-90.0deg=NO ),Airmass (>38.000=NO), Daylight (NO )
+Table cut-offs 2: Solar elongation (  0.0,180.0=NO ),Local Hour Angle( 0.0=NO )
+Table cut-offs 3: RA/DEC angular rate (     0.0=NO )                           
+Table format    : Comma Separated Values (spreadsheet)
+*******************************************************************************
+Initial IAU76/J2000 heliocentric ecliptic osculating elements (au, days, deg.):
+  EPOCH=  2459837.5 ! 2022-Sep-15.0000000 (TDB)    RMSW= n.a.                  
+   EC= .9949810027633206   QR= .890537663547794    TP= 2450537.1349071441      
+   OM= 282.7334213961641   W= 130.4146670659176    IN= 89.28759424740302       
+  Equivalent ICRF heliocentric cartesian coordinates (au, au/d):
+   X= 3.907631452214869E+00  Y=-1.373895334060347E+00  Z=-4.624358508575312E+01
+  VX= 3.778244409519935E-04 VY=-5.803173067116371E-04 VZ=-3.255716412104052E-03
+Comet physical (GM= km^3/s^2; RAD= km):                                        
+   GM= n.a.                RAD= 30.                                            
+   M1=  4.8      M2=  n.a.     k1=  4.     k2= n.a.     PHCOF= n.a.            
+********************************************************************************************************************************************************************************************************************************************
+ Date__(UT)__HR:MN, Date_________JDUT, , , R.A._(ICRF), DEC_(ICRF),  dRA*cosD, d(DEC)/dt,    T-mag,  N-mag,                r,       rdot,             delta,     deldot,     S-O-T,/r,     S-T-O,    PsAng,   PsAMV,      GlxLon,    GlxLat,
+********************************************************************************************************************************************************************************************************************************************
+$$SOE
+ 2024-Aug-16 00:00, 2460538.500000000, , ,   339.94076,  -85.76646,  -2.77385,  -0.95007,   19.974,   n.a.,   48.70398705476,  5.5481506,  48.3840175329577, 14.3142929,  107.8545,/L,    1.1334,  345.385, 125.938,  305.601288,-30.660941,
+ 2024-Aug-17 00:00, 2460539.500000000, , ,   339.68838,  -85.77237,  -2.78898,  -0.89086,   19.974,   n.a.,   48.70719116755,  5.5479480,  48.3923308961369, 14.4742785,  107.5528,/L,    1.1350,  346.601, 126.285,  305.615209,-30.645503,
+ 2024-Aug-18 00:00, 2460540.500000000, , ,   339.43441,  -85.77787,  -2.80292,  -0.83127,   19.975,   n.a.,   48.71039516167,  5.5477455,  48.4007359344561, 14.6317701,  107.2462,/L,    1.1366,  347.815, 126.633,  305.629399,-30.630285,
+ 2024-Aug-19 00:00, 2460541.500000000, , ,   339.17897,  -85.78297,  -2.81568,  -0.77129,   19.975,   n.a.,   48.71359903713,  5.5475429,  48.4092312233878, 14.7868250,  106.9346,/L,    1.1382,  349.028, 126.982,  305.643857,-30.615293,
+ 2024-Aug-20 00:00, 2460542.500000000, , ,   338.92218,  -85.78767,  -2.82727,  -0.71097,   19.976,   n.a.,   48.71680279399,  5.5473404,  48.4178153742781, 14.9395076,  106.6182,/L,    1.1398,  350.239, 127.330,  305.658577,-30.600529,
+ 2024-Aug-21 00:00, 2460543.500000000, , ,   338.66419,  -85.79196,  -2.83768,  -0.65029,   19.976,   n.a.,   48.72000643227,  5.5471379,  48.4264870339100, 15.0898732,  106.2971,/L,    1.1414,  351.449, 127.679,  305.673556,-30.585998,
+ 2024-Aug-22 00:00, 2460544.500000000, , ,   338.40511,  -85.79584,  -2.84691,  -0.58926,   19.977,   n.a.,   48.72320995201,  5.5469354,  48.4352448737881, 15.2379494,  105.9713,/L,    1.1430,  352.656, 128.027,  305.688790,-30.571703,
+ 2024-Aug-23 00:00, 2460545.500000000, , ,   338.14510,  -85.79931,  -2.85492,  -0.52790,   19.977,   n.a.,   48.72641335325,  5.5467329,  48.4440875702588, 15.3837240,  105.6409,/L,    1.1446,  353.862, 128.376,  305.704276,-30.557649,
+ 2024-Aug-24 00:00, 2460546.500000000, , ,   337.88427,  -85.80236,  -2.86171,  -0.46621,   19.978,   n.a.,   48.72961663603,  5.5465305,  48.4530137800802, 15.5271418,  105.3061,/L,    1.1461,  355.065, 128.723,  305.720009,-30.543838,
+ 2024-Aug-25 00:00, 2460547.500000000, , ,   337.62278,  -85.80500,  -2.86724,  -0.40423,   19.978,   n.a.,   48.73281980038,  5.5463281,  48.4620221173881, 15.6681122,  104.9669,/L,    1.1477,  356.267, 129.071,  305.735987,-30.530276,
+ 2024-Aug-26 00:00, 2460548.500000000, , ,   337.36077,  -85.80723,  -2.87149,  -0.34197,   19.979,   n.a.,   48.73602284634,  5.5461257,  48.4711111365470, 15.8065210,  104.6235,/L,    1.1492,  357.466, 129.417,  305.752205,-30.516965,
+ 2024-Aug-27 00:00, 2460549.500000000, , ,   337.09838,  -85.80903,  -2.87443,  -0.27948,   19.979,   n.a.,   48.73922577397,  5.5459233,  48.4802793224628, 15.9422438,  104.2758,/L,    1.1507,  358.662, 129.763,  305.768658,-30.503911,
+ 2024-Aug-28 00:00, 2460550.500000000, , ,   336.83575,  -85.81041,  -2.87604,  -0.21679,   19.980,   n.a.,   48.74242858331,  5.5457210,  48.4895250874486, 16.0751550,  103.9241,/L,    1.1521,  359.857, 130.107,  305.785344,-30.491118,
+ 2024-Aug-29 00:00, 2460551.500000000, , ,   336.57305,  -85.81138,  -2.87631,  -0.15395,   19.980,   n.a.,   48.74563127441,  5.5455187,  48.4988467726150, 16.2051343,  103.5684,/T,    1.1536,    1.049, 130.450,  305.802257,-30.478588,
+ 2024-Aug-30 00:00, 2460552.500000000, , ,   336.31042,  -85.81192,  -2.87522,  -0.09099,   19.981,   n.a.,   48.74883384734,  5.5453165,  48.5082426518212, 16.3320694,  103.2088,/T,    1.1550,    2.238, 130.792,  305.819393,-30.466328,
+ 2024-Aug-31 00:00, 2460553.500000000, , ,   336.04801,  -85.81203,  -2.87277,  -0.02797,   19.981,   n.a.,   48.75203630214,  5.5451143,  48.5177109368424, 16.4558577,  102.8454,/T,    1.1563,    3.424, 131.132,  305.836747,-30.454340,
+ 2024-Sep-01 00:00, 2460554.500000000, , ,   335.78598,  -85.81173,  -2.86895,  0.035077,   19.982,   n.a.,   48.75523863888,  5.5449122,  48.5272497830553, 16.5764066,  102.4784,/T,    1.1577,    4.608, 131.470,  305.854314,-30.442628,
+ 2024-Sep-02 00:00, 2460555.500000000, , ,   335.52448,  -85.81100,  -2.86376,  0.098099,   19.983,   n.a.,   48.75844085763,  5.5447101,  48.5368572953757, 16.6936341,  102.1078,/T,    1.1590,    5.789, 131.806,  305.872090,-30.431197,
+ 2024-Sep-03 00:00, 2460556.500000000, , ,   335.26366,  -85.80985,  -2.85720,  0.161051,   19.983,   n.a.,   48.76164295846,  5.5445081,  48.5465315343617, 16.8074686,  101.7337,/T,    1.1602,    6.967, 132.140,  305.890069,-30.420049,
+ 2024-Sep-04 00:00, 2460557.500000000, , ,   335.00367,  -85.80828,  -2.84928,  0.223886,   19.984,   n.a.,   48.76484494143,  5.5443061,  48.5562705223968, 16.9178494,  101.3563,/T,    1.1614,    8.141, 132.471,  305.908245,-30.409188,
+ 2024-Sep-05 00:00, 2460558.500000000, , ,   334.74467,  -85.80629,  -2.84001,  0.286561,   19.984,   n.a.,   48.76804680662,  5.5441042,  48.5660722497966, 17.0247260,  100.9757,/T,    1.1626,    9.312, 132.800,  305.926615,-30.398617,
+ 2024-Sep-06 00:00, 2460559.500000000, , ,   334.48680,  -85.80389,  -2.82939,  0.349028,   19.985,   n.a.,   48.77124855410,  5.5439024,  48.5759346806325, 17.1280580,  100.5919,/T,    1.1638,   10.480, 133.127,  305.945172,-30.388340,
+ 2024-Sep-07 00:00, 2460560.500000000, , ,   334.23021,  -85.80106,  -2.81745,  0.411245,   19.985,   n.a.,   48.77445018395,  5.5437006,  48.5858557580899, 17.2278134,  100.2051,/T,    1.1648,   11.645, 133.450,  305.963910,-30.378360,
+ 2024-Sep-08 00:00, 2460561.500000000, , ,   333.97504,  -85.79782,  -2.80420,  0.473167,   19.986,   n.a.,   48.77765169624,  5.5434989,  48.5958334092954, 17.3239683,   99.8154,/T,    1.1659,   12.806, 133.770,  305.982826,-30.368679,
+ 2024-Sep-09 00:00, 2460562.500000000, , ,   333.72143,  -85.79417,  -2.78965,  0.534752,   19.986,   n.a.,   48.78085309104,  5.5432972,  48.6058655497306, 17.4165062,   99.4229,/T,    1.1669,   13.964, 134.088,  306.001912,-30.359301,
+ 2024-Sep-10 00:00, 2460563.500000000, , ,   333.46954,  -85.79011,  -2.77383,  0.595961,   19.987,   n.a.,   48.78405436842,  5.5430956,  48.6159500875566, 17.5054185,   99.0277,/T,    1.1678,   15.117, 134.401,  306.021163,-30.350227,
+ 2024-Sep-11 00:00, 2460564.500000000, , ,   333.21948,  -85.78564,  -2.75675,  0.656754,   19.988,   n.a.,   48.78725552845,  5.5428940,  48.6260849283667, 17.5907052,   98.6298,/T,    1.1687,   16.268, 134.712,  306.040574,-30.341461,
+ 2024-Sep-12 00:00, 2460565.500000000, , ,   332.97139,  -85.78077,  -2.73846,  0.717094,   19.988,   n.a.,   48.79045657120,  5.5426925,  48.6362679809981, 17.6723780,   98.2295,/T,    1.1695,   17.414, 135.018,  306.060139,-30.333004,
+ 2024-Sep-13 00:00, 2460566.500000000, , ,   332.72541,  -85.77550,  -2.71896,  0.776949,   19.989,   n.a.,   48.79365749673,  5.5424910,  48.6464971649951, 17.7504629,   97.8267,/T,    1.1703,   18.557, 135.321,  306.079853,-30.324858,
+ 2024-Sep-14 00:00, 2460567.500000000, , ,   332.48166,  -85.76983,  -2.69830,  0.836289,   19.989,   n.a.,   48.79685830508,  5.5422895,  48.6567704199900, 17.8250038,   97.4216,/T,    1.1711,   19.696, 135.620,  306.099710,-30.317026,
+ 2024-Sep-15 00:00, 2460568.500000000, , ,   332.24025,  -85.76377,  -2.67651,  0.895091,   19.990,   n.a.,   48.80005899632,  5.5420881,  48.6670857164922, 17.8960637,   97.0144,/T,    1.1717,   20.831, 135.914,  306.119704,-30.309510,
+ 2024-Sep-16 00:00, 2460569.500000000, , ,   332.00131,  -85.75732,  -2.65361,  0.953341,   19.990,   n.a.,   48.80325957049,  5.5418867,  48.6774410662775, 17.9637215,   96.6050,/T,    1.1724,   21.962, 136.204,  306.139830,-30.302310,
+ 2024-Sep-17 00:00, 2460570.500000000, , ,   331.76494,  -85.75049,  -2.62963,  1.011031,   19.991,   n.a.,   48.80646002763,  5.5416853,  48.6878345290444, 18.0280619,   96.1936,/T,    1.1729,   23.089, 136.490,  306.160083,-30.295430,
+ 2024-Sep-18 00:00, 2460571.500000000, , ,   331.53126,  -85.74327,  -2.60460,  1.068160,   19.992,   n.a.,   48.80966036778,  5.5414839,  48.6982642111620, 18.0891585,   95.7803,/T,    1.1734,   24.213, 136.772,  306.180458,-30.288869,
+ 2024-Sep-19 00:00, 2460572.500000000, , ,   331.30037,  -85.73567,  -2.57852,  1.124726,   19.992,   n.a.,   48.81286059098,  5.5412824,  48.7087282534616, 18.1470540,   95.3651,/T,    1.1739,   25.332, 137.048,  306.200948,-30.282631,
+ 2024-Sep-20 00:00, 2460573.500000000, , ,   331.07237,  -85.72771,  -2.55142,  1.180728,   19.993,   n.a.,   48.81606069726,  5.5410810,  48.7192248086170, 18.2017451,   94.9482,/T,    1.1743,   26.448, 137.320,  306.221551,-30.276716,
+ 2024-Sep-21 00:00, 2460574.500000000, , ,   330.84737,  -85.71937,  -2.52328,  1.236155,   19.993,   n.a.,   48.81926068666,  5.5408796,  48.7297520131740, 18.2531799,   94.5296,/T,    1.1746,   27.560, 137.587,  306.242259,-30.271126,
+ 2024-Sep-22 00:00, 2460575.500000000, , ,   330.62545,  -85.71067,  -2.49411,  1.290990,   19.994,   n.a.,   48.82246055921,  5.5406782,  48.7403079617142, 18.3012674,   94.1095,/T,    1.1749,   28.667, 137.849,  306.263069,-30.265864,
+ 2024-Sep-23 00:00, 2460576.500000000, , ,   330.40673,  -85.70160,  -2.46391,  1.345210,   19.995,   n.a.,   48.82566031494,  5.5404768,  48.7508906892172, 18.3458952,   93.6878,/T,    1.1751,   29.772, 138.106,  306.283974,-30.260930,
+ 2024-Sep-24 00:00, 2460577.500000000, , ,   330.19129,  -85.69218,  -2.43268,  1.398785,   19.995,   n.a.,   48.82885995389,  5.5402754,  48.7614981636654, 18.3869464,   93.2648,/T,    1.1752,   30.872, 138.358,  306.304970,-30.256328,
+ 2024-Sep-25 00:00, 2460578.500000000, , ,   329.97923,  -85.68241,  -2.40044,  1.451686,   19.996,   n.a.,   48.83205947610,  5.5400739,  48.7721282871823, 18.4243112,   92.8404,/T,    1.1753,   31.968, 138.604,  306.326051,-30.252058,
+ 2024-Sep-26 00:00, 2460579.500000000, , ,   329.77063,  -85.67229,  -2.36720,  1.503882,   19.996,   n.a.,   48.83525888161,  5.5398725,  48.7827789023065, 18.4578935,   92.4149,/T,    1.1753,   33.061, 138.844,  306.347212,-30.248123,
+ 2024-Sep-27 00:00, 2460580.500000000, , ,   329.56559,  -85.66183,  -2.33298,  1.555342,   19.997,   n.a.,   48.83845817045,  5.5396711,  48.7934478002502, 18.4876118,   91.9883,/T,    1.1753,   34.150, 139.079,  306.368446,-30.244523,
+ 2024-Sep-28 00:00, 2460581.500000000, , ,   329.36419,  -85.65103,  -2.29779,  1.606036,   19.997,   n.a.,   48.84165734269,  5.5394697,  48.8041327291393, 18.5133981,   91.5607,/T,    1.1752,   35.235, 139.309,  306.389747,-30.241262,
+ 2024-Sep-29 00:00, 2460582.500000000, , ,   329.16651,  -85.63990,  -2.26167,  1.655936,   19.998,   n.a.,   48.84485639835,  5.5392683,  48.8148314013761, 18.5351963,   91.1323,/T,    1.1750,   36.316, 139.532,  306.411110,-30.238339,
+ 2024-Sep-30 00:00, 2460583.500000000, , ,   328.97261,  -85.62844,  -2.22463,  1.705015,   19.999,   n.a.,   48.84805533749,  5.5390669,  48.8255415000383, 18.5529607,   90.7030,/T,    1.1748,   37.393, 139.750,  306.432529,-30.235756,
+ 2024-Oct-01 00:00, 2460584.500000000, , ,   328.78259,  -85.61666,  -2.18671,  1.753245,   19.999,   n.a.,   48.85125416015,  5.5388655,  48.8362606845982, 18.5666553,   90.2731,/T,    1.1745,   38.467, 139.961,  306.453998,-30.233515,
+ 2024-Oct-02 00:00, 2460585.500000000, , ,   328.59649,  -85.60457,  -2.14793,  1.800601,   20.000,   n.a.,   48.85445286639,  5.5386641,  48.8469865963240, 18.5762531,   89.8427,/T,    1.1741,   39.537, 140.166,  306.475509,-30.231616,
+ 2024-Oct-03 00:00, 2460586.500000000, , ,   328.41439,  -85.59217,  -2.10833,  1.847060,   20.000,   n.a.,   48.85765145626,  5.5384628,  48.8577168636373, 18.5817365,   89.4118,/T,    1.1736,   40.603, 140.366,  306.497058,-30.230059,
+ 2024-Oct-04 00:00, 2460587.500000000, , ,   328.23634,  -85.57946,  -2.06794,  1.892598,   20.001,   n.a.,   48.86084992982,  5.5382614,  48.8684491075486, 18.5830974,   88.9806,/T,    1.1731,   41.666, 140.558,  306.518637,-30.228846,
+ 2024-Oct-05 00:00, 2460588.500000000, , ,   328.06240,  -85.56646,  -2.02679,  1.937196,   20.002,   n.a.,   48.86404828711,  5.5380601,  48.8791809471527, 18.5803374,   88.5491,/T,    1.1725,   42.725, 140.745,  306.540240,-30.227977,
+ 2024-Oct-06 00:00, 2460589.500000000, , ,   327.89261,  -85.55318,  -1.98493,  1.980833,   20.002,   n.a.,   48.86724652819,  5.5378588,  48.8899100050949, 18.5734672,   88.1176,/T,    1.1719,   43.780, 140.925,  306.561862,-30.227453,
+ 2024-Oct-07 00:00, 2460590.500000000, , ,   327.72702,  -85.53960,  -1.94238,  2.023495,   20.003,   n.a.,   48.87044465313,  5.5376576,  48.9006339129425, 18.5625068,   87.6860,/T,    1.1711,   44.832, 141.099,  306.583496,-30.227272,
+ 2024-Oct-08 00:00, 2460591.500000000, , ,   327.56567,  -85.52576,  -1.89918,  2.065166,   20.003,   n.a.,   48.87364266197,  5.5374563,  48.9113503165065, 18.5474857,   87.2545,/T,    1.1704,   45.880, 141.266,  306.605135,-30.227436,
+ 2024-Oct-09 00:00, 2460592.500000000, , ,   327.40859,  -85.51164,  -1.85539,  2.105837,   20.004,   n.a.,   48.87684055478,  5.5372551,  48.9220568813085, 18.5284428,   86.8233,/T,    1.1695,   46.925, 141.426,  306.626773,-30.227943,
+ 2024-Oct-10 00:00, 2460593.500000000, , ,   327.25582,  -85.49726,  -1.81102,  2.145497,   20.005,   n.a.,   48.88003833162,  5.5370539,  48.9327512985250, 18.5054282,   86.3923,/T,    1.1686,   47.966, 141.580,  306.648404,-30.228794,
+ 2024-Oct-11 00:00, 2460594.500000000, , ,   327.10737,  -85.48262,  -1.76612,  2.184144,   20.005,   n.a.,   48.88323599254,  5.5368527,  48.9434312917552, 18.4785044,   85.9618,/T,    1.1676,   49.004, 141.727,  306.670023,-30.229989,
+ 2024-Oct-12 00:00, 2460595.500000000, , ,   326.96328,  -85.46774,  -1.72073,  2.221776,   20.006,   n.a.,   48.88643353760,  5.5366516,  48.9540946247641, 18.4477482,   85.5319,/T,    1.1666,   50.039, 141.868,  306.691622,-30.231525,
+ 2024-Oct-13 00:00, 2460596.500000000, , ,   326.82356,  -85.45261,  -1.67489,  2.258399,   20.006,   n.a.,   48.88963096687,  5.5364505,  48.9647391097999, 18.4132506,   85.1026,/T,    1.1654,   51.071, 142.002,  306.713196,-30.233403,
+ 2024-Oct-14 00:00, 2460597.500000000, , ,   326.68822,  -85.43725,  -1.62863,  2.294021,   20.007,   n.a.,   48.89282828039,  5.5362494,  48.9753626151231, 18.3751135,   84.6740,/T,    1.1643,   52.099, 142.129,  306.734739,-30.235622,
+ 2024-Oct-15 00:00, 2460598.500000000, , ,   326.55727,  -85.42166,  -1.58197,  2.328660,   20.007,   n.a.,   48.89602547824,  5.5360484,  48.9859630691605, 18.3334414,   84.2462,/T,    1.1630,   53.125, 142.249,  306.756245,-30.238180,
+$$EOE
+********************************************************************************************************************************************************************************************************************************************
+Column meaning:
+ 
+TIME
+
+  Times PRIOR to 1962 are UT1, a mean-solar time closely related to the
+prior but now-deprecated GMT. Times AFTER 1962 are in UTC, the current
+civil or "wall-clock" time-scale. UTC is kept within 0.9 seconds of UT1
+using integer leap-seconds for 1972 and later years.
+
+  Conversion from the internal Barycentric Dynamical Time (TDB) of solar
+system dynamics to the non-uniform civil UT time-scale requested for output
+has not been determined for UTC times after the next July or January 1st.
+Therefore, the last known leap-second is used as a constant over future
+intervals.
+
+  Time tags refer to the UT time-scale conversion from TDB on Earth
+regardless of observer location within the solar system, although clock
+rates may differ due to the local gravity field and no analog to "UT"
+may be defined for that location.
+
+  Any 'b' symbol in the 1st-column denotes a B.C. date. First-column blank
+(" ") denotes an A.D. date.
+ 
+CALENDAR SYSTEM
+
+  Mixed calendar mode was active such that calendar dates after AD 1582-Oct-15
+(if any) are in the modern Gregorian system. Dates prior to 1582-Oct-5 (if any)
+are in the Julian calendar system, which is automatically extended for dates
+prior to its adoption on 45-Jan-1 BC.  The Julian calendar is useful for
+matching historical dates. The Gregorian calendar more accurately corresponds
+to the Earth's orbital motion and seasons. A "Gregorian-only" calendar mode is
+available if such physical events are the primary interest.
+
+  NOTE: "n.a." in output means quantity "not available" at the print-time.
+ 
+ 'R.A._(ICRF), DEC_(ICRF),' =
+  Astrometric right ascension and declination of the target center with
+respect to the observing site (coordinate origin) in the reference frame of
+the planetary ephemeris (ICRF). Compensated for down-leg light-time delay
+aberration.
+
+  Units: RA  in decimal degrees,  ddd.fffff{ffff}
+         DEC in decimal degrees,  sdd.fffff{ffff}
+ 
+ 'dRA*cosD, d(DEC)/dt,' =
+  The angular rate of change in aparent RA and DEC of the target. This is
+with respect to the non-inertial IAU76/80 Earth true equator and equinox
+of-date reference frame.  d(RA)/dt is multiplied by the cosine of declination
+to provide a linear rate in the plane-of-sky. Units: ARCSECONDS PER HOUR
+ 
+ 'T-mag,  N-mag,' =
+   Comets' apparent visual total magnitude ("T-mag") and nuclear magnitude
+("N-mag") using the standard IAU model:
+
+   T-mag= M1 + 5*log10(delta) + k1*log10(r)
+   N-mag= M2 + 5*log10(delta) + k2*log10(r) + phcof*beta
+
+   Units: MAGNITUDES
+ 
+ 'r,       rdot,' =
+   The Sun's apparent range ("r", light-time aberrated) and range-rate ("rdot")
+relative to the target center, as seen by the observer. A positive "rdot" means
+the target center was moving away from the Sun, negative means moving toward
+the Sun.  Units: AU and KM/S
+ 
+ 'delta,     deldot,' =
+   Apparent range ("delta", light-time aberrated) and range-rate ("delta-dot")
+of the target center relative to the observer. A positive "deldot" means the
+target center is moving away from the observer, negative indicates movement
+toward the observer.  Units: AU and KM/S
+ 
+ 'S-O-T,/r,' =
+   Sun-Observer-Target apparent SOLAR ELONGATION ANGLE seen from the observers'
+location at print-time.
+
+   The '/r' column provides a code indicating the targets' apparent position
+relative to the Sun in the observers' sky, as described below:
+
+   Case A: For an observing location on the surface of a rotating body, that
+body rotational sense is considered:
+
+    /T indicates target TRAILS Sun   (evening sky: rises and sets AFTER Sun)
+    /L indicates target LEADS Sun    (morning sky: rises and sets BEFORE Sun)
+
+   Case B: For an observing point that does not have a rotational model (such
+as a spacecraft), the "leading" and "trailing" condition is defined by the
+observers' heliocentric ORBITAL motion:
+
+    * If continuing in the observers' current direction of heliocentric
+       motion would encounter the targets' apparent longitude first, followed
+       by the Sun's, the target LEADS the Sun as seen by the observer.
+
+    * If the Sun's apparent longitude would be encountered first, followed
+       by the targets', the target TRAILS the Sun.
+
+   Two other codes can be output:
+    /* indicates observer is Sun-centered    (undefined)
+    /? Target is aligned with Sun center     (no lead or trail)
+
+   The S-O-T solar elongation angle is numerically the minimum separation
+angle of the Sun and target in the sky in any direction. It does NOT indicate
+the amount of separation in the leading or trailing directions, which would
+be defined along the equator of a spherical coordinate system.
+
+   Units: DEGREES
+ 
+ 'S-T-O,' =
+   The Sun-Target-Observer angle; the interior vertex angle at target center
+formed by a vector from the target to the apparent center of the Sun (at
+reflection time on the target) and the apparent vector from target to the
+observer at print-time. Slightly different from true PHASE ANGLE (requestable
+separately) at the few arcsecond level in that it includes stellar aberration
+on the down-leg from target to observer.  Units: DEGREES
+ 
+ 'PsAng,   PsAMV,' =
+   The position angles of the extended Sun-to-target radius vector ("PsAng")
+and the negative of the targets' heliocentric velocity vector ("PsAMV"), as
+seen in the observers' plane-of-sky, measured counter-clockwise (east) from
+reference-frame north-pole. Primarily intended for ACTIVE COMETS, "PsAng"
+is an indicator of the comets' gas-tail orientation in the sky (being in the
+anti-sunward direction) while "PsAMV" is an indicator of dust-tail orientation.
+Units: DEGREES
+ 
+ 'GlxLon,    GlxLat,' =
+   Observer-centered Galactic System II (post WW II) longitude and latitude
+of the target centers' apparent position, with light-time, gravitational
+deflection of light, and stellar aberrations. Units: DEGREES
+
+Computations by ...
+
+    Solar System Dynamics Group, Horizons On-Line Ephemeris System
+    4800 Oak Grove Drive, Jet Propulsion Laboratory
+    Pasadena, CA  91109   USA
+
+    General site: https://ssd.jpl.nasa.gov/
+    Mailing list: https://ssd.jpl.nasa.gov/email_list.html
+    System news : https://ssd.jpl.nasa.gov/horizons/news.html
+    User Guide  : https://ssd.jpl.nasa.gov/horizons/manual.html
+    Connect     : browser        https://ssd.jpl.nasa.gov/horizons/app.html#/x
+                  API            https://ssd-api.jpl.nasa.gov/doc/horizons.html
+                  command-line   telnet ssd.jpl.nasa.gov 6775
+                  e-mail/batch   https://ssd.jpl.nasa.gov/ftp/ssd/hrzn_batch.txt
+                  scripts        https://ssd.jpl.nasa.gov/ftp/ssd/SCRIPTS
+    Author      : Jon.D.Giorgini@jpl.nasa.gov
+
+********************************************************************************************************************************************************************************************************************************************
