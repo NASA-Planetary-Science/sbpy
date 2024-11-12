@@ -47,7 +47,7 @@ jobs:
           linux: codestyle
 
         - name: Python 3.13 with minimal dependencies, measuring coverage
-          linux: py313-test-numpy126-cov
+          linux: py313-test-cov
           coverage: codecov
 
         - name: Python 3.11 with all optional dependencies, measuring coverage
