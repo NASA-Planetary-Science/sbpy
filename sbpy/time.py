@@ -26,7 +26,7 @@ class SpiceEphemerisTime(TimeFromEpoch):
     >>> import sbpy.time
     >>>
     >>> t = Time("2023-11-21")
-    >>> print(t.et)
+    >>> print(float(t.et))  # doctest: +FLOAT_CMP
     753796869.1828325
 
     >>> t = Time(0, format="et")
