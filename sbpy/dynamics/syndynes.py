@@ -18,15 +18,15 @@ __all__ = [
 ]
 
 import abc
+import sys
 import time
 import logging
 from typing import Iterable, Union, Optional, TypeVar
 
-try:
-    # python 3.11 feature
+if sys.version_info[:2] < (3, 11):
+    Self = TypeVar("Self", bound="StateBase")
+else:
     from typing import Self
-except ImportError:
-    Self = TypeVar("Self", bound="SynGenerator")
 
 import numpy as np
 import astropy.units as u
