@@ -957,7 +957,7 @@ class EphemerisCLI:
         parser.add_argument(
             "service",
             type=EphemerisService,
-            choices=list(EphemerisService),
+            choices=[EphemerisService.horizons, EphemerisService.miriade, EphemerisService.mpc],
             help="online service to use for ephemeris",
         )
         parser.add_argument(
