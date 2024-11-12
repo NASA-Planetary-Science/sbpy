@@ -16,14 +16,14 @@ __all__ = [
 ]
 
 import abc
+import sys
 from typing import Iterable, Optional, TypeVar, Union
 from packaging.version import Version
 
-try:
-    # python 3.11 feature
-    from typing import Self
-except ImportError:
+if sys.version_info[:2] < (3, 11):
     Self = TypeVar("Self", bound="StateBase")
+else:
+    from typing import Self
 
 import numpy as np
 import astropy
