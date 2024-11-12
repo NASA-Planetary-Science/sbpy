@@ -21,7 +21,6 @@ The model `~sbpy.surfaces.scattered.LambertianSurfaceScatteredSunlight` is used 
 Create an instance of the ``LambertianSurfaceScatteredSunlight`` model, and calculate the absorptance, emittance, and reflectance for :math:`(i, e, \phi) = (30^\circ, 60^\circ, 90^\circ)`::
 
     >>> import astropy.units as u
-    >>> import matplotlib.pyplot as plt
     >>> from sbpy.surfaces import LambertianSurfaceScatteredSunlight
     >>>
     >>> surface = LambertianSurfaceScatteredSunlight({"albedo": 0.1})
@@ -50,6 +49,8 @@ Radiance of scattered sunlight
 
 ``LambertianSurfaceScatteredSunlight`` is derived from the ``ScatteredSunlight`` class, which provides convenience methods for calculating the radiance of sunlight scattered off the surface::
 
+.. doctest-requires:: synphot
+
     >>> wave = 0.55 * u.um
     >>> rh = 1 * u.au  # heliocentric distance of the surface
     >>> surface.scattered_sunlight(wave, rh, i, e, phi)  # doctest: +FLOAT_CMP
@@ -62,6 +63,8 @@ Radiance from vectors
 ^^^^^^^^^^^^^^^^^^^^^
 
 As an alternative to using :math:`(i, e, \phi)`, radiance may be calculated using vectors that define the normal direction, radial vector of the light source, and radial vector of the observer::
+
+.. doctest-requires:: synphot
 
     >>> # the following vectors are equivalent to (i, e, phi) = (30, 60, 90) deg
     >>> n = [1, 0, 0]
@@ -82,6 +85,8 @@ Building your own surface models
 Defining your own surface model is typically done by creating a new class based on `~sbpy.surfaces.surface.Surface`, and defining methods for ``absorptance``, ``emittance``, and ``reflectance``.  The `~sbpy.surfaces.lambertian.Lambertian` model serves as a good example.  For surface scattering problems, most users will combine their class with the `~sbpy.surfaces.scattered.ScatteredLight` or `~sbpy.surfaces.scattered.ScatteredSunlight` classes, which provide the ``radiance`` method to complete the ``Surface`` model.
 
 Here, we define a new surface model with surface scattering proportional to :math:`\cos^2` based on the `~sbpy.surfaces.scattered.ScatteredSunlight` class::
+
+.. doctest-requires:: synphot
 
     >>> import numpy as np
     >>> from sbpy.surfaces import Surface, ScatteredSunlight
@@ -105,6 +110,11 @@ Here, we define a new surface model with surface scattering proportional to :mat
     <Quantity [18.75] W / (sr um m2)>
     >>> surface.scattered_sunlight(wave, rh, i, e, phi)  # doctest: +FLOAT_CMP
     <Quantity [35.22159375] W / (sr um m2)>
+
+.. for test runs without synphot
+.. testsetup::
+
+    >>> from sbpy.surfaces import Surface, ScatteredSunlight
 
 However, if a scattering model will be re-used with other classes, e.g., for scattered light and thermal emission modeling, then the most flexible approach is to base the model on ``Surface`` and have derived classes combine the model with scattering or thermal emission classes::
 
