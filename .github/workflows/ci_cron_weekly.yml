@@ -39,8 +39,8 @@ jobs:
         - name: Link check
           linux: linkcheck
 
-        - name: Python 3.11 with dev versions of key dependencies
-          linux: py311-test-devdeps-cov
+        - name: Python 3.13 with dev versions of key dependencies
+          linux: py313-test-devdeps-cov
           posargs: --verbose
 
   allowed_failures:
