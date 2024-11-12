@@ -149,9 +149,9 @@ class Surface(ABC):
 
     @staticmethod
     def _vectors_to_angles(
-        n: np.ndarray[3],
+        n: np.ndarray,
         rs: u.physical.length,
-        ro: np.ndarray[3],
+        ro: np.ndarray,
     ) -> tuple:
         n_hat = n / np.linalg.norm(n)
         rs_hat = rs / np.linalg.norm(rs)
@@ -167,9 +167,9 @@ class Surface(ABC):
     def radiance_from_vectors(
         self,
         F_i: SpectralFluxDensityQuantity,
-        n: np.ndarray[3],
+        n: np.ndarray,
         rs: u.physical.length,
-        ro: np.ndarray[3],
+        ro: np.ndarray,
     ) -> u.Quantity:
         """Observed radiance from a surface with geometry defined by vectors.
 

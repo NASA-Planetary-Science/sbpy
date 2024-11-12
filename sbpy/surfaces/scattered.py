@@ -88,7 +88,7 @@ class ScatteredSunlight(ScatteredLight):
     def scattered_sunlight_from_vectors(
         self,
         wave_freq: SpectralQuantity,
-        n: np.ndarray[3],
+        n: np.ndarray,
         rs: u.physical.length,
         ro: u.physical.length,
         unit: UnitLike = "W/(m2 sr um)",
