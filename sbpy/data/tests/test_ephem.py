@@ -65,7 +65,11 @@ def nonremote_request(self, request_type, url, **kwargs):
             ("URL", "https://ssd.jpl.nasa.gov/api/horizons.api"),
             (
                 "params",
-                "format=text&EPHEM_TYPE=OBSERVER&QUANTITIES=%271%2C3%2C9%2C19%2C20%2C23%2C24%2C27%2C33%27&COMMAND=%22DES%3DC%2F1995+O1%3B+CAP%3C2460568%3B+NOFRAG%3B%22&SOLAR_ELONG=%220%2C180%22&LHA_CUTOFF=0&CSV_FORMAT=YES&CAL_FORMAT=BOTH&ANG_FORMAT=DEG&APPARENT=AIRLESS&REF_SYSTEM=ICRF&EXTRA_PREC=NO&CENTER=%27500%27&START_TIME=%222024-08-16+00%3A00%3A00.000%22&STOP_TIME=%222024-10-15+00%3A00%3A00.000%22&STEP_SIZE=%221d%22&SKIP_DAYLT=NO",
+                "format=text&EPHEM_TYPE=OBSERVER&QUANTITIES=%271%2C3%2C9%2C19%2C20%2C23%2C24%2C27%2C33%27&"
+                "COMMAND=%22DES%3DC%2F1995+O1%3B+CAP%3C2460568%3B+NOFRAG%3B%22&SOLAR_ELONG=%220%2C180%22&"
+                "LHA_CUTOFF=0&CSV_FORMAT=YES&CAL_FORMAT=BOTH&ANG_FORMAT=DEG&APPARENT=AIRLESS&REF_SYSTEM=ICRF&"
+                "EXTRA_PREC=NO&CENTER=%27500%27&START_TIME=%222024-08-16+00%3A00%3A00.000%22&"
+                "STOP_TIME=%222024-10-15+00%3A00%3A00.000%22&STEP_SIZE=%221d%22&SKIP_DAYLT=NO",
             ),
             ("data", ""),
         ): "TestEphemerisCLI-c1995o1-horizons.txt",
@@ -73,7 +77,11 @@ def nonremote_request(self, request_type, url, **kwargs):
             ("URL", "https://ssd.jpl.nasa.gov/api/horizons.api"),
             (
                 "params",
-                "format=text&EPHEM_TYPE=OBSERVER&QUANTITIES=%271%2C3%2C9%2C19%2C20%2C23%2C24%2C27%2C33%27&COMMAND=%22DES%3D2P%3B+CAP%3C2460568%3B+NOFRAG%3B%22&SOLAR_ELONG=%220%2C180%22&LHA_CUTOFF=0&CSV_FORMAT=YES&CAL_FORMAT=BOTH&ANG_FORMAT=DEG&APPARENT=AIRLESS&REF_SYSTEM=ICRF&EXTRA_PREC=NO&CENTER=%27500%27&START_TIME=%222024-08-16+00%3A00%3A00.000%22&STOP_TIME=%222024-10-15+00%3A00%3A00.000%22&STEP_SIZE=%221d%22&SKIP_DAYLT=NO",
+                "format=text&EPHEM_TYPE=OBSERVER&QUANTITIES=%271%2C3%2C9%2C19%2C20%2C23%2C24%2C27%2C33%27&"
+                "COMMAND=%22DES%3D2P%3B+CAP%3C2460568%3B+NOFRAG%3B%22&SOLAR_ELONG=%220%2C180%22&LHA_CUTOFF=0&"
+                "CSV_FORMAT=YES&CAL_FORMAT=BOTH&ANG_FORMAT=DEG&APPARENT=AIRLESS&REF_SYSTEM=ICRF&EXTRA_PREC=NO&"
+                "CENTER=%27500%27&START_TIME=%222024-08-16+00%3A00%3A00.000%22&"
+                "STOP_TIME=%222024-10-15+00%3A00%3A00.000%22&STEP_SIZE=%221d%22&SKIP_DAYLT=NO",
             ),
             ("data", ""),
         ): "TestEphemerisCLI-2p-horizons.txt",
@@ -82,14 +90,16 @@ def nonremote_request(self, request_type, url, **kwargs):
             ("params", ""),
             (
                 "data",
-                "ty=e&TextArea=2P&uto=0&igd=n&ibh=n&fp=y&adir=N&tit=&bu=&c=500&d=2024-08-16+000000&i=1&u=d&l=61&raty=a&s=t&m=h",
+                "ty=e&TextArea=2P&uto=0&igd=n&ibh=n&fp=y&adir=N&tit=&bu=&c=500&d=2024-08-16+000000&i=1&u=d&l=61&"
+                "raty=a&s=t&m=h",
             ),
         ): "TestEphemerisCLI-2p-mpc.txt",
         (
             ("URL", "http://vo.imcce.fr/webservices/miriade/ephemcc_query.php"),
             (
                 "params",
-                "-name=2P&-type=Comet&-ep=2460538.5&-step=1.000000d&-nbd=61.0&-observer=500&-output=--jul&-tscale=UTC&-theory=INPOP&-teph=1&-tcoor=1&-rplane=1&-oscelem=ASTORB&-mime=votable",
+                "-name=2P&-type=Comet&-ep=2460538.5&-step=1.000000d&-nbd=61.0&-observer=500&-output=--jul&-tscale=UTC&"
+                "-theory=INPOP&-teph=1&-tcoor=1&-rplane=1&-oscelem=ASTORB&-mime=votable",
             ),
             ("data", ""),
         ): "TestEphemerisCLI-2p-miriade.txt",
@@ -97,7 +107,8 @@ def nonremote_request(self, request_type, url, **kwargs):
             ("URL", "http://vo.imcce.fr/webservices/miriade/ephemcc_query.php"),
             (
                 "params",
-                "-name=1&-type=Asteroid&-ep=2460538.5&-step=1.000000d&-nbd=61.0&-observer=500&-output=--jul&-tscale=UTC&-theory=INPOP&-teph=1&-tcoor=1&-rplane=1&-oscelem=ASTORB&-mime=votable",
+                "-name=1&-type=Asteroid&-ep=2460538.5&-step=1.000000d&-nbd=61.0&-observer=500&-output=--jul&"
+                "-tscale=UTC&-theory=INPOP&-teph=1&-tcoor=1&-rplane=1&-oscelem=ASTORB&-mime=votable",
             ),
             ("data", ""),
         ): "TestEphemerisCLI-ceres-miriade.txt",
@@ -106,14 +117,19 @@ def nonremote_request(self, request_type, url, **kwargs):
             ("params", ""),
             (
                 "data",
-                "ty=e&TextArea=1&uto=0&igd=n&ibh=n&fp=y&adir=N&tit=&bu=&c=500&d=2024-08-16+000000&i=1&u=d&l=61&raty=a&s=t&m=h",
+                "ty=e&TextArea=1&uto=0&igd=n&ibh=n&fp=y&adir=N&tit=&bu=&c=500&d=2024-08-16+000000&i=1&u=d&l=61&raty=a&"
+                "s=t&m=h",
             ),
         ): "TestEphemerisCLI-ceres-mpc.txt",
         (
             ("URL", "https://ssd.jpl.nasa.gov/api/horizons.api"),
             (
                 "params",
-                "format=text&EPHEM_TYPE=OBSERVER&QUANTITIES=%271%2C3%2C9%2C19%2C20%2C23%2C24%2C27%2C33%27&COMMAND=%221%3B%22&SOLAR_ELONG=%220%2C180%22&LHA_CUTOFF=0&CSV_FORMAT=YES&CAL_FORMAT=BOTH&ANG_FORMAT=DEG&APPARENT=AIRLESS&REF_SYSTEM=ICRF&EXTRA_PREC=NO&CENTER=%27500%27&START_TIME=%222024-08-16+00%3A00%3A00.000%22&STOP_TIME=%222024-10-15+00%3A00%3A00.000%22&STEP_SIZE=%221d%22&SKIP_DAYLT=NO",
+                "format=text&EPHEM_TYPE=OBSERVER&QUANTITIES=%271%2C3%2C9%2C19%2C20%2C23%2C24%2C27%2C33%27&"
+                "COMMAND=%221%3B%22&SOLAR_ELONG=%220%2C180%22&LHA_CUTOFF=0&CSV_FORMAT=YES&CAL_FORMAT=BOTH&"
+                "ANG_FORMAT=DEG&APPARENT=AIRLESS&REF_SYSTEM=ICRF&EXTRA_PREC=NO&CENTER=%27500%27&"
+                "START_TIME=%222024-08-16+00%3A00%3A00.000%22&STOP_TIME=%222024-10-15+00%3A00%3A00.000%22&"
+                "STEP_SIZE=%221d%22&SKIP_DAYLT=NO",
             ),
             ("data", ""),
         ): "TestEphemerisCLI-ceres-horizons.txt",
