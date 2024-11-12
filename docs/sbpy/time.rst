@@ -22,7 +22,7 @@ Or, use the ``et`` property to transform dates to ephemeris time:
 
 .. doctest::
 
-    >>> float(Time("2010-11-04 13:59:47.31", scale="utc").et)  # doctest: +FLOAT_CMP
+    >>> print(Time("2010-11-04 13:59:47.31", scale="utc").et)  # doctest: +FLOAT_CMP
     342151253.4925505
 
 The conversion from UTC is thought to be good to the 0.1 ms level.  See the `sbpy` tests for more information.
