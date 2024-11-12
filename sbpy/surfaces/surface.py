@@ -8,12 +8,7 @@ from astropy import units as u
 
 from ..data.phys import Phys
 from ..data.decorators import dataclass_input
-from ..units.typing import (
-    SpectralFluxDensityQuantity,
-    SpectralQuantity,
-    SpectralRadianceQuantity,
-    UnitLike,
-)
+from ..units.typing import SpectralFluxDensityQuantity
 
 
 class Surface(ABC):
