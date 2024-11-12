@@ -25,6 +25,12 @@ sbpy.activity.gas
 - Replaced calls to the deprecated function `scipy.integrate.romberg` with
   `scipy.integrate.quad`.  [#412]
 
+sbpy.names
+^^^^^^^^^^
+- Fixed `sbpy.Names.to_packed()' to raise an error in cases of invalid
+  cometary designations with fragment specifiers (e.g., "2024 A-A" and
+  "2024 A-AA" now correctly raise TargetNameParseError exceptions) [#417]
+
 
 0.5.0 (2024-08-28)
 ==================
