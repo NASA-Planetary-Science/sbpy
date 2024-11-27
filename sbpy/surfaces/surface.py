@@ -87,12 +87,13 @@ class Surface(ABC):
     def reflectance(
         self, i: u.physical.angle, e: u.physical.angle, phi: u.physical.angle
     ) -> u.Quantity:
-        r"""Reflectance.
+        r"""Bidirectional reflectance.
 
-        The surface is illuminated by incident flux density, :math:`F_i`, at an
-        angle of :math:`i`, and emitted toward an angle of :math:`e`, measured
-        from the surface normal direction.  :math:`\phi` is the
-        source-target-observer (phase) angle.
+        The surface is illuminated by incident flux density (irradiance),
+        :math:`F_i`, at an angle of :math:`i`, and emitted toward an angle of
+        :math:`e`, measured from the surface normal direction.  :math:`\phi` is
+        the source-target-observer (phase) angle.  Both the source and the
+        emitted light are assumed to be collimated.
 
 
         Parameters
