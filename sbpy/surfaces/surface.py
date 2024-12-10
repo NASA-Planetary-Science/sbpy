@@ -39,7 +39,11 @@ class Surface(ABC):
         return np.maximum(x, 0)
 
     @abstractmethod
-    def absorptance(self, i: u.physical.angle) -> u.Quantity:
+    def absorbed_radiance(
+        self,
+        F_i: SpectralFluxDensityQuantity,
+        i: u.physical.angle,
+    ) -> u.Quantity:
         r"""Absorption of incident light.
 
         The surface is illuminated by incident flux density, :math:`F_i`, at an
@@ -48,6 +52,9 @@ class Surface(ABC):
 
         Parameters
         ----------
+        F_i : `astropy.units.Quantity`
+            Incident light (spectral flux density).
+
         i : `~astropy.units.Quantity`
             Angle from normal of incident light.
 
@@ -60,7 +67,12 @@ class Surface(ABC):
         """
 
     @abstractmethod
-    def emittance(self, e: u.physical.angle, phi: u.physical.angle) -> u.Quantity:
+    def emitted_radiance(
+        self,
+        F_e: SpectralFluxDensityQuantity,
+        e: u.physical.angle,
+        phi: u.physical.angle,
+    ) -> u.Quantity:
         r"""Emission of light.
 
         The surface is observed at an angle of :math:`e`, measured from the
@@ -69,8 +81,11 @@ class Surface(ABC):
 
         Parameters
         ----------
+        F_e : `astropy.units.Quantity`
+            Spectral emittance (spectral flux density).
+
         e : `~astropy.units.Quantity`
-            Angle from normal of emitted light.
+            Observed angle from normal.
 
         phi : `~astropy.units.Quantity`
             Source-target-observer (phase) angle.
@@ -98,36 +113,6 @@ class Surface(ABC):
 
         Parameters
         ----------
-        i : `~astropy.units.Quantity`
-            Angle from normal of incident light.
-
-        e : `~astropy.units.Quantity`
-            Angle from normal of emitted light.
-
-        phi : `~astropy.units.Quantity`
-            Source-target-observer (phase) angle.
-
-
-        Returns
-        -------
-        r : `~astropy.units.Quantity`
-            Surface reflectance.
-
-        """
-
-    @abstractmethod
-    def radiance(
-        self,
-        F_i: SpectralFluxDensityQuantity,
-        i: u.physical.angle,
-        e: u.physical.angle,
-        phi: u.physical.angle,
-    ) -> u.Quantity:
-        """Observed radiance from a surface.
-
-
-        Parameters
-        ----------
         F_i : `astropy.units.Quantity`
             Incident light (spectral flux density).
 
@@ -143,8 +128,8 @@ class Surface(ABC):
 
         Returns
         -------
-        radiance : `~astropy.units.Quantity`
-            Observed radiance.
+        r : `~astropy.units.Quantity`
+            Surface reflectance.
 
         """
 
@@ -165,14 +150,14 @@ class Surface(ABC):
         return i, e, phi
 
     @u.quantity_input
-    def radiance_from_vectors(
+    def reflectance_from_vectors(
         self,
         F_i: SpectralFluxDensityQuantity,
         n: np.ndarray,
         rs: u.physical.length,
         ro: np.ndarray,
     ) -> u.Quantity:
-        """Observed radiance from a surface with geometry defined by vectors.
+        """Vector based alternative to reflectance().
 
         Input vectors do not need to be normalized.
 
@@ -194,9 +179,9 @@ class Surface(ABC):
 
         Returns
         -------
-        radiance : `~astropy.units.Quantity`
-            Observed radiance.
+        reflectance : `~astropy.units.Quantity`
+            Reflectance.
 
         """
 
-        return self.radiance(F_i, *self._vectors_to_angles(n, rs, ro))
+        return self.reflectance(F_i, *self._vectors_to_angles(n, rs, ro))
