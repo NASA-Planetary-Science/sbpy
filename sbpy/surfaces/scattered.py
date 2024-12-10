@@ -10,26 +10,7 @@ from ..calib import Sun
 from ..units.typing import SpectralQuantity, SpectralFluxDensityQuantity, UnitLike
 
 
-class ScatteredLight(Surface):
-    """Abstract base class to observe light scattered by a surface."""
-
-    @u.quantity_input
-    def radiance(
-        self,
-        F_i: SpectralFluxDensityQuantity,
-        i: u.physical.angle,
-        e: u.physical.angle,
-        phi: u.physical.angle,
-    ) -> u.Quantity:
-        """Observed light reflected from a surface."""
-        return F_i * self.reflectance(i, e, phi) / u.sr
-
-    radiance.__doc__ += Surface.radiance.__doc__[
-        Surface.radiance.__doc__.index("\n") :  # noqa: E203
-    ]
-
-
-class ScatteredSunlight(ScatteredLight):
+class ScatteredSunlight(Surface):
     """Abstract base class to observe sunlight scattered by a surface."""
 
     @u.quantity_input
@@ -82,7 +63,7 @@ class ScatteredSunlight(ScatteredLight):
             F_i = sun.observe(wave_freq, unit=flux_density_unit)
 
         F_i /= rh.to_value("au") ** 2
-        return self.radiance(F_i, i, e, phi).to(unit)
+        return self.reflectance(F_i, i, e, phi).to(unit)
 
     @u.quantity_input
     def scattered_sunlight_from_vectors(
