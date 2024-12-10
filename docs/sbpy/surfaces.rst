@@ -1,6 +1,11 @@
 Surfaces Module (`sbpy.surfaces`)
 =================================
 
+.. admonition:: warning
+
+    The surface module is being made available on a preview basis.  The API is
+    subject to change.  Feedback on the approach used is welcome.
+
 The ``surfaces`` module describes the interaction of electromagnetic radiation with surfaces.  Sbpy uses the :math:`(i, e, \phi)` model (angle of incidence, angle of emittance, and phase angle) to describe how light scatters and emits light.  It has a flexible system that can incorporate any surface scattering model that can be described with these three angles.  A few built-in surface models are provided.
 
 .. figure:: ../static/scattering-vectors.svg
