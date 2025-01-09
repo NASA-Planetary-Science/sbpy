@@ -388,7 +388,7 @@ class State(StateBase):
 
         Parameters
         ----------
-        eph : ~sbpy.data.ephem.Ephem
+        eph : ~sbpy.data.ephem.core.Ephem
             Ephemeris object, must have time, position, and velocity.  Position
             and velocity may be specified using ("x", "y", "z", "vx", "vy", and
             "vz"), or ("ra", "dec", "Delta", "RA*cos(Dec)_rate", "Dec_rate",

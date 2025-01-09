@@ -98,7 +98,7 @@ class TestEphemFromHorizons:
     def test_bib(self):
         with bib.Tracking():
             Ephem.from_horizons(['Ceres', 'Pallas'])
-            assert 'sbpy.data.ephem.Ephem.from_horizons' in bib.show()
+            assert 'sbpy.data.ephem.core.Ephem.from_horizons' in bib.show()
         bib.reset()
 
     def test_timescale(self):
@@ -300,7 +300,7 @@ class TestEphemFromMPC:
     def test_bib(self):
         with bib.Tracking():
             Ephem.from_mpc(['Ceres', 'Pallas'])
-            assert 'sbpy.data.ephem.Ephem.from_mpc' in bib.show()
+            assert 'sbpy.data.ephem.core.Ephem.from_mpc' in bib.show()
         bib.reset()
 
 
@@ -399,8 +399,8 @@ class TestEphemFromMiriade:
 
     def test_bib(self):
         with bib.Tracking():
-            data = Ephem.from_miriade(['Ceres', 'Pallas'])
-            assert 'sbpy.data.ephem.Ephem.from_miriade' in bib.show()
+            Ephem.from_miriade(['Ceres', 'Pallas'])
+            assert 'sbpy.data.ephem.core.Ephem.from_miriade' in bib.show()
         bib.reset()
 
 
