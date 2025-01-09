@@ -19,7 +19,7 @@ API Changes
 sbpy.data.ephem
 ^^^^^^^^^^^^^^^
 
-- New command-line script: ``sbpy-ephem``.
+- New command-line script: ``sbpy-ephem``. [#396]
 
 Other Changes and Additions
 ---------------------------
