@@ -53,8 +53,8 @@ jobs:
           linux: py310-test-numpy126-alldeps-cov
           coverage: codecov
 
-        - name: Python 3.9 with oldest supported versions
-          linux: py39-test-oldestdeps
+        - name: Python 3.8 with oldest supported versions
+          linux: py38-test-oldestdeps
   macos-test:
     name: Python 3.11 with all optional dependencies (MacOS)
     needs: [oorb-data]
