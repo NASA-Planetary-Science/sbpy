@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import pytest
-from numpy import abs
 import warnings
 
 from numpy.testing import assert_allclose
@@ -12,7 +11,9 @@ from astropy.coordinates import EarthLocation
 from astropy.tests.helper import assert_quantity_allclose
 
 from ... import bib
-from .. import Ephem, Orbit, QueryError
+from ..core import QueryError
+from ..ephem import Ephem
+from ..orbit import Orbit
 
 pytest.importorskip("astroquery")
 
@@ -97,7 +98,7 @@ class TestEphemFromHorizons:
     def test_bib(self):
         with bib.Tracking():
             Ephem.from_horizons(['Ceres', 'Pallas'])
-            assert 'sbpy.data.ephem.Ephem.from_horizons' in bib.show()
+            assert 'sbpy.data.ephem.core.Ephem.from_horizons' in bib.show()
         bib.reset()
 
     def test_timescale(self):
@@ -299,7 +300,7 @@ class TestEphemFromMPC:
     def test_bib(self):
         with bib.Tracking():
             Ephem.from_mpc(['Ceres', 'Pallas'])
-            assert 'sbpy.data.ephem.Ephem.from_mpc' in bib.show()
+            assert 'sbpy.data.ephem.core.Ephem.from_mpc' in bib.show()
         bib.reset()
 
 
@@ -398,8 +399,8 @@ class TestEphemFromMiriade:
 
     def test_bib(self):
         with bib.Tracking():
-            data = Ephem.from_miriade(['Ceres', 'Pallas'])
-            assert 'sbpy.data.ephem.Ephem.from_miriade' in bib.show()
+            Ephem.from_miriade(['Ceres', 'Pallas'])
+            assert 'sbpy.data.ephem.core.Ephem.from_miriade' in bib.show()
         bib.reset()
 
 
