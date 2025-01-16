@@ -32,10 +32,10 @@ def rarray(shape, yx=None, subsample=0):
     -------
     >>> from sbpy.imageanalysis.utils import rarray
     >>> r = rarray((5, 5))
-    >>> r[2, 2]  # docest: +FLOAT_CMP
+    >>> print(r[2, 2])  # docest: +FLOAT_CMP
     0.0
     >>> r = rarray((5, 5), yx=(0, 0))
-    >>> r[2, 2]  # docest: +FLOAT_CMP
+    >>> print(r[2, 2])  # docest: +FLOAT_CMP
     2.8284271247461903
 
     """
@@ -89,10 +89,10 @@ def rebin(a, factor, flux=False, trim=False):
     -------
     >>> from sbpy.imageanalysis.utils import xarray, rebin
     >>> x = xarray((10, 10))
-    >>> x[0, :2].mean()  # docest: +FLOAT_CMP
+    >>> print(x[0, :2].mean())  # docest: +FLOAT_CMP
     0.5
     >>> x2 = rebin(x, -2)
-    >>> x2[0, 0]  # docest: +FLOAT_CMP
+    >>> print(x2[0, 0])  # docest: +FLOAT_CMP
     0.5
 
     """
@@ -102,7 +102,7 @@ def rebin(a, factor, flux=False, trim=False):
     def mini(a, factor):
         b = a[::-factor]
         for i in range(-factor - 1):
-            b += a[(i + 1)::-factor]
+            b += a[(i + 1) :: -factor]
         if not flux:
             b = b / -factor
         return b
@@ -176,10 +176,10 @@ def refine_pixel(func, subsample, yx_pixel, yx, **kwargs):
     >>> from sbpy.imageanalysis.utils import rarray, refine_pixel
     >>> yx = (2, 2)  # the center of the radial array
     >>> r = rarray((5, 5), yx=yx)
-    >>> r[2, 2]  # docest: +FLOAT_CMP
+    >>> print(r[2, 2])  # docest: +FLOAT_CMP
     0.0
     >>> f = refine_pixel(rarray, 10, (2, 2), yx)
-    >>> np.isclose(f, 0.03826, rtol=0.01, atol=0.01)
+    >>> print(np.isclose(f, 0.03826, rtol=0.01, atol=0.01))
     True
     """
 
@@ -212,7 +212,7 @@ def xarray(shape, yx=[0, 0], th=None):
     --------
     >>> from sbpy.imageanalysis.utils import xarray
     >>> x = xarray((10, 10))
-    >>> x[0, 3]
+    >>> print(x[0, 3])
     3
 
     """
@@ -250,7 +250,7 @@ def yarray(shape, yx=[0, 0], th=None):
 
     >>> from sbpy.imageanalysis.utils import yarray
     >>> y = yarray((10, 10))
-    >>> y[3, 0]
+    >>> print(y[3, 0])
     3
 
     """

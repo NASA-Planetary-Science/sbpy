@@ -1,2 +1,13 @@
 pycodestyle:
   max-line-length: 88
+
+  ignore:
+    - E741 # single-letter small-caps
+    - E226 # Don't force "missing whitespace around arithmetic operator"
+    - E402 # .conf has to be set in the __init__.py modules imports
+    - E501 # line too long
+    - E203 # whitespace before colon
+
+  exclude:
+    - _astropy_init.py
+    - version.py
