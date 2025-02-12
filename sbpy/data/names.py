@@ -436,6 +436,9 @@ class Names():
                 if len(el[5]) > 0:
                     if len(el[5]) > 1:
                         r['name'] = el[5]
+                        if r['name'][1].isdigit():
+                            raise TargetNameParseError('{} does not appear to be a '
+                                                       ' comet identifier'.format(s))
 
         if len(r) == 0 or 'type' not in r:
             raise TargetNameParseError(('{} does not appear to be a '
@@ -585,7 +588,7 @@ class Names():
                     ident = el[4]
                     r['desig'] = Names.from_packed(ident)
                 # packed number
-                elif len(el[5]) > 0:
+                elif len(el[5]) > 0 and len(el[5]) == len(raw):
                     ident = el[5]
                     r['number'] = Names.from_packed(ident)
                 # number

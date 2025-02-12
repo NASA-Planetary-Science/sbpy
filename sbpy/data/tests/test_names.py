@@ -244,6 +244,9 @@ def test_parse_comet():
     with pytest.raises(TargetNameParseError):
         Names.parse_comet('2024 A')
 
+    with pytest.raises(TargetNameParseError):
+        Names.parse_comet('2015XN77')
+
 
 def test_parse_asteroid():
     """Test asteroid name parsing."""
@@ -270,6 +273,9 @@ def test_parse_asteroid():
 
     with pytest.raises(TargetNameParseError):
         Names.parse_asteroid('J1')
+
+    with pytest.raises(TargetNameParseError):
+        Names.parse_asteroid('P2015XN77')
 
 
 def test_break_packed():
