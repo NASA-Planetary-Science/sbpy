@@ -1,6 +1,12 @@
 0.6.0 (unreleased)
 ==================
 
+Update supported versions [#419]:
+- Python >= 3.9
+- numpy >= 1.26
+- scipy >= 1.10
+
+
 New Features
 ------------
 

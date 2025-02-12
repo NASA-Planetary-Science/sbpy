@@ -3,6 +3,7 @@
 # This file performs testing using tox and tox.ini to define and configure the test environments.
 
 # Remove -numpy126 when we support testing with numpy 2.0
+# Allow testing of optional dependencies on Python 3.12+ when pyoorb is updated.
 
 name: CI Tests
 
@@ -45,12 +46,12 @@ jobs:
         - name: Code style checks
           linux: codestyle
 
-        - name: Python 3.11 with minimal dependencies, measuring coverage
-          linux: py311-test-numpy126-cov
+        - name: Python 3.13 with minimal dependencies, measuring coverage
+          linux: py313-test-cov
           coverage: codecov
 
-        - name: Python 3.10 with all optional dependencies, measuring coverage
-          linux: py310-test-numpy126-alldeps-cov
+        - name: Python 3.11 with all optional dependencies, measuring coverage
+          linux: py311-test-numpy126-alldeps-cov
           coverage: codecov
 
         - name: Python 3.9 with oldest supported versions
