@@ -274,6 +274,9 @@ def test_parse_asteroid():
     with pytest.raises(TargetNameParseError):
         Names.parse_asteroid('J1')
 
+    with pytest.raises(TargetNameParseError):
+        Names.parse_asteroid('P2015XN77')
+
 
 def test_break_packed():
     with pytest.raises(TargetNameParseError):

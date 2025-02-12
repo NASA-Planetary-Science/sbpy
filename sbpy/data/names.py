@@ -588,7 +588,7 @@ class Names():
                     ident = el[4]
                     r['desig'] = Names.from_packed(ident)
                 # packed number
-                elif len(el[5]) > 0:
+                elif len(el[5]) > 0 and len(el[5]) == len(raw):
                     ident = el[5]
                     r['number'] = Names.from_packed(ident)
                 # number

@@ -35,11 +35,17 @@ sbpy.names
   cometary designations with fragment specifiers (e.g., "2024 A-A" and
   "2024 A-AA" now correctly raise TargetNameParseError exceptions) [#417]
 
-- Fixed `sbpy.Names.parse_comet(()' to raise an error in cases of a
+- Fixed `sbpy.Names.parse_comet()' to raise an error in cases of a
   provisional asteroid designation submitted with no space after the
   year (e.g., "2015XN77"), which was previously being interpreted as a
   well-formed comet designation (i.e., with number=2015, type=X, and
   name=N77), but now raises a TargetNameParseError [#422]
+
+- Fixed `sbpy.Names.parse_asteroid()' to raise an error in cases of a
+  provisional comet designation submitted with no forward slash between
+  the lead character and the year, and no space after the year (e.g.,
+  "P2015XN77"), which was previously being interpreted as a packed
+  asteroid designation, but now raises a TargetNameParseError [#422]
 
 0.5.0 (2024-08-28)
 ==================
