@@ -329,7 +329,7 @@ Center:
     # returned target: 2P
     # location: 500
               date               RA         Dec       rh  delta phase solarelong  V   Proper motion Direction
-                                deg         deg       AU    AU   deg     deg     mag    arcsec / h     deg   
+                             hourangle      deg       AU    AU   deg     deg     mag    arcsec / h     deg   
     ----------------------- ----------- ----------- ----- ----- ----- ---------- ---- ------------- ---------
     2024-08-17 00:00:00.000 21:55:57.10 -15:12:47.0 3.368 2.356   0.9      177.1 21.1         47.72     253.7
     2024-08-18 00:00:00.000 21:54:41.20 -15:18:06.0 3.373 2.361   0.7      177.5 21.1         47.54     253.9
