@@ -297,14 +297,14 @@ class EphemerisCLI:
         return eph
 
     def _format_eph(self, eph: Ephem) -> Ephem:
-        # convert RA and Dec to Angle in units of degree
-        eph["ra"] = Angle(eph["ra"], eph["ra"].unit).to("deg")
+        # convert RA and Dec to Angle
+        eph["ra"] = Angle(eph["ra"], eph["ra"].unit).to(
+            "hourangle" if self.args.radec == "hmsdms" else "deg"
+        )
         eph["dec"] = Angle(eph["dec"], eph["dec"].unit).to("deg")
 
         if self.args.radec == "hmsdms":
-            eph["ra"].info.format = lambda x: x.to_string(
-                sep=":", precision=2, unit="hourangle"
-            )
+            eph["ra"].info.format = lambda x: x.to_string(sep=":", precision=2)
             eph["dec"].info.format = lambda x: x.to_string(sep=":", precision=1)
         else:
             eph["ra"].info.format = lambda x: x.to_string(
