@@ -3,43 +3,46 @@
 import numpy as np
 import astropy.units as u
 
-from .surface import Surface
+from .surface import Surface, min_zero_cos
 from ..units.typing import SpectralFluxDensityQuantity
 
 
 class LambertianSurface(Surface):
-    """Abstract base class for Lambertian surfaces."""
+    """Lambertian surface absorption, emission, and reflectance."""
 
+    @staticmethod
     @u.quantity_input
     def absorption(
-        self,
         F_i: SpectralFluxDensityQuantity,
+        epsilon: float,
         i: u.physical.angle,
     ) -> u.Quantity:
-        # use self._min_zero_cos(i) to ensure cos(>= 90 deg) = 0
-        cos_i = self._min_zero_cos(i)
-        return F_i * (1 - self.phys["albedo"]) * cos_i
+        # use min_zero_cos(i) to ensure cos(>= 90 deg) = 0
+        cos_i = min_zero_cos(i)
+        return F_i * epsilon * cos_i
 
+    @staticmethod
     @u.quantity_input
     def emission(
-        self,
         X_e: SpectralFluxDensityQuantity,
+        epsilon: float,
         e: u.physical.angle,
         phi: u.physical.angle,
     ) -> u.Quantity:
-        # use self._min_zero_cos(e) to ensure cos(>= 90 deg) = 0
-        cos_e = self._min_zero_cos(e)
-        return X_e * cos_e / np.pi / u.sr
+        # use min_zero_cos(e) to ensure cos(>= 90 deg) = 0
+        cos_e = min_zero_cos(e)
+        return X_e * epsilon * cos_e / np.pi / u.sr
 
+    @staticmethod
     @u.quantity_input
     def reflectance(
-        self,
         F_i: SpectralFluxDensityQuantity,
+        albedo: float,
         i: u.physical.angle,
         e: u.physical.angle,
         phi: u.physical.angle,
     ) -> u.Quantity:
-        # use self._min_zero_cos(theta) to ensure cos(>= 90 deg) = 0
-        cos_i = self._min_zero_cos(i)
-        cos_e = self._min_zero_cos(e)
-        return F_i * self.phys["albedo"] * cos_i * cos_e / np.pi
+        # use min_zero_cos(theta) to ensure cos(>= 90 deg) = 0
+        cos_i = min_zero_cos(i)
+        cos_e = min_zero_cos(e)
+        return F_i * albedo * cos_i * cos_e / np.pi / u.sr

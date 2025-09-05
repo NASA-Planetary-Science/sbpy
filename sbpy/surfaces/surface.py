@@ -10,38 +10,27 @@ from ..data.decorators import dataclass_input
 from ..units.typing import SpectralFluxDensityQuantity
 
 
+def min_zero_cos(a: u.physical.angle) -> u.Quantity:
+    """Use to ensure that cos(>=90 deg) equals 0."""
+
+    # handle scalars separately
+    if a.ndim == 0 and u.isclose(np.abs(a), 90 * u.deg):
+        return u.Quantity(0)
+
+    x = np.cos(a)
+    x[u.isclose(np.abs(a), 90 * u.deg)] = 0
+
+    return np.maximum(x, 0)
+
+
 class Surface(ABC):
-    """Abstract base class for all small-body surfaces.
-
-
-    Parameters
-    ----------
-    phys : Phys
-        Surface physical parameters, e.g., albedo.
-
-    """
-
-    @dataclass_input
-    def __init__(self, phys: Phys):
-        self.phys = phys
+    """Abstract base class for all small-body surfaces."""
 
     @staticmethod
-    def _min_zero_cos(a: u.physical.angle) -> u.Quantity:
-        """Use to ensure that cos(>=90 deg) equals 0."""
-
-        # handle scalars separately
-        if a.ndim == 0 and u.isclose(np.abs(a), 90 * u.deg):
-            return u.Quantity(0)
-
-        x = np.cos(a)
-        x[u.isclose(np.abs(a), 90 * u.deg)] = 0
-
-        return np.maximum(x, 0)
-
     @abstractmethod
     def absorption(
-        self,
         F_i: SpectralFluxDensityQuantity,
+        epsilon: float,
         i: u.physical.angle,
     ) -> u.Quantity:
         r"""Absorption of directional, incident light.
@@ -52,8 +41,12 @@ class Surface(ABC):
 
         Parameters
         ----------
+
         F_i : `astropy.units.Quantity`
             Incident light (spectral flux density / spectral irradiance).
+
+        epsilon : float
+            Emissivity of the surface.
 
         i : `~astropy.units.Quantity`
             Angle from normal of incident light.
@@ -66,10 +59,11 @@ class Surface(ABC):
 
         """
 
+    @staticmethod
     @abstractmethod
     def emission(
-        self,
         X_e: SpectralFluxDensityQuantity,
+        epsilon: float,
         e: u.physical.angle,
         phi: u.physical.angle,
     ) -> u.Quantity:
@@ -83,6 +77,9 @@ class Surface(ABC):
         ----------
         X_e : `astropy.units.Quantity`
             Emitted spectral radiance.
+
+        epsilon : float
+            Emissivity of the surface.
 
         e : `~astropy.units.Quantity`
             Observed angle from normal.
@@ -99,9 +96,14 @@ class Surface(ABC):
 
         """
 
+    @staticmethod
     @abstractmethod
     def reflectance(
-        self, i: u.physical.angle, e: u.physical.angle, phi: u.physical.angle
+        F_i: SpectralFluxDensityQuantity,
+        albedo: float,
+        i: u.physical.angle,
+        e: u.physical.angle,
+        phi: u.physical.angle,
     ) -> u.Quantity:
         r"""Bidirectional reflectance.
 
@@ -116,6 +118,9 @@ class Surface(ABC):
         ----------
         F_i : `astropy.units.Quantity`
             Incident light (spectral flux density).
+
+        albedo : float
+            Surface albedo.
 
         i : `~astropy.units.Quantity`
             Angle from normal of incident light.
@@ -180,8 +185,8 @@ class Surface(ABC):
 
         Returns
         -------
-        reflectance : `~astropy.units.Quantity`
-            Reflectance.
+        F_r : `~astropy.units.Quantity`
+            Spectral flux density / spectral irradiance received by the observer.
 
         """
 
