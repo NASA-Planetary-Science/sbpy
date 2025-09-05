@@ -26,21 +26,42 @@ Two functions provide reference data for the photolysis of gas molecules in opti
 Use :func:`~sbpy.activity.gas.photo_timescale` to retrieve photolysis timescales:
 
   >>> gas.photo_timescale(None)
-  Traceback (most recent call last):
-      ...
-  ValueError: Invalid species None.  Choose from:
-  CH3OH [C94]
-  CN [H92]
-  CO [CE83]
-  CO2 [CE83]
-  H2CO [C94]
-  H2O [CS93]
-  HCN [C94]
-  OH [CS93]
+  species source default         tau               bibcode      
+  ------- ------ ------- ------------------- -------------------
+      H2O   CS93    True           52000.0 s 1993Icar..105..235C
+      H2O   HM15   False   [82940. 49390.] s 2015P&SS..106...11H
+       OH   CS93    True          160000.0 s 1993Icar..105..235C
+      HCN    C94    True           67000.0 s 1994JGR....99.3777C
+    CH3OH    C94    True           77000.0 s 1994JGR....99.3777C
+     H2CO    C94    True            5000.0 s 1994JGR....99.3777C
+       CO   CE83    True         1500000.0 s 1983A&A...126..170C
+      CO2   CE83    True          500000.0 s 1983A&A...126..170C
+      CO2   HM15   False [494800. 210100.] s 2015P&SS..106...11H
+       CN    H92    True [315000. 135000.] s 1992Ap&SS.195....1H
+  -------------------------------------------------------------------------
+  ValueError                                Traceback (most recent call last)
+  Cell In[1], line 1
+  ----> 1 photo_timescale()
+  
+  File /disks/data0/astro/Projects/sbpy/sbpy/activity/gas/core.py:177, in photo_timescale(species, source)
+      167             rows.append(
+      168                 {
+      169                     "species": sp,
+     (...)
+      174                 }
+      175             )
+      176     Table(rows).pprint_all()
+  --> 177     raise ValueError("Invalid species {}".format(species))
+      179 gas = data[species]
+      180 source = default_sources[species] if source is None else source
+  
+  ValueError: Invalid species None
+  
   >>> gas.photo_timescale('H2O')  # doctest: +FLOAT_CMP
   <Quantity 52000. s>
 
-Some sources provide values for the quiet and active Sun (Huebner et al. 1992):
+Some sources provide values for the quiet and active Sun (e.g., Huebner et al.
+1992):
 
   >>> gas.photo_timescale('CN', source='H92')  # doctest: +FLOAT_CMP
   <Quantity [315000., 135000.] s>
