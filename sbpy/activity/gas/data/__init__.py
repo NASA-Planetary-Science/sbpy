@@ -2,10 +2,10 @@
 """Gas Data"""
 
 __all__ = [
-    'photo_lengthscale',
-    'photo_timescale',
-    'fluorescence_band_strength',
-    'OHFluorescenceSA88'
+    "photo_lengthscale",
+    "photo_timescale",
+    "fluorescence_band_strength",
+    "OHFluorescenceSA88",
 ]
 
 import numpy as np
@@ -18,59 +18,68 @@ from .... import data as sbd
 from .... import bib
 from ....utils import optional_packages
 
-photo_lengthscale = {   # (value, {key feature: ADS bibcode})
-    'H2O': {
-        'CS93': (2.4e4 * u.km,
-                 {'H2O photodissociation lengthscale':
-                  '1993Icar..105..235C'})
+photo_lengthscale = {  # (value, {key feature: ADS bibcode})
+    "H2O": {
+        "CS93": (
+            2.4e4 * u.km,
+            {"H2O photodissociation lengthscale": "1993Icar..105..235C"},
+        )
     },
-    'OH': {
-        'CS93': (1.6e5 * u.km,
-                 {'OH photodissociation lengthscale':
-                  '1993Icar..105..235C'})
+    "OH": {
+        "CS93": (
+            1.6e5 * u.km,
+            {"OH photodissociation lengthscale": "1993Icar..105..235C"},
+        )
     },
 }
 
-photo_timescale = {   # (value, {key feature: ADS bibcode})
-    'H2O': {
-        'CS93': (5.2e4 * u.s,
-                 {'H2O photodissociation timescale':
-                  '1993Icar..105..235C'})
+photo_timescale = {  # (value, {key feature: ADS bibcode})
+    "H2O": {
+        "CS93": (
+            5.2e4 * u.s,
+            {"H2O photodissociation timescale": "1993Icar..105..235C"},
+        ),
+        "HM15": (
+            [8.294e4, 4.939e4] * u.s,
+            {"H2O photodissociation timescale": "2015P&SS..106...11H"},
+        ),
     },
-    'OH': {
-        'CS93': (1.6e5 * u.s,
-                 {'OH photodissociation timescale':
-                  '1993Icar..105..235C'})
+    "OH": {
+        "CS93": (1.6e5 * u.s, {"OH photodissociation timescale": "1993Icar..105..235C"})
     },
-    'HCN': {
-        'C94': (6.7e4 * u.s,
-                {'HCN photodissociation timescale':
-                 '1994JGR....99.3777C'})
+    "HCN": {
+        "C94": (6.7e4 * u.s, {"HCN photodissociation timescale": "1994JGR....99.3777C"})
     },
-    'CH3OH': {
-        'C94': (7.7e4 * u.s,
-                {'CH3OH photodissociation timescale':
-                 '1994JGR....99.3777C'})
+    "CH3OH": {
+        "C94": (
+            7.7e4 * u.s,
+            {"CH3OH photodissociation timescale": "1994JGR....99.3777C"},
+        )
     },
-    'H2CO': {
-        'C94': (5.0e3 * u.s,
-                {'H2CO photodissociation timescale':
-                 '1994JGR....99.3777C'})
+    "H2CO": {
+        "C94": (
+            5.0e3 * u.s,
+            {"H2CO photodissociation timescale": "1994JGR....99.3777C"},
+        )
     },
-    'CO': {
-        'CE83': (1.5e6 * u.s,
-                 {'CO photodissociation timescale':
-                  '1983A&A...126..170C'})
+    "CO": {
+        "CE83": (1.5e6 * u.s, {"CO photodissociation timescale": "1983A&A...126..170C"})
     },
-    'CO2': {
-        'CE83': (5.0e5 * u.s,
-                 {'CO2 photodissociation timescale':
-                  '1983A&A...126..170C'})
+    "CO2": {
+        "CE83": (
+            5.0e5 * u.s,
+            {"CO2 photodissociation timescale": "1983A&A...126..170C"},
+        ),
+        "HM15": (
+            [4.948e5, 2.101e5] * u.s,
+            {"CO2 photodissociation timescale": "2015P&SS..106...11H"},
+        ),
     },
-    'CN': {
-        'H92': ([3.15e5, 1.35e5] * u.s,
-                {'CN photodissociation timescale':
-                 '1992Ap&SS.195....1H'})
+    "CN": {
+        "H92": (
+            [3.15e5, 1.35e5] * u.s,
+            {"CN photodissociation timescale": "1992Ap&SS.195....1H"},
+        )
     },
 }
 
@@ -102,28 +111,25 @@ class OHFluorescenceSA88:
 
     """
 
-    BANDS = ['0-0', '1-0', '1-1', '2-2',
-             '0-1', '0-2', '1-2', '2-0', '2-1']
+    BANDS = ["0-0", "1-0", "1-1", "2-2", "0-1", "0-2", "1-2", "2-0", "2-1"]
 
     def __init__(self, band):
-        fn = get_pkg_data_path('schleicher88.txt')
+        fn = get_pkg_data_path("schleicher88.txt")
         self.table5 = ascii.read(fn)
-        self._rdot = self.table5['rdot'].data * u.km / u.s
-        self._inversion = self.table5['I']
-        self._tau = self.table5['tau'] * u.s
+        self._rdot = self.table5["rdot"].data * u.km / u.s
+        self._inversion = self.table5["I"]
+        self._tau = self.table5["tau"] * u.s
 
-        self.basis = ['0-0', '1-0', '1-1', '2-2',
-                      '0-0', '0-0', '1-1', '2-2', '2-2']
-        self.scales = [1.0, 1.0, 1.0, 1.0,
-                       0.00356, 0.00021, 0.00610, 0.274, 1.921]
+        self.basis = ["0-0", "1-0", "1-1", "2-2", "0-0", "0-0", "1-1", "2-2", "2-2"]
+        self.scales = [1.0, 1.0, 1.0, 1.0, 0.00356, 0.00021, 0.00610, 0.274, 1.921]
 
         i = self.BANDS.index(band)
         k = self.basis[i]
-        self._LN = u.Quantity(self.table5[k].data * self.scales[i],
-                              'erg / s')
+        self._LN = u.Quantity(self.table5[k].data * self.scales[i], "erg / s")
 
         if optional_packages("scipy"):
             from scipy.interpolate import splrep
+
             self._tck = splrep(self.rdot.value, self.LN.value)
             self._interp = self._spline
         else:
@@ -131,14 +137,15 @@ class OHFluorescenceSA88:
 
     def _spline(self, rdot, rh):
         from scipy.interpolate import splev
+
         return splev(rdot, self._tck, ext=2) / rh**2
 
     def _linear(self, rdot, rh):
         return np.interp(rdot, self.rdot.value, self.LN.value) / rh**2
 
-    @bib.cite({'OH fluorescence band efficiency': '1988ApJ...331.1058S'})
+    @bib.cite({"OH fluorescence band efficiency": "1988ApJ...331.1058S"})
     @sbd.dataclass_input(eph=sbd.Ephem)
-    @sbd.quantity_to_dataclass(eph=(sbd.Ephem, 'rdot'))
+    @sbd.quantity_to_dataclass(eph=(sbd.Ephem, "rdot"))
     def __call__(self, eph):
         """Fluorescence band efficiency.
 
@@ -169,20 +176,21 @@ class OHFluorescenceSA88:
 
         """
 
-        rdot = eph['rdot'].to(self.rdot.unit).value
+        rdot = eph["rdot"].to(self.rdot.unit).value
         if np.any(np.abs(rdot) > 60):
-            raise ValueError('r-dot must be between -60 and 60 km/s')
+            raise ValueError("r-dot must be between -60 and 60 km/s")
 
         try:
-            rh = eph['rh'].to(u.au).value
+            rh = eph["rh"].to(u.au).value
         except KeyError:
             rh = 1
 
         if np.any(rh < 0.5):
             raise ValueError(
-                'At rh < 0.5 au the pumping rate is not small compared '
-                'to the rotational decay rate.  See Schleicher & A\'Hearn '
-                '1988 for details.')
+                "At rh < 0.5 au the pumping rate is not small compared "
+                "to the rotational decay rate.  See Schleicher & A'Hearn "
+                "1988 for details."
+            )
 
         return self._interp(rdot, rh) * self.LN.unit
 
@@ -210,31 +218,13 @@ class OHFluorescenceSA88:
 fluorescence_band_strength = {
     # (function, note, citation or None)
     # for OHFluorescenceSA88, the citation is handled by the class
-    'OH 0-0': {
-        'SA88': (OHFluorescenceSA88('0-0'), 'Requires r-dot', None)
-    },
-    'OH 1-0': {
-        'SA88': (OHFluorescenceSA88('1-0'), 'Requires r-dot', None)
-    },
-    'OH 1-1': {
-        'SA88': (OHFluorescenceSA88('1-1'), 'Requires r-dot', None)
-    },
-    'OH 2-2': {
-        'SA88': (OHFluorescenceSA88('2-2'), 'Requires r-dot', None)
-    },
-    'OH 0-1': {
-        'SA88': (OHFluorescenceSA88('0-1'), 'Requires r-dot', None)
-    },
-    'OH 0-2': {
-        'SA88': (OHFluorescenceSA88('0-2'), 'Requires r-dot', None)
-    },
-    'OH 1-2': {
-        'SA88': (OHFluorescenceSA88('1-2'), 'Requires r-dot', None)
-    },
-    'OH 2-0': {
-        'SA88': (OHFluorescenceSA88('2-0'), 'Requires r-dot', None)
-    },
-    'OH 2-1': {
-        'SA88': (OHFluorescenceSA88('2-1'), 'Requires r-dot', None)
-    },
+    "OH 0-0": {"SA88": (OHFluorescenceSA88("0-0"), "Requires r-dot", None)},
+    "OH 1-0": {"SA88": (OHFluorescenceSA88("1-0"), "Requires r-dot", None)},
+    "OH 1-1": {"SA88": (OHFluorescenceSA88("1-1"), "Requires r-dot", None)},
+    "OH 2-2": {"SA88": (OHFluorescenceSA88("2-2"), "Requires r-dot", None)},
+    "OH 0-1": {"SA88": (OHFluorescenceSA88("0-1"), "Requires r-dot", None)},
+    "OH 0-2": {"SA88": (OHFluorescenceSA88("0-2"), "Requires r-dot", None)},
+    "OH 1-2": {"SA88": (OHFluorescenceSA88("1-2"), "Requires r-dot", None)},
+    "OH 2-0": {"SA88": (OHFluorescenceSA88("2-0"), "Requires r-dot", None)},
+    "OH 2-1": {"SA88": (OHFluorescenceSA88("2-1"), "Requires r-dot", None)},
 }
