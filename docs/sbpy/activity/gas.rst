@@ -6,6 +6,7 @@ Gas Comae (`sbpy.activity.gas`)
 .. toctree::
    :maxdepth: 2
 
+
 Photolysis
 ----------
 
@@ -14,56 +15,37 @@ Two functions provide reference data for the photolysis of gas molecules in opti
 :func:`~sbpy.activity.gas.photo_lengthscale` provides empirical comae lengthscales (defaults to Cochran and Schleicher 1993)):
 
   >>> from sbpy.activity import gas
-  >>> gas.photo_lengthscale(None)
-  Traceback (most recent call last):
-      ...
-  ValueError: Invalid species None.  Choose from:
-  H2O [CS93]
-  OH [CS93]
-  >>> gas.photo_lengthscale('H2O')  # doctest: +FLOAT_CMP
+  >>> gas.photo_lengthscale()
+  species source  gamma         bibcode      
+                    km                       
+  ------- ------ -------- -------------------
+      H2O   CS93  24000.0 1993Icar..105..235C
+       OH   CS93 160000.0 1993Icar..105..235C
+  >>> gas.photo_lengthscale("H2O", "CS93")  # doctest: +FLOAT_CMP
   <Quantity 24000. km>
 
 Use :func:`~sbpy.activity.gas.photo_timescale` to retrieve photolysis timescales:
 
-  >>> gas.photo_timescale(None)
-  species source default         tau               bibcode      
-  ------- ------ ------- ------------------- -------------------
-      H2O   CS93    True           52000.0 s 1993Icar..105..235C
-      H2O   HM15   False   [82940. 49390.] s 2015P&SS..106...11H
-       OH   CS93    True          160000.0 s 1993Icar..105..235C
-      HCN    C94    True           67000.0 s 1994JGR....99.3777C
-    CH3OH    C94    True           77000.0 s 1994JGR....99.3777C
-     H2CO    C94    True            5000.0 s 1994JGR....99.3777C
-       CO   CE83    True         1500000.0 s 1983A&A...126..170C
-      CO2   CE83    True          500000.0 s 1983A&A...126..170C
-      CO2   HM15   False [494800. 210100.] s 2015P&SS..106...11H
-       CN    H92    True [315000. 135000.] s 1992Ap&SS.195....1H
-  -------------------------------------------------------------------------
-  ValueError                                Traceback (most recent call last)
-  Cell In[1], line 1
-  ----> 1 photo_timescale()
-  
-  File /disks/data0/astro/Projects/sbpy/sbpy/activity/gas/core.py:177, in photo_timescale(species, source)
-      167             rows.append(
-      168                 {
-      169                     "species": sp,
-     (...)
-      174                 }
-      175             )
-      176     Table(rows).pprint_all()
-  --> 177     raise ValueError("Invalid species {}".format(species))
-      179 gas = data[species]
-      180 source = default_sources[species] if source is None else source
-  
-  ValueError: Invalid species None
-  
-  >>> gas.photo_timescale('H2O')  # doctest: +FLOAT_CMP
+  >>> gas.photo_timescale()
+  species source         tau               bibcode      
+  ------- ------ ------------------- -------------------
+      H2O   CS93           52000.0 s 1993Icar..105..235C
+      H2O   HM15   [82940. 49390.] s 2015P&SS..106...11H
+       OH   CS93          160000.0 s 1993Icar..105..235C
+      HCN    C94           67000.0 s 1994JGR....99.3777C
+    CH3OH    C94           77000.0 s 1994JGR....99.3777C
+     H2CO    C94            5000.0 s 1994JGR....99.3777C
+       CO   CE83         1500000.0 s 1983A&A...126..170C
+      CO2   CE83          500000.0 s 1983A&A...126..170C
+      CO2   HM15 [494800. 210100.] s 2015P&SS..106...11H
+       CN    H92 [315000. 135000.] s 1992Ap&SS.195....1H
+  >>> gas.photo_timescale("H2O", "CS93")  # doctest: +FLOAT_CMP
   <Quantity 52000. s>
 
 Some sources provide values for the quiet and active Sun (e.g., Huebner et al.
 1992):
 
-  >>> gas.photo_timescale('CN', source='H92')  # doctest: +FLOAT_CMP
+  >>> gas.photo_timescale("CN", "H92")  # doctest: +FLOAT_CMP
   <Quantity [315000., 135000.] s>
 
 
@@ -74,7 +56,7 @@ With the :doc:`../bib`, the citation may be discovered:
   >>> from sbpy import bib
   >>> bib.reset()             # clear any old citations
   >>> with bib.Tracking():
-  ...    tau = gas.photo_timescale('H2O')
+  ...    tau = gas.photo_timescale("H2O", "CS93")
   >>> print(bib.to_text())    # doctest: +REMOTE_DATA
   sbpy:
     software: sbpy:
@@ -83,8 +65,10 @@ With the :doc:`../bib`, the citation may be discovered:
     H2O photodissociation timescale:
         Cochran & Schleicher 1993, Icarus, Vol 105, 1, 235
 
+
 Fluorescence
 ------------
+
 Reference data for fluorescence band emission is available via :func:`~sbpy.activity.gas.fluorescence_band_strength`.  Compute the fluorescence band strength (luminosity per molecule) of the OH 0-0 band at 1 au from the Sun, moving towards the Sun at 1 km/s (defaults to Schleicher and A'Hearn 1988):
 
   >>> import astropy.units as u
@@ -110,8 +94,8 @@ column density and total number of molecules within an aperture:
 
   >>> Q = 1e28 / u.s        # production rate
   >>> v = 0.8 * u.km / u.s  # expansion speed
-  >>> parent = gas.photo_lengthscale('H2O')
-  >>> daughter = gas.photo_lengthscale('OH')
+  >>> parent = gas.photo_lengthscale("H2O", "CS93")
+  >>> daughter = gas.photo_lengthscale("OH", "CS93")
   >>> coma = gas.Haser(Q, v, parent, daughter)
   >>> print(coma.column_density(10 * u.km))    # doctest: +FLOAT_CMP
   7.099280153851781e+17 1 / m2
@@ -126,6 +110,7 @@ The gas coma models work with sbpy's apertures:
   >>> ap = AnnularAperture((5000, 10000) * u.km)
   >>> print(coma.total_number(ap))    # doctest: +FLOAT_CMP
   3.8133654170856037e+31
+
 
 Vectorial Model
 ^^^^^^^^^^^^^^^
@@ -157,14 +142,14 @@ number of molecules in an aperture.  Parent and daughter data is provided via
 
   >>> from sbpy.data import Phys
   >>> water = Phys.from_dict({
-  ...     'tau_T': gas.photo_timescale('H2O') * 0.8,  # approximate
-  ...     'tau_d': gas.photo_timescale('H2O'),
-  ...     'v_outflow': 0.85 * u.km / u.s,
-  ...     'sigma': 3e-16 * u.cm**2
+  ...     "tau_T": gas.photo_timescale("H2O", "CS93") * 0.8,  # approximate
+  ...     "tau_d": gas.photo_timescale("H2O", "CS93"),
+  ...     "v_outflow": 0.85 * u.km / u.s,
+  ...     "sigma": 3e-16 * u.cm**2
   ... })
   >>> hydroxyl = Phys.from_dict({
-  ...     'tau_T': gas.photo_timescale('OH') * 0.8,  # approximate
-  ...     'v_photo': 1.05 * u.km / u.s
+  ...     "tau_T": gas.photo_timescale("OH", "CS93") * 0.8,  # approximate
+  ...     "v_photo": 1.05 * u.km / u.s
   ... })
   >>> Q = 1e28 / u.s        # water production rate
   >>> coma = gas.VectorialModel(Q, water, hydroxyl)
@@ -172,6 +157,7 @@ number of molecules in an aperture.  Parent and daughter data is provided via
   2.8974972922255264e+17 1 / m2
   >>> print(coma.total_number(1000 * u.km))    # doctest: +FLOAT_CMP
   6.995084479934798e+29
+
 
 Production Rate calculations
 ----------------------------
@@ -194,7 +180,7 @@ using JPLSpec:
     >>> temp_estimate = 47. * u.K
     >>> transition_freq = (230.53799 * u.GHz).to('MHz')
     >>> integrated_flux = 0.26 * u.K * u.km / u.s
-    >>> mol_tag = '^CO$'
+    >>> mol_tag = "^CO$"
     >>> mol_data = Phys.from_jplspec(temp_estimate, transition_freq, mol_tag)
     >>> mol_data
         <QTable length=1>
@@ -208,6 +194,7 @@ using JPLSpec:
 Having this information, we can move forward towards the calculation of
 production rate. The functions that sbpy currently provides to calculate
 production rates are listed below.
+
 
 Integrated Line Intensity Conversion
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -224,7 +211,7 @@ For more information on the needed parameters for this function see
 
     >>> from sbpy.activity import intensity_conversion
     >>> intl = intensity_conversion(mol_data)
-    >>> mol_data.apply([intl.value] * intl.unit, name='intl')
+    >>> mol_data.apply([intl.value] * intl.unit, name="intl")
      11
     >>> intl
      <Quantity 0.00280051 MHz nm2>
@@ -252,7 +239,7 @@ for this function see `~sbpy.activity.einstein_coeff`.
 
     >>> from sbpy.activity import einstein_coeff
     >>> au = einstein_coeff(mol_data)
-    >>> mol_data.apply([au.value] * au.unit, name = 'Einstein Coefficient')
+    >>> mol_data.apply([au.value] * au.unit, name = "Einstein Coefficient")
      12
     >>> au
       <Quantity 7.03946054e-07 1 / s>
@@ -262,16 +249,16 @@ Beta Factor Calculation
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 Returns beta factor based on timescales from `~sbpy.activity.gas` and distance
-from the Sun using an `~sbpy.data.Ephem` object. The calculation is
-parent photodissociation timescale * (distance from comet to Sun)**2
-and it accounts for certain photodissociation and geometric factors needed
-in the calculation of total number of molecules `~sbpy.activity.total_number`
-If you wish to provide your own beta factor, you can calculate the equation
-expressed in units of AU**2 * s , all that is needed is the timescale
-of the molecule and the distance of the comet from the Sun. Once you
-have the beta factor you can append it to your `mol_data` phys object
-with the name 'beta' or any of its alternative names. For more information on
-the needed parameters for this function see `~sbpy.activity.beta_factor`.
+from the Sun using an `~sbpy.data.Ephem` object. The calculation is parent
+photodissociation timescale * (distance from comet to Sun)**2 and it accounts
+for certain photodissociation and geometric factors needed in the calculation of
+total number of molecules `~sbpy.activity.total_number` If you wish to provide
+your own beta factor, you can calculate the equation expressed in units of AU**2
+* s , all that is needed is the timescale of the molecule and the distance of
+the comet from the Sun. Once you have the beta factor you can append it to your
+`mol_data` phys object with the name 'beta' or any of its alternative names. For
+more information on the needed parameters for this function see
+`~sbpy.activity.gas.productionrate.beta_factor`.
 
 .. doctest-skip::
 
@@ -279,10 +266,10 @@ the needed parameters for this function see `~sbpy.activity.beta_factor`.
     >>> from sbpy.data import Ephem
     >>> from sbpy.activity import beta_factor
     >>> target = 'C/2016 R2'
-    >>> time = Time('2017-12-22 05:24:20', format = 'iso')
-    >>> ephemobj = Ephem.from_horizons(target, epochs=time.jd)
-    >>> beta = beta_factor(mol_data, ephemobj)
-    >>> mol_data.apply([beta.value] * beta.unit, name='beta')
+    >>> time = Time('2017-12-22 05:24:20', format="iso")
+    >>> eph = Ephem.from_horizons(target, epochs=time.jd)
+    >>> beta = beta_factor(mol_data, "CE83", eph)
+    >>> mol_data.apply([beta.value] * beta.unit, name="beta")
      13
     >>> beta
      <Quantity [13333365.25745597] AU2 s>
@@ -328,7 +315,7 @@ for column density explained in the next section.
 .. doctest-skip::
 
     >>> cdensity = lte.cdensity_Bockelee(integrated_flux, mol_data)
-    >>> mol_data.apply([cdensity.value] * cdensity.unit, name='cdensity')
+    >>> mol_data.apply([cdensity.value] * cdensity.unit, name="cdensity")
 
 
 Non-LTE Column Density Calculation
@@ -350,7 +337,7 @@ input parameters, please see `~sbpy.activity.NonLTE.from_pyradex`.
     >>> from sbpy.activity import NonLTE
     >>> nonlte = NonLTE()
     >>> cdensity = nonlte.from_pyradex(integrated_flux,  mol_data, iter=500)
-    >>> mol_data.apply([cdensity.value] * cdensity.unit, name='cdensity')
+    >>> mol_data.apply([cdensity.value] * cdensity.unit, name="cdensity")
 
 Note that for this calculation the installation of `pyradex` is needed. Pyradex
 is a python wrapper for the RADEX fortran code. See `pyradex installation
@@ -360,6 +347,7 @@ for installation instruction and tips as well as a briefing of how pyradex
 works and what common errors might arise. You need to make sure you have a
 fortran compiler installed in order for pyradex to work (gfortran works and can
 be installed with homebrew for easier management).
+
 
 Total Number
 ^^^^^^^^^^^^
@@ -383,7 +371,7 @@ for this function see `~sbpy.activity.total_number`.
     >>> b = 0.74
     >>> aper = 10 * u.m
     >>> tnum = total_number(integrated_flux, mol_data, aper, b)
-    >>> mol_data.apply([tnum], name='total_number')
+    >>> mol_data.apply([tnum], name="total_number")
      14
     >>> tnum
      <Quantity [2.93988826e+26]>
@@ -411,7 +399,7 @@ on the parameters that are needed for the function see
 
     >>> from sbpy.activity import Haser, photo_timescale, from_Haser
     >>> Q_estimate = 3.5939*10**(28) / u.s
-    >>> parent = photo_timescale('CO') * vgas
+    >>> parent = photo_timescale("CO", "H92") * vgas
     >>> coma = Haser(Q_estimate, vgas, parent)
     >>> Q = from_Haser(coma, mol_data, aper=aper)
     >>> Q
@@ -419,6 +407,7 @@ on the parameters that are needed for the function see
 
 For more involved examples and literature comparison for any of the production
 rate modules, please see notebook examples.
+
 
 Reference/API
 -------------

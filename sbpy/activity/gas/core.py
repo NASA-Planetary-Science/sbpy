@@ -41,6 +41,21 @@ from ..core import (
 from . import data
 
 
+def _show_photodissociation_help(data, variable):
+    rows = []
+    for species, sources in data.items():
+        for source, (x, bibcode) in sources.items():
+            rows.append(
+                {
+                    "species": species,
+                    "source": source,
+                    variable: x,
+                    "bibcode": ",".join(bibcode.values()),
+                }
+            )
+    Table(rows).pprint_all()
+
+
 def photo_lengthscale(species=None, source=None):
     """Photodissociation lengthscale for a gas species.
 
@@ -52,8 +67,8 @@ def photo_lengthscale(species=None, source=None):
         sources.
 
     source : string, optional
-        Retrieve values from this source (case insensitive).  See references for
-        keys.
+        Retrieve values from this source (case insensitive) or ``None`` to list
+        all available sources.
 
 
     Returns
@@ -65,7 +80,7 @@ def photo_lengthscale(species=None, source=None):
     Examples
     --------
     >>> from sbpy.activity import photo_lengthscale
-    >>> gamma = photo_lengthscale('OH')
+    >>> gamma = photo_lengthscale("OH", "CS93")
 
 
     References
@@ -75,42 +90,23 @@ def photo_lengthscale(species=None, source=None):
 
     """
 
-    default_sources = {
-        "H2O": "CS93",
-        "OH": "CS93",
-    }
+    species_data = data.photo_lengthscale.get(species)
 
-    if species not in data.photo_lengthscale:
-        rows = []
-        for sp, sources in data.photo_lengthscale.items():
-            for source, (gamma, bibcode) in sources.items():
-                rows.append(
-                    {
-                        "species": sp,
-                        "source": source,
-                        "default": source == default_sources[sp],
-                        "gamma": gamma,
-                        "bibcode": ",".join(bibcode.values()),
-                    }
-                )
-        Table(rows).pprint_all()
+    if species_data is None:
+        _show_photodissociation_help(data.photo_lengthscale, "gamma")
         if species is not None:
-            raise ValueError("Invalid species {}".format(species))
+            raise ValueError(f"Species {species} not found")
         return None
 
-    gas = data.photo_lengthscale[species]
-    source = default_sources[species] if source is None else source
+    gamma, bibcode = species_data.get(source, (None, None))
 
-    if source not in gas:
-        raise ValueError(
-            "Source key {} not available for {}.  Choose from: {}".format(
-                source, species, ", ".join(gas.keys())
-            )
-        )
+    if gamma is None:
+        _show_photodissociation_help({species: species_data}, "gamma")
+        if source is not None:
+            raise ValueError(f"Source {source} not found for species {species}")
+        return None
 
-    gamma, bibcode = gas[source]
     bib.register(photo_lengthscale, bibcode)
-
     return gamma
 
 
@@ -125,20 +121,21 @@ def photo_timescale(species=None, source=None):
         sources.
 
     source : string, optional
-        Retrieve values from this source.  See References for keys.
+        Retrieve values from this source or ``None`` to show a list of all
+        sources for given species.
 
 
     Returns
     -------
     tau : `~astropy.units.Quantity` or ``None``
       The timescale at 1 au.  May be a two-element array: (quiet Sun, active
-      Sun).  ``None`` is returned if ``species`` is ``None``.
+      Sun).  ``None`` is returned if ``species`` or ``source`` is ``None``.
 
 
     Examples
     --------
     >>> from sbpy.activity import photo_timescale
-    >>> tau = photo_timescale('OH')
+    >>> tau = photo_timescale("OH", "CS93")
 
 
     References
@@ -156,48 +153,23 @@ def photo_timescale(species=None, source=None):
 
     """
 
-    default_sources = {
-        "H2O": "CS93",
-        "OH": "CS93",
-        "HCN": "C94",
-        "CH3OH": "C94",
-        "H2CO": "C94",
-        "CO2": "CE83",
-        "CO": "CE83",
-        "CN": "H92",
-    }
+    species_data = data.photo_timescale.get(species)
 
-    if species not in data.photo_timescale:
-        rows = []
-        for sp, sources in data.photo_timescale.items():
-            for source, (tau, bibcode) in sources.items():
-                rows.append(
-                    {
-                        "species": sp,
-                        "source": source,
-                        "default": source == default_sources[sp],
-                        "tau": tau,
-                        "bibcode": ",".join(bibcode.values()),
-                    }
-                )
-        Table(rows).pprint_all()
+    if species_data is None:
+        _show_photodissociation_help(data.photo_timescale, "tau")
         if species is not None:
-            raise ValueError("Invalid species {}".format(species))
+            raise ValueError(f"Species {species} not found")
         return None
 
-    gas = data.photo_timescale[species]
-    source = default_sources[species] if source is None else source
+    tau, bibcode = species_data.get(source, (None, None))
 
-    if source not in gas:
-        raise ValueError(
-            "Source key {} not available for {}.  Choose from: {}".format(
-                source, species, ", ".join(gas.keys())
-            )
-        )
+    if tau is None:
+        _show_photodissociation_help({species: species_data}, "gamma")
+        if source is not None:
+            raise ValueError(f"Source {source} not found for species {species}")
+        return None
 
-    tau, bibcode = gas[source]
     bib.register(photo_timescale, bibcode)
-
     return tau
 
 
@@ -1165,7 +1137,7 @@ class VectorialModel(GasComa):
             q_t=VectorialModel._make_binned_production(qs, ts),
             fragment=fragment,
             parent=parent,
-            **kwargs
+            **kwargs,
         )
 
     def _make_binned_production(qs, ts) -> Callable[[np.float64], np.float64]:

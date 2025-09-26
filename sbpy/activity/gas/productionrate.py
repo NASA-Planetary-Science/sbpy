@@ -26,7 +26,7 @@ except ImportError:
     pyradex = None
 
 from ...bib import register
-from ...data import Phys
+from ...data import Phys, Ephem
 from ...utils.decorators import requires
 from ...utils import required_packages
 
@@ -218,17 +218,20 @@ def einstein_coeff(mol_data):
     return au
 
 
-def beta_factor(mol_data, ephemobj):
+def beta_factor(mol_data, source, eph):
     """
-    Returns beta factor based on timescales from `~sbpy.activity.gas`
-    and distance from the Sun using an `~sbpy.data.ephem` object.
+    Photodissociation timescale at given heliocentric distance.
+
     The calculation is:
-    parent photodissociation timescale * (distance from comet to Sun)**2
+
+        parent photodissociation timescale * (distance from comet to Sun)**2
+
     If you wish to provide your own beta factor, you can calculate the equation
-    expressed in units of AU**2 * s , all that is needed is the timescale
-    of the molecule and the distance of the comet from the Sun. Once you
-    have the beta factor you can append it to your mol_data phys object
-    with the name 'beta' or any of its alternative names.
+    expressed in units of AU**2 * s , all that is needed is the timescale of the
+    molecule and the distance of the comet from the Sun. Once you have the beta
+    factor you can append it to your mol_data phys object with the name 'beta'
+    or any of its alternative names.
+
 
     Parameters
     ----------
@@ -240,50 +243,52 @@ def beta_factor(mol_data, ephemobj):
         This field can be given by the user directly or found using
         `~sbpy.data.phys.from_jplspec`. If the mol_tag is an integer, the
         program will assume it is the JPL Spectral Molecular Catalog identifier
-        of the molecule and will treat it as such. If mol_tag is a string,
-        then it will be assumed to be the human-readable name of the molecule.
-        The molecule MUST be defined in `sbpy.activity.gas.timescale`,
-        otherwise this function cannot be used and the beta factor
-        will have to be provided by the user directly for calculations. The
-        user can obtain the beta factor from the formula provided above.
-        Keywords that can be used for these values are found under
-        `~sbpy.data.Conf.fieldnames` documentation. We recommend the use of the
-        JPL Molecular Spectral Catalog and the use of
-        `~sbpy.data.Phys.from_jplspec` to obtain
-        these values in order to maintain consistency. Yet, if you wish to
-        use your own molecular data, it is possible. Make sure to inform
-        yourself on the values needed for each function, their units, and
-        their interchangeable keywords as part of the Phys data class.
+        of the molecule and will treat it as such. If mol_tag is a string, then
+        it will be assumed to be the human-readable name of the molecule. The
+        molecule MUST be defined in `sbpy.activity.gas.timescale`, otherwise
+        this function cannot be used and the beta factor will have to be
+        provided by the user directly for calculations. The user can obtain the
+        beta factor from the formula provided above. Keywords that can be used
+        for these values are found under `~sbpy.data.Conf.fieldnames`
+        documentation. We recommend the use of the JPL Molecular Spectral
+        Catalog and the use of `~sbpy.data.Phys.from_jplspec` to obtain these
+        values in order to maintain consistency. Yet, if you wish to use your
+        own molecular data, it is possible. Make sure to inform yourself on the
+        values needed for each function, their units, and their interchangeable
+        keywords as part of the Phys data class.
 
-    ephemobj : `~sbpy.data.ephem`
-        `sbpy.data.ephem` object holding ephemeride information including
+    source : string
+        The literature source key for the timescale data.  See
+        `~sbpy.gas.photo_timescale` for possible values.
+
+    eph : `~sbpy.data.ephem`
+        `sbpy.data.Ephem` object holding ephemeris information including
         distance from comet to Sun ['r'] and from comet to observer ['delta']
 
 
     Returns
     -------
     q : `~astropy.units.Quantity`
-        Beta factor 'beta', which can be appended
-        to the original `sbpy.phys` object for future calculations
+        Beta factor 'beta', which can be appended to the original `sbpy.phys`
+        object for future calculations.
 
     """
+
     # imported here to avoid circular dependency with activity.gas
     from .core import photo_timescale
-    from ...data import Ephem
 
-    if not isinstance(ephemobj, Ephem):
+    if not isinstance(eph, Ephem):
         raise ValueError("ephemobj must be a `sbpy.data.ephem` instance.")
     if not isinstance(mol_data, Phys):
         raise ValueError("mol_data must be a `sbpy.data.phys` instance.")
 
-    orb = ephemobj
-    delta = (orb["delta"]).to("m")
+    orb = eph
     r = orb["r"]
 
     if not isinstance(mol_data["mol_tag"][0], str):
         required_packages(
             "astroquery",
-            message=f"mol_tag = {mol_data['mol_tag'][0]} requires astroquery",
+            message=f"mol_tag = {mol_data["mol_tag"][0]} requires astroquery",
         )
 
         cat = JPLSpec.get_species_table()
@@ -293,14 +298,8 @@ def beta_factor(mol_data, ephemobj):
     else:
         name = mol_data["mol_tag"][0]
 
-    timescale = photo_timescale(name)
-
-    if timescale.ndim != 0:
-        # array
-        timescale = timescale[0]
-
+    timescale = photo_timescale(name, source)
     beta = (timescale) * r**2
-
     return beta
 
 
@@ -414,13 +413,13 @@ def from_Haser(coma, mol_data, aper=25 * u.m):
     >>> aper = 10 * u.m
     >>> mol_tag = 28001
     >>> temp_estimate = 25. * u.K
-    >>> target = 'C/2016 R2'
+    >>> target = "C/2016 R2"
     >>> b = 0.74
     >>> vgas = 0.5 * u.km / u.s
     >>> transition_freq = (230.53799 * u.GHz).to('MHz')
     >>> integrated_flux = 0.26 * u.K * u.km / u.s
 
-    >>> time = Time('2017-12-22 05:24:20', format = 'iso')
+    >>> time = Time("2017-12-22 05:24:20", format = 'iso')
     >>> ephemobj = Ephem.from_horizons(target,
     ...                                epochs=time) # doctest: +REMOTE_DATA
 
@@ -429,29 +428,29 @@ def from_Haser(coma, mol_data, aper=25 * u.m):
 
     >>> intl = intensity_conversion(mol_data) # doctest: +REMOTE_DATA
     >>> mol_data.apply([intl.value] * intl.unit,
-    ...                name='intl') # doctest: +REMOTE_DATA
+    ...                name="intl") # doctest: +REMOTE_DATA
 
     >>> au = einstein_coeff(mol_data) # doctest: +REMOTE_DATA
     >>> mol_data.apply([au.value] * au.unit,
-    ...                name='eincoeff') # doctest: +REMOTE_DATA
+    ...                name="eincoeff") # doctest: +REMOTE_DATA
 
-    >>> beta = beta_factor(mol_data, ephemobj) # doctest: +REMOTE_DATA
+    >>> beta = beta_factor(mol_data, "CE83", ephemobj) # doctest: +REMOTE_DATA
     >>> mol_data.apply([beta.value] * beta.unit,
-    ...                name='beta') # doctest: +REMOTE_DATA
+    ...                name="beta") # doctest: +REMOTE_DATA
 
     >>> lte = LTE()
 
     >>> cdensity = lte.cdensity_Bockelee(integrated_flux,
     ...                                  mol_data) # doctest: +REMOTE_DATA
     >>> mol_data.apply([cdensity.value] * cdensity.unit,
-    ...                name='cdensity') # doctest: +REMOTE_DATA
+    ...                name="cdensity") # doctest: +REMOTE_DATA
 
     >>> tnum = total_number(mol_data, aper, b) # doctest: +REMOTE_DATA
     >>> mol_data.apply([tnum.value] * tnum.unit,
-    ...                name='total_number') # doctest: +REMOTE_DATA
+    ...                name="total_number") # doctest: +REMOTE_DATA
 
     >>> Q_estimate = 2.8*10**(28) / u.s
-    >>> parent = photo_timescale('CO') * vgas
+    >>> parent = photo_timescale("CO", "CE83") * vgas
     >>> coma = Haser(Q_estimate, vgas, parent)
 
     >>> Q = from_Haser(coma, mol_data, aper=aper) # doctest: +REMOTE_DATA

@@ -9,7 +9,7 @@ except ImportError:
     scipy = None
 import astropy.units as u
 import astropy.constants as const
-from .. import core
+from .. import core, data
 from .. import (
     photo_lengthscale,
     photo_timescale,
@@ -25,6 +25,23 @@ def test_photo_lengthscale():
     assert gamma == 1.6e5 * u.km
 
 
+def test_photo_lengthscale_help(capsys):
+    assert photo_lengthscale() is None
+    captured = capsys.readouterr()
+    for k in data.photo_lengthscale:
+        assert captured.out.count(f" {k} ") == 1
+
+    assert photo_lengthscale("OH") is None
+    captured = capsys.readouterr()
+    for k in data.photo_lengthscale:
+        if k == "OH":
+            expected = 1
+        else:
+            expected = 0
+
+        assert captured.out.count(f" {k} ") == expected
+
+
 def test_photo_lengthscale_error():
     with pytest.raises(ValueError):
         photo_lengthscale("asdf")
@@ -32,13 +49,27 @@ def test_photo_lengthscale_error():
     with pytest.raises(ValueError):
         photo_lengthscale("OH", source="asdf")
 
-    # no exception expected
-    assert photo_lengthscale() is None
-
 
 def test_photo_timescale():
     tau = photo_timescale("CO2", "CE83")
     assert tau == 5.0e5 * u.s
+
+
+def test_photo_timescale_help(capsys):
+    assert photo_timescale() is None
+    captured = capsys.readouterr()
+    for k in data.photo_timescale:
+        assert captured.out.count(f" {k} ") == len(data.photo_timescale[k])
+
+    assert photo_timescale("OH") is None
+    captured = capsys.readouterr()
+    for k in data.photo_timescale:
+        if k == "OH":
+            expected = 1
+        else:
+            expected = 0
+
+        assert captured.out.count(f" {k} ") == expected
 
 
 def test_photo_timescale_error():
@@ -47,9 +78,6 @@ def test_photo_timescale_error():
 
     with pytest.raises(ValueError):
         photo_timescale("OH", source="asdf")
-
-    # no exception expected
-    assert photo_timescale() is None
 
 
 @pytest.mark.parametrize(
@@ -403,7 +431,7 @@ class TestVectorialModel:
         # Fragment molecule is OH, but v_photo is modified to be smaller than
         # v_outflow
         fragment = Phys.from_dict(
-            {"tau_T": photo_timescale("OH") * 0.93, "v_photo": 0.5 * u.km / u.s}
+            {"tau_T": photo_timescale("OH", "CS93") * 0.93, "v_photo": 0.5 * u.km / u.s}
         )
 
         coma = VectorialModel(base_q=base_q, parent=parent, fragment=fragment)
@@ -437,7 +465,10 @@ class TestVectorialModel:
         )
         # Fragment molecule is OH
         fragment = Phys.from_dict(
-            {"tau_T": photo_timescale("OH") * 0.93, "v_photo": 1.05 * u.km / u.s}
+            {
+                "tau_T": photo_timescale("OH", "CS93") * 0.93,
+                "v_photo": 1.05 * u.km / u.s,
+            }
         )
 
         coma_steady = VectorialModel(base_q=base_q, parent=parent, fragment=fragment)
@@ -484,7 +515,10 @@ class TestVectorialModel:
         )
         # Fragment molecule is OH
         fragment = Phys.from_dict(
-            {"tau_T": photo_timescale("OH") * 0.93, "v_photo": 1.05 * u.km / u.s}
+            {
+                "tau_T": photo_timescale("OH", "CS93") * 0.93,
+                "v_photo": 1.05 * u.km / u.s,
+            }
         )
 
         coma_binned = VectorialModel.binned_production(
@@ -523,7 +557,10 @@ class TestVectorialModel:
         )
         # Fragment molecule is OH
         fragment = Phys.from_dict(
-            {"tau_T": photo_timescale("OH") * 0.93, "v_photo": 1.05 * u.km / u.s}
+            {
+                "tau_T": photo_timescale("OH", "CS93") * 0.93,
+                "v_photo": 1.05 * u.km / u.s,
+            }
         )
 
         coma_binned = VectorialModel.binned_production(
@@ -559,7 +596,10 @@ class TestVectorialModel:
         )
         # Fragment molecule is OH
         fragment = Phys.from_dict(
-            {"tau_T": photo_timescale("OH") * 0.93, "v_photo": 1.05 * u.km / u.s}
+            {
+                "tau_T": photo_timescale("OH", "CS93") * 0.93,
+                "v_photo": 1.05 * u.km / u.s,
+            }
         )
 
         coma = VectorialModel(base_q=base_q, parent=parent, fragment=fragment)
@@ -587,7 +627,10 @@ class TestVectorialModel:
         )
         # Fragment molecule is OH
         fragment = Phys.from_dict(
-            {"tau_T": photo_timescale("OH") * 0.93, "v_photo": 1.05 * u.km / u.s}
+            {
+                "tau_T": photo_timescale("OH", "CS93") * 0.93,
+                "v_photo": 1.05 * u.km / u.s,
+            }
         )
 
         coma = VectorialModel(base_q=base_q, parent=parent, fragment=fragment)
@@ -632,7 +675,10 @@ class TestVectorialModel:
         )
         # Fragment molecule is OH
         fragment = Phys.from_dict(
-            {"tau_T": photo_timescale("OH") * 0.93, "v_photo": 1.05 * u.km / u.s}
+            {
+                "tau_T": photo_timescale("OH", "CS93") * 0.93,
+                "v_photo": 1.05 * u.km / u.s,
+            }
         )
 
         coma = VectorialModel(
@@ -642,21 +688,6 @@ class TestVectorialModel:
         model_count = coma.total_number(ap)
         calculated_q = (assumed_count / model_count) * base_production
 
-        # # Parent molecule is H2O
-        # parent_check = Phys.from_dict({
-        #     'tau_T': 86430 * u.s,
-        #     'tau_d': 101730 * u.s,
-        #     'v_outflow': 1 * u.km / u.s,
-        #     'sigma': 3e-16 * u.cm ** 2
-        # })
-        # # Fragment molecule is OH
-        # fragment_check = Phys.from_dict({
-        #     'tau_T': photo_timescale('OH') * 0.93,
-        #     'v_photo': 1.05 * u.km / u.s
-        # })
-        # coma_check = VectorialModel(base_q=calculated_q * (1 / u.s),
-        #                             parent=parent_check,
-        #                             fragment=fragment_check)
         coma_check = VectorialModel(
             base_q=calculated_q * (1 / u.s), parent=parent, fragment=fragment
         )

@@ -23,11 +23,30 @@ sbpy.names
 - Added functionality to `sbpy.Names.from_packed()` and
   `sbpy.Names.to_packed()` to handle new extended provisional designations
   to be implemented by the MPC in anticipation of higher asteroid discovery
-  rates in the LSST survey era [#406]
+  rates in the LSST survey era. [#406]
 
 
 API Changes
 -----------
+
+sbpy.activity.gas
+^^^^^^^^^^^^^^^^^
+
+- Data source is now a required parameter for
+  `sbpy.activity.gas.photo_lengthscale` and `sbpy.activity.gas.photo_timescale`.
+  If the data source is ``None``, then a table of sources will be printed.
+  [#425]
+
+
+sbpy.activity.gas.productionrate
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Data source is now a required parameter for
+  `sbpy.activity.gas.productionrate.beta_factor`. [#425]
+
+
+sbpy.ginga_plugins
+^^^^^^^^^^^^^^^^^^
 
 - Deprecated `sbpy.ginga_plugins` in favor of using `sbpy-ginga` at
   https://github.com/NASA-Planetary-Science/sbpy-ginga [#413]
