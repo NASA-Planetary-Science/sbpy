@@ -42,8 +42,8 @@ def test_photo_timescale_error():
     with pytest.raises(ValueError):
         photo_timescale("asdf")
 
-    with pytest.raises(ValueError):
-        photo_timescale(None)
+    # no exception expected
+    photo_timescale(None)
 
     with pytest.raises(ValueError):
         photo_timescale("OH", source="asdf")

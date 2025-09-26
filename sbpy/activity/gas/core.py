@@ -38,6 +38,7 @@ from ..core import (
     AnnularAperture,
     CircularAperture,
 )
+from . import data
 
 
 def photo_lengthscale(species, source=None):
@@ -73,21 +74,19 @@ def photo_lengthscale(species, source=None):
 
     """
 
-    from .data import photo_lengthscale as data
-
     default_sources = {
         "H2O": "CS93",
         "OH": "CS93",
     }
 
-    if species not in data:
+    if species not in data.photo_lengthscale:
         summary = ""
-        for k, v in sorted(data.items()):
+        for k, v in sorted(data.photo_lengthscale.items()):
             summary += "\n{} [{}]".format(k, ", ".join(v.keys()))
 
         raise ValueError("Invalid species {}.  Choose from:{}".format(species, summary))
 
-    gas = data[species]
+    gas = data.photo_lengthscale[species]
     source = default_sources[species] if source is None else source
 
     if source not in gas:
@@ -110,7 +109,7 @@ def photo_timescale(species=None, source=None):
     Parameters
     ----------
     species : string, optional
-        Species to look up.  Use ``None`` to show a list of all species and
+        Species to look up or ``None`` to show a list of all species and
         sources.
 
     source : string, optional
@@ -119,9 +118,9 @@ def photo_timescale(species=None, source=None):
 
     Returns
     -------
-    tau : `~astropy.units.Quantity`
+    tau : `~astropy.units.Quantity` or ``None``
       The timescale at 1 au.  May be a two-element array: (quiet Sun, active
-      Sun).
+      Sun).  ``None`` is returned if ``species`` is ``None``.
 
 
     Examples
@@ -145,8 +144,6 @@ def photo_timescale(species=None, source=None):
 
     """
 
-    from .data import photo_timescale as data
-
     default_sources = {
         "H2O": "CS93",
         "OH": "CS93",
@@ -158,9 +155,9 @@ def photo_timescale(species=None, source=None):
         "CN": "H92",
     }
 
-    if species not in data:
+    if species not in data.photo_timescale:
         rows = []
-        for sp, sources in data.items():
+        for sp, sources in data.photo_timescale.items():
             for source, (tau, bibcode) in sources.items():
                 rows.append(
                     {
@@ -172,9 +169,11 @@ def photo_timescale(species=None, source=None):
                     }
                 )
         Table(rows).pprint_all()
-        raise ValueError("Invalid species {}".format(species))
+        if species is not None:
+            raise ValueError("Invalid species {}".format(species))
+        return None
 
-    gas = data[species]
+    gas = data.photo_timescale[species]
     source = default_sources[species] if source is None else source
 
     if source not in gas:
