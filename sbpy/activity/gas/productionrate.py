@@ -288,7 +288,7 @@ def beta_factor(mol_data, source, eph):
     if not isinstance(mol_data["mol_tag"][0], str):
         required_packages(
             "astroquery",
-            message=f"mol_tag = {mol_data["mol_tag"][0]} requires astroquery",
+            message=f"mol_tag = {mol_data['mol_tag'][0]} requires astroquery",
         )
 
         cat = JPLSpec.get_species_table()
