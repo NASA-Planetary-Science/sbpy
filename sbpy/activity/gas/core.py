@@ -41,18 +41,19 @@ from ..core import (
 from . import data
 
 
-def photo_lengthscale(species, source=None):
+def photo_lengthscale(species=None, source=None):
     """Photodissociation lengthscale for a gas species.
 
 
     Parameters
     ----------
-    species : string
-        The species to look up.
+    species : string, optional
+        The species to look up or ``None`` to list all available species and
+        sources.
 
     source : string, optional
-        Retrieve values from this source (case insensitive).  See
-        references for keys.
+        Retrieve values from this source (case insensitive).  See references for
+        keys.
 
 
     Returns
@@ -69,8 +70,8 @@ def photo_lengthscale(species, source=None):
 
     References
     ----------
-    [CS93] H2O and OH from Table IV of Cochran & Schleicher 1993,
-    Icarus 105, 235-253.  Quoted for intermediate solar activity.
+    [CS93] H2O and OH from Table IV of Cochran & Schleicher 1993, Icarus 105,
+    235-253.  Quoted for intermediate solar activity.
 
     """
 
@@ -80,11 +81,22 @@ def photo_lengthscale(species, source=None):
     }
 
     if species not in data.photo_lengthscale:
-        summary = ""
-        for k, v in sorted(data.photo_lengthscale.items()):
-            summary += "\n{} [{}]".format(k, ", ".join(v.keys()))
-
-        raise ValueError("Invalid species {}.  Choose from:{}".format(species, summary))
+        rows = []
+        for sp, sources in data.photo_lengthscale.items():
+            for source, (gamma, bibcode) in sources.items():
+                rows.append(
+                    {
+                        "species": sp,
+                        "source": source,
+                        "default": source == default_sources[sp],
+                        "gamma": gamma,
+                        "bibcode": ",".join(bibcode.values()),
+                    }
+                )
+        Table(rows).pprint_all()
+        if species is not None:
+            raise ValueError("Invalid species {}".format(species))
+        return None
 
     gas = data.photo_lengthscale[species]
     source = default_sources[species] if source is None else source

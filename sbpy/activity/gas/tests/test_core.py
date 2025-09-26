@@ -32,6 +32,9 @@ def test_photo_lengthscale_error():
     with pytest.raises(ValueError):
         photo_lengthscale("OH", source="asdf")
 
+    # no exception expected
+    assert photo_lengthscale() is None
+
 
 def test_photo_timescale():
     tau = photo_timescale("CO2", "CE83")
@@ -42,11 +45,11 @@ def test_photo_timescale_error():
     with pytest.raises(ValueError):
         photo_timescale("asdf")
 
-    # no exception expected
-    photo_timescale(None)
-
     with pytest.raises(ValueError):
         photo_timescale("OH", source="asdf")
+
+    # no exception expected
+    assert photo_timescale() is None
 
 
 @pytest.mark.parametrize(
