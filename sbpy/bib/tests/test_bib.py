@@ -63,11 +63,18 @@ from ..core import *
 def test_register_single():
     reset()
     with Tracking():
-        register('test1', {'track_this': 'bibcode1'})
+        register("test1", {"track_this": "bibcode1"})
 
-    assert (set(['sbpy:', 'software:', '2019JOSS....4.1426M',
-                 'test1:', 'track_this:', 'bibcode1'])
-            == set(show().split()))
+    assert set(
+        [
+            "sbpy:",
+            "software:",
+            "2019JOSS....4.1426M",
+            "test1:",
+            "track_this:",
+            "bibcode1",
+        ]
+    ) == set(show().split())
     stop()
     reset()
 
@@ -75,11 +82,19 @@ def test_register_single():
 def test_register_list():
     reset()
     with Tracking():
-        register('test1', {'track_this': ['bibcode1', 'bibcode2']})
+        register("test1", {"track_this": ["bibcode1", "bibcode2"]})
 
-    assert (set(['sbpy:', 'software:', '2019JOSS....4.1426M',
-                 'test1:', 'track_this:', 'bibcode1', 'bibcode2'])
-            == set(show().split()))
+    assert set(
+        [
+            "sbpy:",
+            "software:",
+            "2019JOSS....4.1426M",
+            "test1:",
+            "track_this:",
+            "bibcode1",
+            "bibcode2",
+        ]
+    ) == set(show().split())
     stop()
     reset()
 
@@ -87,11 +102,11 @@ def test_register_list():
 def test_register_double():
     reset()
     with Tracking():
-        register('test1', {'track_this': ['bibcode1', 'bibcode2']})
-        register('test1', {'track_this': ['bibcode2']})
-        register('test1', {'track_this': ['bibcode3']})
+        register("test1", {"track_this": ["bibcode1", "bibcode2"]})
+        register("test1", {"track_this": ["bibcode2"]})
+        register("test1", {"track_this": ["bibcode3"]})
 
-    assert show().count('bibcode2') == 1
+    assert show().count("bibcode2") == 1
     stop()
     reset()
 
@@ -100,20 +115,35 @@ def test_Tracking():
     reset()
     with Tracking():
         assert status()
-        register('test1', {'track_this': 'bibcode1'})
-        register('test1', {'track_this': 'bibcode2'})
-        register('test1', {'track_this_too': 'bibcode'})
-        register('test2', {'track_this': 'bibcode'})
-        register('test3', {'track_this': 'bibcode',
-                           'and_track_that': 'bibcode'})
+        register("test1", {"track_this": "bibcode1"})
+        register("test1", {"track_this": "bibcode2"})
+        register("test1", {"track_this_too": "bibcode"})
+        register("test2", {"track_this": "bibcode"})
+        register("test3", {"track_this": "bibcode", "and_track_that": "bibcode"})
     assert not status()
 
-    register('test', {'do not track this': 'bibcode'})
-    assert set(['sbpy:', 'software:', '2019JOSS....4.1426M',
-                'test1:', 'track_this:', 'bibcode1', 'bibcode2',
-                'track_this_too:', 'bibcode', 'test2:', 'track_this:',
-                'bibcode', 'test3:', 'track_this:', 'bibcode',
-                'and_track_that:', 'bibcode']) == set(show().split())
+    register("test", {"do not track this": "bibcode"})
+    assert set(
+        [
+            "sbpy:",
+            "software:",
+            "2019JOSS....4.1426M",
+            "test1:",
+            "track_this:",
+            "bibcode1",
+            "bibcode2",
+            "track_this_too:",
+            "bibcode",
+            "test2:",
+            "track_this:",
+            "bibcode",
+            "test3:",
+            "track_this:",
+            "bibcode",
+            "and_track_that:",
+            "bibcode",
+        ]
+    ) == set(show().split())
     # different builds will have different orders for bibcode 1 and 2, to
     # avoid the build failing because of this we use sets
     stop()
@@ -122,13 +152,14 @@ def test_Tracking():
 
 def test_Tracking_issue_64():
     from sbpy.activity import photo_lengthscale
+
     reset()
     with Tracking():
-        gamma_H2O = photo_lengthscale('H2O')
-        gamma_OH = photo_lengthscale('OH')
+        gamma_H2O = photo_lengthscale("H2O")
+        gamma_OH = photo_lengthscale("OH")
     words = show().split()
-    assert 'OH' in words
-    assert 'H2O' in words
+    assert "OH" in words
+    assert "H2O" in words
     stop()
     reset()
 
@@ -136,49 +167,68 @@ def test_Tracking_issue_64():
 def test_Tracking_reporter(capsys):
     reset()
     with Tracking(reporter=show):
-        register('test1', {'track_this': 'bibcode1'})
+        register("test1", {"track_this": "bibcode1"})
     captured = capsys.readouterr()
-    assert (set(['sbpy:', 'software:', '2019JOSS....4.1426M',
-                 'test1:', 'track_this:', 'bibcode1'])
-            == set(captured.out.split()))
+    assert set(
+        [
+            "sbpy:",
+            "software:",
+            "2019JOSS....4.1426M",
+            "test1:",
+            "track_this:",
+            "bibcode1",
+        ]
+    ) == set(captured.out.split())
     stop()
     reset()
 
 
 def test_cite_function():
 
-    @cite({'method': '1687pnpm.book.....N'})
+    @cite({"method": "1687pnpm.book.....N"})
     def force(mass, acceleration):
         return mass * acceleration
 
     reset()
     track()
     force(1, 2)
-    assert (set(
-        ['sbpy:', 'software:', '2019JOSS....4.1426M',
-         'sbpy.bib.tests.test_bib.test_cite_function.<locals>.force:',
-         'method:', '1687pnpm.book.....N'])
-        == set(show().split()))
+    assert set(
+        [
+            "sbpy:",
+            "software:",
+            "2019JOSS....4.1426M",
+            "sbpy.bib.tests.test_bib.test_cite_function.<locals>.force:",
+            "method:",
+            "1687pnpm.book.....N",
+        ]
+    ) == set(show().split())
     stop()
     reset()
 
 
 def test_cite_function_twice():
 
-    @cite({'method': '1687pnpm.book.....N'})
-    @cite({'interpretation': 'philosophical reference'})
+    @cite({"method": "1687pnpm.book.....N"})
+    @cite({"interpretation": "philosophical reference"})
     def force(mass, acceleration):
         return mass * acceleration
 
     reset()
     track()
     force(1, 2)
-    assert (set(
-        ['sbpy:', 'software:', '2019JOSS....4.1426M',
-         'sbpy.bib.tests.test_bib.test_cite_function_twice.<locals>.force:',
-         'method:', '1687pnpm.book.....N', 'interpretation:',
-         'philosophical', 'reference'])
-        == set(show().split()))
+    assert set(
+        [
+            "sbpy:",
+            "software:",
+            "2019JOSS....4.1426M",
+            "sbpy.bib.tests.test_bib.test_cite_function_twice.<locals>.force:",
+            "method:",
+            "1687pnpm.book.....N",
+            "interpretation:",
+            "philosophical",
+            "reference",
+        ]
+    ) == set(show().split())
     stop()
     reset()
 
@@ -188,7 +238,7 @@ def test_cite_class_method():
 
     class Physics:
         @staticmethod
-        @cite({'method': '1687pnpm.book.....N'})
+        @cite({"method": "1687pnpm.book.....N"})
         def force(mass, acceleration):
             return mass * acceleration
 
@@ -196,19 +246,23 @@ def test_cite_class_method():
         p = Physics()
         p.force(1, 2)
 
-    assert (set([
-        'sbpy:', 'software:', '2019JOSS....4.1426M',
-        'sbpy.bib.tests.test_bib.test_cite_class_method'
-        '.<locals>.Physics.force:',
-        'method:', '1687pnpm.book.....N'])
-        == set(show().split()))
+    assert set(
+        [
+            "sbpy:",
+            "software:",
+            "2019JOSS....4.1426M",
+            "sbpy.bib.tests.test_bib.test_cite_class_method" ".<locals>.Physics.force:",
+            "method:",
+            "1687pnpm.book.....N",
+        ]
+    ) == set(show().split())
     reset()
 
 
 def test_cite_class():
     reset()
 
-    @cite({'method': '1687pnpm.book.....N'})
+    @cite({"method": "1687pnpm.book.....N"})
     class Force:
         def __call__(self, mass, acceleration):
             return mass * acceleration
@@ -217,29 +271,44 @@ def test_cite_class():
         f = Force()
         f(1, 2)
 
-    assert (set([
-        'sbpy:', 'software:', '2019JOSS....4.1426M',
-        'sbpy.bib.tests.test_bib.test_cite_class'
-        '.<locals>.Force:', 'method:', '1687pnpm.book.....N'])
-        == set(show().split()))
+    assert set(
+        [
+            "sbpy:",
+            "software:",
+            "2019JOSS....4.1426M",
+            "sbpy.bib.tests.test_bib.test_cite_class" ".<locals>.Force:",
+            "method:",
+            "1687pnpm.book.....N",
+        ]
+    ) == set(show().split())
     reset()
 
 
 def test_filter():
     reset()
     with Tracking():
-        register('test1', {'track_this': 'bibcode1'})
-        register('test1', {'software': 'bibcode2'})
-        register('test1', {'track_this_too': 'bibcode'})
-        register('test2', {'software': 'bibcode'})
-        register('test3', {'track_this': 'bibcode',
-                           'software': 'bibcode'})
+        register("test1", {"track_this": "bibcode1"})
+        register("test1", {"software": "bibcode2"})
+        register("test1", {"track_this_too": "bibcode"})
+        register("test2", {"software": "bibcode"})
+        register("test3", {"track_this": "bibcode", "software": "bibcode"})
 
-    assert set(['sbpy:', 'software:', '2019JOSS....4.1426M',
-                'test1:', 'software:', 'bibcode2',
-                'test2:', 'software:', 'bibcode',
-                'test3:', 'software:',
-                'bibcode']) == set(show(filter='software').split())
+    assert set(
+        [
+            "sbpy:",
+            "software:",
+            "2019JOSS....4.1426M",
+            "test1:",
+            "software:",
+            "bibcode2",
+            "test2:",
+            "software:",
+            "bibcode",
+            "test3:",
+            "software:",
+            "bibcode",
+        ]
+    ) == set(show(filter="software").split())
     # different builds will have different orders for bibcode 1 and 2, to
     # avoid the build failing because of this we use sets
     stop()
