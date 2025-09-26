@@ -155,8 +155,8 @@ def test_Tracking_issue_64():
 
     reset()
     with Tracking():
-        gamma_H2O = photo_lengthscale("H2O")
-        gamma_OH = photo_lengthscale("OH")
+        gamma_H2O = photo_lengthscale("H2O", "CS93")
+        gamma_OH = photo_lengthscale("OH", "CS93")
     words = show().split()
     assert "OH" in words
     assert "H2O" in words
