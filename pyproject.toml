@@ -1,5 +1,114 @@
+[project]
+name = "sbpy"
+description = "Python module for small-body planetary astronomy"
+readme = "README.rst"
+authors = [{ name = "sbpy team", email = "msk@astro.umd.edu" }]
+license = { text = "BSD 3-Clause License" }
+dependencies = ["numpy>1.24.0", "astropy>=5.3.3"]
+dynamic = ["version"]
+keywords = [
+    "astronomy",
+    "astrophysics",
+    "planetary",
+    "asteroid",
+    "comet",
+    "space",
+    "science",
+]
+classifiers = [
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: BSD License",
+    "Programming Language :: C",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: Astronomy",
+]
+
+[project.urls]
+homepage = "https://sbpy.org"
+documentation = "https://sbpy.readthedocs.io/"
+repository = "https://github.com/sbpy/sbpy"
+
 [build-system]
-requires = ["setuptools",
-            "setuptools_scm",
-            "wheel"]
+requires = ["setuptools>=77", "setuptools_scm>=8.0.0"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
+write_to = "sbpy/_version.py"
+
+[tool.setuptools]
+zip-safe = false
+include-package-data = true
+
+[tool.setuptools.packages.find]
+
+[tool.setuptools.package-data]
+sbpy = ["*.fits", "*.csv", "*.txt"]
+
+[project.optional-dependencies]
+recommended = [
+    "ads>=0.12",
+    "astroquery>=0.4.5",
+    "scipy>=1.10",
+    "synphot>=1.1.1",
+]
+all = [
+    "ads>=0.12",
+    "astroquery>=0.4.5",
+    "ginga",
+    "photutils",
+    "pyoorb",
+    "pyyaml",
+    "scipy>=1.10",
+    "synphot>=1.1.1",
+]
+test = [
+    "pytest>=8.0",
+    "pytest-astropy>=0.10",
+    "pytest-astropy-header>=0.2.1",
+    "pytest-doctestplus>=0.12",
+    "pytest-remotedata",
+    "pytest-xdist",
+    "coverage",
+]
+docs = [
+    "sbpy[all,test]",
+    "matplotlib>=3.8",
+    "sphinx-astropy>=1.3",
+    "astropy!=6.1.*",
+    "scipy>=1.10",
+    "numpy<2",
+]
+
+[project.scripts]
+sbpy-ephem = "sbpy.data.ephem.cli:EphemerisCLI.run"
+
+[project.entry-points."ginga.rv.plugins"]
+cometaryenhancements = "sbpy.ginga_plugins:setup_cometaryenhancements"
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["sbpy", "docs"]
+norecursedirs = ["docs[\\/]_build"]
+astropy_header = true
+doctest_plus = "enabled"
+text_file_format = "rst"
+remote_data_strict = true
+addopts = [
+    "--doctest-rst",
+    "--doctest-plus",
+    "--ignore-glob=\"*/compile_fieldnames.py\"",
+    "--color=yes",
+]
+xfail_strict = true
+filterwarnings = [
+    "ignore:numpy.ufunc size changed:RuntimeWarning",
+    "ignore:numpy.ndarray size changed:RuntimeWarning",
+]
+doctest_norecursedirs = ["*/setup_package.py", "docs/_build"]
+doctest_subpackage_requires = [
+    "docs/sbpy/photometry.rst = astroquery",
+    "docs/sbpy/data/ephem.rst = astroquery",
+    "docs/sbpy/data/obs.rst = astroquery",
+    "docs/sbpy/data/orbit.rst = astroquery,oorb",
+    "docs/sbpy/data/phys.rst = astroquery",
+]
