@@ -26,7 +26,7 @@ classifiers = [
 [project.urls]
 homepage = "https://sbpy.org"
 documentation = "https://sbpy.readthedocs.io/"
-repository = "https://github.com/sbpy/sbpy"
+repository = "https://github.com/NASA-Planetary-Science/sbpy"
 
 [build-system]
 requires = ["setuptools>=77", "setuptools_scm>=8.0.0"]
