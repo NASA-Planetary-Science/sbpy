@@ -1,16 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 """
-This is an Astropy affiliated package.
+sbpy: The Small Bodies Python package
 """
 
-# Affiliated packages may add whatever they like to this file, but
-# should keep this content at the top.
-# ----------------------------------------------------------------------------
-from ._astropy_init import *
-# ----------------------------------------------------------------------------
+from importlib.metadata import version as _version, PackageNotFoundError
 
-
-# For egg_info test builds to pass, put package imports here.
-# if not _ASTROPY_SETUP_:
-#     from sbpy import *
+try:
+    __version__ = _version(__name__)
+except PackageNotFoundError:
+    pass
