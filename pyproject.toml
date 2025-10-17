@@ -1,6 +1,6 @@
 [project]
 name = "sbpy"
-description = "Python module for small-body planetary astronomy"
+description = "An Astropy affiliated package for small-body planetary astronomy"
 readme = "README.rst"
 authors = [{ name = "sbpy team", email = "msk@astro.umd.edu" }]
 license = { text = "BSD 3-Clause License" }
