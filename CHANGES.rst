@@ -10,22 +10,53 @@ Update supported versions [#419]:
 New Features
 ------------
 
+sbpy.activity.gas
+^^^^^^^^^^^^^^^^^
+
+- Added active and quiet sun photolysis rates for H2O and CO2 from Huebner &
+  Mukherjee 2015 to `sbpy.activity.gas.photo_timescale`. [#425]
+
+
 sbpy.names
 ^^^^^^^^^^
+
 - Added functionality to `sbpy.Names.from_packed()` and
   `sbpy.Names.to_packed()` to handle new extended provisional designations
   to be implemented by the MPC in anticipation of higher asteroid discovery
-  rates in the LSST survey era [#406]
+  rates in the LSST survey era. [#406]
+
 
 API Changes
 -----------
+
+sbpy.activity.gas
+^^^^^^^^^^^^^^^^^
+
+- Data source is now a required parameter for
+  `sbpy.activity.gas.photo_lengthscale` and `sbpy.activity.gas.photo_timescale`.
+  If the data source is ``None``, then a table of sources will be printed.
+  [#425]
+
+
+sbpy.activity.gas.productionrate
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Data source is now a required parameter for
+  `sbpy.activity.gas.productionrate.beta_factor`. [#425]
+
+
+sbpy.ginga_plugins
+^^^^^^^^^^^^^^^^^^
+
 - Deprecated `sbpy.ginga_plugins` in favor of using `sbpy-ginga` at
   https://github.com/NASA-Planetary-Science/sbpy-ginga [#413]
+
 
 sbpy.data.ephem
 ^^^^^^^^^^^^^^^
 
 - New command-line script: ``sbpy-ephem``. [#396]
+
 
 Other Changes and Additions
 ---------------------------
@@ -34,6 +65,7 @@ sbpy.activity.gas
 ^^^^^^^^^^^^^^^^^
 - Replaced calls to the deprecated function `scipy.integrate.romberg` with
   `scipy.integrate.quad`.  [#412]
+
 
 sbpy.names
 ^^^^^^^^^^
@@ -52,6 +84,7 @@ sbpy.names
   the lead character and the year, and no space after the year (e.g.,
   "P2015XN77"), which was previously being interpreted as a packed
   asteroid designation, but now raises a TargetNameParseError [#422]
+
 
 0.5.0 (2024-08-28)
 ==================

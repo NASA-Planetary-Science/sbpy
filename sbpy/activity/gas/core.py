@@ -1,7 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-"""activity.gas core
-
-"""
+"""activity.gas core"""
 
 __all__ = [
     "photo_lengthscale",
@@ -18,6 +16,7 @@ from typing import Callable
 
 import numpy as np
 import astropy.units as u
+from astropy.table import Table
 
 try:
     import scipy
@@ -39,20 +38,37 @@ from ..core import (
     AnnularAperture,
     CircularAperture,
 )
+from . import data
 
 
-def photo_lengthscale(species, source=None):
+def _show_photodissociation_help(data, variable):
+    rows = []
+    for species, sources in data.items():
+        for source, (x, bibcode) in sources.items():
+            rows.append(
+                {
+                    "species": species,
+                    "source": source,
+                    variable: x,
+                    "bibcode": ",".join(bibcode.values()),
+                }
+            )
+    Table(rows).pprint_all()
+
+
+def photo_lengthscale(species=None, source=None):
     """Photodissociation lengthscale for a gas species.
 
 
     Parameters
     ----------
-    species : string
-        The species to look up.
+    species : string, optional
+        The species to look up or ``None`` to list all available species and
+        sources.
 
     source : string, optional
-        Retrieve values from this source (case insensitive).  See
-        references for keys.
+        Retrieve values from this source (case insensitive) or ``None`` to list
+        all available sources.
 
 
     Returns
@@ -64,77 +80,68 @@ def photo_lengthscale(species, source=None):
     Examples
     --------
     >>> from sbpy.activity import photo_lengthscale
-    >>> gamma = photo_lengthscale('OH')
+    >>> gamma = photo_lengthscale("OH", "CS93")
 
 
     References
     ----------
-    [CS93] H2O and OH from Table IV of Cochran & Schleicher 1993,
-    Icarus 105, 235-253.  Quoted for intermediate solar activity.
+    [CS93] H2O and OH from Table IV of Cochran & Schleicher 1993, Icarus 105,
+    235-253.  Quoted for intermediate solar activity.
 
     """
 
-    from .data import photo_lengthscale as data
+    species_data = data.photo_lengthscale.get(species)
 
-    default_sources = {
-        "H2O": "CS93",
-        "OH": "CS93",
-    }
+    if species_data is None:
+        _show_photodissociation_help(data.photo_lengthscale, "gamma")
+        if species is not None:
+            raise ValueError(f"Species {species} not found")
+        return None
 
-    if species not in data:
-        summary = ""
-        for k, v in sorted(data.items()):
-            summary += "\n{} [{}]".format(k, ", ".join(v.keys()))
+    gamma, bibcode = species_data.get(source, (None, None))
 
-        raise ValueError(
-            "Invalid species {}.  Choose from:{}".format(species, summary))
+    if gamma is None:
+        _show_photodissociation_help({species: species_data}, "gamma")
+        if source is not None:
+            raise ValueError(f"Source {source} not found for species {species}")
+        return None
 
-    gas = data[species]
-    source = default_sources[species] if source is None else source
-
-    if source not in gas:
-        raise ValueError(
-            "Source key {} not available for {}.  Choose from: {}".format(
-                source, species, ", ".join(gas.keys())
-            )
-        )
-
-    gamma, bibcode = gas[source]
     bib.register(photo_lengthscale, bibcode)
-
     return gamma
 
 
-def photo_timescale(species, source=None):
+def photo_timescale(species=None, source=None):
     """Photodissociation timescale for a gas species.
 
 
     Parameters
     ----------
-    species : string
-        Species to look up.
+    species : string, optional
+        Species to look up or ``None`` to show a list of all species and
+        sources.
 
     source : string, optional
-        Retrieve values from this source.  See references for keys.
+        Retrieve values from this source or ``None`` to show a list of all
+        sources for given species.
 
 
     Returns
     -------
-    tau : `~astropy.units.Quantity`
-      The timescale at 1 au.  May be a two-element array: (quiet Sun,
-      active Sun).
+    tau : `~astropy.units.Quantity` or ``None``
+      The timescale at 1 au.  May be a two-element array: (quiet Sun, active
+      Sun).  ``None`` is returned if ``species`` or ``source`` is ``None``.
 
 
     Examples
     --------
     >>> from sbpy.activity import photo_timescale
-    >>> tau = photo_timescale('OH')
+    >>> tau = photo_timescale("OH", "CS93")
 
 
     References
     ----------
-    [CS93] Table IV of Cochran & Schleicher 1993, Icarus 105, 235-253.
-    Quoted for intermediate solar activity.
+    [CS93] Table IV of Cochran & Schleicher 1993, Icarus 105, 235-253. Quoted
+    for intermediate solar activity.
 
     [C94] Crovisier 1994, JGR 99, 3777-3781.
 
@@ -142,42 +149,27 @@ def photo_timescale(species, source=None):
 
     [H92] Huebner et al. 1992, Astroph. & Space Sci. 195, 1-294.
 
+    [HM15] Huebner and Mukherjee 2015, Plan. & Space Sci. 106, 11-45.
+
     """
 
-    from .data import photo_timescale as data
+    species_data = data.photo_timescale.get(species)
 
-    default_sources = {
-        "H2O": "CS93",
-        "OH": "CS93",
-        "HCN": "C94",
-        "CH3OH": "C94",
-        "H2CO": "C94",
-        "CO2": "CE83",
-        "CO": "CE83",
-        "CN": "H92",
-    }
+    if species_data is None:
+        _show_photodissociation_help(data.photo_timescale, "tau")
+        if species is not None:
+            raise ValueError(f"Species {species} not found")
+        return None
 
-    if species not in data:
-        summary = ""
-        for k, v in sorted(data.items()):
-            summary += "\n{} [{}]".format(k, ", ".join(v.keys()))
+    tau, bibcode = species_data.get(source, (None, None))
 
-        raise ValueError(
-            "Invalid species {}.  Choose from:{}".format(species, summary))
+    if tau is None:
+        _show_photodissociation_help({species: species_data}, "gamma")
+        if source is not None:
+            raise ValueError(f"Source {source} not found for species {species}")
+        return None
 
-    gas = data[species]
-    source = default_sources[species] if source is None else source
-
-    if source not in gas:
-        raise ValueError(
-            "Source key {} not available for {}.  Choose from: {}".format(
-                source, species, ", ".join(gas.keys())
-            )
-        )
-
-    tau, bibcode = gas[source]
     bib.register(photo_timescale, bibcode)
-
     return tau
 
 
@@ -549,9 +541,7 @@ class GasComa(ABC):
 
                 """
                 return (
-                    rho
-                    * np.exp(-(rho**2) / sigma**2 / 2)
-                    * self._column_density(rho)
+                    rho * np.exp(-(rho**2) / sigma**2 / 2) * self._column_density(rho)
                 )
 
             sigma = aper.sigma.to_value("m")
@@ -662,12 +652,7 @@ class Haser(GasComa):
             daughter = self.daughter.to(rho.unit)
             y = (rho / daughter).to_value("")
             N *= (daughter / (parent - daughter)).to_value("") * (
-                self._iK0(y)
-                - self._iK0(x)
-                + x**-1
-                - y**-1
-                + self._K1(y)
-                - self._K1(x)
+                self._iK0(y) - self._iK0(x) + x**-1 - y**-1 + self._K1(y) - self._K1(x)
             )
 
         return N
@@ -692,6 +677,7 @@ class VMParent:
     sigma : float
         See VectorialModel documentation.
     """
+
     v_outflow: float
     tau_d: float
     tau_T: float
@@ -711,6 +697,7 @@ class VMFragment:
     tau_T : float
         See VectorialModel documentation.
     """
+
     v_photo: float
     tau_T: float
 
@@ -733,6 +720,7 @@ class VMGridParams:
     radial_substeps : int
         See VectorialModel documentation.
     """
+
     radial_points: int
     angular_points: int
     radial_substeps: int
@@ -755,6 +743,7 @@ class VMParams:
     max_fragment_lifetimes : float
         See VectorialModel documentation.
     """
+
     parent_destruction_level: float
     fragment_destruction_level: float
     max_fragment_lifetimes: float
@@ -780,6 +769,7 @@ class VMFragmentSputterPolar:
         List of fragment densities at the corresponding ``rs[i]`` and
         ``thetas[j]``.
     """
+
     rs: np.ndarray
     thetas: np.ndarray
     fragment_density: np.ndarray
@@ -861,6 +851,7 @@ class VMResult:
         will also measure how long the effects of a single outburst can affect
         the density.
     """
+
     volume_density_grid: np.ndarray = None
     volume_density: np.ndarray = None
     column_density_grid: np.ndarray = None
@@ -1146,7 +1137,7 @@ class VectorialModel(GasComa):
             q_t=VectorialModel._make_binned_production(qs, ts),
             fragment=fragment,
             parent=parent,
-            **kwargs
+            **kwargs,
         )
 
     def _make_binned_production(qs, ts) -> Callable[[np.float64], np.float64]:
@@ -1275,13 +1266,11 @@ class VectorialModel(GasComa):
         # occupy)
         # NOTE: Equation (16) of Festou 1981 where alpha is the percent
         # destruction of molecules
-        parent_beta_r = - \
-            np.log(1.0 - self.model_params.parent_destruction_level)
+        parent_beta_r = -np.log(1.0 - self.model_params.parent_destruction_level)
         parent_r = parent_beta_r * vp * self.parent.tau_T
         self.vmr.coma_radius = parent_r * u.m
 
-        fragment_beta_r = - \
-            np.log(1.0 - self.model_params.fragment_destruction_level)
+        fragment_beta_r = -np.log(1.0 - self.model_params.fragment_destruction_level)
         # Calculate the time needed to hit a steady, permanent production of
         # fragments
         perm_flow_radius = self.vmr.coma_radius.value + (
@@ -1510,8 +1499,7 @@ class VectorialModel(GasComa):
 
                 # differential addition to the density integrating along dr,
                 # similar to eq. (36) Festou 1981
-                n_r = (p_extinction * f_extinction *
-                       q_r_eps) / (sep_dist**2 * v)
+                n_r = (p_extinction * f_extinction * q_r_eps) / (sep_dist**2 * v)
 
                 sputter += n_r * dr
 
@@ -1567,8 +1555,7 @@ class VectorialModel(GasComa):
         # Equivalent to summing over j for sin(theta[j]) *
         # fragment_sputter[i][j] with numpy magic
         self.solid_angle_sputter = np.sin(thetas) * self.fragment_sputter
-        self.fast_voldens = 2.0 * np.pi * \
-            np.sum(self.solid_angle_sputter, axis=1)
+        self.fast_voldens = 2.0 * np.pi * np.sum(self.solid_angle_sputter, axis=1)
 
         # Tag with proper units
         self.vmr.volume_density = self.fast_voldens / (u.m**3)
@@ -1633,8 +1620,7 @@ class VectorialModel(GasComa):
         def column_density_integrand(z):
             return self._volume_density(np.sqrt(z**2 + rhosq))
 
-        c_dens = 2 * quad(column_density_integrand, 0,
-                          z_max, epsrel=0.0001)[0]
+        c_dens = 2 * quad(column_density_integrand, 0, z_max, epsrel=0.0001)[0]
 
         # result is in 1/m^2
         return c_dens
@@ -1709,8 +1695,7 @@ class VectorialModel(GasComa):
         for i, t in enumerate(time_slices[:-1]):
             extinction_one = t / p_tau_T
             extinction_two = time_slices[i + 1] / p_tau_T
-            mult_factor = -np.e ** (-extinction_one) + \
-                np.e ** (-extinction_two)
+            mult_factor = -np.e ** (-extinction_one) + np.e ** (-extinction_two)
             theory_total += self.production_at_time(t) * mult_factor
 
         return theory_total * alpha - edge_adjust

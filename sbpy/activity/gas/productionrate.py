@@ -26,13 +26,19 @@ except ImportError:
     pyradex = None
 
 from ...bib import register
-from ...data import Phys
+from ...data import Phys, Ephem
 from ...utils.decorators import requires
 from ...utils import required_packages
 
-__all__ = ['LTE', 'NonLTE', 'einstein_coeff',
-           'intensity_conversion', 'beta_factor', 'total_number',
-           'from_Haser']
+__all__ = [
+    "LTE",
+    "NonLTE",
+    "einstein_coeff",
+    "intensity_conversion",
+    "beta_factor",
+    "total_number",
+    "from_Haser",
+]
 
 __doctest_requires__ = {
     "LTE.from_Drahus": ["astroquery>=0.4.7"],
@@ -86,34 +92,40 @@ def intensity_conversion(mol_data):
     """
 
     if not isinstance(mol_data, Phys):
-        raise ValueError('mol_data must be a `sbpy.data.Phys` instance.')
+        raise ValueError("mol_data must be a `sbpy.data.Phys` instance.")
 
-    temp = mol_data['Temperature'][0]
-    lgint = mol_data['lgint300'][0]
-    part300 = mol_data['partfn300'][0]
-    partition = mol_data['partfn'][0]
-    eup_J = mol_data['eup_j'][0]
-    elo_J = mol_data['elo_J'][0]
-    df = mol_data['degfr'][0]
+    temp = mol_data["Temperature"][0]
+    lgint = mol_data["lgint300"][0]
+    part300 = mol_data["partfn300"][0]
+    partition = mol_data["partfn"][0]
+    eup_J = mol_data["eup_j"][0]
+    elo_J = mol_data["elo_J"][0]
+    df = mol_data["degfr"][0]
 
-    register(intensity_conversion, {'conversion': '1998JQSRT..60..883P'})
+    register(intensity_conversion, {"conversion": "1998JQSRT..60..883P"})
 
-    k = con.k_B.to('J/K')  # Boltzmann constant
+    k = con.k_B.to("J/K")  # Boltzmann constant
 
     if (eup_J - elo_J) < (k * min(temp, 300 * u.K)):
 
         if df in (0, 2):
             n = 1
         else:
-            n = 3./2
-        intl = lgint*(300*u.K/temp)**(n+1)*np.exp(-(1/temp - 1/(300*u.K))
-                                                  * elo_J/k)
+            n = 3.0 / 2
+        intl = (
+            lgint
+            * (300 * u.K / temp) ** (n + 1)
+            * np.exp(-(1 / temp - 1 / (300 * u.K)) * elo_J / k)
+        )
 
     else:
 
-        intl = lgint*(part300/partition)*(np.exp(-elo_J/(k*temp)) -
-                                          np.exp(-eup_J/(k*temp))) / \
-            (np.exp(-elo_J/(k*300 * u.K)) - np.exp(-eup_J/(k*300*u.K)))
+        intl = (
+            lgint
+            * (part300 / partition)
+            * (np.exp(-elo_J / (k * temp)) - np.exp(-eup_J / (k * temp)))
+            / (np.exp(-elo_J / (k * 300 * u.K)) - np.exp(-eup_J / (k * 300 * u.K)))
+        )
 
     return intl
 
@@ -157,53 +169,69 @@ def einstein_coeff(mol_data):
     """
 
     if not isinstance(mol_data, Phys):
-        raise ValueError('mol_data must be a `sbpy.data.phys` instance.')
+        raise ValueError("mol_data must be a `sbpy.data.phys` instance.")
 
-    temp = mol_data['Temperature'][0]
-    lgint = mol_data['lgint300'][0]
-    part300 = mol_data['partfn300'][0]
-    partition = mol_data['partfn'][0]
-    eup_J = mol_data['eup_j'][0]
-    elo_J = mol_data['elo_J'][0]
-    df = mol_data['degfr'][0]
-    t_freq = mol_data['t_freq'][0]
-    gu = mol_data['dgup'][0]
+    temp = mol_data["Temperature"][0]
+    lgint = mol_data["lgint300"][0]
+    part300 = mol_data["partfn300"][0]
+    partition = mol_data["partfn"][0]
+    eup_J = mol_data["eup_j"][0]
+    elo_J = mol_data["elo_J"][0]
+    df = mol_data["degfr"][0]
+    t_freq = mol_data["t_freq"][0]
+    gu = mol_data["dgup"][0]
 
-    h = con.h.to('J*s')  # Planck constant
+    h = con.h.to("J*s")  # Planck constant
 
-    k = con.k_B.to('J/K')  # Boltzmann constant
+    k = con.k_B.to("J/K")  # Boltzmann constant
 
-    intl = mol_data['lgint'][0]
+    intl = mol_data["lgint"][0]
 
-    if (h*t_freq/(k*temp)).decompose().value and \
-            (h*t_freq/(k*300*u.K)).decompose().value < 1:
+    if (h * t_freq / (k * temp)).decompose().value and (
+        h * t_freq / (k * 300 * u.K)
+    ).decompose().value < 1:
 
-        au = (lgint*t_freq
-              * (part300/gu)*np.exp(eup_J / (k*300*u.K))*(1.748e-9)).value
+        au = (
+            lgint
+            * t_freq
+            * (part300 / gu)
+            * np.exp(eup_J / (k * 300 * u.K))
+            * (1.748e-9)
+        ).value
 
     else:
 
-        au = (intl*(t_freq)**2 *
-              (partition/gu)*(np.exp(-(elo_J/(k*temp)).value) -
-                              np.exp(-(eup_J/(k*temp)).value))**(-1)
-              * (2.7964e-16)).value
+        au = (
+            intl
+            * (t_freq) ** 2
+            * (partition / gu)
+            * (
+                np.exp(-(elo_J / (k * temp)).value)
+                - np.exp(-(eup_J / (k * temp)).value)
+            )
+            ** (-1)
+            * (2.7964e-16)
+        ).value
 
     au = au / u.s
 
     return au
 
 
-def beta_factor(mol_data, ephemobj):
+def beta_factor(mol_data, source, eph):
     """
-    Returns beta factor based on timescales from `~sbpy.activity.gas`
-    and distance from the Sun using an `~sbpy.data.ephem` object.
+    Photodissociation timescale at given heliocentric distance.
+
     The calculation is:
-    parent photodissociation timescale * (distance from comet to Sun)**2
+
+        parent photodissociation timescale * (distance from comet to Sun)**2
+
     If you wish to provide your own beta factor, you can calculate the equation
-    expressed in units of AU**2 * s , all that is needed is the timescale
-    of the molecule and the distance of the comet from the Sun. Once you
-    have the beta factor you can append it to your mol_data phys object
-    with the name 'beta' or any of its alternative names.
+    expressed in units of AU**2 * s , all that is needed is the timescale of the
+    molecule and the distance of the comet from the Sun. Once you have the beta
+    factor you can append it to your mol_data phys object with the name 'beta'
+    or any of its alternative names.
+
 
     Parameters
     ----------
@@ -215,65 +243,63 @@ def beta_factor(mol_data, ephemobj):
         This field can be given by the user directly or found using
         `~sbpy.data.phys.from_jplspec`. If the mol_tag is an integer, the
         program will assume it is the JPL Spectral Molecular Catalog identifier
-        of the molecule and will treat it as such. If mol_tag is a string,
-        then it will be assumed to be the human-readable name of the molecule.
-        The molecule MUST be defined in `sbpy.activity.gas.timescale`,
-        otherwise this function cannot be used and the beta factor
-        will have to be provided by the user directly for calculations. The
-        user can obtain the beta factor from the formula provided above.
-        Keywords that can be used for these values are found under
-        `~sbpy.data.Conf.fieldnames` documentation. We recommend the use of the
-        JPL Molecular Spectral Catalog and the use of
-        `~sbpy.data.Phys.from_jplspec` to obtain
-        these values in order to maintain consistency. Yet, if you wish to
-        use your own molecular data, it is possible. Make sure to inform
-        yourself on the values needed for each function, their units, and
-        their interchangeable keywords as part of the Phys data class.
+        of the molecule and will treat it as such. If mol_tag is a string, then
+        it will be assumed to be the human-readable name of the molecule. The
+        molecule MUST be defined in `sbpy.activity.gas.timescale`, otherwise
+        this function cannot be used and the beta factor will have to be
+        provided by the user directly for calculations. The user can obtain the
+        beta factor from the formula provided above. Keywords that can be used
+        for these values are found under `~sbpy.data.Conf.fieldnames`
+        documentation. We recommend the use of the JPL Molecular Spectral
+        Catalog and the use of `~sbpy.data.Phys.from_jplspec` to obtain these
+        values in order to maintain consistency. Yet, if you wish to use your
+        own molecular data, it is possible. Make sure to inform yourself on the
+        values needed for each function, their units, and their interchangeable
+        keywords as part of the Phys data class.
 
-    ephemobj : `~sbpy.data.ephem`
-        `sbpy.data.ephem` object holding ephemeride information including
+    source : string
+        The literature source key for the timescale data.  See
+        `~sbpy.gas.photo_timescale` for possible values.
+
+    eph : `~sbpy.data.ephem`
+        `sbpy.data.Ephem` object holding ephemeris information including
         distance from comet to Sun ['r'] and from comet to observer ['delta']
 
 
     Returns
     -------
     q : `~astropy.units.Quantity`
-        Beta factor 'beta', which can be appended
-        to the original `sbpy.phys` object for future calculations
+        Beta factor 'beta', which can be appended to the original `sbpy.phys`
+        object for future calculations.
 
     """
+
     # imported here to avoid circular dependency with activity.gas
     from .core import photo_timescale
-    from ...data import Ephem
 
-    if not isinstance(ephemobj, Ephem):
-        raise ValueError('ephemobj must be a `sbpy.data.ephem` instance.')
+    if not isinstance(eph, Ephem):
+        raise ValueError("ephemobj must be a `sbpy.data.ephem` instance.")
     if not isinstance(mol_data, Phys):
-        raise ValueError('mol_data must be a `sbpy.data.phys` instance.')
+        raise ValueError("mol_data must be a `sbpy.data.phys` instance.")
 
-    orb = ephemobj
-    delta = (orb['delta']).to('m')
-    r = (orb['r'])
+    orb = eph
+    r = orb["r"]
 
-    if not isinstance(mol_data['mol_tag'][0], str):
+    if not isinstance(mol_data["mol_tag"][0], str):
         required_packages(
-            "astroquery", message=f"mol_tag = {mol_data['mol_tag'][0]} requires astroquery")
+            "astroquery",
+            message=f"mol_tag = {mol_data['mol_tag'][0]} requires astroquery",
+        )
 
         cat = JPLSpec.get_species_table()
-        mol = cat[cat['TAG'] == mol_data['mol_tag'][0]]
-        name = mol['NAME'].data[0]
+        mol = cat[cat["TAG"] == mol_data["mol_tag"][0]]
+        name = mol["NAME"].data[0]
 
     else:
-        name = mol_data['mol_tag'][0]
+        name = mol_data["mol_tag"][0]
 
-    timescale = photo_timescale(name)
-
-    if timescale.ndim != 0:
-        # array
-        timescale = timescale[0]
-
+    timescale = photo_timescale(name, source)
     beta = (timescale) * r**2
-
     return beta
 
 
@@ -318,14 +344,13 @@ def total_number(mol_data, aper, b):
     """
 
     if not isinstance(mol_data, Phys):
-        raise ValueError('mol_data must be a `sbpy.data.phys` instance.')
+        raise ValueError("mol_data must be a `sbpy.data.phys` instance.")
 
-    beta = mol_data['beta'][0]
+    beta = mol_data["beta"][0]
 
-    sigma = (1./2. * beta * b * con.c / (mol_data['t_freq'][0] * aper)).value
+    sigma = (1.0 / 2.0 * beta * b * con.c / (mol_data["t_freq"][0] * aper)).value
 
-    tnumber = mol_data['cdensity'][0].decompose() * sigma * u.m**2 / \
-        np.sqrt(np.log(2))
+    tnumber = mol_data["cdensity"][0].decompose() * sigma * u.m**2 / np.sqrt(np.log(2))
 
     return tnumber
 
@@ -388,13 +413,13 @@ def from_Haser(coma, mol_data, aper=25 * u.m):
     >>> aper = 10 * u.m
     >>> mol_tag = 28001
     >>> temp_estimate = 25. * u.K
-    >>> target = 'C/2016 R2'
+    >>> target = "C/2016 R2"
     >>> b = 0.74
     >>> vgas = 0.5 * u.km / u.s
     >>> transition_freq = (230.53799 * u.GHz).to('MHz')
     >>> integrated_flux = 0.26 * u.K * u.km / u.s
 
-    >>> time = Time('2017-12-22 05:24:20', format = 'iso')
+    >>> time = Time("2017-12-22 05:24:20", format = 'iso')
     >>> ephemobj = Ephem.from_horizons(target,
     ...                                epochs=time) # doctest: +REMOTE_DATA
 
@@ -403,29 +428,29 @@ def from_Haser(coma, mol_data, aper=25 * u.m):
 
     >>> intl = intensity_conversion(mol_data) # doctest: +REMOTE_DATA
     >>> mol_data.apply([intl.value] * intl.unit,
-    ...                name='intl') # doctest: +REMOTE_DATA
+    ...                name="intl") # doctest: +REMOTE_DATA
 
     >>> au = einstein_coeff(mol_data) # doctest: +REMOTE_DATA
     >>> mol_data.apply([au.value] * au.unit,
-    ...                name='eincoeff') # doctest: +REMOTE_DATA
+    ...                name="eincoeff") # doctest: +REMOTE_DATA
 
-    >>> beta = beta_factor(mol_data, ephemobj) # doctest: +REMOTE_DATA
+    >>> beta = beta_factor(mol_data, "CE83", ephemobj) # doctest: +REMOTE_DATA
     >>> mol_data.apply([beta.value] * beta.unit,
-    ...                name='beta') # doctest: +REMOTE_DATA
+    ...                name="beta") # doctest: +REMOTE_DATA
 
     >>> lte = LTE()
 
     >>> cdensity = lte.cdensity_Bockelee(integrated_flux,
     ...                                  mol_data) # doctest: +REMOTE_DATA
     >>> mol_data.apply([cdensity.value] * cdensity.unit,
-    ...                name='cdensity') # doctest: +REMOTE_DATA
+    ...                name="cdensity") # doctest: +REMOTE_DATA
 
     >>> tnum = total_number(mol_data, aper, b) # doctest: +REMOTE_DATA
     >>> mol_data.apply([tnum.value] * tnum.unit,
-    ...                name='total_number') # doctest: +REMOTE_DATA
+    ...                name="total_number") # doctest: +REMOTE_DATA
 
     >>> Q_estimate = 2.8*10**(28) / u.s
-    >>> parent = photo_timescale('CO') * vgas
+    >>> parent = photo_timescale("CO", "CE83") * vgas
     >>> coma = Haser(Q_estimate, vgas, parent)
 
     >>> Q = from_Haser(coma, mol_data, aper=aper) # doctest: +REMOTE_DATA
@@ -444,25 +469,25 @@ def from_Haser(coma, mol_data, aper=25 * u.m):
     from .core import GasComa
 
     if not isinstance(coma, GasComa):
-        raise ValueError('coma must be a GasComa instance.')
+        raise ValueError("coma must be a GasComa instance.")
     if not isinstance(mol_data, Phys):
-        raise ValueError('mol_data must be a `sbpy.data.phys` instance.')
+        raise ValueError("mol_data must be a `sbpy.data.phys` instance.")
 
-    register('Spectroscopy', {'Total Number (eq. 15)': '2004come.book..391B'})
+    register("Spectroscopy", {"Total Number (eq. 15)": "2004come.book..391B"})
 
     # integrated_line = self.integrated_flux(transition_freq) - not yet implemented
 
-    molecules = mol_data['total_number']
+    molecules = mol_data["total_number"]
 
     model_molecules = coma.total_number(aper)
 
-    Q = coma.Q * molecules/model_molecules
+    Q = coma.Q * molecules / model_molecules
 
     return Q
 
 
-class LTE():
-    """ LTE Methods for calculating production_rate """
+class LTE:
+    """LTE Methods for calculating production_rate"""
 
     def cdensity_Bockelee(self, integrated_flux, mol_data):
         """
@@ -508,19 +533,30 @@ class LTE():
         """
 
         if not isinstance(mol_data, Phys):
-            raise ValueError('mol_data must be a `sbpy.data.phys` instance.')
+            raise ValueError("mol_data must be a `sbpy.data.phys` instance.")
 
-        register('Spectroscopy', {
-                 'Total Number (eq. 10)': '2004come.book..391B'})
+        register("Spectroscopy", {"Total Number (eq. 10)": "2004come.book..391B"})
 
-        cdensity = (8*np.pi*con.k_B*mol_data['t_freq'][0]**2 /
-                    (con.h*con.c**3 * mol_data['eincoeff'][0])).decompose()
+        cdensity = (
+            8
+            * np.pi
+            * con.k_B
+            * mol_data["t_freq"][0] ** 2
+            / (con.h * con.c**3 * mol_data["eincoeff"][0])
+        ).decompose()
         cdensity *= integrated_flux
 
         return cdensity
 
-    def from_Drahus(self, integrated_flux, mol_data, ephemobj, vgas=1 * u.km/u.s,
-                    aper=25 * u.m, b=1.2):
+    def from_Drahus(
+        self,
+        integrated_flux,
+        mol_data,
+        ephemobj,
+        vgas=1 * u.km / u.s,
+        aper=25 * u.m,
+        b=1.2,
+    ):
         """
         Returns production rate based on Drahus 2012 model referenced.
         Does not include photodissociation, good for first guesses for
@@ -624,39 +660,48 @@ class LTE():
 
         """
 
-        register('Spectroscopy', {'Production Rate (No photodissociation)':
-                                  '2012ApJ...756...80D'})
+        register(
+            "Spectroscopy",
+            {"Production Rate (No photodissociation)": "2012ApJ...756...80D"},
+        )
 
         if not isinstance(mol_data, Phys):
-            raise ValueError('mol_data must be a `sbpy.data.phys` instance.')
+            raise ValueError("mol_data must be a `sbpy.data.phys` instance.")
 
-        t_freq = mol_data['t_freq'][0]
-        temp = mol_data['Temperature'][0]
-        partition = mol_data['partfn']
-        gu = mol_data['dgup'][0]
-        eup_J = mol_data['eup_j'][0]
-        h = con.h.to('J*s')  # Planck constant
-        k = con.k_B.to('J/K')  # Boltzmann constant
-        c = con.c.to('m/s')  # speed of light
-        vgas = vgas.to('m/s')
+        t_freq = mol_data["t_freq"][0]
+        temp = mol_data["Temperature"][0]
+        partition = mol_data["partfn"]
+        gu = mol_data["dgup"][0]
+        eup_J = mol_data["eup_j"][0]
+        h = con.h.to("J*s")  # Planck constant
+        k = con.k_B.to("J/K")  # Boltzmann constant
+        c = con.c.to("m/s")  # speed of light
+        vgas = vgas.to("m/s")
 
-        au = mol_data['eincoeff'][0]
+        au = mol_data["eincoeff"][0]
 
         delta = ephemobj["delta"][0]
 
-        calc = ((16*np.pi*k*t_freq.decompose() *
-                 partition*vgas) / (np.sqrt(np.pi*np.log(2))
-                                    * h * c**2 * au * gu *
-                                    np.exp(-eup_J/(k*temp)))).decompose()
+        calc = (
+            (16 * np.pi * k * t_freq.decompose() * partition * vgas)
+            / (
+                np.sqrt(np.pi * np.log(2))
+                * h
+                * c**2
+                * au
+                * gu
+                * np.exp(-eup_J / (k * temp))
+            )
+        ).decompose()
 
-        q = integrated_flux*(calc * b * delta / aper)
+        q = integrated_flux * (calc * b * delta / aper)
 
         q = q.to(u.Hz, equivalencies=u.spectral()).decompose()[0]
 
         return q
 
 
-class NonLTE():
+class NonLTE:
     """
     Class for non LTE production rate models.
 
@@ -664,9 +709,14 @@ class NonLTE():
 
     @staticmethod
     @requires("pyradex", "astroquery")
-    def from_pyradex(integrated_flux, mol_data, line_width=1.0 * u.km / u.s,
-                     escapeProbGeom='lvg', iter=100,
-                     collider_density={'H2': 900*2.2}):
+    def from_pyradex(
+        integrated_flux,
+        mol_data,
+        line_width=1.0 * u.km / u.s,
+        escapeProbGeom="lvg",
+        iter=100,
+        collider_density={"H2": 900 * 2.2},
+    ):
         """
         Calculate production rate from the Non-LTE iterative code pyradex
         Presently, only the LAMDA catalog is supported by this function.
@@ -787,23 +837,23 @@ class NonLTE():
         """
 
         if not isinstance(mol_data, Phys):
-            raise ValueError('mol_data must be a `sbpy.data.phys` instance.')
+            raise ValueError("mol_data must be a `sbpy.data.phys` instance.")
 
-        register('Production Rates', {'Radex': '2007A&A...468..627V'})
+        register("Production Rates", {"Radex": "2007A&A...468..627V"})
 
         # convert mol_tag JPLSpec identifier to verbose name if needed
         try:
-            mol_data['lamda_name']
-            name = mol_data['lamda_name'][0]
+            mol_data["lamda_name"]
+            name = mol_data["lamda_name"][0]
             name = name.lower()
         except KeyError:
-            if not isinstance(mol_data['mol_tag'][0], str):
+            if not isinstance(mol_data["mol_tag"][0], str):
                 cat = JPLSpec.get_species_table()
-                mol = cat[cat['TAG'] == mol_data['mol_tag'][0]]
-                name = mol['NAME'].data[0]
+                mol = cat[cat["TAG"] == mol_data["mol_tag"][0]]
+                name = mol["NAME"].data[0]
                 name = name.lower()
             else:
-                name = mol_data['mol_tag'][0]
+                name = mol_data["mol_tag"][0]
                 name = name.lower()
 
         # try various common instances of molecule names and check them against LAMDA before complaining
@@ -815,25 +865,29 @@ class NonLTE():
                 Lamda.molecule_dict[try_name]
                 name = try_name
             except KeyError:
-                print('Molecule name {} not found in LAMDA, module tried {} and also\
+                print(
+                    'Molecule name {} not found in LAMDA, module tried {} and also\
                        found no molecule with this identifier within LAMDA. Please\
                        enter LAMDA identifiable name using mol_data["lamda_name"]\
-                       . Use Lamda.molecule_dict to see all available options.'.format(name, try_name))
+                       . Use Lamda.molecule_dict to see all available options.'.format(
+                        name, try_name
+                    )
+                )
                 raise
 
         # define Temperature
-        temp = mol_data['temp']
+        temp = mol_data["temp"]
 
         # check for optional values within mol_data
-        if 'temp_back' in mol_data:
-            tbackground = mol_data['temp_back']
+        if "temp_back" in mol_data:
+            tbackground = mol_data["temp_back"]
         else:
             tbackground = 2.730 * u.K
 
         # define cdensity and iteration parameters
-        cdensity = mol_data['cdensity'].to(1 / (u.cm * u.cm))
-        cdensity_low = cdensity - (cdensity*0.9)
-        cdensity_high = cdensity + (cdensity*9)
+        cdensity = mol_data["cdensity"].to(1 / (u.cm * u.cm))
+        cdensity_low = cdensity - (cdensity * 0.9)
+        cdensity_high = cdensity + (cdensity * 9)
         # range for 400 iterations
         cdensity_range = np.linspace(cdensity_low, cdensity_high, iter)
         fluxes = []
@@ -841,21 +895,26 @@ class NonLTE():
 
         with tempfile.TemporaryDirectory() as datapath:
             for i in cdensity_range:
-                R = pyradex.Radex(column=i, deltav=line_width,
-                                  tbackground=tbackground, species=name,
-                                  temperature=temp, datapath=datapath,
-                                  escapeProbGeom=escapeProbGeom,
-                                  collider_densities=collider_density)
+                R = pyradex.Radex(
+                    column=i,
+                    deltav=line_width,
+                    tbackground=tbackground,
+                    species=name,
+                    temperature=temp,
+                    datapath=datapath,
+                    escapeProbGeom=escapeProbGeom,
+                    collider_densities=collider_density,
+                )
 
                 table = R()
 
                 # find closest matching frequency to user defined
-                indx = (np.abs(table['frequency']-mol_data['t_freq'])).argmin()
-                radexfreq = table['frequency'][indx]
+                indx = (np.abs(table["frequency"] - mol_data["t_freq"])).argmin()
+                radexfreq = table["frequency"][indx]
                 # get table for that frequency
-                values = table[table['frequency'] == radexfreq]
+                values = table[table["frequency"] == radexfreq]
                 # use eq in io.f from Pyradex to get integrated flux in K * km/s
-                int_flux_pyradex = 1.0645 * values['T_B'] * line_width
+                int_flux_pyradex = 1.0645 * values["T_B"] * line_width
 
                 fluxes.append(int_flux_pyradex)
                 column_density.append(i)
@@ -865,12 +924,14 @@ class NonLTE():
         fluxes = np.array(fluxes)
 
         index_flux = (
-            np.abs(fluxes-integrated_flux.to(u.K * u.km / u.s).value)).argmin()
+            np.abs(fluxes - integrated_flux.to(u.K * u.km / u.s).value)
+        ).argmin()
 
         # corresponding column density in 1/cm^2
         column_density = column_density[index_flux]
-        print('Closest Integrated Flux:{}'.format(
-            fluxes[index_flux] * u.K * u.km / u.s))
-        print('Given Integrated Flux: {}'.format(integrated_flux))
+        print(
+            "Closest Integrated Flux:{}".format(fluxes[index_flux] * u.K * u.km / u.s)
+        )
+        print("Given Integrated Flux: {}".format(integrated_flux))
 
         return column_density
