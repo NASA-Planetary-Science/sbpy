@@ -1,7 +1,6 @@
-# -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 #
-# Astropy documentation build configuration file.
+# Based on Astropy documentation build configuration file.
 #
 # This file is execfile()d with the current directory set to its containing dir.
 #
@@ -26,41 +25,113 @@
 # be accessible, and the documentation will not build correctly.
 
 import datetime
-import os
 import sys
+import tomllib
+from importlib import metadata
+from packaging.requirements import Requirement
+from packaging.specifiers import SpecifierSet
+from pathlib import Path
 
 import matplotlib
+from sphinx.util import logging
 
 matplotlib.use("agg")
 
-try:
-    from sphinx_astropy.conf.v1 import *
-except ImportError:
-    print(
-        "ERROR: the documentation requires the sphinx-astropy package to be"
-        " installed"
+logger = logging.getLogger(__name__)
+
+# Get configuration information from pyproject.toml
+with (Path(__file__).parents[1] / "pyproject.toml").open("rb") as f:
+    pyproject = tomllib.load(f)
+
+# -- Check for missing dependencies -------------------------------------------
+
+missing_requirements = {}
+for line in metadata.requires("sbpy"):
+    if 'extra == "docs"' in line:
+        req = Requirement(line.split(";")[0])
+        req_package = req.name.lower()
+        req_specifier = str(req.specifier)
+
+        try:
+            version = metadata.version(req_package)
+        except metadata.PackageNotFoundError:
+            missing_requirements[req_package] = req_specifier
+
+        if version not in SpecifierSet(req_specifier, prereleases=True):
+            missing_requirements[req_package] = req_specifier
+
+if missing_requirements:
+    msg = (
+        "The following packages could not be found and are required to "
+        "build the documentation:\n"
+        "%s"
+        '\nPlease install the "docs" requirements.',
+        "\n".join([f"    * {key} {val}" for key, val in missing_requirements.items()]),
     )
+    logger.error(msg)
     sys.exit(1)
 
-# Get configuration information from setup.cfg
-from configparser import ConfigParser  # noqa: E402
 
-conf = ConfigParser()
+from sphinx_astropy.conf.v1 import (  # noqa: E402
+    exclude_patterns,
+    extensions,
+    intersphinx_mapping,
+    numpydoc_xref_aliases,
+    numpydoc_xref_astropy_aliases,
+    numpydoc_xref_ignore,
+    rst_epilog,
+)
 
-conf.read([os.path.join(os.path.dirname(__file__), "..", "setup.cfg")])
-setup_cfg = dict(conf.items("metadata"))
+# -- Plot configuration -------------------------------------------------------
+plot_rcparams = {
+    "axes.labelsize": "large",
+    "figure.figsize": (6, 6),
+    "figure.subplot.hspace": 0.5,
+    "savefig.bbox": "tight",
+    "savefig.facecolor": "none",
+}
+plot_apply_rcparams = True
+plot_html_show_source_link = False
+plot_formats = ["png", "svg", "pdf"]
+# Don't use the default - which includes a numpy and matplotlib import
+plot_pre_code = ""
 
 # -- General configuration ----------------------------------------------------
 
+# The intersphinx_mapping in sphinx_astropy.sphinx refers to astropy for
+# the benefit of other packages who want to refer to objects in the
+# astropy core.  However, we don't want to cyclically reference astropy in its
+# own build so we remove it here.
+del intersphinx_mapping["astropy"]
+
+# add any custom intersphinx for astropy
+intersphinx_mapping.update(
+    {
+        "sbpy-dev": ("https://docs.astropy.org/en/latest/", None),
+        "astroquery": ("https://astroquery.readthedocs.io/en/stable/", None),
+        "synphot": ("https://synphot.readthedocs.io/en/stable/", None),
+        "astropy": ("https://docs.astropy.org/en/stable/", None),
+    }
+)
+
+# List of patterns, relative to source directory, that match files and
+# directories to ignore when looking for source files.
+# .inc.rst mean *include* files, don't have sphinx process them
+exclude_patterns += ["_templates", "changes", "_pkgtemplate.rst", "**/*.inc.rst"]
+
+# Add any paths that contain templates here, relative to this directory.
+if "templates_path" not in locals():  # in case parent conf.py defines it
+    templates_path = []
+templates_path.append("_templates")
+
+extensions += ["sphinx_changelog"]
+
 # By default, highlight as Python 3.
+highlight_language = "python3"
 highlight_language = "python3"
 
 # If your documentation needs a minimal Sphinx version, state it here.
-# needs_sphinx = '1.2'
-
-# To perform a Sphinx version check that needs to be more specific than
-# major.minor, call `check_sphinx_version("x.y.z")` here.
-# check_sphinx_version("1.2.1")
+needs_sphinx = "3.0"
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -76,6 +147,11 @@ extensions += [
     "sphinx_automodapi.smart_resolver",
     "sphinx.ext.autosectionlabel",
 ]
+extensions += [
+    "sphinx.ext.intersphinx",
+    "sphinx_automodapi.smart_resolver",
+    "sphinx.ext.autosectionlabel",
+]
 
 # For example, index:Introduction for a section called Introduction that
 # appears in document index.rst.
@@ -86,25 +162,76 @@ autosectionlabel_maxdepth = 2
 
 autodoc_inherit_docstrings = False
 
+# Whether to create cross-references for the parameter types in the
+# Parameters, Other Parameters, Returns and Yields sections of the docstring.
+numpydoc_xref_param_type = True
+
+# Words not to cross-reference. Most likely, these are common words used in
+# parameter type descriptions that may be confused for classes of the same
+# name. The base set comes from sphinx-astropy. We add more here.
+numpydoc_xref_ignore.update(
+    {
+        "mixin",
+        "Any",  # aka something that would be annotated with `typing.Any`
+        # needed in subclassing numpy  # TODO! revisit
+        "Arguments",
+        "Path",
+        # TODO! not need to ignore.
+        "flag",
+        "bits",
+    }
+)
+
+# Mappings to fully qualified paths (or correct ReST references) for the
+# aliases/shortcuts used when specifying the types of parameters.
+# Numpy provides some defaults
+# https://github.com/numpy/numpydoc/blob/b352cd7635f2ea7748722f410a31f937d92545cc/numpydoc/xref.py#L62-L94
+# and a base set comes from sphinx-astropy.
+# so here we mostly need to define Astropy-specific x-refs
+numpydoc_xref_aliases.update(
+    {
+        # python & adjacent
+        "Any": "`~typing.Any`",
+        "file-like": ":term:`python:file-like object`",
+        "file": ":term:`python:file object`",
+        "path-like": ":term:`python:path-like object`",
+        "module": ":term:`python:module`",
+        "buffer-like": ":term:buffer-like",
+        "hashable": ":term:`python:hashable`",
+        # for matplotlib
+        "color": ":term:`color`",
+        # for numpy
+        "ints": ":class:`python:int`",
+        # for astropy
+        "number": ":term:`number`",
+        "Representation": ":class:`~astropy.coordinates.BaseRepresentation`",
+        "writable": ":term:`writable file-like object`",
+        "readable": ":term:`readable file-like object`",
+        "BaseHDU": ":doc:`HDU </io/fits/api/hdus>`",
+    }
+)
+# Add from sphinx-astropy 1) glossary aliases 2) physical types.
+numpydoc_xref_aliases.update(numpydoc_xref_astropy_aliases)
+
 # -- Project information ------------------------------------------------------
 
 # This does not *have* to match the package name, but typically does
-project = setup_cfg["package_name"]
-author = setup_cfg["author"]
-copyright = "{0}, {1}".format(datetime.datetime.now().year, setup_cfg["author"])
+project = pyproject["project"]["name"]
+authors = ",".join([author["name"] for author in pyproject["project"]["authors"]])
+copyright = "{0}, {1}".format(datetime.datetime.now().year, authors)
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 
-__import__(setup_cfg["package_name"])
-package = sys.modules[setup_cfg["package_name"]]
-
-# The short X.Y version.
-version = package.__version__.split("-", 1)[0]
 # The full version, including alpha/beta/rc tags.
-release = package.__version__
+release = metadata.version(project)
+# The short X.Y version.
+version = ".".join(release.split(".")[:2])
 
+# -- Options for the module index ---------------------------------------------
+
+modindex_common_prefix = ["sbpy."]
 
 # -- Options for HTML output --------------------------------------------------
 
@@ -115,46 +242,57 @@ release = package.__version__
 # variables set in the global configuration. The variables set in the
 # global configuration are listed below, commented out.
 
-
 # Add any paths that contain custom themes here, relative to this directory.
 # To use a different custom theme, add the directory containing the theme.
+# html_theme_path = []
 # html_theme_path = []
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes. To override the custom theme, set this to the
 # name of a builtin theme or the name of a custom theme in html_theme_path.
-# html_theme = 'sphinx_rtd_theme'
+html_theme = "bootstrap-astropy"
 
 # Please update these texts to match the name of your package.
 html_theme_options = {
     "logotext1": "sb",  # white,  semi-bold
     "logotext2": "py",  # orange, light
     "logotext3": ":docs",  # white,  light
+    "logotext1": "sb",  # white,  semi-bold
+    "logotext2": "py",  # orange, light
+    "logotext3": ":docs",  # white,  light
 }
 
-
 # Custom sidebar templates, maps document names to template names.
+# html_sidebars = {}
 # html_sidebars = {}
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
 # html_logo = ''
+# html_logo = ''
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
 # pixels large.
-# html_favicon = ''
+html_favicon = "_static/sbpy_logo.ico"
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
+# html_last_updated_fmt = ''
 # html_last_updated_fmt = ''
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
 html_title = "{0} v{1}".format(project, release)
+html_title = "{0} v{1}".format(project, release)
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = project + "doc"
+
+# Add any extra paths that contain custom files (such as robots.txt or
+# .htaccess) here, relative to this directory. These files are copied
+# directly to the root of the documentation.
+html_extra_path = ["robots.txt"]
 
 
 # -- Options for LaTeX output -------------------------------------------------
@@ -162,44 +300,27 @@ htmlhelp_basename = project + "doc"
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-    ("index", project + ".tex", project + " Documentation", author, "manual")
+    ("index", project + ".tex", project + " Documentation", authors, "manual")
 ]
+
+latex_logo = "_static/sbpy_logo.png"
 
 
 # -- Options for manual page output -------------------------------------------
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [("index", project.lower(), project + " Documentation", [author], 1)]
+man_pages = [("index", project.lower(), project + " Documentation", [authors], 1)]
 
 
 # -- Options for the edit_on_github extension ---------------------------------
 
-if eval(setup_cfg.get("edit_on_github")):
-    extensions += ["sphinx_astropy.ext.edit_on_github"]
-
-    versionmod = __import__(setup_cfg["package_name"] + ".version")
-    edit_on_github_project = setup_cfg["github_project"]
-    if versionmod.version.release:
-        edit_on_github_branch = "v" + versionmod.version.version
-    else:
-        edit_on_github_branch = "main"
-
-    edit_on_github_source_root = ""
-    edit_on_github_doc_root = "docs"
-
-# -- Resolving issue number to links in changelog -----------------------------
-github_issues_url = "https://github.com/{0}/issues/".format(setup_cfg["github_project"])
+extensions += ["sphinx_astropy.ext.edit_on_github"]
+edit_on_github_project = "NASA-Planetary-Science/sbpy"
+github_issues_url = "https://github.com/astropy/astropy/issues/"
+edit_on_github_branch = "main"
 
 # -- compile list of field names
 # import compile_fieldnames
 
-# --- intersphinx setup
-intersphinx_mapping["astroquery"] = (
-    "https://astroquery.readthedocs.io/en/stable/",
-    None,
-)
-
-intersphinx_mapping["synphot"] = ("https://synphot.readthedocs.io/en/stable/", None)
-
-intersphinx_mapping["astropy"] = ("https://docs.astropy.org/en/stable/", None)
+numpydoc_show_class_members = False
