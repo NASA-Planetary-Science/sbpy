@@ -41,9 +41,9 @@ __all__ = [
 ]
 
 __doctest_requires__ = {
-    "LTE.from_Drahus": ["astroquery>=0.4.7"],
-    "NonLTE.from_pyradex": ["astroquery>=0.4.7", "pyradex"],
-    "from_Haser": ["astroquery>=0.4.7"],
+    "LTE.from_Drahus": ["astroquery"],
+    "NonLTE.from_pyradex": ["astroquery", "pyradex"],
+    "from_Haser": ["astroquery"],
 }
 
 
