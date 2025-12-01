@@ -46,6 +46,12 @@ __doctest_requires__ = {
     "from_Haser": ["astroquery"],
 }
 
+# skip until astroquery's jplspec works again
+__doctest_skip__ = {
+    "LTE.from_Drahus",
+    "from_Haser",
+}
+
 
 def intensity_conversion(mol_data):
     """
