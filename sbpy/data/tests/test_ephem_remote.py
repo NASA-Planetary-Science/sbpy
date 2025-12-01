@@ -2,7 +2,6 @@
 
 import pytest
 import warnings
-from packaging.version import Version
 
 from numpy.testing import assert_allclose
 import astropy.units as u

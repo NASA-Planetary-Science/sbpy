@@ -5,7 +5,7 @@
 import astropy
 from packaging.version import Version as Version
 
-from .core import *
+from .core import *  # noqa: F401, F403
 
 
 ###########################################################################
