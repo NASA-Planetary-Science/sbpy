@@ -44,15 +44,10 @@
     </nav>
 
     <section id="hero">
-      <img src="images/sbpy_logo_full.png" width="524"
-        onerror="this.src='images/astropy_project_logo.png'; this.onerror=null;"
-        alt="sbpy - A Python Module for Small-Body Planetary Astronomy" />
-    </section>
-
-    <section class="whatsnew">
-      <p>sbpy is an <a href="https://astropy.org">Astropy</a> <a
-          href="https://www.astropy.org/affiliated/index.html">affiliated package</a> for asteroid and comet
-        researchers.</p>
+      <img src="images/sbpy_logo_full.png" width="500" alt="A stylized asteroid with a python spitting into space" />
+      <p>An <a href="https://astropy.org">Astropy</a> <a
+      href="https://www.astropy.org/affiliated/index.html">affiliated
+      package</a> for small-body planetary astronomy
       <a class="reference external image-reference" href="https://github.com/NASA-Planetary-Science/sbpy/actions">
         <img alt="GitHub testing status"
           src="https://github.com/NASA-Planetary-Science/sbpy/actions/workflows/ci_tests.yml/badge.svg" /></a>
@@ -64,9 +59,11 @@
       <a class="reference external image-reference" href="https://codecov.io/gh/NASA-Planetary-Science/sbpy">
         <img src="https://codecov.io/gh/NASA-Planetary-Science/sbpy/branch/main/graph/badge.svg">
       </a>
+      </p>
+    </section>
 
-      <p class="version">Current Version: 0.5</p>
-
+    <section class="whatsnew">
+      <p>What's new in sbpy <a href="https://github.com/NASA-Planetary-Science/sbpy/blob/v0.6.0/CHANGES.rst">v0.6</a></p>
     </section>
 
     <section class="install">
@@ -124,9 +121,17 @@
 
     <section class="whatsnext">
       <h1>Acknowledge sbpy</h1>
-      <p>If you use sbpy in your work, we would appreciate if you could acknowledge its use by citing</p>
+      <p>If you use sbpy in your work, we would appreciate if you could acknowledge its use by citing:</p>
       <p><code>Mommert, Kelley, de Val-Borro, Li et al. (2019), Journal of Open Source Software, 4(38), 1426</code></p>
       <a class="button" href="https://doi.org/10.21105/joss.01426" target="_blank">sbpy JOSS Publication</a>
+      
+      <p>If you are using AASTeX to submit an article to one of the AAS
+      journals, we recommend adding a \software{...} tag to your manuscript that
+      cites sbpy (see the AASTeX guide for more information), e.g.:
+
+      <p class="citation">
+      <cite>\software{sbpy \citep{mommert2019}}</cite>
+      </p>
     </section>
 
 
@@ -142,7 +147,7 @@
           <img src="images/NASA_logo.svg" height="40px">
           <figcaption>Partner</figcaption>
         </figure>
-        sbpy support provided by NASA PDART Grant Nos. 80NSSC18K0987, 80NSSC22K0143.</p>
+        Support for sbpy provided by NASA PDART Grant Nos. 80NSSC18K0987, 80NSSC22K0143.</p>
       </div>
     </div>
   </div>
