@@ -69,7 +69,7 @@ def data_path(filename):
 
 @pytest.mark.remote_data
 def test_remote_prodrate_simple_hcn():
-    pytest.importorskip("astroquery", minversion="0.4.7")
+    pytest.importorskip("astroquery", minversion="0.4.12")
 
     hcn = Table.read(data_path("HCN.csv"), format="ascii.csv")
 
@@ -114,7 +114,7 @@ def test_remote_prodrate_simple_hcn():
 
 @pytest.mark.remote_data
 def test_remote_prodrate_simple_ch3oh():
-    pytest.importorskip("astroquery", minversion="0.4.7")
+    pytest.importorskip("astroquery", minversion="0.4.12")
 
     ch3oh = Table.read(data_path("CH3OH.csv"), format="ascii.csv")
     temp_estimate = 47.0 * u.K
@@ -159,7 +159,7 @@ def test_remote_prodrate_simple_ch3oh():
 @pytest.mark.skip
 @pytest.mark.remote_data
 def test_einstein():
-    pytest.importorskip("astroquery", minversion="0.4.7")
+    pytest.importorskip("astroquery", minversion="0.4.12")
 
     transition_freq_list = [
         (1611.7935180 * u.GHz).to("MHz"),
@@ -213,7 +213,7 @@ def test_einstein():
 
 @pytest.mark.remote_data
 def test_Haser_prodrate():
-    pytest.importorskip("astroquery", minversion="0.4.7")
+    pytest.importorskip("astroquery", minversion="0.4.12")
 
     co = Table.read(data_path("CO.csv"), format="ascii.csv")
 
@@ -276,7 +276,7 @@ See https://github.com/keflavich/pyradex for installment
 @pytest.mark.remote_data
 def test_Haser_pyradex():
     pytest.importorskip("pyradex")
-    pytest.importorskip("astroquery", minversion="0.4.7")
+    pytest.importorskip("astroquery", minversion="0.4.12")
 
     co = Table.read(data_path("CO.csv"), format="ascii.csv")
 
@@ -331,7 +331,7 @@ def test_Haser_pyradex():
 @pytest.mark.remote_data
 def test_intensity_conversion():
     # test untested case for intensity conversion function
-    pytest.importorskip("astroquery", minversion="0.4.7")
+    pytest.importorskip("astroquery", minversion="0.4.12")
 
     temp_estimate = 47.0 * u.K
     # vgas = 0.8 * u.km / u.s
@@ -348,7 +348,7 @@ def test_intensity_conversion():
 @pytest.mark.remote_data
 def test_einsteincoeff_case():
     # test untested case for einstein coefficient
-    pytest.importorskip("astroquery", minversion="0.4.7")
+    pytest.importorskip("astroquery", minversion="0.4.12")
 
     temp_estimate = 47.0 * u.K
     # vgas = 0.8 * u.km / u.s
@@ -394,7 +394,7 @@ See https://github.com/keflavich/pyradex for installment
 @pytest.mark.remote_data
 def test_pyradex_case():
     pytest.importorskip("pyradex")
-    pytest.importorskip("astroquery", minversion="0.4.7")
+    pytest.importorskip("astroquery", minversion="0.4.12")
 
     transition_freq = (177.196 * u.GHz).to(u.MHz)
     mol_tag = 29002
@@ -417,7 +417,7 @@ def test_pyradex_case():
 @pytest.mark.remote_data
 def test_Haser_prodrate_pyradex(mock_nonlte):
     pytest.importorskip("pyradex")
-    pytest.importorskip("astroquery", minversion="0.4.7")
+    pytest.importorskip("astroquery", minversion="0.4.12")
 
     co = Table.read(data_path("CO.csv"), format="ascii.csv")
 
@@ -471,7 +471,7 @@ def test_Haser_prodrate_pyradex(mock_nonlte):
 
 @pytest.mark.remote_data
 def test_pyradex_cdensity(mock_nonlte):
-    pytest.importorskip("astroquery", minversion="0.4.7")
+    pytest.importorskip("astroquery", minversion="0.4.12")
 
     transition_freq = (177.196 * u.GHz).to(u.MHz)
     mol_tag = 29002
