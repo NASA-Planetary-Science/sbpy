@@ -1,5 +1,5 @@
-0.6.0 (unreleased)
-==================
+v0.6.0 (2025-12-02)
+===================
 
 Update supported versions [#419]:
 - Python >= 3.9
