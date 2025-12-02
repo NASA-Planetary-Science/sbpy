@@ -11,7 +11,7 @@ refer to the :doc:`about` page; the :doc:`status` page provides an overview on
 the implementation status of all modules and functions.
 
 The initial development of `sbpy` is expected to conclude with version 1.0 in
-2025.
+2026.
 
 	       
 **************
