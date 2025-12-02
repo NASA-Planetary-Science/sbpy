@@ -11,6 +11,7 @@ __pycache__
 
 # Other generated files
 sbpy/version.py
+sbpy/_version.py
 */cython_version.py
 htmlcov
 .coverage
