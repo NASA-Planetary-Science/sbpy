@@ -20,12 +20,18 @@ from ...exceptions import RequiredPackageUnavailable
         ("johnson u", 3598.54452094),
         ("johnson b", 4385.9244053),
         ("johnson v", 5490.55520036),
+        ("lsst u", 3724.0),  # https://lsstcam.lsst.io/index.html
+        ("lsst g", 4807.0),
+        ("lsst r", 6221.0),
+        ("lsst i", 7559.0),
+        ("lsst z", 8680.0),
+        ("lsst y", 9753.0),
         ("ps1 g", 4866.4578708),
         ("ps1 r", 6214.623038),
         ("ps1 i", 7544.570357),
         ("ps1 w", 6389.3518241),
-        ("ps1 y", 9633.2481028),
         ("ps1 z", 8679.46803),
+        ("ps1 y", 9633.2481028),
         ("sdss u", 3561.78873418),
         ("sdss g", 4718.87224631),
         ("sdss r", 6185.19447698),
@@ -42,7 +48,8 @@ from ...exceptions import RequiredPackageUnavailable
 def test_bandpass(name, avgwave):
     pytest.importorskip("synphot")
     bp = bandpass(name)
-    assert np.isclose(bp.avgwave().value, avgwave)
+    atol = 0.5 if "lsst" in name else 0.005
+    assert np.isclose(bp.avgwave().value, avgwave, atol=atol)
 
 
 @patch.dict("sys.modules", {"synphot": None})
