@@ -8,6 +8,7 @@ from astropy import units as u
 
 from ..data.decorators import dataclass_input
 from ..units.typing import SpectralFluxDensityQuantity, SpectralRadianceQuantity
+from .. import units as sbu
 
 
 def min_zero_cos(a: u.physical.angle) -> u.Quantity:
@@ -30,7 +31,7 @@ class Surface(ABC):
     @abstractmethod
     def absorption(
         i: u.physical.angle,
-    ) -> SpectralFluxDensityQuantity:
+    ) -> u.physical.dimensionless:
         r"""Absorption of directional, incident light.
 
         The surface is illuminated at an angle of :math:`i`, measured from the
@@ -55,7 +56,7 @@ class Surface(ABC):
     def emission(
         e: u.physical.angle,
         phi: u.physical.angle,
-    ) -> SpectralRadianceQuantity:
+    ) -> u.physical.dimensionless:
         r"""Emission of directional light from a surface.
 
         The surface is observed at an angle of :math:`e`, measured from the
@@ -65,7 +66,6 @@ class Surface(ABC):
 
         Parameters
         ----------
-
         e : `~astropy.units.Quantity`
             Observed angle from normal.
 
@@ -75,38 +75,26 @@ class Surface(ABC):
 
         Returns
         -------
-        F_e : `~astropy.units.Quantity`
-            Spectral radiance / specific intensity received by the observer.
+
 
         """
 
     @staticmethod
     @abstractmethod
     def reflectance(
-        F_i: SpectralFluxDensityQuantity,
-        albedo: float,
-        *,
         i: u.physical.angle,
         e: u.physical.angle,
         phi: u.physical.angle,
-    ) -> SpectralRadianceQuantity:
+    ) -> sbu.physical.reflectance:
         r"""Bidirectional reflectance.
 
-        The surface is illuminated by incident spectral flux density
-        (irradiance), :math:`F_i`, at an angle of :math:`i`, and emitted toward
-        an angle of :math:`e`, measured from the surface normal direction.
-        :math:`\phi` is the source-target-observer (phase) angle.  Both the
-        source and the emitted light are assumed to be collimated.
+        The surface is illuminated at an angle of :math:`i`, and observed at an
+        angle of :math:`e`, measured from the surface normal direction.
+        :math:`\phi` is the source-target-observer (phase) angle.
 
 
         Parameters
         ----------
-        F_i : `astropy.units.Quantity`
-            Incident light (spectral flux density).
-
-        albedo : float
-            Surface albedo.
-
         i : `~astropy.units.Quantity`
             Angle from normal of incident light.
 
@@ -119,8 +107,8 @@ class Surface(ABC):
 
         Returns
         -------
-        I_r : `~astropy.units.Quantity`
-            Spectral radiance / specific intensity received by the observer.
+        r : `~astropy.units.Quantity`
+            Bidirectional reflectance.
 
         """
 
@@ -142,13 +130,7 @@ class Surface(ABC):
 
     @u.quantity_input
     def absorption_from_vectors(
-        self,
-        F_i: SpectralFluxDensityQuantity,
-        epsilon: float,
-        *,
-        n: np.ndarray,
-        r: u.physical.length,
-        ro: Optional[u.physical.length] = None,
+        self, n: np.ndarray, r: u.physical.length
     ) -> SpectralFluxDensityQuantity:
         """Vector-based alternative to `absorption`.
 
@@ -157,20 +139,11 @@ class Surface(ABC):
 
         Parameters
         ----------
-        F_i : `astropy.units.Quantity`
-            Incident light (spectral flux density).
-
-        epsilon : float
-            Emissivity of the surface.
-
         n : `numpy.ndarray`
             Surface normal vector.
 
         r : `~astropy.units.Quantity`
             Radial vector from the surface to the light source.
-
-        ro : `~astropy.units.Quantity`, optional
-            Radial vector from the surface to the observer (ignored).
 
 
         Returns
