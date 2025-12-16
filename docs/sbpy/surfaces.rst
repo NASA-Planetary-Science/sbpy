@@ -86,7 +86,7 @@ Here, we define a new surface model with surface properties proportional to :mat
     >>> from sbpy.surfaces.surface import Surface, min_zero_cos
     >>>
     >>> class Cos2Surface(Surface):
-    ...     """Absorption and emission proportional to :math:`\\cos^2`."""
+    ...     """Surface properties proportional to :math:`\\cos^2`."""
     ...
     ...     def absorption(self, epsilon, i):
     ...         return epsilon * min_zero_cos(i)**2
