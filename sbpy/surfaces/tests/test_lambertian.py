@@ -7,18 +7,18 @@ from astropy import units as u
 from ..lambertian import LambertianSurface
 
 
-def test_absorption():
+def test_absorptance():
     epsilon = 0.9
     i = Angle([0, 30, 45, 60, 90, 100], "deg")
     expected = 0.9 * np.array([1, np.sqrt(3) / 2, 1 / np.sqrt(2), 0.5, 0, 0])
 
     surface = LambertianSurface()
-    result = surface.absorption(epsilon, i)
+    result = surface.absorptance(epsilon, i)
 
     assert u.allclose(result, expected)
 
 
-def test_absorption_from_vectors():
+def test_absorptance_from_vectors():
     epsilon = 0.9
     # equivalent to (i, e, phi) = (30, 60, 90) deg
     n = [1, 0, 0]
@@ -28,22 +28,22 @@ def test_absorption_from_vectors():
     expected = 0.9 * np.sqrt(3) / 2
 
     surface = LambertianSurface()
-    result = surface.absorption_from_vectors(epsilon, n, r, ro)
+    result = surface.absorptance_from_vectors(epsilon, n, r, ro)
 
     assert u.allclose(result, expected)
 
 
-def test_emission():
+def test_emittance():
     epsilon = 0.9
     e = Angle([0, 30, 45, 60, 90, 100], "deg")
     expected = 0.9 * np.array([1, np.sqrt(3) / 2, 1 / np.sqrt(2), 0.5, 0, 0])
 
     surface = LambertianSurface()
-    result = surface.emission(epsilon, e, None)
+    result = surface.emittance(epsilon, e, None)
     assert u.allclose(result, expected)
 
 
-def test_emission_from_vectors():
+def test_emittance_from_vectors():
     epsilon = 0.9
     # equivalent to (i, e, phi) = (30, 60, 90) deg
     n = [1, 0, 0]
@@ -53,11 +53,11 @@ def test_emission_from_vectors():
     expected = 0.45
 
     surface = LambertianSurface()
-    result = surface.emission_from_vectors(epsilon, n, r, ro)
+    result = surface.emittance_from_vectors(epsilon, n, r, ro)
     assert u.allclose(result, expected)
 
     # incident vector is optional
-    result = surface.emission_from_vectors(epsilon, n, None, ro)
+    result = surface.emittance_from_vectors(epsilon, n, None, ro)
     assert u.allclose(result, expected)
 
 

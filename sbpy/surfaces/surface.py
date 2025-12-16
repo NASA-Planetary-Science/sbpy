@@ -24,10 +24,10 @@ class Surface(ABC):
     """Abstract base class for all small-body surfaces."""
 
     @abstractmethod
-    def absorption(
+    def absorptance(
         self, epsilon: u.physical.dimensionless, i: u.physical.angle
     ) -> u.Quantity[u.dimensionless_unscaled]:
-        r"""Absorption of directional, incident light.
+        r"""Absorptance of directional, incident light.
 
         The surface is illuminated at an angle of :math:`i`, measured from the
         surface normal direction.
@@ -45,21 +45,21 @@ class Surface(ABC):
         Returns
         -------
         a : `~astropy.units.Quantity`
-            Fraction of incident light absorbed.
+            Absorptance.
 
         """
 
     @abstractmethod
-    def emission(
+    def emittance(
         self,
         epsilon: u.physical.dimensionless,
         e: u.physical.angle,
         phi: u.physical.angle,
     ) -> u.Quantity[u.dimensionless_unscaled]:
-        r"""Emission of directional light from a surface.
+        r"""Emittance of directional light from a surface.
 
         The surface is observed at an angle of :math:`e`, measured from the
-        surface normal direction.  Anisotropic emission is characterized by the
+        surface normal direction.  Anisotropic emittance is characterized by the
         angle `phi`.
 
 
@@ -72,13 +72,13 @@ class Surface(ABC):
             Observed angle from normal.
 
         phi : `~astropy.units.Quantity`
-            Angle to account for anisotropic emission.
+            Angle to account for anisotropic emittance.
 
 
         Returns
         -------
         em : `~astropy.units.Quantity`
-            Emission factor.
+            Emittance.
 
         """
 
@@ -126,14 +126,14 @@ class Surface(ABC):
         return u.Quantity(np.arccos(np.dot(a_hat, b_hat)), "rad")
 
     @u.quantity_input
-    def absorption_from_vectors(
+    def absorptance_from_vectors(
         self,
         epsilon: u.physical.dimensionless,
         n: np.ndarray,
         r: u.physical.length,
         ro: Union[u.physical.length, None],
     ) -> u.Quantity[u.dimensionless_unscaled]:
-        """Vector-based alternative to `absorption`.
+        """Vector-based alternative to `absorptance`.
 
         Input vectors do not need to be normalized.
 
@@ -156,23 +156,23 @@ class Surface(ABC):
 
         Returns
         -------
-        F_a : `~astropy.units.Quantity`
-            Absorbed spectral flux density.
+        a : `~astropy.units.Quantity`
+            Absorptance.
 
         """
 
         i = self._angle(n, r)
-        return self.absorption(epsilon, i)
+        return self.absorptance(epsilon, i)
 
     @u.quantity_input
-    def emission_from_vectors(
+    def emittance_from_vectors(
         self,
         epsilon: u.physical.dimensionless,
         n: np.ndarray,
         r: u.physical.length,
         ro: u.physical.length,
     ) -> u.Quantity[u.dimensionless_unscaled]:
-        r"""Vector-based alternative to `emission`.
+        r"""Vector-based alternative to `emittance`.
 
         Input vectors do not need to be normalized.
 
@@ -194,14 +194,14 @@ class Surface(ABC):
 
         Returns
         -------
-        F_e : `~astropy.units.Quantity`
-            Spectral radiance / specific intensity received by the observer.
+        em : `~astropy.units.Quantity`
+            Emittance.
 
         """
 
         e = self._angle(n, ro)
         phi = self._angle(r, ro)
-        return self.emission(epsilon, e, phi)
+        return self.emittance(epsilon, e, phi)
 
     @u.quantity_input
     def reflectance_from_vectors(

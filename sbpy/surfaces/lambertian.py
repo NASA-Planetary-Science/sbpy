@@ -9,7 +9,7 @@ from ..units.typing import SpectralFluxDensityQuantity, SpectralRadianceQuantity
 
 
 class LambertianSurface(Surface):
-    """Lambertian surface absorption, emission, and reflectance.
+    """Lambertian surface absorptance, emittance, and reflectance.
 
     The surface is illuminated at an angle of :math:`i`, and emitted toward an
     angle of :math:`e`, both measured from the surface normal direction.
@@ -20,7 +20,7 @@ class LambertianSurface(Surface):
     Examples
     --------
 
-    Absorption of light for a surface with an albedo of 0.1 and an emissivity of
+    Absorptance of light for a surface with an albedo of 0.1 and an emissivity of
     0.9:
 
     >>> import astropy.units as u
@@ -31,12 +31,12 @@ class LambertianSurface(Surface):
     >>> epsilon = 1 - albedo
     >>> i, e, phi = [30, 60, 90] * u.deg
     >>>
-    >>> surface.absorption(epsilon, i)  # doctest: +FLOAT_CMP
+    >>> surface.absorptance(epsilon, i)  # doctest: +FLOAT_CMP
     <Quantity 0.7794229>
 
-    Emission:
+    Emittance:
 
-    >>> surface.emission(epsilon, e, phi)  # doctest: +FLOAT_CMP
+    >>> surface.emittance(epsilon, e, phi)  # doctest: +FLOAT_CMP
     <Quantity 0.45>
 
     Bidirectional reflectance:
@@ -55,7 +55,7 @@ class LambertianSurface(Surface):
     """
 
     @u.quantity_input
-    def absorption(
+    def absorptance(
         self,
         epsilon: float,
         i: u.physical.angle,
@@ -64,7 +64,7 @@ class LambertianSurface(Surface):
         return epsilon * min_zero_cos(i)
 
     @u.quantity_input
-    def emission(
+    def emittance(
         self,
         epsilon: float,
         e: u.physical.angle,
@@ -84,7 +84,7 @@ class LambertianSurface(Surface):
         return albedo * min_zero_cos(i) * min_zero_cos(e) / np.pi / u.sr
 
     @u.quantity_input
-    def emission_from_vectors(
+    def emittance_from_vectors(
         self,
         epsilon: float,
         n: np.ndarray,
@@ -92,4 +92,4 @@ class LambertianSurface(Surface):
         ro: u.physical.length,
     ) -> u.Quantity[u.dimensionless_unscaled]:
         e = self._angle(n, ro)
-        return self.emission(epsilon, e, None)
+        return self.emittance(epsilon, e, None)
