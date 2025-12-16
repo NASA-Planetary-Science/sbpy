@@ -29,7 +29,9 @@ class Surface(ABC):
     """Abstract base class for all small-body surfaces."""
 
     @abstractmethod
-    def absorption(self, i: u.physical.angle) -> u.Quantity[u.dimensionless_unscaled]:
+    def absorption(
+        self, epsilon: u.physical.dimensionless, i: u.physical.angle
+    ) -> u.Quantity[u.dimensionless_unscaled]:
         r"""Absorption of directional, incident light.
 
         The surface is illuminated at an angle of :math:`i`, measured from the
@@ -38,6 +40,9 @@ class Surface(ABC):
 
         Parameters
         ----------
+        epsilon : `~astropy.units.Quantity`
+            Surface emissivity.
+
         i : `~astropy.units.Quantity`
             Angle from normal of incident light.
 
@@ -52,6 +57,7 @@ class Surface(ABC):
     @abstractmethod
     def emission(
         self,
+        epsilon: u.physical.dimensionless,
         e: u.physical.angle,
         phi: u.physical.angle,
     ) -> u.Quantity[u.dimensionless_unscaled]:
@@ -64,6 +70,9 @@ class Surface(ABC):
 
         Parameters
         ----------
+        epsilon : `~astropy.units.Quantity`
+            Surface emissivity.
+
         e : `~astropy.units.Quantity`
             Observed angle from normal.
 
@@ -81,6 +90,7 @@ class Surface(ABC):
     @abstractmethod
     def reflectance(
         self,
+        albedo: u.physical.dimensionless,
         i: u.physical.angle,
         e: u.physical.angle,
         phi: u.physical.angle,
@@ -94,6 +104,9 @@ class Surface(ABC):
 
         Parameters
         ----------
+        albedo : `~astropy.units.Quantity`
+            Surface albedo.
+
         i : `~astropy.units.Quantity`
             Angle from normal of incident light.
 
@@ -120,6 +133,7 @@ class Surface(ABC):
     @u.quantity_input
     def absorption_from_vectors(
         self,
+        epsilon: u.physical.dimensionless,
         n: np.ndarray,
         r: u.physical.length,
         ro: Union[u.physical.length, None],
@@ -131,6 +145,9 @@ class Surface(ABC):
 
         Parameters
         ----------
+        epsilon : `~astropy.units.Quantity`
+            Surface emissivity.
+
         n : `numpy.ndarray`
             Surface normal vector.
 
@@ -150,11 +167,12 @@ class Surface(ABC):
         """
 
         i = self._angle(n, r)
-        return self.absorption(i)
+        return self.absorption(epsilon, i)
 
     @u.quantity_input
     def emission_from_vectors(
         self,
+        epsilon: u.physical.dimensionless,
         n: np.ndarray,
         r: u.physical.length,
         ro: u.physical.length,
@@ -166,6 +184,9 @@ class Surface(ABC):
 
         Parameters
         ----------
+        epsilon : `~astropy.units.Quantity`
+            Surface emissivity.
+
         n : `numpy.ndarray`
             Surface normal vector.
 
@@ -185,11 +206,12 @@ class Surface(ABC):
 
         e = self._angle(n, ro)
         phi = self._angle(r, ro)
-        return self.emission(e, phi)
+        return self.emission(epsilon, e, phi)
 
     @u.quantity_input
     def reflectance_from_vectors(
         self,
+        albedo: u.physical.dimensionless,
         n: np.ndarray,
         r: u.physical.length,
         ro: u.physical.length,
@@ -201,6 +223,9 @@ class Surface(ABC):
 
         Parameters
         ----------
+        albedo : `~astropy.units.Quantity`
+            Surface albedo.
+
         n : `numpy.ndarray`
             Surface normal vector.
 
@@ -221,4 +246,4 @@ class Surface(ABC):
         i = self._angle(n, r)
         e = self._angle(n, ro)
         phi = self._angle(r, ro)
-        return self.reflectance(i, e, phi)
+        return self.reflectance(albedo, i, e, phi)

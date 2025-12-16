@@ -20,69 +20,76 @@ class LambertianSurface(Surface):
     Examples
     --------
 
-    Absorption of light:
+    Absorption of light for a surface with an albedo of 0.1 and an emissivity of
+    0.9:
 
     >>> import astropy.units as u
     >>> from sbpy.surfaces import LambertianSurface
     >>>
     >>> surface = LambertianSurface()
+    >>> albedo = 0.1
+    >>> epsilon = 1 - albedo
     >>> i, e, phi = [30, 60, 90] * u.deg
     >>>
-    >>> surface.absorption(i)  # doctest: +FLOAT_CMP
-    <Quantity 0.8660254>
+    >>> surface.absorption(epsilon, i)  # doctest: +FLOAT_CMP
+    <Quantity 0.7794229>
 
-    Thermal emission:
+    Emission:
 
-    >>> surface.emission(e, phi)  # doctest: +FLOAT_CMP
-    <Quantity 0.5>
+    >>> surface.emission(epsilon, e, phi)  # doctest: +FLOAT_CMP
+    <Quantity 0.45>
 
     Bidirectional reflectance:
 
-    >>> surface.reflectance(i, e, phi)  # doctest: +FLOAT_CMP
-    <Quantity 0.13783222 1 / sr>
+    >>> surface.reflectance(albedo, i, e, phi)  # doctest: +FLOAT_CMP
+    <Quantity 0.01378322 1 / sr>
 
     Using vector-based arguments:
 
     >>> n = [1, 0, 0]
     >>> r = [0.8660254, 0.5, 0] * u.au
     >>> ro = [0.5, -0.8660254, 0] * u.au
-    >>> surface.reflectance_from_vectors(n, r, ro)  # doctest: +FLOAT_CMP
-    <Quantity 0.13783222 1 / sr>
+    >>> surface.reflectance_from_vectors(albedo, n, r, ro)  # doctest: +FLOAT_CMP
+    <Quantity 0.01378322 1 / sr>
 
     """
 
     @u.quantity_input
     def absorption(
         self,
+        epsilon: float,
         i: u.physical.angle,
     ) -> u.Quantity[u.dimensionless_unscaled]:
         # use min_zero_cos(i) to ensure cos(>= 90 deg) = 0
-        return min_zero_cos(i)
+        return epsilon * min_zero_cos(i)
 
     @u.quantity_input
     def emission(
         self,
+        epsilon: float,
         e: u.physical.angle,
         phi: Union[u.physical.angle, None],
     ) -> u.Quantity[u.dimensionless_unscaled]:
         # use min_zero_cos(e) to ensure cos(>= 90 deg) = 0
-        return min_zero_cos(e)
+        return epsilon * min_zero_cos(e)
 
     @u.quantity_input
     def reflectance(
         self,
+        albedo: float,
         i: u.physical.angle,
         e: u.physical.angle,
         phi: u.physical.angle,
     ) -> u.Quantity[u.sr**-1]:
-        return self.absorption(i) * self.emission(e, phi) / np.pi / u.sr
+        return albedo * min_zero_cos(i) * min_zero_cos(e) / np.pi / u.sr
 
     @u.quantity_input
     def emission_from_vectors(
         self,
+        epsilon: float,
         n: np.ndarray,
         r: Union[u.physical.length, None],
         ro: u.physical.length,
     ) -> u.Quantity[u.dimensionless_unscaled]:
         e = self._angle(n, ro)
-        return self.emission(e, None)
+        return self.emission(epsilon, e, None)

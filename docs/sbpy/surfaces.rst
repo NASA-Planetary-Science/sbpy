@@ -23,18 +23,20 @@ Getting Started
 
 Currently the Lambertian surface model is implemented.  A Lambertian surface absorbs and emits light uniformly in all directions.
 
-Create an instance of the ``LambertianSurface`` model, and calculate the absorption and emission scale factors for :math:`(i, e, \phi) = (30^\circ, 60^\circ, 90^\circ)`::
+Create an instance of the ``LambertianSurface`` model, and calculate the absorption and emission scale factors for :math:`(i, e, \phi) = (30^\circ, 60^\circ, 90^\circ)`.  Let the albedo be 0.1 (emissivity = 0.9)::
 
     >>> import astropy.units as u
     >>> from sbpy.surfaces import LambertianSurface
     >>>
-    >>> surface = LambertianSurface()
+    >>> albedo = 0.1
+    >>> epsilon = 1 - albedo
     >>> i, e, phi = [30, 60, 90] * u.deg
     >>> 
-    >>> surface.absorption(i)  # doctest: +FLOAT_CMP
-    <Quantity 0.8660254>
-    >>> surface.emission(e, phi)  # doctest: +FLOAT_CMP
-    <Quantity 0.5>
+    >>> surface = LambertianSurface()
+    >>> surface.absorption(epsilon, i)  # doctest: +FLOAT_CMP
+    <Quantity 0.77942286>
+    >>> surface.emission(epsilon, e, phi)  # doctest: +FLOAT_CMP
+    <Quantity 0.45>
 
 Calculate the bidirectional reflectance for :math:`e=0`, and a range of incident angles::
 
@@ -47,7 +49,7 @@ Calculate the bidirectional reflectance for :math:`e=0`, and a range of incident
     >>> e = 0 * u.deg
     >>> i = np.linspace(-90, 90) * u.deg
     >>> phi = np.abs(e - i)  # calculate phase angle
-    >>> r = surface.reflectance(i, e, phi)
+    >>> r = surface.reflectance(albedo, i, e, phi)
 
 .. plot::
     :include-source:
@@ -69,8 +71,8 @@ As an alternative to using :math:`(i, e, \phi)`, results may be calculated using
     >>> r = [0.8660254, 0.5, 0] * u.au
     >>> ro = [0.5, -0.8660254, 0] * u.au
     >>>
-    >>> surface.reflectance_from_vectors(n, r, ro)  # doctest: +FLOAT_CMP
-    <Quantity 0.13783222 1 / sr>
+    >>> surface.reflectance_from_vectors(albedo, n, r, ro)  # doctest: +FLOAT_CMP
+    <Quantity 0.0137832 1 / sr>
 
 
 Build Your Own Surface Models
@@ -86,26 +88,28 @@ Here, we define a new surface model with surface properties proportional to :mat
     >>> class Cos2Surface(Surface):
     ...     """Absorption and emission proportional to :math:`\\cos^2`."""
     ...
-    ...     def absorption(self, i):
-    ...         return min_zero_cos(i)**2
+    ...     def absorption(self, epsilon, i):
+    ...         return epsilon * min_zero_cos(i)**2
     ...
-    ...     def emission(self, e, phi):
-    ...         return min_zero_cos(e)**2
+    ...     def emission(self, epsilon, e, phi):
+    ...         return epsilon * min_zero_cos(e)**2
     ...
-    ...     def reflectance(self, i, e, phi):
-    ...         return self.absorption(i) * self.emission(e, phi) / np.pi / u.sr
+    ...     def reflectance(self, albedo, i, e, phi):
+    ...         return albedo * min_zero_cos(i)**2 * min_zero_cos(e)**2 / np.pi / u.sr
 
 Create and use an instance of our new model::
 
     >>> surface = Cos2Surface()
+    >>> albedo = 0.1
+    >>> epsilon = 1 - albedo
     >>> i, e, phi = [30, 60, 90] * u.deg
     >>>
-    >>> surface.absorption(i)  # doctest: +FLOAT_CMP
-    <Quantity 0.75>
-    >>> surface.emission(e, phi)  # doctest: +FLOAT_CMP
-    <Quantity 0.25>
-    >>> surface.reflectance(i, e, phi)  # doctest: +FLOAT_CMP
-    <Quantity 0.0596831 1 / sr>
+    >>> surface.absorption(epsilon, i)  # doctest: +FLOAT_CMP
+    <Quantity 0.675>
+    >>> surface.emission(epsilon, e, phi)  # doctest: +FLOAT_CMP
+    <Quantity 0.225>
+    >>> surface.reflectance(albedo, i, e, phi)  # doctest: +FLOAT_CMP
+    <Quantity 0.00596831 1 / sr>
 
 
 Reference/API
