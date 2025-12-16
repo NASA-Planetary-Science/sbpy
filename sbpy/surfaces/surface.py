@@ -1,17 +1,18 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 from abc import ABC, abstractmethod
-from typing import Optional
+from typing import Union
 
 import numpy as np
 from astropy import units as u
 
-from ..data.decorators import dataclass_input
 from ..units.typing import SpectralFluxDensityQuantity, SpectralRadianceQuantity
-from .. import units as sbu
+
+# for bidirectional_reflectance
+from ..units import physical  # noqa: F401
 
 
-def min_zero_cos(a: u.physical.angle) -> u.Quantity:
+def min_zero_cos(a: u.physical.angle) -> u.Quantity[u.dimensionless_unscaled]:
     """Use to ensure that cos(>=90 deg) equals 0."""
 
     # handle scalars separately
@@ -27,11 +28,8 @@ def min_zero_cos(a: u.physical.angle) -> u.Quantity:
 class Surface(ABC):
     """Abstract base class for all small-body surfaces."""
 
-    @staticmethod
     @abstractmethod
-    def absorption(
-        i: u.physical.angle,
-    ) -> u.physical.dimensionless:
+    def absorption(self, i: u.physical.angle) -> u.Quantity[u.dimensionless_unscaled]:
         r"""Absorption of directional, incident light.
 
         The surface is illuminated at an angle of :math:`i`, measured from the
@@ -51,12 +49,12 @@ class Surface(ABC):
 
         """
 
-    @staticmethod
     @abstractmethod
     def emission(
+        self,
         e: u.physical.angle,
         phi: u.physical.angle,
-    ) -> u.physical.dimensionless:
+    ) -> u.Quantity[u.dimensionless_unscaled]:
         r"""Emission of directional light from a surface.
 
         The surface is observed at an angle of :math:`e`, measured from the
@@ -75,17 +73,18 @@ class Surface(ABC):
 
         Returns
         -------
-
+        em : `~astropy.units.Quantity`
+            Emission factor.
 
         """
 
-    @staticmethod
     @abstractmethod
     def reflectance(
+        self,
         i: u.physical.angle,
         e: u.physical.angle,
         phi: u.physical.angle,
-    ) -> sbu.physical.reflectance:
+    ) -> u.physical.bidirectional_reflectance:
         r"""Bidirectional reflectance.
 
         The surface is illuminated at an angle of :math:`i`, and observed at an
@@ -107,31 +106,24 @@ class Surface(ABC):
 
         Returns
         -------
-        r : `~astropy.units.Quantity`
+        bdr : `~astropy.units.Quantity`
             Bidirectional reflectance.
 
         """
 
     @staticmethod
-    def _vectors_to_angles(
-        n: np.ndarray,
-        r: u.physical.length,
-        ro: u.physical.length,
-    ) -> tuple[u.Quantity, u.Quantity, u.Quantity]:
-        n_hat = n / np.linalg.norm(n)
-        r_hat = r / np.linalg.norm(r)
-        ro_hat = ro / np.linalg.norm(ro)
-
-        i = u.Quantity(np.arccos(np.dot(n_hat, r_hat)), "rad")
-        e = u.Quantity(np.arccos(np.dot(n_hat, ro_hat)), "rad")
-        phi = u.Quantity(np.arccos(np.dot(r_hat, ro_hat)), "rad")
-
-        return i, e, phi
+    def _angle(a: u.Quantity, b: u.Quantity) -> u.physical.angle:
+        a_hat = a / np.linalg.norm(a)
+        b_hat = b / np.linalg.norm(b)
+        return u.Quantity(np.arccos(np.dot(a_hat, b_hat)), "rad")
 
     @u.quantity_input
     def absorption_from_vectors(
-        self, n: np.ndarray, r: u.physical.length
-    ) -> SpectralFluxDensityQuantity:
+        self,
+        n: np.ndarray,
+        r: u.physical.length,
+        ro: Union[u.physical.length, None],
+    ) -> u.Quantity[u.dimensionless_unscaled]:
         """Vector-based alternative to `absorption`.
 
         Input vectors do not need to be normalized.
@@ -145,6 +137,10 @@ class Surface(ABC):
         r : `~astropy.units.Quantity`
             Radial vector from the surface to the light source.
 
+        ro : `~astropy.units.Quantity` or ``None``
+            Radial vector from the surface to the observer.  Parameter is unused
+            and may be ``None``.
+
 
         Returns
         -------
@@ -153,19 +149,16 @@ class Surface(ABC):
 
         """
 
-        i, _, _ = self._vectors_to_angles(n, r, [1, 0, 0])
-        return self.absorption(F_i, epsilon, i)
+        i = self._angle(n, r)
+        return self.absorption(i)
 
     @u.quantity_input
     def emission_from_vectors(
         self,
-        I_e: SpectralRadianceQuantity,
-        epsilon: float,
-        *,
         n: np.ndarray,
+        r: u.physical.length,
         ro: u.physical.length,
-        r: Optional[u.physical.length] = None,
-    ) -> SpectralRadianceQuantity:
+    ) -> u.Quantity[u.dimensionless_unscaled]:
         r"""Vector-based alternative to `emission`.
 
         Input vectors do not need to be normalized.
@@ -173,55 +166,6 @@ class Surface(ABC):
 
         Parameters
         ----------
-        I_e : `astropy.units.Quantity`
-            Emitted spectral radiance.
-
-        epsilon : float
-            Emissivity of the surface.
-
-        n : `numpy.ndarray`
-            Surface normal vector.
-
-        ro : `numpy.ndarray`
-            Radial vector from the surface to the observer.
-
-        r : `~astropy.units.Quantity`, optional
-            Radial vector from the surface to the light source (ignored).
-
-
-        Returns
-        -------
-        F_e : `~astropy.units.Quantity`
-            Spectral radiance / specific intensity received by the observer.
-
-        """
-
-        _, e, phi = self._vectors_to_angles(n, None, ro)
-        return self.emission(I_e, epsilon, e, phi)
-
-    @u.quantity_input
-    def reflectance_from_vectors(
-        self,
-        F_i: SpectralFluxDensityQuantity,
-        albedo: float,
-        *,
-        n: np.ndarray,
-        r: u.physical.length,
-        ro: u.physical.length,
-    ) -> SpectralRadianceQuantity:
-        """Vector-based alternative to `reflectance`.
-
-        Input vectors do not need to be normalized.
-
-
-        Parameters
-        ----------
-        F_i : `astropy.units.Quantity`
-            Incident light (spectral flux density).
-
-        albedo : float
-            Surface albedo.
-
         n : `numpy.ndarray`
             Surface normal vector.
 
@@ -234,9 +178,47 @@ class Surface(ABC):
 
         Returns
         -------
-        F_r : `~astropy.units.Quantity`
-            Spectral flux density / spectral irradiance received by the observer.
+        F_e : `~astropy.units.Quantity`
+            Spectral radiance / specific intensity received by the observer.
 
         """
 
-        return self.reflectance(F_i, albedo, *self._vectors_to_angles(n, r, ro))
+        e = self._angle(n, ro)
+        phi = self._angle(r, ro)
+        return self.emission(e, phi)
+
+    @u.quantity_input
+    def reflectance_from_vectors(
+        self,
+        n: np.ndarray,
+        r: u.physical.length,
+        ro: u.physical.length,
+    ) -> u.Quantity[u.sr**-1]:
+        """Vector-based alternative to `reflectance`.
+
+        Input vectors do not need to be normalized.
+
+
+        Parameters
+        ----------
+        n : `numpy.ndarray`
+            Surface normal vector.
+
+        r : `~astropy.units.Quantity`
+            Radial vector from the surface to the light source.
+
+        ro : `numpy.ndarray`
+            Radial vector from the surface to the observer.
+
+
+        Returns
+        -------
+        bdr : `~astropy.units.Quantity`
+            Bidirectional reflectance.
+
+        """
+
+        i = self._angle(n, r)
+        e = self._angle(n, ro)
+        phi = self._angle(r, ro)
+        return self.reflectance(i, e, phi)

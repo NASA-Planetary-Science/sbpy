@@ -1,5 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import pytest
+
 import numpy as np
 from astropy.coordinates import Angle
 from astropy import units as u
@@ -18,24 +20,18 @@ def test_min_zero_cos():
         assert np.isclose(min_zero_cos(a[i]), expected[i])
 
 
-def test_vectors_to_angles():
-    n = [1, 0, 0]
-    rs = [1, 1, 0] * u.au
-    ro = [1, -1, 0] * u.au
-    i, e, phi = Surface._vectors_to_angles(n, rs, ro)
-    assert u.isclose(i, 45 * u.deg)
-    assert u.isclose(e, 45 * u.deg)
-    assert u.isclose(phi, 90 * u.deg)
-
-    n = [1, 0, 0]
-    rs = [1 / np.sqrt(3), 1, 0] * u.au
-    ro = [np.sqrt(3), -1, 0] * u.au
-    i, e, phi = Surface._vectors_to_angles(n, rs, ro)
-    assert u.isclose(i, 60 * u.deg)
-    assert u.isclose(e, 30 * u.deg)
-    assert u.isclose(phi, 90 * u.deg)
-
-    ro = [1 / np.sqrt(3), -1, 0] * u.au
-    i, e, phi = Surface._vectors_to_angles(n, rs, ro)
-    assert u.isclose(e, 60 * u.deg)
-    assert u.isclose(phi, 120 * u.deg)
+@pytest.mark.parametrize(
+    "a,b,theta",
+    [
+        ([1, 0, 0], [1, 1, 0], 45),
+        ([1, 0, 0], [1, -1, 0], 45),
+        ([1, 1, 0], [1, -1, 0], 90),
+        ([1, 0, 0], [1 / np.sqrt(3), 1, 0], 60),
+        ([1, 0, 0], [np.sqrt(3), -1, 0], 30),
+        ([1 / np.sqrt(3), 1, 0], [np.sqrt(3), -1, 0], 90),
+        ([1, 0, 0], [1 / np.sqrt(3), -1, 0], 60),
+        ([1 / np.sqrt(3), 1, 0], [1 / np.sqrt(3), -1, 0], 120),
+    ],
+)
+def test_angle(a, b, theta):
+    assert u.isclose(Surface._angle(a, b * u.au), theta * u.deg)

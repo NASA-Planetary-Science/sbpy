@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from typing import Optional, Union
+from typing import Union
 import numpy as np
 import astropy.units as u
 
@@ -13,7 +13,7 @@ class LambertianSurface(Surface):
 
     The surface is illuminated at an angle of :math:`i`, and emitted toward an
     angle of :math:`e`, both measured from the surface normal direction.
-    :math:`\phi` is the source-target-observer (phase) angle.  Both the source
+    :math:`\\phi` is the source-target-observer (phase) angle.  Both the source
     and the emitted light are assumed to be collimated.
 
 
@@ -27,84 +27,62 @@ class LambertianSurface(Surface):
     >>>
     >>> surface = LambertianSurface()
     >>> i, e, phi = [30, 60, 90] * u.deg
-    >>> epsilon = 0.9
-    >>> F_i = 100 * u.W / u.m**2 / u.um  # incident light
     >>>
-    >>> surface.absorption(F_i, epsilon, i=i)  # doctest: +FLOAT_CMP
-    <Quantity 77.94228634 W / (um m2)>
+    >>> surface.absorption(i)  # doctest: +FLOAT_CMP
+    <Quantity 0.8660254>
 
     Thermal emission:
 
-    >>> I_e = 100 * u.W / u.m**2 / u.um / u.sr
-    >>> surface.emission(I_e, epsilon, e=e, phi=phi)  # doctest: +FLOAT_CMP
-    <Quantity 45. W / (sr um m2)>
+    >>> surface.emission(e, phi)  # doctest: +FLOAT_CMP
+    <Quantity 0.5>
 
     Bidirectional reflectance:
 
-    >>> albedo = 1 - epsilon
-    >>> surface.reflectance(F_i, albedo, i=i, e=e, phi=phi)  # doctest: +FLOAT_CMP
-    <Quantity 1.37832224 W / (sr um m2)>
+    >>> surface.reflectance(i, e, phi)  # doctest: +FLOAT_CMP
+    <Quantity 0.13783222 1 / sr>
 
     Using vector-based arguments:
 
     >>> n = [1, 0, 0]
     >>> r = [0.8660254, 0.5, 0] * u.au
     >>> ro = [0.5, -0.8660254, 0] * u.au
-    >>> surface.reflectance_from_vectors(F_i, epsilon, n=n, r=r, ro=ro)  # doctest: +FLOAT_CMP
-    <Quantity 0.45 W / (um m2)>
+    >>> surface.reflectance_from_vectors(n, r, ro)  # doctest: +FLOAT_CMP
+    <Quantity 0.13783222 1 / sr>
 
     """
 
-    @staticmethod
     @u.quantity_input
     def absorption(
-        F_i: SpectralFluxDensityQuantity,
-        epsilon: float,
-        *,
+        self,
         i: u.physical.angle,
-        **kwargs,
-    ) -> u.Quantity:
+    ) -> u.Quantity[u.dimensionless_unscaled]:
         # use min_zero_cos(i) to ensure cos(>= 90 deg) = 0
-        cos_i = min_zero_cos(i)
-        return F_i * epsilon * cos_i
+        return min_zero_cos(i)
 
-    @staticmethod
     @u.quantity_input
     def emission(
-        I_e: SpectralFluxDensityQuantity,
-        epsilon: float,
-        *,
+        self,
         e: u.physical.angle,
-        **kwargs,
-    ) -> u.Quantity:
+        phi: Union[u.physical.angle, None],
+    ) -> u.Quantity[u.dimensionless_unscaled]:
         # use min_zero_cos(e) to ensure cos(>= 90 deg) = 0
-        cos_e = min_zero_cos(e)
-        return I_e * epsilon * cos_e
+        return min_zero_cos(e)
 
-    @staticmethod
     @u.quantity_input
     def reflectance(
-        F_i: SpectralFluxDensityQuantity,
-        albedo: float,
-        *,
+        self,
         i: u.physical.angle,
         e: u.physical.angle,
-        **kwargs,
-    ) -> u.Quantity:
-        # use min_zero_cos(theta) to ensure cos(>= 90 deg) = 0
-        cos_i = min_zero_cos(i)
-        cos_e = min_zero_cos(e)
-        return F_i * albedo * cos_i * cos_e / np.pi / u.sr
+        phi: u.physical.angle,
+    ) -> u.Quantity[u.sr**-1]:
+        return self.absorption(i) * self.emission(e, phi) / np.pi / u.sr
 
     @u.quantity_input
     def emission_from_vectors(
         self,
-        I_e: SpectralRadianceQuantity,
-        epsilon: float,
-        *,
         n: np.ndarray,
-        ro: np.ndarray,
-        **kwargs,
-    ) -> SpectralRadianceQuantity:
-        _, e, _ = self._vectors_to_angles(n, n, ro)
-        return self.emission(I_e, epsilon, e=e)
+        r: Union[u.physical.length, None],
+        ro: u.physical.length,
+    ) -> u.Quantity[u.dimensionless_unscaled]:
+        e = self._angle(n, ro)
+        return self.emission(e, None)

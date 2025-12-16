@@ -6,3 +6,5 @@ Physical quantity types.  See `Astropy Physical Types`_ for more.
 """
 
 import astropy.units as u
+
+u.physical.def_physical_type(u.sr**-1, "bidirectional reflectance")
