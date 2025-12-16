@@ -6,11 +6,6 @@ from typing import Union
 import numpy as np
 from astropy import units as u
 
-from ..units.typing import SpectralFluxDensityQuantity, SpectralRadianceQuantity
-
-# for bidirectional_reflectance
-from ..units import physical  # noqa: F401
-
 
 def min_zero_cos(a: u.physical.angle) -> u.Quantity[u.dimensionless_unscaled]:
     """Use to ensure that cos(>=90 deg) equals 0."""
@@ -94,7 +89,7 @@ class Surface(ABC):
         i: u.physical.angle,
         e: u.physical.angle,
         phi: u.physical.angle,
-    ) -> u.physical.bidirectional_reflectance:
+    ) -> u.Quantity[u.sr**-1]:
         r"""Bidirectional reflectance.
 
         The surface is illuminated at an angle of :math:`i`, and observed at an
