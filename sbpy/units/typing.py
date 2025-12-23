@@ -7,22 +7,22 @@ from packaging.version import Version
 import astropy.units as u
 from astropy import __version__ as astropy_version
 
-type UnitLike = Union[str, u.Unit]
-type SpectralQuantity = Union[
+UnitLike = Union[str, u.Unit]
+SpectralQuantity = Union[
     u.Quantity[u.physical.length], u.Quantity[u.physical.frequency]
 ]
-type SpectralFluxDensityQuantity = Union[
+SpectralFluxDensityQuantity = Union[
     u.Quantity[u.physical.spectral_flux_density],
     u.Quantity[u.physical.spectral_flux_density_wav],
 ]
 
 if Version(astropy_version) < Version("6.1"):
-    type SpectralRadianceQuantity = Union[
+    SpectralRadianceQuantity = Union[
         u.Quantity[u.physical.spectral_flux_density / u.sr],
         u.Quantity[u.physical.spectral_flux_density_wav / u.sr],
     ]
 else:
-    type SpectralRadianceQuantity = Union[
+    SpectralRadianceQuantity = Union[
         u.Quantity[u.physical.surface_brightness],
         u.Quantity[u.physical.surface_brightness_wav],
     ]
