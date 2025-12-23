@@ -26,10 +26,10 @@ env:
   IS_CRON: "false"
 
 jobs:
-  oorb-data:
-    uses: ./.github/workflows/oorb_data.yml
+  # oorb-data:
+  #   uses: ./.github/workflows/oorb_data.yml
   tests:
-    needs: [oorb-data]
+    # needs: [oorb-data]
     uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@v1
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
@@ -38,8 +38,8 @@ jobs:
         ARCH_ON_CI: "normal"
         IS_CRON: "false"
         OORB_DATA: "$GITHUB_WORKSPACE/oorb-data/"
-      cache-path: oorb-data/
-      cache-key: oorb-data
+      # cache-path: oorb-data/
+      # cache-key: oorb-data
       submodules: false
       coverage: ""
       envs: |
@@ -59,19 +59,19 @@ jobs:
           coverage: codecov
   macos-test:
     name: Python 3.11 with all optional dependencies (MacOS)
-    needs: [oorb-data]
+    # needs: [oorb-data]
     runs-on: macos-13
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Restore cached files
-        uses: actions/cache/restore@v4
-        with:
-          path: oorb-data/
-          key: oorb-data
-      - name: Set environment
-        run: |
-          echo "OORB_DATA=$GITHUB_WORKSPACE/oorb-data" >> "$GITHUB_ENV"
+      # - name: Restore cached files
+      #   uses: actions/cache/restore@v4
+      #   with:
+      #     path: oorb-data/
+      #     key: oorb-data
+      # - name: Set environment
+      #   run: |
+      #     echo "OORB_DATA=$GITHUB_WORKSPACE/oorb-data" >> "$GITHUB_ENV"
       - name: Set up Python
         uses: actions/setup-python@v5
         with:

@@ -19,10 +19,10 @@ env:
   IS_CRON: "true"
 
 jobs:
-  oorb-data:
-    uses: ./.github/workflows/oorb_data.yml
+  # oorb-data:
+  #   uses: ./.github/workflows/oorb_data.yml
   tests:
-    needs: [oorb-data]
+    # needs: [oorb-data]
     uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@v1
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

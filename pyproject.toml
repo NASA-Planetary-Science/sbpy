@@ -58,7 +58,7 @@ all = [
     "astroquery>=0.4.5",
     "ginga",
     "photutils",
-    "pyoorb",
+    # "pyoorb",
     "pyyaml",
     "scipy>=1.10",
     "synphot>=1.1.1",
