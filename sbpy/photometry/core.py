@@ -728,8 +728,8 @@ class LinearPhaseFunc(DiskIntegratedPhaseFunc):
     """
 
     _unit = 'mag'
-    H = Parameter(description='Absolute magnitude')
-    S = Parameter(description='Linear slope (mag/deg)')
+    H = Parameter(description='Absolute magnitude', default=5 * u.mag)
+    S = Parameter(description='Linear slope (mag/deg)', default=0.04 * u.mag / u.deg)
     input_units = {'x': u.deg}
 
     @staticmethod
