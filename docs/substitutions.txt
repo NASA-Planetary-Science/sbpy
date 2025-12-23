@@ -1,0 +1,34 @@
+.. ReST substitutions and links for the docs and docstrings.
+
+.. This file is included in the conf.py rst_epilog variable.
+
+.. Keep common items aligned with the astropy substitutions
+.. (astropy/docs/common_links.rst) to avoid issues with inheriting
+.. substitutions from astropy classes
+
+..                                 NumPy
+.. |ndarray| replace:: :class:`numpy.ndarray`
+
+..                                Astropy
+.. Coordinates
+.. |Angle| replace:: `~astropy.coordinates.Angle`
+.. |Latitude| replace:: `~astropy.coordinates.Latitude`
+.. |Longitude| replace:: :class:`~astropy.coordinates.Longitude`
+.. |BaseFrame| replace:: `~astropy.coordinates.BaseCoordinateFrame`
+.. |SkyCoord| replace:: :class:`~astropy.coordinates.SkyCoord`
+
+.. Table
+.. |Column| replace:: :class:`~astropy.table.Column`
+.. |MaskedColumn| replace:: :class:`~astropy.table.MaskedColumn`
+.. |TableColumns| replace:: :class:`~astropy.table.TableColumns`
+.. |Row| replace:: :class:`~astropy.table.Row`
+.. |Table| replace:: :class:`~astropy.table.Table`
+.. |QTable| replace:: :class:`~astropy.table.QTable`
+
+.. Time
+.. |Time| replace:: :class:`~astropy.time.Time`
+
+.. Units
+.. |PhysicalType| replace:: :class:`~astropy.units.PhysicalType`
+.. |Quantity| replace:: :class:`~astropy.units.Quantity`
+.. |Unit| replace:: :class:`~astropy.units.UnitBase`
