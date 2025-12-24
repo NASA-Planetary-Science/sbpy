@@ -458,7 +458,7 @@ class SynGenerator:
             Specific times to produce dust test particles.  The times will be
             converted to particle ages.
 
-        **kwargs
+        **kwargs : dict
             Any other `SynGenerator` keyword argument.
 
         """

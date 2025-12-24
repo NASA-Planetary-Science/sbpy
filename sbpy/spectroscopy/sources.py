@@ -93,7 +93,7 @@ class SpectralSource(ABC):
         meta : dict, optional
             Meta data.
 
-        **kwargs
+        **kwargs : dict
             Passed to object initialization.
 
         """
@@ -125,7 +125,7 @@ class SpectralSource(ABC):
         cache : bool, optional
             If ``True``, cache the contents of URLs.
 
-        **kwargs
+        **kwargs : dict
             Passed to object initialization.
 
         """
@@ -237,7 +237,7 @@ class SpectralSource(ABC):
             spectral resolution of the source is close to that of the
             requested wavelengths.
 
-        **kwargs
+        **kwargs : dict
             Additional keyword arguments for
             `~synphot.observation.Observation`, e.g., ``force``.
 
@@ -288,7 +288,7 @@ class SpectralSource(ABC):
             Spectral flux density units for the output.  The default
             is W/(m2 μm).
 
-        **kwargs
+        **kwargs : dict
             Additional keyword arguments for
             `~synphot.observation.Observation`, e.g., ``force``.
 
@@ -359,7 +359,7 @@ class SpectralSource(ABC):
             the default is W/(m2 μm) for wavelengths, Jy for
             frequencies.
 
-        **kwargs
+        **kwargs : dict
             Additional keyword arguments for
             `~synphot.observation.Observation`, e.g., ``force``.
 

@@ -196,7 +196,7 @@ def reflectance(wfb, cross_section=None, reflectance=None, **kwargs):
         Average reflectance.  One of `cross_section` or `reflectance`
         is required.
 
-    **kwargs
+    **kwargs : dict
         Keyword arguments for `~Sun.observe()`.
 
 

@@ -162,7 +162,7 @@ def refine_pixel(func, subsample, yx_pixel, yx, **kwargs):
       The coordinates of the pixel to consider.
     yx : array
       The function's origin.
-    **kwargs
+    **kwargs : dict
       Keyword arguments to pass on to `func`.
 
     Returns

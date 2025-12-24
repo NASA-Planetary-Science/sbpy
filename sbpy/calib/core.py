@@ -197,7 +197,7 @@ class SpectralStandard(SpectralSource, ABC):
             spectral resolution of the source is close to that of the
             requested wavelengths.
 
-        **kwargs
+        **kwargs : dict
             Additional keyword arguments for
             `~synphot.observation.Observation`, e.g., ``force``.
 

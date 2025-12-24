@@ -49,7 +49,7 @@ class DynamicalModel(abc.ABC):
 
     Parameters
     ----------
-    **kwargs
+    **kwargs : dict
         Arguments passed on to `~scipy.integrate.solve_ivp`.  Units are seconds,
         km, and km/s, e.g., ``max_step`` is a float value in units of seconds.
         For relative and absolute tolerance keywords, ``rtol`` and ``atol``,
@@ -186,7 +186,7 @@ class FreeExpansion(DynamicalModel):
 
     Parameters
     ----------
-    **kwargs
+    **kwargs : dict
         Arguments passed on to `~scipy.integrate.solve_ivp`.  Units are seconds,
         km, and km/s, e.g., ``max_step`` is a float value in units of seconds.
         For relative and absolute tolerance keywords, ``rtol`` and ``atol``,
@@ -221,7 +221,7 @@ class SolarGravity(DynamicalModel):
 
     Parameters
     ----------
-    **kwargs
+    **kwargs : dict
         Arguments passed on to `~scipy.integrate.solve_ivp`.  Units are seconds,
         km, and km/s, e.g., ``max_step`` is a float value in units of seconds.
         For relative and absolute tolerance keywords, ``rtol`` and ``atol``,
@@ -307,7 +307,7 @@ class SolarGravityAndRadiationPressure(DynamicalModel):
 
     Parameters
     ----------
-    **kwargs
+    **kwargs : dict
         Arguments passed on to `~scipy.integrate.solve_ivp`.  Units are seconds,
         km, and km/s, e.g., ``max_step`` is a float value in units of seconds.
         For relative and absolute tolerance keywords, ``rtol`` and ``atol``,
