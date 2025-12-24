@@ -475,7 +475,7 @@ Generally, we are interested in plotting syndynes and synchrones on an image of 
            ax,
            synchrone.coords,
            ls="--",
-           label=f"$\Delta t={synchrone.age.to(u.d):.2g}$",
+           label=f"$\\Delta t={synchrone.age.to(u.d):.2g}$",
        )
    
    # and plot the orbit
@@ -487,8 +487,8 @@ Generally, we are interested in plotting syndynes and synchrones on an image of 
    plt.setp(ax,
             xlim=[100, -10],
             ylim=[-10, 100],
-            xlabel="$\Delta$RA (arcsec)",
-            ylabel="$\Delta$Dec (arcsec)",
+            xlabel="$\\Delta$RA (arcsec)",
+            ylabel="$\\Delta$Dec (arcsec)",
    )
    plt.legend()
    plt.tight_layout()
