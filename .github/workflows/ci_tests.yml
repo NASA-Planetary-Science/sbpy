@@ -2,8 +2,7 @@
 #
 # This file performs testing using tox and tox.ini to define and configure the test environments.
 
-# Remove -numpy126 when we support testing with numpy 2.0
-# Allow testing of optional dependencies on Python 3.12+ when pyoorb is updated.
+# Restore testing with pyoorb when it supports Python 3.12+
 
 name: CI Tests
 
@@ -58,7 +57,7 @@ jobs:
           linux: py310-test-oldestdeps-cov
           coverage: codecov
   macos-test:
-    name: Python 3.11 with all optional dependencies (MacOS)
+    name: Python 3.14 with all optional dependencies (MacOS)
     # needs: [oorb-data]
     runs-on: macos-latest
     steps:

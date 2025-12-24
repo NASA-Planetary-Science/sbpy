@@ -1,7 +1,7 @@
 # GitHub Actions workflow that runs on a cron schedule.
 # Check URLs and run latest deps with remote tests
 
-# Remove -numpy126 when we support testing with numpy 2.0
+# Restore testing with pyoorb when it supports Python 3.12+
 
 name: Weekly CI Tests
 
