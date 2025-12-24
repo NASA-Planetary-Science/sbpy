@@ -60,7 +60,7 @@ jobs:
   macos-test:
     name: Python 3.11 with all optional dependencies (MacOS)
     # needs: [oorb-data]
-    runs-on: macos-13
+    runs-on: macos-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
