@@ -53,8 +53,8 @@ Unit conversions between flux density and Vega-based magnitudes use the `astropy
   >>> fluxd.value                                  # doctest: +FLOAT_CMP
   3.5469235179497687e-09
   >>> m = fluxd.to(VEGAmag, spectral_density_vega(wave))
-  >>> m.value                                      # doctest: +FLOAT_CMP
-  0.0
+  >>> print(m.value)                               # doctest: +FLOAT_CMP
+  -0.0
 
 To use a bandpass, define and pass a `synphot.spectrum.SpectralElement`.  A limited set of bandpasses are distributed with sbpy (see :ref:`filter-bandpasses`):
 
@@ -65,7 +65,7 @@ To use a bandpass, define and pass a `synphot.spectrum.SpectralElement`.  A limi
   >>> V = bandpass('Johnson V')
   >>> m = 0.0 * VEGAmag
   >>> fluxd = m.to('erg/(cm2 s AA)', spectral_density_vega(V))
-  >>> fluxd.value                   # doctest: +FLOAT_CMP
+  >>> print(fluxd.value)                   # doctest: +FLOAT_CMP
   3.5469235114856157e-09
 
 .. _reflectance-equivalencies:
