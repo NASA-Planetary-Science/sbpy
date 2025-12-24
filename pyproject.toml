@@ -5,8 +5,8 @@ readme = "README.rst"
 authors = [{ name = "sbpy team", email = "msk@astro.umd.edu" }]
 license = "BSD-3-Clause"
 license-files = ["LICENSE.rst", "licenses/*.rst"]
-requires-python = ">=3.9"
-dependencies = ["numpy>1.24.0", "astropy>=5.3.3"]
+requires-python = ">=3.10"
+dependencies = ["numpy>1.26.0", "astropy>=5.3.3"]
 dynamic = ["version"]
 keywords = [
     "astronomy",
@@ -76,7 +76,6 @@ docs = [
     "sbpy[all,test]",
     "astropy!=6.1.*",
     "matplotlib>=3.8",
-    "numpy<2",
     "packaging",
     "scipy>=1.10",
     "sphinx-astropy>=1.9.1",
