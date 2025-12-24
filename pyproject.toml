@@ -99,18 +99,17 @@ astropy_header = true
 doctest_plus = "enabled"
 text_file_format = "rst"
 remote_data_strict = true
-addopts = [
-    "--doctest-rst",
-    "--doctest-plus",
-    "--ignore-glob=\"*/compile_fieldnames.py\"",
-    "--color=yes",
-]
+addopts = ["--doctest-rst", "--doctest-plus", "--color=yes"]
 xfail_strict = true
 filterwarnings = [
     "ignore:numpy.ufunc size changed:RuntimeWarning",
     "ignore:numpy.ndarray size changed:RuntimeWarning",
 ]
-doctest_norecursedirs = ["*/setup_package.py", "docs/_build"]
+doctest_norecursedirs = [
+    "*/setup_package.py",
+    "docs/_build",
+    "*/compile_fieldnames.py",
+]
 doctest_subpackage_requires = [
     "docs/sbpy/photometry.rst = astroquery",
     "docs/sbpy/data/ephem.rst = astroquery",

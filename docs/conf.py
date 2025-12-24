@@ -213,6 +213,8 @@ numpydoc_xref_aliases.update(
 # Add from sphinx-astropy 1) glossary aliases 2) physical types.
 numpydoc_xref_aliases.update(numpydoc_xref_astropy_aliases)
 
+numpydoc_show_class_members = False
+
 # -- Project information ------------------------------------------------------
 
 # This does not *have* to match the package name, but typically does
@@ -320,7 +322,4 @@ edit_on_github_project = "NASA-Planetary-Science/sbpy"
 github_issues_url = "https://github.com/astropy/astropy/issues/"
 edit_on_github_branch = "main"
 
-# -- compile list of field names
-# import compile_fieldnames
-
-numpydoc_show_class_members = False
+# -- Other items --------------------------------------------------------------
