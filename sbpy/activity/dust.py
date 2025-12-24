@@ -520,7 +520,7 @@ class Afrho(DustComaQuantity):
         Phi : callable, optional
             Phase function, see :func:`~Afrho.to_phase`.
 
-        **kwargs : dict
+        kwargs : dict
             Keyword arguments for `~Sun.observe`.
 
 
