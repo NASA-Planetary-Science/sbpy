@@ -4,9 +4,6 @@
 sbpy: The Small Bodies Python package
 """
 
-from importlib.metadata import version as _version, PackageNotFoundError
+from importlib.metadata import version as _version
 
-try:
-    __version__ = _version(__name__)
-except PackageNotFoundError:
-    pass
+__version__ = _version(__name__)
