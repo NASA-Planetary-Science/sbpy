@@ -116,3 +116,39 @@ doctest_subpackage_requires = [
     "docs/sbpy/data/orbit.rst = astroquery,oorb",
     "docs/sbpy/data/phys.rst = astroquery",
 ]
+
+[tool.coverage]
+[tool.coverage.run]
+omit = [
+    "sbpy/__init__*",
+    "sbpy/**/conftest.py",
+    "sbpy/**/tests/*",
+    "sbpy/extern/*",
+    "sbpy/version*",
+    "*/sbpy/__init__*",
+    "*/sbpy/**/conftest.py",
+    "*/sbpy/**/tests/*",
+    "*/sbpy/extern/*",
+    "*/sbpy/version*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    # Have to re-enable the standard pragma
+    "pragma: no cover",
+    # Don't complain about packages we have installed
+    "except ImportError",
+    # Don't complain if tests don't hit defensive assertion code:
+    "raise AssertionError",
+    "raise NotImplementedError",
+    # Don't complain about script hooks
+    "'def main(.*):'",
+    # Ignore branches that don't pertain to this version of Python
+    "pragma: py{ignore_python_version}",
+    # Don't complain about IPython completion helper
+    "def _ipython_key_completions_",
+    # typing.TYPE_CHECKING is False at runtime
+    "if TYPE_CHECKING:",
+    # Ignore typing overloads
+    "@overload",
+]
