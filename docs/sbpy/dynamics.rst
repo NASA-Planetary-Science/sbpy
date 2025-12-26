@@ -293,6 +293,24 @@ To support generating synchrones at specific times, the :func:`~sbpy.dynamics.sy
    <Time object: scale='utc' format='iso' value=2023-10-01 00:00:00.000>
 
 
+Using Horizons
+--------------
+
+`Ephem.from_horizons` returns equatorial coordinates in the ICRF reference frame, which has its origin at the Solar System barycenter.  For `State` to correctly convert the ephemeris object to vectors, we need to set the Horizons observer to the Solar System barycenter (``"@ssb"``).  However, dynamical integrations are done in a heliocentric reference frame, so we transform the result to ``"heliocentriceclipticiau76"``:
+
+.. doctest-requires:: astroquery
+
+   >>> eph = Ephem.from_horizons(
+   ...     "48P",
+   ...     id_type="designation",
+   ...     closest_apparition=True,
+   ...     epochs=obstime,
+   ...     location="@ssb",
+   ... )
+   >>> comet = State.from_ephem(eph, frame="icrs")
+   >>> comet = comet.transform_to("heliocentriceclipticiau76")
+
+
 Adding ejection velocity
 ------------------------
 
@@ -388,110 +406,115 @@ In this example, we compute the syndynes of a comet orbiting β Pic (1.8 solar m
 Plotting syndynes and synchrones
 --------------------------------
 
-Generally, we are interested in plotting syndynes and synchrones on an image of a comet.  The accuracy of the coordinates object depends on the the comet and observer states, but also on whether or not light travel time is accounted for, and the accuracy of the orbit integrator.  The `sbpy` testing suite shows that arcsecond-level accuracy is possible, but this is generally not accurate enough for direct comparison to typical images of comets.  Instead, it helps to compute the positions of the syndynes and synchrone coordinate objects relative to the comet, and plot the results.
+Generally, we are interested in plotting syndynes and synchrones on an image of a comet.  The accuracy of the coordinates object depends on the the comet and observer states, but also on whether or not light travel time is accounted for, and the accuracy of the orbit integrator.  The `sbpy` testing suite shows that arcsecond-level accuracy is possible, but this is generally not accurate enough for direct comparison to typical images of comets, which need sub-arcsecond alignment.  Instead, it helps plot results relative to the comet's calculated position.
 
-.. doctest-requires:: scipy,matplotlib
+The following example compares syndynes to a Spitzer Space Telesocpe image of comet 48P/Johnson (`Reach et al. 2007 <https://scixplorer.org/abs/2007Icar..191..298R/abstract>`_).  The FITS world coordinate system is used to account for the image orientation and scale.  To precisely align the syndynes with the comet nucleus, we update the world coordinate system to use our calculated comet coordinates:
 
-   >>> import matplotlib.pyplot as plt
-   >>> 
-   >>> coords0 = observer.observe(comet)
-   >>> def plot(ax, coords, **kwargs):
-   ...     dRA = coords.ra - coords0.ra
-   ...     dDec = coords.dec - coords0.dec
-   ...     ax.plot(dRA.arcsec, dDec.arcsec, **kwargs)
-   >>> 
-   >>> fig, ax = plt.subplots()
-   >>> 
-   >>> # plot all but the last (beta=0) syndyne
-   >>> for syndyne in dust.syndynes()[:-1]:
-   ...     plot(ax, syndyne.coords, label=f"$\\beta={syndyne.beta:.2g}$")
-   >>> 
-   >>> # plot every 5th synchrone
-   >>> for synchrone in dust.synchrones()[4::5]:
-   ...     plot(
-   ...         ax,
-   ...         synchrone.coords,
-   ...         ls="--",
-   ...         label=f"$\\Delta t={synchrone.age.to(u.d):.2g}$"
-   ...     )
-   >>> 
-   >>> # and plot the orbit
-   >>> dt = np.linspace(-2, 2) * u.d
-   >>> states, coords = dust.source_orbit(dt)
-   >>> plot(ax, coords, color="k", ls=":", label="Orbit")
+.. doctest-requires:: scipy,astroquery
+
+   >>> from astropy.io import fits
+   >>> from astropy.wcs import WCS
    >>>
-   >>> ax.invert_xaxis()
-   >>> plt.setp(ax,
-   ...          xlim=[100, -10],
-   ...          ylim=[-10, 100],
-   ...          xlabel="$\\Delta$RA (arcsec)",
-   ...          ylabel="$\\Delta$Dec (arcsec)",
-   ... ) # doctest: +SKIP
-   >>> plt.legend() # doctest: +SKIP
-   >>> plt.tight_layout()
+   >>> image, header = fits.getdata("48p-spitzer-reach07.fits", header=True)
+   >>> obstime = Time(header["DATE_OBS"])
+   >>>
+   >>> # get the comet state
+   >>> eph = Ephem.from_horizons(
+   ...     "48P",
+   ...     id_type="designation",
+   ...     closest_apparition=True,
+   ...     epochs=obstime,
+   ...     location="@ssb",
+   ... )
+   >>> comet = State.from_ephem(eph, frame="icrs")
+   >>> comet = comet.transform_to("heliocentriceclipticiau76")
+   >>> 
+   >>> # get the Spitzer Space Telescope state
+   >>> eph = Ephem.from_horizons("-79", id_type=None, epochs=obstime, location="@ssb")
+   >>> observer = State.from_ephem(eph, frame="icrs")
+   >>> 
+   >>> # set up the world coordinate system object and update the origin to align with
+   >>> # the calculated position of the comet
+   >>> wcs = WCS(header)
+   >>> coords0 = observer.observe(comet)[0].unmasked
+   >>> wcs.wcs.crval = coords0.ra.deg, coords0.dec.deg
+   >>> wcs.wcs.crpix = 209, 99
+
 
 .. plot::
 
-   import numpy as np
-   import matplotlib.pyplot as plt
+   >>> import numpy as np
+   >>> import matplotlib.pyplot as plt
+   >>> 
+   >>> import astropy.units as u
+   >>> from astropy.time import Time
+   >>> from astropy.io import fits
+   >>> from astropy.wcs import WCS
+   >>> 
+   >>> from sbpy.dynamics import State
+   >>> from sbpy.data import Ephem
+   >>> from sbpy.dynamics import SynGenerator
+   >>> 
+   >>> image, header = fits.getdata("48p-spitzer-reach07.fits", header=True)
+   >>> obstime = Time(header["DATE_OBS"])
+   >>> 
+   >>> # Ephem.from_horizons returns equatorial coordinates in the ICRF reference
+   >>> # frame, which has its origin at the Solar System barycenter.  For State to
+   >>> # correctly convert the ephemeris to vectors, we need to set the Horizons
+   >>> # observer to the Solar System barycenter: @ssb
+   >>> 
+   >>> # get the position of the comet and transform to a heliocentric frame for
+   >>> # integration
+   >>> eph = Ephem.from_horizons(
+   ...     "48P",
+   ...     id_type="designation",
+   ...     closest_apparition=True,
+   ...     epochs=obstime,
+   ...     location="@ssb",
+   ... )
+   >>> comet = State.from_ephem(eph, frame="icrs")
+   >>> comet = comet.transform_to("heliocentriceclipticiau76")
+   >>> 
+   >>> # get the position of the Spitzer Space Telescope
+   >>> eph = Ephem.from_horizons("-79", id_type=None, epochs=obstime, location="@ssb")
+   >>> observer = State.from_ephem(eph, frame="icrs")
+   >>> 
+   >>> # generate the syndynes
+   >>> betas = [1, 0.1, 0.01, 0.001]
+   >>> ages = np.linspace(0, 365, 51) * u.day
+   >>> dust = SynGenerator(comet[0], betas, ages, observer=observer[0])
+   >>> 
+   >>> # Set up the world coordinate system object and update the origin to align with
+   >>> # the calculated position of the comet.
+   >>> wcs = WCS(header)
+   >>> coords0 = observer.observe(comet)[0].unmasked
+   >>> wcs.wcs.crval = coords0.ra.deg, coords0.dec.deg
+   >>> wcs.wcs.crpix = 209, 99
+   >>> 
+   >>> # plot
+   >>> fig, ax = plt.subplots(num=1, clear=True, figsize=(6.5, 3.25))
+   >>> 
+   >>> ax.imshow(image, origin="lower", vmin=14, vmax=70, cmap="gray_r")
+   >>> 
+   >>> # save xlim and ylim for later
+   >>> xlim = ax.get_xlim()
+   >>> ylim = ax.get_ylim()
+   >>> 
+   >>> # plot the syndynes
+   >>> for syndyne in dust.syndynes():
+   ...     x, y = wcs.world_to_pixel(syndyne.coords.unmasked)
+   ...     ax.plot(x, y, label=f"$\\beta={syndyne.beta:.2g}$")
+   >>> 
+   >>> # plot orbit
+   >>> dt = np.linspace(-1, 1) * 3 * u.d
+   >>> states, coords = dust.source_orbit(dt)
+   >>> x, y = wcs.world_to_pixel(coords.unmasked)
+   >>> ax.plot(x, y, color="tab:olive", ls="--", label="Orbit")
+   >>> 
+   >>> plt.setp(ax, xlim=xlim, ylim=ylim)
+   >>> plt.legend()
+   >>> plt.tight_layout()
 
-   import astropy.units as u
-   from astropy.time import Time
-   from sbpy.dynamics import State, SynGenerator
-
-   r = [2, 0, 0] * u.au
-   v = [0, 30, 0] * u.km / u.s
-   t = Time("2023-12-08")
-   frame = "heliocentriceclipticiau76"
-   comet = State(r, v, t, frame=frame)
-
-   betas = [1, 0.1, 0.01, 0]
-   ages = np.linspace(0, 100, 25) * u.day
-   observer = State(
-       r=[0, 2, 2] * u.au,
-       v=[0, 0, 0] * u.km / u.s,
-       t=comet.t,
-       frame="icrs",
-   )
-   dust = SynGenerator(comet, betas, ages, observer=observer)
-
-   coords0 = observer.observe(comet)
-   def plot(ax, coords, **kwargs):
-       dRA = coords.ra - coords0.ra
-       dDec = coords.dec - coords0.dec
-       ax.plot(dRA.arcsec, dDec.arcsec, **kwargs)
-   
-   fig, ax = plt.subplots()
-   
-   for syndyne in dust.syndynes():
-       # don't draw the beta = 0 syndyne
-       if syndyne.beta == 0:
-           continue
-       plot(ax, syndyne.coords, label=f"$\\beta={syndyne.beta:.2g}$")
-   
-   # plot every 5th synchrone
-   for synchrone in dust.synchrones()[4::5]:
-       plot(
-           ax,
-           synchrone.coords,
-           ls="--",
-           label=f"$\\Delta t={synchrone.age.to(u.d):.2g}$",
-       )
-   
-   # and plot the orbit
-   dt = np.linspace(-2, 2) * u.d
-   states, coords = dust.source_orbit(dt)
-   plot(ax, coords, color="k", ls=":", label="Orbit")
-
-   ax.invert_xaxis()
-   plt.setp(ax,
-            xlim=[100, -10],
-            ylim=[-10, 100],
-            xlabel="$\\Delta$RA (arcsec)",
-            ylabel="$\\Delta$Dec (arcsec)",
-   )
-   plt.legend()
-   plt.tight_layout()
 
 
 Reference/API
