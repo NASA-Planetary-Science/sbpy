@@ -415,7 +415,7 @@ The following example compares syndynes to a Spitzer Space Telesocpe image of co
    >>> from astropy.io import fits
    >>> from astropy.wcs import WCS
    >>>
-   >>> image, header = fits.getdata("48p-spitzer-reach07.fits", header=True)
+   >>> image, header = fits.getdata("https://sbpy.org/data/48p-spitzer-reach07.fits", header=True)
    >>> obstime = Time(header["DATE_OBS"])
    >>>
    >>> # get the comet state
