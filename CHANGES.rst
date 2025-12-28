@@ -19,6 +19,9 @@ sbpy.dynamics
   `sbpy.dynamics.syndynes.Synchrone`, and `sbpy.dynamics.syndynes.Synchrones`.
   [#...]
 
+- New `sbpy.dynamics.syndynes.SourceOrbit` class to encapsulate a collection of
+  points along an object's orbit. [#...]
+
 
 API Changes
 -----------
@@ -31,7 +34,20 @@ sbpy.dynamics
   will return a single `sbpy.dynamics.syndynes.Syndyne` or
   `sbpy.dynamics.syndynes.Synchrone`.  Indexing with a tuple or slice, e.g.,
   ``syndynes[:2]`` will return `sbpy.dynamics.syndynes.Syndynes` or
-  `sbpy.dynamics.syndynes.Synchrones`.  Previously a list was returned.
+  `sbpy.dynamics.syndynes.Synchrones`.  Previously a list was returned. [#...]
+
+- `sbpy.dynamics.syndynes.SynGenerator.source_orbit` now returns a
+  `sbpy.dynamics.syndynes.SourceOrbit` object.  Previously the states and
+  projected coordinates were returned as separate objects. [#...]
+
+
+Bug Fixes
+---------
+
+sbpy.dynamics
+^^^^^^^^^^^^^
+
+- Added missing `sbpy.dynamics.state.State.to_ephem`. [#...]
 
 
 v0.6.0 (2025-12-02)
