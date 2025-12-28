@@ -497,7 +497,7 @@ class TestSynGenerator:
         comet, betas, ages, dust, observer = example_syndynes
 
         dt = [-1, 0, 1] * u.d
-        orbit, coords = dust.source_orbit(dt)
+        orbit = dust.source_orbit(dt)
         assert u.allclose((orbit.t - comet.t).to("s"), dt)
 
         solver = SolarGravity()
@@ -505,8 +505,3 @@ class TestSynGenerator:
             expected = solver.solve(comet, comet.t + dt[i])
             assert u.allclose(orbit[i].r, expected.r, rtol=1e-11, atol=1 * u.cm)
             assert u.allclose(orbit[i].v, expected.v, rtol=1e-11, atol=1 * u.um / u.s)
-
-        # test without observer
-        dust.observer = None
-        orbit2 = dust.source_orbit(dt)
-        assert np.allclose(orbit2.r, orbit.r)
