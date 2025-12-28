@@ -212,6 +212,12 @@ class TestSyndyne:
                 initial_states,
             )
 
+    def test_getitem(self, example_syndynes):
+        _, _, _, dust, _ = example_syndynes
+        assert isinstance(dust.syndynes(), Syndynes)
+        assert isinstance(dust.syndynes()[0], Syndyne)
+        assert isinstance(dust.syndynes()[:1], Syndynes)
+
 
 class TestSynchrone:
     def test_init(self, example_syndynes):
@@ -285,6 +291,12 @@ class TestSynchrone:
         # we just need to make sure the betas and ages are right
         assert np.allclose(eph["beta_rad"], betas)
         assert u.allclose(eph["age"], age)
+
+    def test_getitem(self, example_syndynes):
+        _, _, _, dust, _ = example_syndynes
+        assert isinstance(dust.synchrones(), Synchrones)
+        assert isinstance(dust.synchrones()[0], Synchrone)
+        assert isinstance(dust.synchrones()[:1], Synchrones)
 
 
 def random_state(length=1):
