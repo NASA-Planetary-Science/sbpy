@@ -7,6 +7,8 @@ Generate cometary dust syndynes and synchrones.
 
 """
 
+from __future__ import annotations
+
 __all__ = [
     "SourceOrbit",
     "SynGenerator",
@@ -38,7 +40,7 @@ from astropy.coordinates import SkyCoord
 
 from ..data import Ephem
 from ..utils.decorators import requires
-from ..utils import unmasked
+from ..utils.core import _unmasked
 from .models import DynamicalModel, SolarGravityAndRadiationPressure
 from .state import StateBase, State
 
@@ -229,7 +231,7 @@ class SynStates(StateBase, abc.ABC):
         else:
             # convert coordinates to plot units with the WCS object (avoid
             # passing a masked object, or wcs will complain)
-            x, y = wcs.world_to_pixel(unmasked(self.coords))
+            x, y = wcs.world_to_pixel(_unmasked(self.coords))
 
         ax.plot(x, y, **kwargs)
 
