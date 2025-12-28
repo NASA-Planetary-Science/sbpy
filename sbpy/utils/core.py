@@ -6,7 +6,7 @@ created on March 12, 2019
 
 """
 
-__all__ = ["required_packages", "optional_packages", "unmasked"]
+__all__ = ["required_packages", "optional_packages"]
 
 from importlib import import_module
 from warnings import warn
@@ -112,7 +112,7 @@ def optional_packages(*packages, message=None):
     return True
 
 
-def unmasked(array):
+def _unmasked(array):
     """Return an unmasked version of the array."""
 
     if get_data_and_mask is None:

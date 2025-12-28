@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 from astropy.utils.masked import Masked
-from ..core import required_packages, optional_packages, unmasked
+from ..core import required_packages, optional_packages, _unmasked
 from ...exceptions import RequiredPackageUnavailable, OptionalPackageUnavailable
 
 
@@ -37,6 +37,6 @@ def test_unmasked():
     ma1 = Masked([1.0, 2.0, 3.0], mask=[False, False, True])
     ma2 = np.ma.MaskedArray(array, mask=mask)
 
-    assert unmasked(array) is array
-    assert (unmasked(ma1) == array).all()
-    assert (unmasked(ma2) == array).all()
+    assert _unmasked(array) is array
+    assert (_unmasked(ma1) == array).all()
+    assert (_unmasked(ma2) == array).all()
