@@ -179,7 +179,7 @@ Fetching states from Horizons
    ...     "48P",
    ...     id_type="designation",
    ...     closest_apparition=True,
-   ...     epochs=obstime,
+   ...     epochs=Time("2004-10-13T21:08:23.894"),
    ...     location="@ssb",
    ... )
    >>> comet = State.from_ephem(eph, frame="icrs")
@@ -380,9 +380,12 @@ Calculating the positions of the projected orbit of the source object may be hel
 
 .. doctest-requires:: scipy
 
-   >>> dt = np.linspace(-2, 2) * u.d
+   >>> dt = np.linspace(-2, 2, 3) * u.d
    >>> orbit = dust.source_orbit(dt)
-   >>> orbit.coords
+   >>> print("\n".join(orbit.coords.to_string("hmsdms", precision=0)))
+   20h57m34s -35d17m04s
+   20h59m23s -35d18m48s
+   21h01m13s -35d20m36s
 
 
 Using other dynamical models
@@ -530,7 +533,7 @@ The following example compares syndynes to a Spitzer Space Telesocpe image of co
    >>> # plot the image and syndynes
    >>> fig, ax = plt.subplots(num=1, clear=True, figsize=(6.5, 3.25))
    >>> 
-   >>> ax.imshow(image, origin="lower", vmin=49.1, vmax=49.5, cmap="gray_r")
+   >>> ax.imshow(image, origin="lower", vmin=49.1, vmax=49.5, cmap="gray_r")  # doctest: +SKIP
    >>> 
    >>> # save xlim and ylim for later
    >>> xlim = ax.get_xlim()
@@ -543,8 +546,8 @@ The following example compares syndynes to a Spitzer Space Telesocpe image of co
    >>> dt = np.linspace(-1, 1) * u.d
    >>> dust.source_orbit(dt).plot(ax, wcs=wcs, color="tab:cyan", lw=1, label="Orbit")
    >>> 
-   >>> plt.setp(ax, xlim=xlim, ylim=ylim)
-   >>> plt.legend()
+   >>> plt.setp(ax, xlim=xlim, ylim=ylim)  # doctest: +SKIP
+   >>> plt.legend()  # doctest: +SKIP
 
 .. plot::
    :show-source-link:
