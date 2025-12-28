@@ -629,8 +629,6 @@ For more complex plot logic, e.g., to use specific line colors and styles, we ca
    >>> for i in range(3):
    ...     syndynes[i].plot(ax, color="k", ls=ls[i])
 
-Note that legend labels are not automatically generated in this case.
-
 .. plot::
    :context:
 
