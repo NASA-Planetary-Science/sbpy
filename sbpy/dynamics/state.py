@@ -435,6 +435,30 @@ class State(StateBase):
             " velocity fields."
         )
 
+    def to_ephem(self) -> Ephem:
+        """Convert to an ephemeris object.
+
+
+        Returns
+        -------
+        eph : `~sbpy.data.ephem.Ephem`
+
+        """
+
+        time_field = "dt" if self.arbitrary_time else "date"
+
+        eph = {
+            time_field: self.t,
+            "x": self.x,
+            "y": self.y,
+            "z": self.z,
+            "vx": self.v_x,
+            "vy": self.v_y,
+            "vz": self.v_z,
+        }
+
+        return Ephem.from_dict(eph, meta={"frame": self.frame})
+
     def observe(self, target: StateType) -> SkyCoord:
         """Project a target's position onto the sky.
 
