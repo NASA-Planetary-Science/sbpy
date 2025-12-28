@@ -8,6 +8,7 @@ Generate cometary dust syndynes and synchrones.
 """
 
 __all__ = [
+    "SourceOrbit",
     "SynGenerator",
     "SynStates",
     "SynCollection",
@@ -348,8 +349,8 @@ class SourceOrbit(SynStates):
     source : State
         The orbit is for this source state.
 
-    ages : ~astropy.units.Quantity
-        Array of ages, shape = (N,).
+    dt : ~astropy.units.Quantity
+        Each point's time relative to the observation time, shape = (N,).
 
     r : `~astropy.units.Quantity`
         Position (x, y, z), shape = (N, 3).  Same coordinate frame as ``source``.
@@ -368,13 +369,17 @@ class SourceOrbit(SynStates):
     def __init__(
         self,
         source: State,
-        ages: u.Quantity,
+        dt: u.Quantity,
         r: u.Quantity,
         v: u.Quantity,
         t: Time,
         observer: Optional[State] = None,
     ) -> None:
-        super().__init__(source, 0, ages, r, v, t, source, observer=observer)
+        super().__init__(source, 0, -dt, r, v, t, source, observer=observer)
+
+    @property
+    def dt(self) -> u.Quantity:
+        return -self.ages
 
     @property
     def epoch(self) -> Time:
@@ -777,12 +782,8 @@ class SynGenerator:
         Returns
         -------
 
-        orbit : State
+        orbit : SourceOrbit
             The orbital states.
-
-        coords : SkyCoord, optional
-            The observed coordinates.  Only returned when ``.observer`` is
-            defined.
 
         """
 
@@ -792,8 +793,4 @@ class SynGenerator:
             states.append(self.solver.solve(self.source, t, 0))
         states: State = State.from_states(states)
 
-        if self.observer is None:
-            return states
-
-        coords: SkyCoord = self.observer.observe(states)
-        return states, coords
+        return SourceOrbit(self.source, dt, states.r, states.v, states.t, self.observer)
