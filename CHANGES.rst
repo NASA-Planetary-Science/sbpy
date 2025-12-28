@@ -5,6 +5,35 @@ Update supported versions [#427]:
 - Python >= 3.10
 
 
+v0.7.0 (unreleased)
+===================
+
+New Features
+------------
+
+sbpy.dynamics
+^^^^^^^^^^^^^
+
+- Plot syndynes and synchrones with the new ``plot()`` methods on
+  `sbpy.dynamics.syndynes.Syndyne`, `sbpy.dynamics.syndynes.Syndynes`,
+  `sbpy.dynamics.syndynes.Synchrone`, and `sbpy.dynamics.syndynes.Synchrones`.
+  [#...]
+
+
+API Changes
+-----------
+
+sbpy.dynamics
+^^^^^^^^^^^^^
+
+- Indexing `sbpy.dynamics.syndynes.Syndynes` or
+  `sbpy.dynamics.syndynes.Synchrones` with an integer, e.g., ``syndynes[0]``,
+  will return a single `sbpy.dynamics.syndynes.Syndyne` or
+  `sbpy.dynamics.syndynes.Synchrone`.  Indexing with a tuple or slice, e.g.,
+  ``syndynes[:2]`` will return `sbpy.dynamics.syndynes.Syndynes` or
+  `sbpy.dynamics.syndynes.Synchrones`.  Previously a list was returned.
+
+
 v0.6.0 (2025-12-02)
 ===================
 

@@ -22,17 +22,27 @@ import time
 import logging
 from typing import Iterable, Optional, TypeVar
 
+try:
+    import matplotlib as mpl
+    import matplotlib.pyplot as plt
+except ImportError:
+    pass
+
 import numpy as np
 import astropy.units as u
+from astropy.wcs import WCS
 from astropy.time import Time
 from astropy.table import vstack
 from astropy.coordinates import SkyCoord
 
 from ..data import Ephem
+from ..utils.decorators import requires
+from ..utils import unmasked
 from .models import DynamicalModel, SolarGravityAndRadiationPressure
-from .state import StateBase, StateBaseType, State
+from .state import StateBase, State
 
 SynGeneratorType = TypeVar("SynGeneratorType", bound="SynGenerator")
+SynCollectionType = TypeVar("SynCollectionType", bound="SynCollection")
 
 
 class SynStates(StateBase, abc.ABC):
@@ -172,6 +182,56 @@ class SynStates(StateBase, abc.ABC):
 
         return Ephem.from_dict(data, meta=meta)
 
+    @requires("matplotlib")
+    def plot(
+        self,
+        ax: mpl.axes.Axes | None = None,
+        *,
+        wcs: WCS | None = None,
+        unit: u.Unit | str = "arcsec",
+        **kwargs,
+    ) -> None:
+        """Plot the coordinates.
+
+        Requires `self.observer`.
+
+
+        Parameters
+        ----------
+        ax : `~matplotlib.axes.Axes`, optional
+            Plot to this axis object.
+
+        wcs : `~astropy.wcs.WCS`, optional
+            Transform coordinates to the image plane using this world coordinate
+            system object.
+
+        unit : `~astropy.unit.Unit` or str, optional
+            Plot in these angular units.
+
+        **kwargs : dict
+            Keyword arguments are passed along to ``ax.plot``.
+
+        """
+
+        if wcs is None:
+            # plot offsets from the source in the tangent plane
+
+            if self.observer is None:
+                raise ValueError("observer is not defined")
+
+            coords0 = self.observer.observe(self.source)
+
+            dRA = self.coords.ra - coords0.ra
+            dDec = self.coords.dec - coords0.dec
+            x = dRA.to(unit) / np.cos(self.coords.dec)
+            y = dDec.to(unit)
+        else:
+            # convert coordinates to plot units with the WCS object (avoid
+            # passing a masked object, or wcs will complain)
+            x, y = wcs.world_to_pixel(unmasked(self.coords))
+
+        ax.plot(x, y, **kwargs)
+
 
 class Syndyne(SynStates):
     """Collection of particle states that make up a syndyne.
@@ -179,7 +239,7 @@ class Syndyne(SynStates):
 
     Parameters
     ----------
-    source : State
+    source : `State`
         The source of the syndyne dust.
 
     beta : float
@@ -196,6 +256,9 @@ class Syndyne(SynStates):
 
     t : `~astropy.time.Time` or `~astropy.units.Quantity`
         Time of observation.
+
+    initial : `State`
+        The initial states for each particle.
 
     observer : `~sbpy.dynamics.State`, optional
         The observer, used to generate sky coordinates.
@@ -245,6 +308,9 @@ class Synchrone(SynStates):
     t : `~astropy.time.Time` or `~astropy.units.Quantity`
         Time of observation.
 
+    initial : `State`
+        The initial states for each particle.
+
     observer : `~sbpy.dynamics.State`, optional
         The observer, used to generate sky coordinates.
 
@@ -271,6 +337,48 @@ class Synchrone(SynStates):
     @property
     def epoch(self) -> Time:
         """Epoch of synchrone ejection."""
+        return self.source.t - self.ages[0]
+
+
+class SourceOrbit(SynStates):
+    """Collection of states that make up an orbit.
+
+    Parameters
+    ----------
+    source : State
+        The orbit is for this source state.
+
+    ages : ~astropy.units.Quantity
+        Array of ages, shape = (N,).
+
+    r : `~astropy.units.Quantity`
+        Position (x, y, z), shape = (N, 3).  Same coordinate frame as ``source``.
+
+    v : `~astropy.units.Quantity`
+        Velocity (x, y, z), shape = (N, 3).  Same coordinate frame as ``source``.
+
+    t : `~astropy.time.Time` or `~astropy.units.Quantity`
+        Time of observation.
+
+    observer : `~sbpy.dynamics.State`, optional
+        The observer, used to generate sky coordinates.
+
+    """
+
+    def __init__(
+        self,
+        source: State,
+        ages: u.Quantity,
+        r: u.Quantity,
+        v: u.Quantity,
+        t: Time,
+        observer: Optional[State] = None,
+    ) -> None:
+        super().__init__(source, 0, ages, r, v, t, source, observer=observer)
+
+    @property
+    def epoch(self) -> Time:
+        """Epoch of each orbit point."""
         return self.source.t - self.ages[0]
 
 
@@ -310,8 +418,13 @@ class SynCollection:
         """Number of items in the container."""
         return len(self._data)
 
-    def __getitem__(self, k: int | tuple | slice) -> SynStates:
-        return self._data[k]
+    def __getitem__(self, k: int | tuple | slice) -> SynStates | SynCollectionType:
+        # return a SynStates object
+        if isinstance(k, int):
+            return self._data[k]
+
+        # return a SynCollection
+        return type(self)(self._data[k])
 
     def to_ephem(self) -> Ephem:
         """Convert to an sbpy ephemeris object.
@@ -329,6 +442,56 @@ class SynCollection:
             vstack(tables, metadata_conflicts="error"),
             meta=tables[0].meta,
         )
+
+    @requires("matplotlib")
+    def plot(
+        self,
+        ax: mpl.axes.Axes | None = None,
+        *,
+        wcs: WCS | None = None,
+        unit: u.Unit | str = "arcsec",
+        label_format: str | None = None,
+        **kwargs,
+    ) -> None:
+        """Plot the collection.
+
+
+        Parameters
+        ----------
+        ax : `~matplotlib.axes.Axes`, optional
+            Plot to this axis object.
+
+        wcs : `~astropy.wcs.WCS`, optional
+            Transform coordinates to the image plane using this world coordinate
+            system object.
+
+        unit : `~astropy.unit.Unit` or str, optional
+            Plot in these angular units.
+
+        label_format : str, optional
+            A string defining the label format.  ``{beta}`` or ``{age}`` will be
+            replaced as appropriate for the syndyne or synchrone.
+
+        **kwargs : dict
+            Keyword arguments are passed along to ``ax.plot``.
+
+        """
+
+        ax = plt.gca() if ax is None else ax
+
+        match (label_format, self):
+            case (None, Syndynes()):
+                label_format = "$\\beta={beta}$"
+            case (None, Synchrones()):
+                label_format = "$\\Delta t={age}$"
+            case (None, _):
+                label_format = ""
+
+        for syn in self:
+            label = label_format.format(
+                beta=getattr(syn, "beta", None), age=getattr(syn, "age", None)
+            )
+            syn.plot(ax=ax, wcs=wcs, unit=unit, label=label, **kwargs)
 
 
 class Syndynes(SynCollection, data_type=Syndyne):
