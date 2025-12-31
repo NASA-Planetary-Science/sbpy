@@ -35,7 +35,6 @@ import numpy as np
 import astropy.units as u
 from astropy.wcs import WCS
 from astropy.time import Time
-from astropy.table import vstack
 from astropy.coordinates import SkyCoord
 
 from ..data import Ephem
@@ -107,11 +106,14 @@ class SynStates(StateBase, abc.ABC):
         t, as `Quantity`            t_relative
         :math:`|r|`                 r
         :math:`|v \cdot \hat{r}|`   rdot
-        coords                      coords
         coords.ra                   ra
         coords.dec                  dec
+        coords.pm_ra_cosdec         ra*cos(dec)_rate
+        coords.pm_dec               dec_rate
         coords.lon                  lon
         coords.lat                  lat
+        coords.pm_lon_coslat        lon*cos(lat)_rate
+        coords.pm_lat               lat_rate
         coords.distance             delta
         coords.radial_velocity      deltadot
         x                           x
@@ -131,59 +133,36 @@ class SynStates(StateBase, abc.ABC):
 
         """
 
-        data: dict = {}
-        data["beta_rad"] = self.betas
-        data["age"] = self.ages
+        eph = super().to_ephem(observer=self.observer)
 
-        if isinstance(self.t, Time):
-            data["date"] = self.t
-        else:
-            data["t_relative"] = self.t
+        eph["beta_rad"] = self.betas
+        eph["age"] = self.ages
 
-        data["r"] = abs(self)[0]
-        data["rdot"] = np.sum(self.r * self.v, 1) / np.sqrt(np.sum(self.r * self.r, 1))
+        eph["x initial"] = self.initial.x
+        eph["y initial"] = self.initial.y
+        eph["z initial"] = self.initial.z
+        eph["vx initial"] = self.initial.v_x
+        eph["vy initial"] = self.initial.v_y
+        eph["vz initial"] = self.initial.v_z
+        eph["t initial"] = self.initial.t
 
-        if self.observer is not None:
-            for k, v in self.coords.representation_component_names.items():
-                if v in ("lon", "lat"):
-                    data[k] = getattr(self.coords, k)
-                elif v == "distance":
-                    data["delta"] = getattr(self.coords, k)
-            data["deltadot"] = self.coords.radial_velocity
-            data["coords"] = self.coords
-
-        data["x"] = self.x
-        data["y"] = self.y
-        data["z"] = self.z
-        data["vx"] = self.v_x
-        data["vy"] = self.v_y
-        data["vz"] = self.v_z
-        data["x initial"] = self.initial.x
-        data["y initial"] = self.initial.y
-        data["z initial"] = self.initial.z
-        data["vx initial"] = self.initial.v_x
-        data["vy initial"] = self.initial.v_y
-        data["vz initial"] = self.initial.v_z
-        data["t initial"] = self.initial.t
-
-        meta: dict = {}
-        meta["source"] = {
+        eph.meta["source"] = {
             "r": self.source.r,
             "v": self.source.v,
             "t": self.source.t,
             "frame": self.source.frame,
         }
         if self.observer is None:
-            meta["observer"] = None
+            eph.meta["observer"] = None
         else:
-            meta["observer"] = {
+            eph.meta["observer"] = {
                 "r": self.observer.r,
                 "v": self.observer.v,
                 "t": self.observer.t,
                 "frame": self.observer.frame,
             }
 
-        return Ephem.from_dict(data, meta=meta)
+        return eph
 
     @requires("matplotlib")
     def plot(
@@ -224,10 +203,17 @@ class SynStates(StateBase, abc.ABC):
 
             coords0 = self.observer.observe(self.source)
 
-            dRA = self.coords.ra - coords0.ra
-            dDec = self.coords.dec - coords0.dec
-            x = dRA.to(unit) / np.cos(self.coords.dec)
-            y = dDec.to(unit)
+            # lon could be coords.ra or coords.lon
+            # lat could be coords.dec or coords.lat
+            for name, component in coords0.get_representation_component_names().items():
+                if component == "lon":
+                    dlon = getattr(self.coords, name) - getattr(coords0, name)
+                elif component == "lat":
+                    lat0 = getattr(coords0, name)
+                    dlat = getattr(self.coords, name) - lat0
+
+            x = dlon.to(unit) * np.cos(lat0)
+            y = dlat.to(unit)
         else:
             # convert coordinates to plot units with the WCS object (avoid
             # passing a masked object, or wcs will complain)
@@ -386,7 +372,7 @@ class SourceOrbit(SynStates):
     @property
     def epoch(self) -> Time:
         """Epoch of each orbit point."""
-        return self.source.t - self.ages[0]
+        return self.source.t + self.dt
 
 
 class SynCollection:
@@ -426,9 +412,12 @@ class SynCollection:
         return len(self._data)
 
     def __getitem__(self, k: int | tuple | slice) -> SynStates | SynCollectionType:
-        # return a SynStates object
         if isinstance(k, int):
+            # return a SynStates object
             return self._data[k]
+        elif isinstance(k, tuple):
+            # return a SynCollection
+            return type(self)([self._data[i] for i in k])
 
         # return a SynCollection
         return type(self)(self._data[k])
@@ -443,12 +432,15 @@ class SynCollection:
         if len(self) == 0:
             return Ephem()
 
-        tables: list[Ephem] = [s.to_ephem().table for s in self]
+        result = self[0].to_ephem()
+        for syn in self[1:]:
+            # remove metadata or else it will be appended to the tables[0]'s
+            # metadata
+            eph = syn.to_ephem()
+            eph.table.meta = {}
+            result.vstack(eph)
 
-        return Ephem.from_table(
-            vstack(tables, metadata_conflicts="error"),
-            meta=tables[0].meta,
-        )
+        return result
 
     @requires("matplotlib")
     def plot(
