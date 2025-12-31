@@ -133,7 +133,7 @@ class SynStates(StateBase, abc.ABC):
 
         """
 
-        eph = super().to_ephem(observer=self.observer)
+        eph = super().to_ephem(observer=self.observer, coords=self.coords)
 
         eph["beta_rad"] = self.betas
         eph["age"] = self.ages

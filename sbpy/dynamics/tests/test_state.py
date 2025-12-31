@@ -562,7 +562,7 @@ class TestState:
             with pytest.raises(ValueError):
                 State.from_ephem(incomplete)
 
-    def test_to_ephm(self):
+    def test_to_ephem(self):
         r = np.arange(1, 7).reshape([2, 3]) * u.au
         v = r.value / 10 * u.km / u.s
         t = [0, 1] * u.day
@@ -582,3 +582,16 @@ class TestState:
         eph = state.to_ephem()
         assert np.allclose(eph["date"].mjd, [51544.0, 51545.0])
         assert isinstance(eph.meta["frame"], ICRS)
+
+        # observer with an observer
+        observer = State(
+            [0, 0, 1] * u.au, [0, 0, 0] * u.km / u.s, state.t[0], frame="icrs"
+        )
+        eph = state.to_ephem(observer=observer)
+        coords = observer.observe(state)
+        assert all(eph["ra"] == coords.ra)
+        assert all(eph["dec"] == coords.dec)
+        assert all(eph["ra_rate"] == coords.pm_ra)
+        assert all(eph["dec_rate"] == coords.pm_dec)
+        assert all(eph["delta"] == coords.distance)
+        assert all(eph["deltadot"] == coords.radial_velocity)
