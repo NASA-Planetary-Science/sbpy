@@ -5,12 +5,109 @@ import numpy as np
 import astropy.units as u
 from astropy.coordinates.errors import ConvertError
 from astropy.time import Time
-from ..syndynes import Syndyne, Synchrone, Syndynes, Synchrones, SynGenerator
+from astropy.wcs import WCS
+from ..syndynes import (
+    Syndyne,
+    Syndynes,
+    Synchrone,
+    Synchrones,
+    SourceOrbit,
+    SynCollection,
+    SynGenerator,
+)
 from ..state import State
 from ..models import SolarGravity, SolarGravityAndRadiationPressure
 
 
 pytest.importorskip("scipy")
+
+
+def fake_state(source, betas, ages):
+    """Fake dynamics: particles are displaced beta * 1e4 km from the source for
+    a little more control on the tests."""
+    r0 = 10000 * u.km
+    v0 = 0.1 * u.km / u.s
+    length = len(betas)
+    return State(
+        (betas * r0)[:, np.newaxis] + source.r,
+        (betas * v0)[:, np.newaxis] + source.v,
+        source.t - ages,
+        frame=source.frame,
+    )
+
+
+def fake_syndynes():
+    observer = State(
+        [0, 1, 0] * u.au,
+        [30, 0, 0] * u.km / u.s,
+        Time("2025-12-29"),
+        frame="icrs",
+    )
+    comet = State(
+        [1, 0, 0] * u.au,
+        [0, 30, 0] * u.km / u.s,
+        observer.t,
+        frame="heliocentriceclipticiau76",
+    )
+
+    betas = 10.0 ** -np.arange(4)
+    ages = np.arange(10) * u.day
+
+    items = []
+    for beta in betas:
+        particles = fake_state(comet, np.repeat(beta, 10), ages * 0)
+        initial = fake_state(comet, np.zeros(10), ages)
+        items.append(
+            Syndyne(
+                comet,
+                beta,
+                ages,
+                particles.r,
+                particles.v,
+                particles.t,
+                initial,
+                observer=observer,
+            )
+        )
+
+    return comet, observer, betas, ages, items
+
+
+def fake_synchrones():
+    observer = State(
+        [0, 1, 0] * u.au,
+        [30, 0, 0] * u.km / u.s,
+        Time("2025-12-29"),
+        frame="icrs",
+    )
+    comet = State(
+        [1, 0, 0] * u.au,
+        [0, 30, 0] * u.km / u.s,
+        observer.t,
+        frame="heliocentriceclipticiau76",
+    )
+
+    betas = 10.0 ** -np.arange(4)
+    ages = np.arange(10) * u.day
+
+    items = []
+    for age in ages:
+        particles = fake_state(comet, betas, age)
+        initial = fake_state(comet, np.zeros(10), ages)
+        items.append(
+            Synchrone(
+                comet,
+                betas,
+                age,
+                particles.r,
+                particles.v,
+                particles.t,
+                initial,
+                observer=observer,
+            )
+        )
+
+    return comet, observer, betas, ages, items
 
 
 @pytest.fixture
@@ -115,8 +212,6 @@ class TestSyndyne:
         assert u.allclose(eph["deltadot"], deltadot, atol=1e-12 * u.km / u.s)
         assert u.allclose(eph["lon"], coords.lon)
         assert u.allclose(eph["lat"], coords.lat)
-        assert u.allclose(eph["coords"].lon, coords.lon)
-        assert u.allclose(eph["coords"].lat, coords.lat)
         assert u.allclose(eph["x"], particles.x)
         assert u.allclose(eph["y"], particles.y)
         assert u.allclose(eph["z"], particles.z)
@@ -161,10 +256,7 @@ class TestSyndyne:
         assert np.all(eph["t_relative"] == 0 * u.s)
         assert eph.meta["observer"] is None
         assert np.all(
-            [
-                k not in eph
-                for k in ("delta", "deltadot", "ra", "dec", "lon", "lat", "coords")
-            ]
+            [k not in eph for k in ("delta", "deltadot", "ra", "dec", "lon", "lat")]
         )
 
     def test_init_1d(self, example_syndynes):
@@ -217,6 +309,24 @@ class TestSyndyne:
         assert isinstance(dust.syndynes(), Syndynes)
         assert isinstance(dust.syndynes()[0], Syndyne)
         assert isinstance(dust.syndynes()[:1], Syndynes)
+
+
+class TestSynCollection:
+    def test_plot(self):
+        """Test plot's label_format when plotting a mix of syndynes and synchrones"""
+
+        plt = pytest.importorskip("matplotlib.pyplot")
+
+        _, _, _, _, syndynes = fake_syndynes()
+        _, _, _, _, synchrones = fake_synchrones()
+        collection = SynCollection(syndynes + synchrones)
+
+        _, ax = plt.subplots()
+        collection.plot()
+
+        for i, line in enumerate(ax.get_lines()):
+            # when label="", mpl sets it to _child0, _child1, ...
+            assert line.get_label().startswith("_child")
 
 
 class TestSynchrone:
@@ -287,8 +397,8 @@ class TestSynchrone:
 
         eph = synchrone.to_ephem()
 
-        # most everything is tested in TestSyndyne.test_to_ephem
-        # we just need to make sure the betas and ages are right
+        # most everything is tested in TestSyndyne.test_to_ephem let's just
+        # check the betas and ages
         assert np.allclose(eph["beta_rad"], betas)
         assert u.allclose(eph["age"], age)
 
@@ -299,90 +409,158 @@ class TestSynchrone:
         assert isinstance(dust.synchrones()[:1], Synchrones)
 
 
-def random_state(length=1):
-    return State(
-        np.random.rand(length, 3).squeeze() * u.au,
-        np.random.rand(length, 3).squeeze() * u.km / u.s,
-        np.random.rand() * u.day,
-    )
+class TestSyndynes:
+    def test_init(self):
+        comet, _, betas, ages, items = fake_syndynes()
+
+        # create from list
+        syndynes = Syndynes(items)
+
+        # create from syndynes object
+        syndynes2 = Syndynes(syndynes)
+        assert np.all(syndynes2[0].r == syndynes[0].r)
+
+        # create from tuple
+        syndynes3 = Syndynes(tuple(items))
+        assert np.all(syndynes3[0].r == syndynes[0].r)
+
+        # cannot mix syndynes and synchrones
+        _, _, _, _, items2 = fake_synchrones()
+        with pytest.raises(TypeError):
+            Syndynes(items + items2)
+
+        # test empty syndynes objects
+        assert len(Syndynes([])) == 0
+
+    def test_getitem(self):
+        _, _, _, _, items = fake_syndynes()
+        syndynes = Syndynes(items)
+
+        # get a single Syndyne
+        assert isinstance(syndynes[2], Syndyne)
+        assert syndynes[2] is items[2]
+
+        # get Syndynes from a slice
+        assert len(syndynes[:3]) == 3
+        assert isinstance(syndynes[:3], Syndynes)
+
+        # get Syndynes from a tuple
+        assert isinstance(syndynes[(0, 1)], Syndynes)
+
+    def test_repr(self):
+        _, _, _, _, items = fake_syndynes()
+        syndynes = Syndynes(items)
+        assert repr(syndynes) == "<Syndynes: betas=[1.    0.1   0.01  0.001]>"
+
+    def test_to_ephem(self):
+        comet, _, _, _, items = fake_syndynes()
+        syndynes = Syndynes(items)
+
+        eph = syndynes.to_ephem()
+        assert len(eph) == 40
+        assert all(eph.meta["source"]["r"] == comet.r)
+
+        # [1] is 2nd index of 1st syndyne
+        assert eph["x"][1] == items[0].x[1]
+
+        # [13] is 4th index of 2nd syndyne
+        assert eph["vz"][13] == items[1].v_z[3]
+
+        assert len(Syndynes([]).to_ephem()) == 0
+
+    def test_plot(self):
+        plt = pytest.importorskip("matplotlib.pyplot")
+
+        comet, observer, betas, ages, items = fake_syndynes()
+        syndynes = Syndynes(items)
+
+        _, ax = plt.subplots()
+        syndynes.plot()
+
+        # observer is sqrt(2) au away, particles are up to 1e-4 au = 14959 km =
+        # 15"
+        for i, line in enumerate(ax.get_lines()):
+            assert line.get_label() == f"$\\beta={betas[i]}$"
+            assert all(line.get_xdata() <= 15 * betas[i] * u.arcsec)
+            assert all(line.get_ydata() <= 15 * betas[i] * u.arcsec)
+
+        coords = observer.observe(comet)
+
+        # 1 deg/pix
+        wcs = WCS()
+        wcs.wcs.ctype = "RA---TAN", "DEC--TAN"
+        wcs.wcs.crval = coords.ra.deg, coords.dec.deg
+
+        syndynes.plot(wcs=wcs)
+
+        # 15" / (1 deg/pix) = 0.00417 pix
+        for i, line in enumerate(ax.get_lines()[len(syndynes) :]):
+            assert all(line.get_xdata() <= 4.17e-3 * betas[i])
+            assert all(line.get_ydata() <= 4.17e-3 * betas[i])
+
+        # cannot plot relative to source when observer is None
+        state = fake_state(comet, [1], ages)
+        syndyne = Syndyne(
+            comet, [1], ages, state.r, state.v, state.t, comet, observer=None
+        )
+        with pytest.raises(ValueError):
+            syndyne.plot()
 
 
-def test_syndynes():
-    comet = random_state()
-    betas = np.linspace(0, 1, 3)
-    ages = np.arange(10) * u.day
+class TestSynchrones:
+    # most of the relevant tests are covered by TestSyndynes
 
-    items = []
-    for beta in betas:
-        particles = random_state(len(ages))
-        initial = random_state(len(ages))
-        items.append(
-            Syndyne(
-                comet,
-                beta,
-                ages,
-                particles.r,
-                particles.v,
-                particles.t,
-                initial,
-            )
+    def test_init(self):
+        _, _, _, _, items = fake_synchrones()
+        synchrones = Synchrones(items)
+
+        assert synchrones[2] is items[2]
+        assert len(synchrones) == len(items)
+
+    def test_getitem(self):
+        _, _, _, _, items = fake_synchrones()
+        synchrones = Synchrones(items)
+
+        # index with integer returns one synchrone
+        assert synchrones[2] is items[2]
+        assert isinstance(synchrones[0], Synchrone)
+
+        # index with slice returns synchrone collection
+        assert isinstance(synchrones[:3], Synchrones)
+
+        # index with tuple returns synchrone collection
+        assert isinstance(synchrones[(0, 1)], Synchrones)
+
+    def test_repr(self):
+        _, _, _, _, items = fake_synchrones()
+        synchrones = Synchrones(items)
+        assert (
+            repr(synchrones) == "<Synchrones: ages=[0. 1. 2. 3. 4. 5. 6. 7. 8. 9.] d>"
         )
 
-    syndynes = Syndynes(items)
-    assert syndynes[2] is items[2]
-    assert len(syndynes[:3]) == 3
-    assert repr(syndynes) == "<Syndynes: betas=[0.  0.5 1. ]>"
+    def test_plot(self):
+        plt = pytest.importorskip("matplotlib.pyplot")
 
-    eph = syndynes.to_ephem()
-    assert len(eph) == 30
-    assert all(eph.meta["source"]["r"] == comet.r)
+        comet, observer, betas, ages, items = fake_synchrones()
+        synchrones = Synchrones(items)
 
-    syndynes2 = Syndynes(syndynes)
-    assert np.all(syndynes2[0].r == syndynes[0].r)
-    syndynes3 = Syndynes(tuple(items))
-    assert np.all(syndynes3[0].r == syndynes[0].r)
+        _, ax = plt.subplots()
+        synchrones.plot()
 
-    particles = random_state(len(betas))
-    synchrone = Synchrones(
-        [
-            Synchrone(
-                comet, betas, ages[0], particles.r, particles.v, particles.t, particles
-            )
-        ]
-    )
-    with pytest.raises(TypeError):
-        Syndynes(items + [synchrone])
-
-    # test emptpy syndynes objects
-    assert len(Syndynes([])) == 0
-    assert len(Syndynes([]).to_ephem()) == 0
+        for i, line in enumerate(ax.get_lines()):
+            assert line.get_label() == f"$\\Delta t={ages[i]}$"
 
 
-def test_synchrones():
-    comet = random_state()
-    betas = np.linspace(0, 1, 3)
-    ages = np.arange(10) * u.day
+class TestSourceOrbit:
+    def test_dt(self):
+        comet = State([1, 0, 0] * u.au, [0, 30, 0] * u.km / u.s, Time("2023-12-07"))
+        dt = [-1, 0, 1] * u.day
+        ages = -dt
+        state = fake_state(comet, [0, 1, 2], ages)
+        orbit = SourceOrbit(comet, dt, state.r, state.v, comet.t + dt)
 
-    items = []
-    for age in ages:
-        particles = random_state(len(ages))
-        initial = random_state(len(ages))
-        items.append(
-            Synchrone(
-                comet,
-                betas,
-                age,
-                particles.r,
-                particles.v,
-                particles.t,
-                initial,
-            )
-        )
-
-    synchrones = Synchrones(items)
-    assert synchrones[2] is items[2]
-    assert len(synchrones[:3]) == 3
-    assert repr(synchrones) == "<Synchrones: ages=[0. 1. 2. 3. 4. 5. 6. 7. 8. 9.] d>"
+        assert all(orbit.dt == dt)
+        assert all(orbit.epoch == comet.t + dt)
 
 
 class TestSynGenerator:
