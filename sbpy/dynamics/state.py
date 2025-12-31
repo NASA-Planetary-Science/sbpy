@@ -294,15 +294,21 @@ class StateBase(abc.ABC):
         else:
             return SkyCoord(self._data, obstime=self.t, representation_type="cartesian")
 
-    def to_ephem(self, observer: StateType | None = None) -> Ephem:
+    def to_ephem(
+        self, observer: StateType | None = None, coords: SkyCoord | None = None
+    ) -> Ephem:
         r"""Convert to an sbpy ephemeris object.
 
 
         Parameters
         ----------
         observer : `State`, optional
-            Calculate RA/longitude, Dec/latitude, distance, etc for this
-            observer.
+            Include this observer in the metadata.  If ``coords`` is ``None``,
+            then also calculate RA/longitude, Dec/latitude, distance, etc for
+            this observer.
+
+        coords : `~astropy.coordinates.SkyCoord`, optional
+            Include these observer-based coordinates in the result.
 
 
         Returns
@@ -364,20 +370,23 @@ class StateBase(abc.ABC):
 
         if observer is not None:
             meta["observer"] = {
-                "r": self.observer.r,
-                "v": self.observer.v,
-                "t": self.observer.t,
-                "frame": self.observer.frame,
+                "r": observer.r,
+                "v": observer.v,
+                "t": observer.t,
+                "frame": observer.frame,
             }
 
-            coords = observer.observe(self)
+            if coords is None:
+                coords = observer.observe(self)
 
-            # use SkyCoords's to_table() method, which will account for when
+            # use SkyCoord's to_table() method, which will account for when
             # RA/Dec vs lon/lat are used.
             tab = coords.to_table()
 
-            # convert SkyCoords's column names to Ephem's field names
-            skycoords_to_ephem = {
+            # convert SkyCoord's column names to Ephem's field names
+            skycoord_to_ephem = {
+                "pm_ra": "ra_rate",
+                "pm_lon": "lon_rate",
                 "pm_ra_cosdec": "ra*cos(dec)_rate",
                 "pm_lon_coslat": "lon*cos(lat)_rate",
                 "pm_dec": "dec_rate",
@@ -386,7 +395,7 @@ class StateBase(abc.ABC):
                 "radial_velocity": "deltadot",
             }
             for col in tab.colnames:
-                field = skycoords_to_ephem.get(col, col)
+                field = skycoord_to_ephem.get(col, col)
                 data[field] = tab[col]
 
         return Ephem.from_dict(data, meta=meta)
