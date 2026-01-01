@@ -22,7 +22,7 @@ from ..models import SolarGravity, SolarGravityAndRadiationPressure
 pytest.importorskip("scipy")
 
 
-def fake_state(source, betas, ages):
+def fake_state(source, betas):
     """Fake dynamics: particles are displaced beta * 1e4 km from the source for
     a little more control on the tests."""
     r0 = 10000 * u.km
@@ -31,7 +31,7 @@ def fake_state(source, betas, ages):
     return State(
         (betas * r0)[:, np.newaxis] + source.r,
         (betas * v0)[:, np.newaxis] + source.v,
-        source.t - ages,
+        source.t,
         frame=source.frame,
     )
 
@@ -55,8 +55,8 @@ def fake_syndynes():
 
     items = []
     for beta in betas:
-        particles = fake_state(comet, np.repeat(beta, 10), ages * 0)
-        initial = fake_state(comet, np.zeros(10), ages)
+        particles = fake_state(comet, np.repeat(beta, 10))
+        initial = fake_state(comet, np.zeros(10))
         items.append(
             Syndyne(
                 comet,
@@ -92,8 +92,8 @@ def fake_synchrones():
 
     items = []
     for age in ages:
-        particles = fake_state(comet, betas, age)
-        initial = fake_state(comet, np.zeros(10), ages)
+        particles = fake_state(comet, betas)
+        initial = fake_state(comet, np.zeros(10))
         items.append(
             Synchrone(
                 comet,
@@ -499,7 +499,7 @@ class TestSyndynes:
             assert all(line.get_ydata() <= 4.17e-3 * betas[i])
 
         # cannot plot relative to source when observer is None
-        state = fake_state(comet, [1], ages)
+        state = fake_state(comet, [1])
         syndyne = Syndyne(
             comet, [1], ages, state.r, state.v, state.t, comet, observer=None
         )
@@ -556,7 +556,7 @@ class TestSourceOrbit:
         comet = State([1, 0, 0] * u.au, [0, 30, 0] * u.km / u.s, Time("2023-12-07"))
         dt = [-1, 0, 1] * u.day
         ages = -dt
-        state = fake_state(comet, [0, 1, 2], ages)
+        state = fake_state(comet, [0, 1, 2])
         orbit = SourceOrbit(comet, dt, state.r, state.v, comet.t + dt)
 
         assert all(orbit.dt == dt)
