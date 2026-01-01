@@ -56,6 +56,7 @@ Convert to/from `Ephem` and `SkyCoord`
 State objects may be initialized from ephemeris objects (`~sbpy.data.Ephem`), provided they contain time, and 3D position and velocity:
 
 .. doctest-requires:: astroquery
+.. doctest-remote-data::
 
     >>> from sbpy.data import Ephem
     >>> eph = Ephem.from_horizons("9P",
@@ -67,6 +68,7 @@ State objects may be initialized from ephemeris objects (`~sbpy.data.Ephem`), pr
 And `State` may be converted to an `Ephem` object:
 
 .. doctest-requires:: astroquery
+.. doctest-remote-data::
 
     >>> eph = tempel1.to_ephem()  # doctest: +REMOTE_DATA
 
@@ -174,6 +176,7 @@ Fetching states from Horizons
 `Ephem.from_horizons` returns equatorial coordinates in the ICRF reference frame, which has its origin at the Solar System barycenter.  For `State` to correctly convert the ephemeris object to vectors, we need to set the Horizons observer to the Solar System barycenter (``"@ssb"``).  However, dynamical integrations are done in a heliocentric reference frame, so we transform the result to ``"heliocentriceclipticiau76"``:
 
 .. doctest-requires:: astroquery
+.. doctest-remote-data::
 
    >>> eph = Ephem.from_horizons(
    ...     "48P",
@@ -496,6 +499,7 @@ The following example compares syndynes to a Spitzer Space Telesocpe image of co
    The `sbpy` testing suite shows that arcsecond-level accuracy is possible, but this is generally not enough for direct comparison to typical images of comets, which need sub-arcsecond alignment.  The accuracy of the coordinates object depends on the the comet and observer states, but also on whether or not light travel time is accounted for, and the accuracy of the orbit integrator.
 
 .. doctest-requires:: scipy,astroquery,matplotlib
+.. doctest-remote-data::
 
    >>> from astropy.io import fits
    >>> from astropy.wcs import WCS
