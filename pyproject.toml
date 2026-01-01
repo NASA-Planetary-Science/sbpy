@@ -67,7 +67,7 @@ test = [
     "pytest>=8.0",
     "pytest-astropy>=0.10",
     "pytest-astropy-header>=0.2.1",
-    "pytest-doctestplus>=0.12",
+    "pytest-doctestplus>=1.6",
     "pytest-remotedata",
     "pytest-xdist",
     "coverage",
@@ -108,13 +108,6 @@ doctest_norecursedirs = [
     "*/setup_package.py",
     "docs/_build",
     "*/compile_fieldnames.py",
-]
-doctest_subpackage_requires = [
-    "docs/sbpy/photometry.rst = astroquery",
-    "docs/sbpy/data/ephem.rst = astroquery",
-    "docs/sbpy/data/obs.rst = astroquery",
-    "docs/sbpy/data/orbit.rst = astroquery,oorb",
-    "docs/sbpy/data/phys.rst = astroquery",
 ]
 
 [tool.coverage]
