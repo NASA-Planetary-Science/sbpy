@@ -546,8 +546,8 @@ The following example compares syndynes to a Spitzer Space Telesocpe image of co
    >>> dt = np.linspace(-1, 1) * u.d  # doctest: +REMOTE_DATA
    >>> dust.source_orbit(dt).plot(ax, wcs=wcs, color="tab:cyan", lw=1, label="Orbit")  # doctest: +REMOTE_DATA
    >>> 
-   >>> plt.setp(ax, xlim=xlim, ylim=ylim)  # doctest: +SKIP +REMOTE_DATA
-   >>> plt.legend()  # doctest: +SKIP  # doctest: +REMOTE_DATA
+   >>> plt.setp(ax, xlim=xlim, ylim=ylim)  # doctest: +SKIP
+   >>> plt.legend()  # doctest: +SKIP
 
 .. plot::
    :show-source-link:
