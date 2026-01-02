@@ -56,7 +56,6 @@ Convert to/from `Ephem` and `SkyCoord`
 State objects may be initialized from ephemeris objects (`~sbpy.data.Ephem`), provided they contain time, and 3D position and velocity:
 
 .. doctest-requires:: astroquery
-.. doctest-remote-data::
 
     >>> from sbpy.data import Ephem
     >>> eph = Ephem.from_horizons("9P",
@@ -68,7 +67,6 @@ State objects may be initialized from ephemeris objects (`~sbpy.data.Ephem`), pr
 And `State` may be converted to an `Ephem` object:
 
 .. doctest-requires:: astroquery
-.. doctest-remote-data::
 
     >>> eph = tempel1.to_ephem()  # doctest: +REMOTE_DATA
 
@@ -176,7 +174,6 @@ Fetching states from Horizons
 `Ephem.from_horizons` returns equatorial coordinates in the ICRF reference frame, which has its origin at the Solar System barycenter.  For `State` to correctly convert the ephemeris object to vectors, we need to set the Horizons observer to the Solar System barycenter (``"@ssb"``).  However, dynamical integrations are done in a heliocentric reference frame, so we transform the result to ``"heliocentriceclipticiau76"``:
 
 .. doctest-requires:: astroquery
-.. doctest-remote-data::
 
    >>> eph = Ephem.from_horizons(
    ...     "48P",
@@ -184,9 +181,9 @@ Fetching states from Horizons
    ...     closest_apparition=True,
    ...     epochs=Time("2004-10-13T21:08:23.894"),
    ...     location="@ssb",
-   ... )
-   >>> comet = State.from_ephem(eph, frame="icrs")
-   >>> comet = comet.transform_to("heliocentriceclipticiau76")
+   ... )  # doctest: +REMOTE_DATA
+   >>> comet = State.from_ephem(eph, frame="icrs")  # doctest: +REMOTE_DATA
+   >>> comet = comet.transform_to("heliocentriceclipticiau76")  # doctest: +REMOTE_DATA
 
 
 Dynamical integrators
@@ -499,13 +496,12 @@ The following example compares syndynes to a Spitzer Space Telesocpe image of co
    The `sbpy` testing suite shows that arcsecond-level accuracy is possible, but this is generally not enough for direct comparison to typical images of comets, which need sub-arcsecond alignment.  The accuracy of the coordinates object depends on the the comet and observer states, but also on whether or not light travel time is accounted for, and the accuracy of the orbit integrator.
 
 .. doctest-requires:: scipy,astroquery,matplotlib
-.. doctest-remote-data::
 
    >>> from astropy.io import fits
    >>> from astropy.wcs import WCS
    >>>
-   >>> image, header = fits.getdata("https://sbpy.org/data/48p-spitzer-reach07.fits", header=True)
-   >>> obstime = Time(header["DATE_OBS"])
+   >>> image, header = fits.getdata("https://sbpy.org/data/48p-spitzer-reach07.fits", header=True)  # doctest: +REMOTE_DATA
+   >>> obstime = Time(header["DATE_OBS"])  # doctest: +REMOTE_DATA
    >>>
    >>> # get the comet state
    >>> eph = Ephem.from_horizons(
@@ -514,44 +510,44 @@ The following example compares syndynes to a Spitzer Space Telesocpe image of co
    ...     closest_apparition=True,
    ...     epochs=obstime,
    ...     location="@ssb",
-   ... )
-   >>> comet = State.from_ephem(eph, frame="icrs")
-   >>> comet = comet.transform_to("heliocentriceclipticiau76")
+   ... )  # doctest: +REMOTE_DATA
+   >>> comet = State.from_ephem(eph, frame="icrs")  # doctest: +REMOTE_DATA
+   >>> comet = comet.transform_to("heliocentriceclipticiau76")  # doctest: +REMOTE_DATA
    >>> 
    >>> # get the Spitzer Space Telescope state
-   >>> eph = Ephem.from_horizons("-79", id_type=None, epochs=obstime, location="@ssb")
-   >>> observer = State.from_ephem(eph, frame="icrs")
+   >>> eph = Ephem.from_horizons("-79", id_type=None, epochs=obstime, location="@ssb")  # doctest: +REMOTE_DATA
+   >>> observer = State.from_ephem(eph, frame="icrs")  # doctest: +REMOTE_DATA
    >>> 
    >>> # set up the world coordinate system object and update the origin to align with
    >>> # the calculated position of the comet
-   >>> wcs = WCS(header)
-   >>> coords0 = observer.observe(comet)[0].unmasked
-   >>> wcs.wcs.crval = coords0.ra.deg, coords0.dec.deg
-   >>> wcs.wcs.crpix = 209, 99
+   >>> wcs = WCS(header)  # doctest: +REMOTE_DATA
+   >>> coords0 = observer.observe(comet)[0].unmasked  # doctest: +REMOTE_DATA
+   >>> wcs.wcs.crval = coords0.ra.deg, coords0.dec.deg  # doctest: +REMOTE_DATA
+   >>> wcs.wcs.crpix = 209, 99  # doctest: +REMOTE_DATA
    >>>
    >>> # generate the syndynes
-   >>> betas = [1, 0.1, 0.01, 0.001]
-   >>> ages = np.linspace(0, 365, 51) * u.day
-   >>> dust = SynGenerator(comet[0], betas, ages, observer=observer[0])
+   >>> betas = [1, 0.1, 0.01, 0.001]  # doctest: +REMOTE_DATA
+   >>> ages = np.linspace(0, 365, 51) * u.day  # doctest: +REMOTE_DATA
+   >>> dust = SynGenerator(comet[0], betas, ages, observer=observer[0])  # doctest: +REMOTE_DATA
    >>> 
    >>> # plot the image and syndynes
-   >>> fig, ax = plt.subplots(num=1, clear=True, figsize=(6.5, 3.25))
+   >>> fig, ax = plt.subplots(num=1, clear=True, figsize=(6.5, 3.25))  # doctest: +REMOTE_DATA
    >>> 
-   >>> ax.imshow(image, origin="lower", vmin=49.1, vmax=49.5, cmap="gray_r")  # doctest: +SKIP
+   >>> ax.imshow(image, origin="lower", vmin=49.1, vmax=49.5, cmap="gray_r")  # doctest: +SKIP +REMOTE_DATA
    >>> 
    >>> # save xlim and ylim for later
-   >>> xlim = ax.get_xlim()
-   >>> ylim = ax.get_ylim()
+   >>> xlim = ax.get_xlim()  # doctest: +REMOTE_DATA
+   >>> ylim = ax.get_ylim()  # doctest: +REMOTE_DATA
    >>> 
    >>> # plot syndynes
-   >>> dust.syndynes().plot(ax, wcs=wcs)
+   >>> dust.syndynes().plot(ax, wcs=wcs)  # doctest: +REMOTE_DATA
    >>> 
    >>> # plot the orbit
-   >>> dt = np.linspace(-1, 1) * u.d
-   >>> dust.source_orbit(dt).plot(ax, wcs=wcs, color="tab:cyan", lw=1, label="Orbit")
+   >>> dt = np.linspace(-1, 1) * u.d  # doctest: +REMOTE_DATA
+   >>> dust.source_orbit(dt).plot(ax, wcs=wcs, color="tab:cyan", lw=1, label="Orbit")  # doctest: +REMOTE_DATA
    >>> 
-   >>> plt.setp(ax, xlim=xlim, ylim=ylim)  # doctest: +SKIP
-   >>> plt.legend()  # doctest: +SKIP
+   >>> plt.setp(ax, xlim=xlim, ylim=ylim)  # doctest: +SKIP +REMOTE_DATA
+   >>> plt.legend()  # doctest: +SKIP  # doctest: +REMOTE_DATA
 
 .. plot::
    :show-source-link:
@@ -626,12 +622,12 @@ The following example compares syndynes to a Spitzer Space Telesocpe image of co
 
 For more complex plot logic, e.g., to use specific line colors and styles, we can use the plot methods of the individual syndynes/synchrones:
 
-.. doctest-requires:: scipy,matplotlib
+.. doctest-requires:: scipy,astroquery,matplotlib
 
    >>> ls = ["-", "--", "-."]
-   >>> syndynes = dust.syndynes()
+   >>> syndynes = dust.syndynes()  # doctest: +REMOTE_DATA
    >>> for i in range(3):
-   ...     syndynes[i].plot(ax, color="k", ls=ls[i])
+   ...     syndynes[i].plot(ax, color="k", ls=ls[i])  # doctest: +REMOTE_DATA
 
 .. plot::
    :context:
