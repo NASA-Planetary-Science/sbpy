@@ -1,19 +1,32 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 """
-HB cometary narrow-band filter set reduction tools.
+HB cometary narrow-band filter set.
+
+Filter set characteristics and data reduction tools.
+
 """
 
 from enum import Enum
 from typing import TypeVar
+
 import astropy.units as u
+from astropy.io import ascii
+from astropy.table import QTable
+from astropy.utils.data import get_pkg_data_path
 
 
 HBFilterSetType = TypeVar("HBFilterSetType", bound="HBFilterSet")
 
+"""HB filter set characteristics and photometric properties."""
+filter_data = {
+    row["sbpy name"]: row
+    for row in QTable(ascii.read(get_pkg_data_path("data", "filter.ecsv")))
+}
+
 
 class HBFilterSet(Enum):
-    """Representative filter characteristics (Farnham & Schleicher 2000).
+    """Representative filter characteristics and photometric properties.
 
 
     Examples
@@ -24,6 +37,14 @@ class HBFilterSet(Enum):
     >>> from sbpy.photometry.hb import HBFilterSet
     >>> HBFilterSet.BC.wavelength
     <Quantity 445.3 nm>
+
+
+    References
+    ----------
+
+    Farnham, Schleicher, & A'Hearn 2000. The HB Narrowband Comet Filters:
+    Standard Stars and Calibrations.  Icarus 147, 180–204.
+
     """
 
     OH = 0
@@ -40,8 +61,7 @@ class HBFilterSet(Enum):
 
     def __str__(self) -> str:
         """Filter ID as a string."""
-        ions = {"COplus": "CO+", "H2Oplus": "H2O+"}
-        return ions.get(self.name, self.name)
+        return filter_data[self.name]["name"]
 
     def __lt__(self, filter: HBFilterSetType) -> bool:
         """Compare wavelengths."""
@@ -55,40 +75,13 @@ class HBFilterSet(Enum):
     def designation(self) -> str:
         """Filter designation."""
 
-        designations = [
-            "3090/62",
-            "3362/58",
-            "3448/84",
-            "3870/62",
-            "4062/62",
-            "4266/64",
-            "4450/67",
-            "5141/118",
-            "5260/56",
-            "7020/170",
-            "7128/58",
-        ]
-
-        return designations[self.value]
+        return filter_data[self.name]["designation"]
 
     @property
     def wavelength(self) -> u.Quantity["nm"]:
         """Center wavelength."""
 
-        wavelengths = [
-            309.7,
-            336.1,
-            344.9,
-            386.9,
-            406.3,
-            426.6,
-            445.3,
-            513.5,
-            525.9,
-            702.8,
-            713.3,
-        ]
-        return u.Quantity(wavelengths[self.value], u.nm)
+        return filter_data[self.name]["cwave"]
 
     @property
     def widths(self) -> dict[int, u.Quantity["nm"]]:
@@ -104,20 +97,14 @@ class HBFilterSet(Enum):
 
         power_percent = [80, 50, 10, 1]
 
-        widths = [
-            [5.2, 5.8, 6.8, 8.7],
-            [4.7, 5.4, 6.4, 8.1],
-            [7.2, 7.9, 9.3, 11.6],
-            [5.0, 5.6, 6.5, 8.2],
-            [4.3, 5.8, 6.9, 8.4],
-            [5.8, 6.4, 7.4, 9.0],
-            [5.5, 6.1, 7.1, 8.6],
-            [10.9, 11.9, 14.0, 17.1],
-            [5.2, 5.6, 6.5, 7.9],
-            [14.8, 16.4, 19.3, 23.9],
-            [5.3, 5.8, 7.1, 9.2],
-        ]
+        return {power_percent[i]: filter_data[self.name]["width"][i] for i in range(4)}
 
-        return {
-            power_percent[i]: u.Quantity(widths[self.value][i], u.nm) for i in range(4)
-        }
+    @property
+    def fluxd0(self) -> u.Quantity["W / (m2 um)"]:
+        """Spectral flux density of a 0 magnitude star."""
+        return filter_data[self.name]["Flam0"]
+
+    @property
+    def XXmBCsun(self) -> u.mag:
+        """Solar color: XX-BC."""
+        return filter_data[self.name]["XXmBCsun"]
