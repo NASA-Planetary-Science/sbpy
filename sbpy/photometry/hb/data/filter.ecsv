@@ -1,0 +1,29 @@
+# %ECSV 1.0
+# ---
+# datatype:
+# - {name: "sbpy name", datatype: string}
+# - {name: name, datatype: string}
+# - {name: designation, datatype: string}
+# - {name: cwave, unit: nm, datatype: float64, description: center wavelength}
+# - {name: width, unit: nm, datatype: string, subtype: 'float64[4]', description: full-width power points at 80%, 50%, 10%, and 1% of the peak transmission}
+# - {name: Flam0, unit: W / (um m2), datatype: float64, description: flux of 0 magnitude star}
+# - {name: XXmBCsun, datatype: float64, description: "solar color, XX-BC"}
+# - {name: gamma_XX_XX, unit: 1 / AA, datatype: float64, description: "fraction of gas emission band captured by filter, normalized by the filter's equivalent width and transmission properties"}
+# - {name: gamma_prime_XX_XX, datatype: float64, description: fraction of gas emission band captured by filter}
+# meta: !!omap
+# - {title: Representative filter characteristics and photometric properties.}
+# - {source: "Farnham, Schleicher, & A'Hearn 2000. The HB Narrowband Comet Filters: Standard Stars and Calibrations.  Icarus 147, 180\u2013\
+#     204."}
+# schema: astropy-2.0
+"sbpy name" name designation cwave width Flam0 XXmBCsun gamma_XX_XX gamma_prime_XX_XX
+OH OH 3090/62 309.7 [5.2,5.8,6.8,8.7] 1.056e-07 1.791 1.698e-2 0.98
+NH NH 3362/58 336.1 [4.7,5.4,6.4,8.1] 8.42e-08 1.188 1.907e-2 0.99
+UC UC 3448/84 344.9 [7.2,7.9,9.3,11.6] 7.802e-08 1.101 "" ""
+CN CN 3870/62 386.9 [5.0,5.6,6.5,8.2] 8.6e-08 1.031 1.812e-2 0.99
+C3 C3 4062/62 406.3 [4.3,5.8,6.9,8.4] 8.16e-08 0.497 3.352e-2 0.19
+COplus CO+ 4266/64 426.6 [5.8,6.4,7.4,9.0] 7.323e-08 0.338 1.549e-2 0.99
+BC BC 4450/67 445.3 [5.5,6.1,7.1,8.6] 6.21e-08 0.000 "" ""
+C2 C2 5141/118 513.5 [10.9,11.9,14.0,17.1] 3.887e-08 -0.423 5.433e-3 0.66
+GC GC 5260/56 525.9 [5.2,5.6,6.5,7.9] 3.616e-08 -0.507 "" ""
+H2Oplus H2O+ 7020/170 702.8 [14.8,16.4,19.3,23.9] 1.38e-08 -1.249 5.424e-3 1.00
+RC RC 7128/58 713.3 [5.3,5.8,7.1,9.2] 1.316e-08 -1.276 "" ""

@@ -2,7 +2,7 @@
 
 import astropy.units as u
 
-from ..hb import HBFilterSet
+from ..filter import HBFilterSet
 
 
 class TestHBFilterSet:
