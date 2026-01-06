@@ -7,6 +7,8 @@ Filter set characteristics and data reduction tools.
 
 """
 
+__all__ = ["filter_data", "HBFilterSet"]
+
 from enum import Enum
 from typing import TypeVar
 
@@ -36,7 +38,7 @@ class HBFilterSet(Enum):
 
     >>> from sbpy.photometry.hb import HBFilterSet
     >>> HBFilterSet.BC.wavelength
-    <Quantity 445.3 nm>
+    <Quantity 4453. Angstrom>
 
 
     References
@@ -47,21 +49,21 @@ class HBFilterSet(Enum):
 
     """
 
-    OH = 0
-    NH = 1
-    UC = 2
-    CN = 3
-    C3 = 4
-    COplus = 5
-    BC = 6
-    C2 = 7
-    GC = 8
-    H2Oplus = 9
-    RC = 10
+    OH = "OH"
+    NH = "NH"
+    UC = "UC"
+    CN = "CN"
+    C3 = "C3"
+    COplus = "CO+"
+    BC = "BC"
+    C2 = "C2"
+    GC = "GC"
+    H2Oplus = "H2O+"
+    RC = "RC"
 
     def __str__(self) -> str:
         """Filter ID as a string."""
-        return filter_data[self.name]["name"]
+        return self.value
 
     def __lt__(self, filter: HBFilterSetType) -> bool:
         """Compare wavelengths."""
@@ -75,16 +77,16 @@ class HBFilterSet(Enum):
     def designation(self) -> str:
         """Filter designation."""
 
-        return filter_data[self.name]["designation"]
+        return filter_data[self.value]["designation"]
 
     @property
-    def wavelength(self) -> u.Quantity["nm"]:
+    def wavelength(self) -> u.Quantity[u.AA]:
         """Center wavelength."""
 
-        return filter_data[self.name]["cwave"]
+        return filter_data[self.value]["cwave"]
 
     @property
-    def widths(self) -> dict[int, u.Quantity["nm"]]:
+    def widths(self) -> dict[int, u.Quantity[u.AA]]:
         """Power point width.
 
         Returns
@@ -97,14 +99,94 @@ class HBFilterSet(Enum):
 
         power_percent = [80, 50, 10, 1]
 
-        return {power_percent[i]: filter_data[self.name]["width"][i] for i in range(4)}
+        return {power_percent[i]: filter_data[self.value]["width"][i] for i in range(4)}
 
     @property
-    def fluxd0(self) -> u.Quantity["W / (m2 um)"]:
+    def fluxd0(self) -> u.Quantity[u.Unit("erg / (cm2 s AA)")]:
         """Spectral flux density of a 0 magnitude star."""
-        return filter_data[self.name]["Flam0"]
+        return filter_data[self.value]["Flam0"]
 
     @property
-    def XXmBCsun(self) -> u.mag:
-        """Solar color: XX-BC."""
-        return filter_data[self.name]["XXmBCsun"]
+    def solar_color(self) -> u.mag:
+        """Solar color: [filter]-BC."""
+        return filter_data[self.value]["XXmBCsun"]
+
+    @property
+    def equivalent_width(self) -> u.Quantity["AA"]:
+        """Filter equivalent width.
+
+
+        Returns
+        -------
+        ew : |Quantity|
+            Calculated from Table VI of Farnham, Scheicher, & A'Hearn 2000.
+
+        """
+
+        data = filter_data[self.value]
+        return data["gamma_prime_XX_XX"] / data["gamma_XX_XX"]
+
+    @property
+    def gamma(self, other: str) -> u.Quantity[1 / u.AA]:
+        """Fraction of molecule present in this filter, normalized by filter equivalent width.
+
+        Tables VI and VII of Farnham, Scheicher, & A'Hearn 2000.
+
+
+        Parameters
+        ----------
+        other : str
+            The molecule name: OH, NH, CN, C3, CO+, C2, or H2O+.
+
+
+        Returns
+        -------
+        gamma : |Quantity|
+
+        """
+
+        if self.value == other:
+            # Table VI of Farnham, Scheicher, & A'Hearn 2000
+            g = filter_data[self.value]["gamma_XX_XX"]
+        elif other == "C3":
+            # Table VII of Farnham, Scheicher, & A'Hearn 2000
+            table_vii = {
+                "NH": 1.433e-5 / u.AA,
+                "CN": 1.427e-3 / u.AA,
+                "CO+": 4.607e-4 / u.AA,
+            }
+            g = table_vii.get(other, 0 / u.AA)
+        else:
+            g = 0 / u.AA
+
+        return g.to("1/nm")
+
+    @property
+    def gamma_prime(self, other: str) -> u.Quantity[u.dimensionless_unscaled]:
+        """Fraction of molecule present in this filter.
+
+        Tables VI and VII of Farnham, Scheicher, & A'Hearn 2000.
+
+
+        Parameters
+        ----------
+        other : str
+            The molecule name: OH, NH, CN, C3, CO+, C2, or H2O+.
+
+
+        Returns
+        -------
+        gamma_prime : |Quantity|
+
+        """
+
+        if self.value == other:
+            # Table VI of Farnham, Scheicher, & A'Hearn 2000
+            gp = filter_data[self.value]["gamma_prime_XX_XX"]
+        elif other == "C3":
+            gamma = self.gamma(other)
+            gp = gamma * self.equivalent_width
+        else:
+            gp = 0
+
+        return u.Quantity(gp, u.dimensionless_unscaled)

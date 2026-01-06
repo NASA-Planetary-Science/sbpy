@@ -20,11 +20,11 @@ class TestHBFilterSet:
         assert HBFilterSet.OH.designation == "3090/62"
 
     def test_wavelength(self):
-        assert HBFilterSet.NH.wavelength == 336.1 * u.nm
+        assert HBFilterSet.NH.wavelength == 3361 * u.AA
 
     def test_widths(self):
         widths = HBFilterSet.RC.widths
-        assert widths[80] == 5.3 * u.nm
-        assert widths[50] == 5.8 * u.nm
-        assert widths[10] == 7.1 * u.nm
-        assert widths[1] == 9.2 * u.nm
+        assert widths[80] == 53 * u.AA
+        assert widths[50] == 58 * u.AA
+        assert widths[10] == 71 * u.AA
+        assert widths[1] == 92 * u.AA
