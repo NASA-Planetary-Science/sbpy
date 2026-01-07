@@ -7,7 +7,7 @@ Filter set characteristics and data reduction tools.
 
 """
 
-__all__ = ["filter_data", "HBFilterSet"]
+__all__ = ["filter_data", "HBFilterSet", "gamma", "gamma_prime"]
 
 from enum import Enum
 from typing import TypeVar
@@ -17,12 +17,11 @@ from astropy.io import ascii
 from astropy.table import QTable
 from astropy.utils.data import get_pkg_data_path
 
-
 HBFilterSetType = TypeVar("HBFilterSetType", bound="HBFilterSet")
 
 """HB filter set characteristics and photometric properties."""
 filter_data = {
-    row["sbpy name"]: row
+    row["name"]: row
     for row in QTable(ascii.read(get_pkg_data_path("data", "filter.ecsv")))
 }
 
@@ -111,31 +110,15 @@ class HBFilterSet(Enum):
         """Solar color: [filter]-BC."""
         return filter_data[self.value]["XXmBCsun"]
 
-    @property
-    def equivalent_width(self) -> u.Quantity["AA"]:
-        """Filter equivalent width.
-
-
-        Returns
-        -------
-        ew : |Quantity|
-            Calculated from Table VI of Farnham, Scheicher, & A'Hearn 2000.
-
-        """
-
-        data = filter_data[self.value]
-        return data["gamma_prime_XX_XX"] / data["gamma_XX_XX"]
-
-    @property
-    def gamma(self, other: str) -> u.Quantity[1 / u.AA]:
+    def gamma(self, molecule: str) -> u.Quantity[1 / u.AA]:
         """Fraction of molecule present in this filter, normalized by filter equivalent width.
 
-        Tables VI and VII of Farnham, Scheicher, & A'Hearn 2000.
+        Tables VI and VII of Farnham, Schleicher, & A'Hearn 2000.
 
 
         Parameters
         ----------
-        other : str
+        molecule : str
             The molecule name: OH, NH, CN, C3, CO+, C2, or H2O+.
 
 
@@ -145,32 +128,33 @@ class HBFilterSet(Enum):
 
         """
 
-        if self.value == other:
-            # Table VI of Farnham, Scheicher, & A'Hearn 2000
+        if self.value in ["UC", "BC", "GC", "RC"]:
+            raise ValueError("gamma is not defined for the continuum filters")
+        elif self.value == molecule:
+            # Table VI of Farnham, Schleicher, & A'Hearn 2000
             g = filter_data[self.value]["gamma_XX_XX"]
-        elif other == "C3":
-            # Table VII of Farnham, Scheicher, & A'Hearn 2000
+        elif molecule == "C3":
+            # Table VII of Farnham, Schleicher, & A'Hearn 2000
             table_vii = {
                 "NH": 1.433e-5 / u.AA,
                 "CN": 1.427e-3 / u.AA,
                 "CO+": 4.607e-4 / u.AA,
             }
-            g = table_vii.get(other, 0 / u.AA)
+            g = table_vii.get(self.value, 0 / u.AA)
         else:
             g = 0 / u.AA
 
-        return g.to("1/nm")
+        return g.to("1/AA")
 
-    @property
-    def gamma_prime(self, other: str) -> u.Quantity[u.dimensionless_unscaled]:
+    def gamma_prime(self, molecule: str) -> u.Quantity[u.dimensionless_unscaled]:
         """Fraction of molecule present in this filter.
 
-        Tables VI and VII of Farnham, Scheicher, & A'Hearn 2000.
+        Tables VI and VII of Farnham, Schleicher, & A'Hearn 2000.
 
 
         Parameters
         ----------
-        other : str
+        molecule : str
             The molecule name: OH, NH, CN, C3, CO+, C2, or H2O+.
 
 
@@ -180,13 +164,92 @@ class HBFilterSet(Enum):
 
         """
 
-        if self.value == other:
-            # Table VI of Farnham, Scheicher, & A'Hearn 2000
+        if self.value in ["UC", "BC", "GC", "RC"]:
+            raise ValueError("gamma is not defined for the continuum filters")
+        elif self.value == molecule:
+            # Table VI of Farnham, Schleicher, & A'Hearn 2000
             gp = filter_data[self.value]["gamma_prime_XX_XX"]
-        elif other == "C3":
-            gamma = self.gamma(other)
-            gp = gamma * self.equivalent_width
+        elif molecule == "C3":
+            data = filter_data[self.value]
+            equivalent_width = data["gamma_prime_XX_XX"] / data["gamma_XX_XX"]
+            gp = self.gamma(molecule) * equivalent_width
         else:
             gp = 0
 
         return u.Quantity(gp, u.dimensionless_unscaled)
+
+
+def gamma(filter: str, molecule: str):
+    """Fraction of molecule present filter, normalized by filter equivalent width.
+
+    Tables VI and VII of Farnham, Schleicher, & A'Hearn 2000.
+
+
+    Parameters
+    ----------
+    filter : str
+        The filter name: OH, NH, CN, C3, CO+, C2, or H2O+.
+
+    molecule : str
+        The molecule name: OH, NH, CN, C3, CO+, C2, or H2O+.
+
+
+    Returns
+    -------
+    gamma : |Quantity|
+
+
+    Examples
+    --------
+
+    >>> from sbpy.photometry import hb
+    >>> hb.gamma("CN", "CN")
+    <Quantity 0.01812 1 / Angstrom>
+
+    Using this function is equivalent to using :func:`HBFilterSet.gamma`:
+
+    >>> from sbpy.photometry.hb import HBFilterSet
+    >>> HBFilterSet.CN.gamma("CN")
+    <Quantity 0.01812 1 / Angstrom>
+
+    """
+
+    return HBFilterSet(filter).gamma(molecule)
+
+
+def gamma_prime(filter: str, molecule: str) -> u.Quantity[u.dimensionless_unscaled]:
+    """Fraction of molecule present in filter.
+
+    Tables VI and VII of Farnham, Schleicher, & A'Hearn 2000.
+
+
+    Parameters
+    ----------
+    filter : str
+        The filter name: OH, NH, CN, C3, CO+, C2, or H2O+.
+
+    molecule : str
+        The molecule name: OH, NH, CN, C3, CO+, C2, or H2O+.
+
+
+    Returns
+    -------
+    gamma_prime : |Quantity|
+
+
+    Examples
+    --------
+
+    >>> from sbpy.photometry import hb
+    >>> hb.gamma_prime("OH", "OH")
+    <Quantity 0.98>
+
+    Using this function is equivalent to using :func:`HBFilterSet.gamma_prime`:
+
+    >>> from sbpy.photometry.hb import HBFilterSet
+    >>> HBFilterSet.OH.gamma_prime("OH")
+    <Quantity 0.98>
+
+    """
+
+    return HBFilterSet(filter).gamma_prime(molecule)
