@@ -1,13 +1,12 @@
 # %ECSV 1.0
 # ---
 # datatype:
-# - {name: "sbpy name", datatype: string}
 # - {name: name, datatype: string}
 # - {name: designation, datatype: string}
 # - {name: cwave, unit: AA, datatype: float64, description: center wavelength}
 # - {name: width, unit: AA, datatype: string, subtype: 'float64[4]', description: full-width power points at 80%, 50%, 10%, and 1% of the peak transmission}
 # - {name: Flam0, unit: erg / (cm2 s AA), datatype: float64, description: flux of 0 magnitude star}
-# - {name: XXmBCsun, datatype: float64, description: "solar color, XX-BC"}
+# - {name: XXmBCsun, unit: mag, datatype: float64, description: "solar color, XX-BC"}
 # - {name: gamma_XX_XX, unit: 1 / AA, datatype: float64, description: "fraction of gas emission band captured by filter, normalized by the filter's equivalent width and transmission properties"}
 # - {name: gamma_prime_XX_XX, datatype: float64, description: fraction of gas emission band captured by filter}
 # meta: !!omap
@@ -15,15 +14,15 @@
 # - {source: "Farnham, Schleicher, & A'Hearn 2000. The HB Narrowband Comet Filters: Standard Stars and Calibrations.  Icarus 147, 180\u2013\
 #     204."}
 # schema: astropy-2.0
-"sbpy name" name designation cwave width Flam0 XXmBCsun gamma_XX_XX gamma_prime_XX_XX
-OH OH 3090/62 3097 [52,58,68,87] 1.056e-08 1.791 1.698e-2 0.98
-NH NH 3362/58 3361 [47,54,64,81] 8.42e-09 1.188 1.907e-2 0.99
-UC UC 3448/84 3449 [72,79,93,116] 7.802e-09 1.101 "" ""
-CN CN 3870/62 3869 [50,56,65,82] 8.6e-09 1.031 1.812e-2 0.99
-C3 C3 4062/62 4063 [43,58,69,84] 8.16e-09 0.497 3.352e-3 0.19
-COplus CO+ 4266/64 4266 [58,64,74,90] 7.323e-09 0.338 1.549e-2 0.99
-BC BC 4450/67 4453 [55,61,71,86] 6.21e-09 0.000 "" ""
-C2 C2 5141/118 5135 [109,119,140,171] 3.887e-09 -0.423 5.433e-3 0.66
-GC GC 5260/56 5259 [52,56,65,79] 3.616e-09 -0.507 "" ""
-H2Oplus H2O+ 7020/170 7028 [148,164,193,239] 1.38e-09 -1.249 5.424e-3 1.00
-RC RC 7128/58 7133 [53,58,71,92] 1.316e-09 -1.276 "" ""
+name designation cwave width Flam0 XXmBCsun gamma_XX_XX gamma_prime_XX_XX
+OH 3090/62 3097 [52,58,68,87] 1.056e-08 1.791 1.698e-2 0.98
+NH 3362/58 3361 [47,54,64,81] 8.42e-09 1.188 1.907e-2 0.99
+UC 3448/84 3449 [72,79,93,116] 7.802e-09 1.101 0 0
+CN 3870/62 3869 [50,56,65,82] 8.6e-09 1.031 1.812e-2 0.99
+C3 4062/62 4063 [43,58,69,84] 8.16e-09 0.497 3.352e-3 0.19
+CO+ 4266/64 4266 [58,64,74,90] 7.323e-09 0.338 1.549e-2 0.99
+BC 4450/67 4453 [55,61,71,86] 6.21e-09 0.000 0 0
+C2 5141/118 5135 [109,119,140,171] 3.887e-09 -0.423 5.433e-3 0.66
+GC 5260/56 5259 [52,56,65,79] 3.616e-09 -0.507 0 0
+H2O+ 7020/170 7028 [148,164,193,239] 1.38e-09 -1.249 5.424e-3 1.00
+RC 7128/58 7133 [53,58,71,92] 1.316e-09 -1.276 0 0
