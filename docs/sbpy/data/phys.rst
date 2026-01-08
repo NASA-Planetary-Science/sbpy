@@ -2,6 +2,8 @@
 Physical Data Objects (`sbpy.data.Phys`)
 ========================================
 
+.. doctest-requires-all:: astroquery
+
 `~sbpy.data.Phys` is designed to contain and query physical properties for
 small bodies; functions to query these properties are
 available. `~sbpy.data.Phys.from_sbdb` queries the `JPL Small-body
@@ -13,7 +15,6 @@ including the use of `~astropy.units`.
 As an example, the following code will query the properties for a
 small number of asteroids:
 
-.. .. doctest-requires:: astroquery
 .. doctest-remote-data:: 
 
     >>> from sbpy.data import Phys
@@ -50,7 +51,6 @@ from `~sbpy.data.Phys.from_jplspec` include the following data:
     | Lower level energy in Joules
     | Degrees of freedom
 
-.. .. doctest-requires:: astroquery
 .. doctest-remote-data:: 
 
     >>> from sbpy.data.phys import Phys
