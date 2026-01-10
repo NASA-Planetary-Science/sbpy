@@ -6,9 +6,6 @@ from typing import Union
 import numpy as np
 from astropy import units as u
 
-# for bidirectional_reflectance
-from ..units import physical  # noqa: F401
-
 
 def min_zero_cos(a: u.physical.angle) -> u.Quantity[u.dimensionless_unscaled]:
     """Use to ensure that cos(>=90 deg) equals 0."""
