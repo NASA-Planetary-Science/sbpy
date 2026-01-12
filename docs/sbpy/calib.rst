@@ -41,6 +41,9 @@ The names of the built-in sources are stored as an internal array.  They can be 
     >>> print(sun)
     <Sun: E490-00a (2014) low resolution reference solar spectrum (Table 4)>
 
+
+.. _sbpy-spectroscopic-calibration:
+
 Controlling the default spectra
 -------------------------------
 
@@ -91,6 +94,8 @@ An example showing how to change the default Vega spectrum:
     >>> with vega_spectrum.set(Vega.from_file('vega.txt')):  # doctest: +SKIP
     ...   # vega.txt in effect
 
+
+.. _sbpy-photometric-calibration:
 
 Photometric calibration (without spectra or `synphot`)
 ------------------------------------------------------

@@ -106,9 +106,9 @@ class HBFilterSet(Enum):
         return filter_data[self.value]["Flam0"]
 
     @property
-    def solar_color(self) -> u.mag:
+    def solar_color(self) -> u.Magnitude:
         """Solar color: [filter]-BC."""
-        return filter_data[self.value]["XXmBCsun"]
+        return u.Magnitude(filter_data[self.value]["XXmBCsun"])
 
     def gamma(self, molecule: str) -> u.Quantity[1 / u.AA]:
         """Fraction of molecule present in this filter, normalized by filter equivalent width.

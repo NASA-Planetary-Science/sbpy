@@ -35,7 +35,7 @@ class TestHBFilterSet:
         assert HBFilterSet.H2Oplus.fluxd0 == 1.380e-9 * u.erg / u.cm**2 / u.s / u.AA
 
     def test_solar_color(self):
-        assert HBFilterSet.C3.solar_color == 0.497 * u.mag
+        assert HBFilterSet.C3.solar_color == u.Magnitude(0.497)
 
     def test_gamma(self):
         assert HBFilterSet.C2.gamma("C2") == 5.433e-3 / u.AA

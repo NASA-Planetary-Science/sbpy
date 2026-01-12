@@ -6,7 +6,7 @@
 # - {name: cwave, unit: AA, datatype: float64, description: center wavelength}
 # - {name: width, unit: AA, datatype: string, subtype: 'float64[4]', description: full-width power points at 80%, 50%, 10%, and 1% of the peak transmission}
 # - {name: Flam0, unit: erg / (cm2 s AA), datatype: float64, description: flux of 0 magnitude star}
-# - {name: XXmBCsun, unit: mag, datatype: float64, description: "solar color, XX-BC"}
+# - {name: XXmBCsun, datatype: float64, description: "solar color, XX-BC"}
 # - {name: gamma_XX_XX, unit: 1 / AA, datatype: float64, description: "fraction of gas emission band captured by filter, normalized by the filter's equivalent width and transmission properties"}
 # - {name: gamma_prime_XX_XX, datatype: float64, description: fraction of gas emission band captured by filter}
 # meta: !!omap
