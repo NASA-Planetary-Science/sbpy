@@ -25,10 +25,10 @@ class Sphere(Shape):
     """
 
     def __init__(self, radius: u.physical.length):
-        self.radius = radius
+        self.radius: u.Quantity = radius
 
     def to_faceted_model(self):
-        pass
+        raise NotImplemented
 
     @dataclass_input
     def integrate_over_surface(
@@ -37,8 +37,6 @@ class Sphere(Shape):
         """Integrate the function over the surface.
 
         The integration is over the observed area::
-
-
 
 
         Parameters
