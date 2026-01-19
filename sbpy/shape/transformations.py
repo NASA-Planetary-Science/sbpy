@@ -2,7 +2,9 @@ import numpy as np
 import astropy.units as u
 
 
-def twovec(axdef, indexa, plndef, indexp):
+def twovec(
+    axdef: np.ndarray, indexa: int, plndef: np.ndarray, indexp: int
+) -> np.ndarray:
     """Transformation matrix to a new coordinate defined by two input vectors.
 
 
@@ -35,7 +37,8 @@ def twovec(axdef, indexa, plndef, indexp):
     Notes
     -----
     This routine is directly translated form SPICE lib routine twovec.f (cf.
-    SPICE manual http://www.nis.lanl.gov/~esm/idl/spice-dlm/spice-t.html#TWOVEC)
+    `SPICE manual
+    <https://naif.jpl.nasa.gov/pub/naif/toolkit_docs/FORTRAN/spicelib/twovec.html>`_).
 
     The indexing of array elements are different in FORTRAN (that SPICE is
     originally based) from Python.  Here 0-based index is used.

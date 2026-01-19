@@ -41,6 +41,8 @@ The names of the built-in sources are stored as an internal array.  They can be 
     >>> print(sun)
     <Sun: E490-00a (2014) low resolution reference solar spectrum (Table 4)>
 
+.. _default-spectra:
+
 Controlling the default spectra
 -------------------------------
 
@@ -164,6 +166,7 @@ Get the default solar spectrum, observe it through the Johnson V-band filter (di
     >>> print(fluxd)    # doctest: +FLOAT_CMP
     -26.744715028702647 mag(JM)
 
+.. _calib-binning-vs-interpolation:
 
 Binning versus interpolation with ``observe()``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

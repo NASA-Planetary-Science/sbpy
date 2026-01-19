@@ -32,3 +32,10 @@
 .. |PhysicalType| replace:: :class:`~astropy.units.PhysicalType`
 .. |Quantity| replace:: :class:`~astropy.units.Quantity`
 .. |Unit| replace:: :class:`~astropy.units.UnitBase`
+
+..                                sbpy
+.. DataClass
+.. |Ephem| replace:: :class:`~sbpy.data.ephem.Ephem`
+.. |Orbit| replace:: :class:`~sbpy.data.orbit.Orbit`
+.. |Obs| replace:: :class:`~sbpy.data.obs.Obs`
+.. |Phys| replace:: :class:`~sbpy.data.phys.Phys`

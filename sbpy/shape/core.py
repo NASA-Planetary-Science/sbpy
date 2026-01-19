@@ -3,64 +3,32 @@
 Asteroid and comet nucleus shape models
 """
 
-from typing import Callable
+__all__ = ["Shape"]
+
 import astropy.units as u
 
+from ..calib import Sun
 from ..data.ephem import Ephem
-from ..data.decorators import dataclass_input
+from ..spectroscopy.sources import SinglePointSpectrumError
 
 
 class Shape:
     """Model asteroid or comet nucleus shape."""
 
-
-class Sphere(Shape):
-    """A spherical object.
-
-
-    Parameters
-    ----------
-
-
-    """
-
-    def __init__(self, radius: u.physical.length):
-        self.radius: u.Quantity = radius
-
-    def to_faceted_model(self):
-        raise NotImplemented
-
-    @dataclass_input
-    def integrate_over_surface(
-        self, func: Callable, eph: Ephem, *args, **kwargs
+    @staticmethod
+    def _incident_sunlight(
+        wfb: u.Quantity | str, eph: Ephem, unit: u.Unit, interpolate: bool
     ) -> u.Quantity:
-        """Integrate the function over the surface.
+        """Calculate incident sunlight for a normal surface."""
 
-        The integration is over the observed area::
+        sun = Sun.from_default()
+        try:
+            S = sun.observe(wfb, unit=unit, interpolate=interpolate)
+        except SinglePointSpectrumError:
+            S = sun(wfb, unit=unit)
+        S /= eph["rh"][0].to_value("au") ** 2
 
-
-        Parameters
-        ----------
-        func : callable
-            The function to integrate: ``func(*args, i, e, phi, **kwargs)``,
-            where :math:`i` is the angle of incidence, :math:`e` is the the
-            angle of emittance, and :math:`phi` is the phase angle.
-
-        eph : `Ephem`
-            The observing geometry as an ephemeris (or equivalent) object:
-                - rh
-                - delta
-                - phase
-
-        *args, **kwargs
-            Additional arguments passed to the function.
-
-
-        Returns
-        -------
-        total : `~sbpy.units.Quantity`
-
-        """
+        return S
 
 
 # __all__ = ["ModelClass", "Kaasalainen", "Lightcurve"]
