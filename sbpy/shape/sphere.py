@@ -39,7 +39,7 @@ class Sphere(Shape):
         # self.phys: Phys = Phys() if phys is None else phys
 
     def to_faceted_model(self):
-        raise NotImplemented
+        raise NotImplemented  # pragma: no cover
 
     @dataclass_input
     def integrate(
@@ -149,18 +149,63 @@ class Sphere(Shape):
 
         return self.integrate(f, **kwargs)
 
+    @u.quantity_input
     @dataclass_input
     def absorption(
         self,
-        wfb: u.Quantity | str,
-        epsilon: u.physical.dimensionless,
+        I: u.Quantity,
+        epsilon: u.Quantity[u.physical.dimensionless],
+        surface: Surface,
+        **kwargs,
+    ) -> tuple[u.Quantity, u.Quantity]:
+        """Surface total absorbed light.
+
+
+        Parameters
+        ----------
+        I : |Quantity|
+            Incident light.
+
+        epsilon : |Quantity| or float
+            Surface emissivity.
+
+        surface : `~sbpy.surface.surface.Surface`
+            The surface being illuminated.
+
+        kwargs : dict, optional
+            Additional keyword arguments are passed to the integrator,
+            `~scipy.integrate.dblquad`.
+
+
+        Returns
+        -------
+        A : |Quantity|
+            Surface total absorbed energy.
+
+        err : |Quantity|
+            Estimated surface integration error on ``A``.
+
+        """
+
+        def f(i, e, phi):
+            return surface.absorptance(1, i)
+
+        # set phase to zero: absorption does not depend on an observer
+        A, err = self.integrate_i_e_phi(f, 0 * u.deg, **kwargs)
+        return (I * epsilon * A), (I * epsilon * err)
+
+    @dataclass_input
+    def absorption_of_sunlight(
+        self,
+        wfb,
+        epsilon: u.Quantity[u.physical.dimensionless] | float,
         surface: Surface,
         eph: Ephem,
-        unit: u.Unit | str = "W / um",
         interpolate: bool = False,
+        unit: u.Unit = "W / um",
         **kwargs,
-    ):
-        """Total absorbed sunlight.
+    ) -> tuple[u.Quantity, u.Quantity]:
+        """Surface total absorbed sunlight.
 
         Uses the current default ``Sun``.  See :ref:`_sbpy-calib` and
         :ref:`_default-spectra` for more information.
@@ -168,8 +213,129 @@ class Sphere(Shape):
 
         Parameters
         ----------
+        wfb : |Quantity|, |SpectralElement|, str, or list
+            Wavelengths, frequencies, or bandpasses.
+
+        epsilon : |Quantity| or float
+            Surface emissivity.
 
         surface : `~sbpy.surface.surface.Surface`
+            The surface being illuminated.
+
+        eph : |Ephem|
+            Distance to the sun.
+
+        interpolate : bool, optional
+            Set to ``True`` to interpolate the solar spectrum for ``wfb``.  See
+            :ref:`_calib-binning-vs-interpolation` for guidance.
+
+        unit : |Unit| or str, optional
+            Spectral density units for the return value (e.g., W/μm).
+
+        kwargs : dict, optional
+            Additional keyword arguments are passed to the integrator,
+            `~scipy.integrate.dblquad`.
+
+
+        Returns
+        -------
+        A : |Quantity|
+            Surface total absorbed sunlight at each ``wfb``.
+
+        err : |Quantity|
+            Estimated surface integration error on ``A``.
+
+        """
+
+        unit = u.Unit(unit)
+        S = Shape._incident_sunlight(wfb, eph["rh"][0], unit / u.m**2, interpolate)
+        A, err = self.absorption(S, epsilon, surface, **kwargs)
+        return A.to(unit), err.to(unit)
+
+    @dataclass_input
+    def reflected_light(
+        self,
+        I: u.Quantity,
+        albedo: u.Quantity[u.physical.dimensionless],
+        surface: Surface,
+        eph: Ephem,
+        **kwargs,
+    ) -> tuple[u.Quantity, u.Quantity]:
+        """Surface total reflected light.
+
+
+        Parameters
+        ----------
+        I : |Quantity|
+            Incident light.
+
+        albedo : |Quantity| or float
+            Surface albedo.
+
+        surface : `~sbpy.surface.surface.Surface`
+            The surface being illuminated.
+
+        eph : |Ephem|
+            Target-observer distance and Sun-target-observer (phase) angle.
+
+        kwargs : dict, optional
+            Additional keyword arguments are passed to the integrator,
+            `~scipy.integrate.dblquad`.
+
+
+        Returns
+        -------
+        R : |Quantity|
+            Reflected light at observer.
+
+        err : |Quantity|
+            Estimated surface integration error on ``R``.
+
+        """
+
+        delta = eph["delta"][0]
+        phase = eph["phase"][0]
+
+        def f(i, e, phi):
+            return surface.reflectance(1, i, e, phi)
+
+        R, err = self.integrate_i_e_phi(f, phase, **kwargs)
+        return (
+            (I * albedo * R / delta**2).to(I.unit),
+            (I * albedo * err / delta**2).to(I.unit),
+        )
+
+    @dataclass_input
+    def reflected_sunlight(
+        self,
+        wfb,
+        albedo: u.Quantity[u.physical.dimensionless],
+        surface: Surface,
+        eph: Ephem,
+        unit: u.Unit | str = "W / (m2 um)",
+        interpolate: bool = False,
+        **kwargs,
+    ) -> tuple[u.Quantity, u.Quantity]:
+        """Surface total reflected sunlight.
+
+        Uses the current default ``Sun``.  See :ref:`_sbpy-calib` and
+        :ref:`_default-spectra` for more information.
+
+
+        Parameters
+        ----------
+        wfb : |Quantity|, |SpectralElement|, str, or list
+            Wavelengths, frequencies, or bandpasses.
+
+        albedo : |Quantity| or float
+            Surface albedo.
+
+        surface : `~sbpy.surface.surface.Surface`
+            The surface being illuminated.
+
+        eph : |Ephem|
+            Heliocentric distance, target-observer distance and
+            Sun-target-observer (phase) angle.
 
         interpolate : bool, optional
             Set to ``True`` to interpolate the solar spectrum for ``wfb``.  See
@@ -182,17 +348,6 @@ class Sphere(Shape):
         """
 
         unit = u.Unit(unit)
-        S = Shape._incident_sunlight(wfb, eph, unit / u.m**2, interpolate)
-
-        def f(i, e, phi):
-            return surface.absorptance(1, i)
-
-        # set phase to zero: absorption does not depend on an observer
-        A, err = self.integrate_i_e_phi(f, 0 * u.deg, **kwargs)
-        return (S * epsilon * A).to(unit), (S * epsilon * err).to(unit)
-
-    # def reflectance(self, albedo: float):
-    #     def f(i, e, phi):
-    #         return self.surface.absorptance(epsilon, i)
-
-    #     return self.integrate_i_e_phi(f, 0 * u.deg)
+        S = Shape._incident_sunlight(wfb, eph["rh"][0], unit, interpolate)
+        R, err = self.reflected_light(S, albedo, surface, eph, **kwargs)
+        return R.to(unit), err.to(unit)

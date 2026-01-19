@@ -34,6 +34,12 @@ def twovec(
         to the coordinate frame defined by the input vectors via a dot product.
 
 
+    Raises
+    ------
+    ValueError
+        When ``axdef`` and ``plndef`` are linearly dependent.
+
+
     Notes
     -----
     This routine is directly translated form SPICE lib routine twovec.f (cf.
@@ -53,7 +59,7 @@ def twovec(
     plndef = np.asarray(plndef).flatten()
 
     if np.linalg.norm(np.cross(axdef, plndef)) == 0:
-        raise RuntimeError(
+        raise ValueError(
             "The input vectors AXDEF and PLNDEF are linearly"
             " correlated and can't define a coordinate frame."
         )

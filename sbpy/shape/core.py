@@ -17,7 +17,10 @@ class Shape:
 
     @staticmethod
     def _incident_sunlight(
-        wfb: u.Quantity | str, eph: Ephem, unit: u.Unit, interpolate: bool
+        wfb,
+        rh: u.Quantity,
+        unit: u.Unit,
+        interpolate: bool,
     ) -> u.Quantity:
         """Calculate incident sunlight for a normal surface."""
 
@@ -26,7 +29,7 @@ class Shape:
             S = sun.observe(wfb, unit=unit, interpolate=interpolate)
         except SinglePointSpectrumError:
             S = sun(wfb, unit=unit)
-        S /= eph["rh"][0].to_value("au") ** 2
+        S /= rh.to_value("au") ** 2
 
         return S
 
