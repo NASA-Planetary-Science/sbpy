@@ -38,9 +38,6 @@ class Sphere(Shape):
         self.radius: u.Quantity = radius
         # self.phys: Phys = Phys() if phys is None else phys
 
-    def to_faceted_model(self):
-        raise NotImplemented  # pragma: no cover
-
     @dataclass_input
     def integrate(
         self,
