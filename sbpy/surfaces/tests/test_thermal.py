@@ -1,12 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import pytest
-
-import numpy as np
 from numpy import pi
-from astropy.coordinates import Angle
 from astropy import units as u
-import astropy.constants as const
 from astropy.modeling.models import BlackBody
 
 from ..thermal import InstantaneousEquilibrium, ThermalEmission
