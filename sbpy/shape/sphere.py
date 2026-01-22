@@ -26,17 +26,22 @@ class Sphere(Shape):
     Parameters
     ----------
     radius : |Quantity|
+        The radius of the sphere.
+
+    pole : tuple of |Quantity|, optional
+        The direction of the pole as longitude and latitude.
 
     """
 
+    @u.quantity_input
     @dataclass_input
     def __init__(
         self,
-        radius: u.physical.length,
-        # phys: Phys | None = None,
+        radius: u.Quantity["length"],
+        pole: tuple[u.Quantity["angle"]] | None = None,
     ):
         self.radius: u.Quantity = radius
-        # self.phys: Phys = Phys() if phys is None else phys
+        self.pole = None if pole is None else (pole[0], pole[1])
 
     @dataclass_input
     def integrate(
@@ -151,7 +156,7 @@ class Sphere(Shape):
     def absorption(
         self,
         I: u.Quantity,
-        epsilon: u.Quantity[u.physical.dimensionless],
+        epsilon: u.Quantity["dimensionless"],
         surface: Surface,
         **kwargs,
     ) -> tuple[u.Quantity, u.Quantity]:
@@ -195,7 +200,7 @@ class Sphere(Shape):
     def absorption_of_sunlight(
         self,
         wfb,
-        epsilon: u.Quantity[u.physical.dimensionless] | float,
+        epsilon: u.Quantity["dimensionless"] | float,
         surface: Surface,
         eph: Ephem,
         interpolate: bool = False,
@@ -253,7 +258,7 @@ class Sphere(Shape):
     def reflected_light(
         self,
         I: u.Quantity,
-        albedo: u.Quantity[u.physical.dimensionless],
+        albedo: u.Quantity["dimensionless"],
         surface: Surface,
         eph: Ephem,
         **kwargs,
@@ -306,7 +311,7 @@ class Sphere(Shape):
     def reflected_sunlight(
         self,
         wfb,
-        albedo: u.Quantity[u.physical.dimensionless],
+        albedo: u.Quantity["dimensionless"],
         surface: Surface,
         eph: Ephem,
         unit: u.Unit | str = "W / (m2 um)",
