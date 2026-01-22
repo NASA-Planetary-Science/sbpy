@@ -65,7 +65,6 @@ class ThermalEmission(abc.ABC):
         return self._surface
 
     @surface.setter
-    @u.quantity_input
     def surface(self, s: Surface):
         self._surface = s
         self._update_T0 = True
