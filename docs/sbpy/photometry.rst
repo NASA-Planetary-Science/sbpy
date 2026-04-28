@@ -181,6 +181,13 @@ For other bandpasses, obtain the photon-counting relative spectral response curv
 
 See `synphot.spectrum.SpectralElement` for other options and file format details.
 
+
+HB cometary narrow-band filter set
+----------------------------------
+
+The HB filter set is a set of narrow-band filters designed for the characterization of comets at near-UV and optical wavelengths (`Farnham, Schleicher, & A'Hearn 2000 <https://scixplorer.org/abs/2000Icar..147..180F/abstract>`_).  Most filter bandpass and photometric properties are 
+
+
 Reference/API
 -------------
 .. automodapi:: sbpy.photometry
