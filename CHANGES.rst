@@ -5,6 +5,15 @@ Update supported versions [#427]:
 - Python >= 3.10
 
 
+New Features
+------------
+
+sbpy.photometry
+^^^^^^^^^^^^^^^
+
+- Added Rubin Observatory's LSSTCam filter set to `bandpass()`. [#431]
+
+
 v0.6.0 (2025-12-02)
 ===================
 
