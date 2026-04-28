@@ -1,7 +1,7 @@
 # GitHub Actions workflow that runs on a cron schedule.
 # Check URLs and run latest deps with remote tests
 
-# Remove -numpy126 when we support testing with numpy 2.0
+# Restore testing with pyoorb when it supports Python 3.12+
 
 name: Weekly CI Tests
 
@@ -19,10 +19,10 @@ env:
   IS_CRON: "true"
 
 jobs:
-  oorb-data:
-    uses: ./.github/workflows/oorb_data.yml
+  # oorb-data:
+  #   uses: ./.github/workflows/oorb_data.yml
   tests:
-    needs: [oorb-data]
+    # needs: [oorb-data]
     uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@v1
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
@@ -31,16 +31,16 @@ jobs:
         ARCH_ON_CI: "normal"
         IS_CRON: "true"
         OORB_DATA: "$GITHUB_WORKSPACE/oorb-data/"
-      cache-path: oorb-data/
-      cache-key: oorb-data
+      # cache-path: oorb-data/
+      # cache-key: oorb-data
       submodules: false
       coverage: ""
       envs: |
         - name: Link check
           linux: linkcheck
 
-        - name: Python 3.13 with dev versions of key dependencies
-          linux: py313-test-devdeps-cov
+        - name: Python 3.14 with dev versions of key dependencies
+          linux: py314-test-devdeps-cov
           posargs: --verbose
 
   allowed_failures:
@@ -48,6 +48,6 @@ jobs:
     with:
       submodules: false
       envs: |
-        - name: Python 3.11 with all optional dependencies and remote data
-          linux: py311-test-numpy126-alldeps
+        - name: Python 3.14 with all optional dependencies and remote data
+          linux: py314-test-alldeps
           posargs: --remote-data --verbose

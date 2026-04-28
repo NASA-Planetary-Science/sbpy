@@ -16,14 +16,8 @@ __all__ = [
 ]
 
 import abc
-import sys
-from typing import Iterable, Optional, TypeVar, Union
+from typing import Iterable, Optional, TypeVar
 from packaging.version import Version
-
-if sys.version_info[:2] < (3, 11):
-    Self = TypeVar("Self", bound="StateBase")
-else:
-    from typing import Self
 
 import numpy as np
 import astropy
@@ -35,6 +29,9 @@ import astropy.coordinates.representation as cr
 from .. import data as sbd
 from ..data.ephem import Ephem
 from ..exceptions import SbpyException
+
+StateBaseType = TypeVar("StateBaseType", bound="StateBase")
+StateType = TypeVar("StateType", bound="StateBase")
 
 
 class SolverFailed(SbpyException):
@@ -109,7 +106,7 @@ class StateBase(abc.ABC):
         self,
         r: u.Quantity,
         v: u.Quantity,
-        t: Union[u.Quantity, Time],
+        t: u.Quantity | Time,
         frame: Optional[FrameInputTypes] = None,
     ) -> None:
         frame_class: BaseCoordinateFrame = self._get_frame_class(frame)
@@ -142,7 +139,7 @@ class StateBase(abc.ABC):
                 "`State` only supports time as a quantity with `ArbitraryFrame`."
             )
 
-        t_: Union[Time, u.Quantity, list]
+        t_: Time | u.Quantity | list[Time | u.Quantity]
         if np.size(t) != len(self):
             t_ = [t] * len(self)
         else:
@@ -168,11 +165,11 @@ class StateBase(abc.ABC):
         else:
             return self.r.shape[0]
 
-    def __getitem__(self, k: Union[int, tuple, slice]) -> Self:
+    def __getitem__(self, k: int | tuple | slice) -> StateBaseType:
         """Get the state(s) at ``k``."""
         return State(self.r[k], self.v[k], self.t[k], frame=self.frame)
 
-    def __add__(self, other: Self) -> Self:
+    def __add__(self, other: StateBaseType) -> StateBaseType:
         """Vector addition of two states.
 
         Time is taken from the left operand.
@@ -186,7 +183,7 @@ class StateBase(abc.ABC):
             frame=self.frame,
         )
 
-    def __sub__(self, other: Self) -> Self:
+    def __sub__(self, other: StateBaseType) -> StateBaseType:
         """Vector subtraction of two states.
 
         Time is taken from the left operand.
@@ -195,7 +192,7 @@ class StateBase(abc.ABC):
 
         return self + -other
 
-    def __neg__(self) -> Self:
+    def __neg__(self) -> StateBaseType:
         """Invert the direction of the state vector position and velocity."""
         return State(
             -self.r,
@@ -212,8 +209,8 @@ class StateBase(abc.ABC):
 
     @staticmethod
     def _get_frame_class(
-        frame_input: Union[None, FrameInputTypes]
-    ) -> Union[None, BaseCoordinateFrame]:
+        frame_input: FrameInputTypes | None,
+    ) -> BaseCoordinateFrame | None:
         """Get a frame class based on allowed ``State`` frame input."""
 
         frame_class: BaseCoordinateFrame
@@ -276,7 +273,7 @@ class StateBase(abc.ABC):
         return np.hstack([self.r.to_value("km"), self.v.to_value("km/s")])
 
     @property
-    def t(self) -> Union[Time, u.Quantity]:
+    def t(self) -> Time | u.Quantity:
         """Time."""
         return self._t
 
@@ -286,7 +283,7 @@ class StateBase(abc.ABC):
         return isinstance(self.t, u.Quantity)
 
     @property
-    def frame(self) -> Union[BaseCoordinateFrame, None]:
+    def frame(self) -> BaseCoordinateFrame | None:
         return self._data.replicate_without_data()
 
     def to_skycoord(self) -> SkyCoord:
@@ -297,7 +294,7 @@ class StateBase(abc.ABC):
         else:
             return SkyCoord(self._data, obstime=self.t, representation_type="cartesian")
 
-    def transform_to(self, frame: FrameInputTypes) -> Self:
+    def transform_to(self, frame: FrameInputTypes) -> StateBaseType:
         """Transform state into another reference frame.
 
 
@@ -334,7 +331,7 @@ class StateBase(abc.ABC):
 
 class State(StateBase):
     @classmethod
-    def from_states(cls, states: Iterable[Self]) -> Self:
+    def from_states(cls, states: Iterable[StateType]) -> StateType:
         """Initialize from a list of states.
 
         The resulting reference frame will be that of ``states[0]``.
@@ -351,12 +348,12 @@ class State(StateBase):
 
         r: list[u.Quantity] = [state.r for state in states_]
         v: list[u.Quantity] = [state.v for state in states_]
-        t: list[Union[u.Quantity, Time]] = [state.t for state in states_]
+        t: list[u.Quantity | Time] = [state.t for state in states_]
 
         return State(r, v, t, frame=frame)
 
     @classmethod
-    def from_skycoord(cls, coords: SkyCoord) -> Self:
+    def from_skycoord(cls, coords: SkyCoord) -> StateType:
         """Initialize from astropy `~astropy.coordinates.SkyCoord`.
 
 
@@ -382,7 +379,7 @@ class State(StateBase):
         cls,
         eph: Ephem,
         frame: Optional[FrameInputTypes] = None,
-    ) -> Self:
+    ) -> StateType:
         """Initialize from an `~sbpy.data.Ephem` object.
 
 
@@ -438,7 +435,7 @@ class State(StateBase):
             " velocity fields."
         )
 
-    def observe(self, target: Self) -> SkyCoord:
+    def observe(self, target: StateType) -> SkyCoord:
         """Project a target's position onto the sky.
 
 

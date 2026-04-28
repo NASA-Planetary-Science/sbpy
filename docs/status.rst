@@ -4,9 +4,9 @@ Status Page
 ===========
 
 This page indicates the development status of `sbpy`. The initial development is
-expected to conclude in 2025.
+expected to conclude in 2026.
 
-The current development version is **v0.6.dev**; its status is as follows:
+The current development version is **v0.7.dev**; its status is as follows:
 
 .. image:: https://github.com/NASA-Planetary-Science/sbpy/actions/workflows/ci_cron_weekly.yml/badge.svg
     :target: https://github.com/NASA-Planetary-Science/sbpy/actions

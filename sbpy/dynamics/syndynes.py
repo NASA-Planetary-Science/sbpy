@@ -18,15 +18,9 @@ __all__ = [
 ]
 
 import abc
-import sys
 import time
 import logging
-from typing import Iterable, Union, Optional, TypeVar
-
-if sys.version_info[:2] < (3, 11):
-    Self = TypeVar("Self", bound="StateBase")
-else:
-    from typing import Self
+from typing import Iterable, Optional, TypeVar
 
 import numpy as np
 import astropy.units as u
@@ -36,7 +30,9 @@ from astropy.coordinates import SkyCoord
 
 from ..data import Ephem
 from .models import DynamicalModel, SolarGravityAndRadiationPressure
-from .state import StateBase, State
+from .state import StateBase, StateBaseType, State
+
+SynGeneratorType = TypeVar("SynGeneratorType", bound="SynGenerator")
 
 
 class SynStates(StateBase, abc.ABC):
@@ -58,7 +54,7 @@ class SynStates(StateBase, abc.ABC):
 
         self.source: State = source
         self.initial: State = initial
-        self.observer: Union[State, None] = observer
+        self.observer: State | None = observer
 
         # syndynes will be single beta and array of ages, synchrones will be
         # single age and array of betas
@@ -71,7 +67,7 @@ class SynStates(StateBase, abc.ABC):
         super().__init__(r, v, t, frame=initial.frame)
 
         # generate sky coordinates as needed
-        self.coords: Union[SkyCoord, None] = (
+        self.coords: SkyCoord | None = (
             None if observer is None else observer.observe(self)
         )
 
@@ -314,7 +310,7 @@ class SynCollection:
         """Number of items in the container."""
         return len(self._data)
 
-    def __getitem__(self, k: Union[int, tuple, slice]) -> SynStates:
+    def __getitem__(self, k: int | tuple | slice) -> SynStates:
         return self._data[k]
 
     def to_ephem(self) -> Ephem:
@@ -414,7 +410,7 @@ class SynGenerator:
     def __init__(
         self,
         source: State,
-        betas: Union[Iterable, u.Quantity],
+        betas: Iterable | u.Quantity,
         ages: u.Quantity,
         observer: Optional[State] = None,
         solver: Optional[DynamicalModel] = None,
@@ -440,10 +436,10 @@ class SynGenerator:
     def at_epochs(
         cls,
         source: State,
-        betas: Union[Iterable, u.Quantity],
+        betas: Iterable | u.Quantity,
         epochs: Time,
         **kwargs: dict,
-    ) -> Self:
+    ) -> SynGeneratorType:
         """An alternative constructor that ejects dust at specific times.
 
 
@@ -462,7 +458,7 @@ class SynGenerator:
             Specific times to produce dust test particles.  The times will be
             converted to particle ages.
 
-        **kwargs
+        **kwargs : dict
             Any other `SynGenerator` keyword argument.
 
         """
@@ -603,7 +599,7 @@ class SynGenerator:
 
         return Synchrones([self.synchrone(i) for i in range(len(self.ages))])
 
-    def source_orbit(self, dt: u.Quantity) -> Union[State, tuple[State, SkyCoord]]:
+    def source_orbit(self, dt: u.Quantity) -> State | tuple[State, SkyCoord]:
         """Calculate and observe the orbit of the dust source.
 
 

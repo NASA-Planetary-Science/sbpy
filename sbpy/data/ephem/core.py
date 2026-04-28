@@ -361,7 +361,7 @@ class Ephem(DataClass):
             `~astropy.coordinates.Angle.to_string` using these keyword
             arguments, e.g., ``{'sep': ':', 'precision': 0}``.
 
-        **kwargs
+        **kwargs : dict
             Additional keyword arguments are passed to
             `~astroquery.mpc.MPC.get_ephemerides`: ``eph_type``,
             ``proper_motion``, ``proper_motion_unit``, ``suppress_daytime``,

@@ -332,7 +332,7 @@ class DustComaQuantity(u.SpecificTypeQuantity, metaclass=abc.ABCMeta):
             Ephemerides of the comet.  Required fields: 'rh', 'delta'.
             Optional: 'phase'.
 
-        **kwargs
+        **kwargs : dict
             Keyword arguments for `~to_fluxd`.
 
         """
@@ -520,7 +520,7 @@ class Afrho(DustComaQuantity):
         Phi : callable, optional
             Phase function, see :func:`~Afrho.to_phase`.
 
-        **kwargs
+        kwargs : dict
             Keyword arguments for `~Sun.observe`.
 
 

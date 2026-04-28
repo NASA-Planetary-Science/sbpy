@@ -2,8 +2,7 @@
 #
 # This file performs testing using tox and tox.ini to define and configure the test environments.
 
-# Remove -numpy126 when we support testing with numpy 2.0
-# Allow testing of optional dependencies on Python 3.12+ when pyoorb is updated.
+# Restore testing with pyoorb when it supports Python 3.12+
 
 name: CI Tests
 
@@ -26,10 +25,10 @@ env:
   IS_CRON: "false"
 
 jobs:
-  oorb-data:
-    uses: ./.github/workflows/oorb_data.yml
+  # oorb-data:
+  #   uses: ./.github/workflows/oorb_data.yml
   tests:
-    needs: [oorb-data]
+    # needs: [oorb-data]
     uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@v1
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
@@ -38,47 +37,47 @@ jobs:
         ARCH_ON_CI: "normal"
         IS_CRON: "false"
         OORB_DATA: "$GITHUB_WORKSPACE/oorb-data/"
-      cache-path: oorb-data/
-      cache-key: oorb-data
+      # cache-path: oorb-data/
+      # cache-key: oorb-data
       submodules: false
       coverage: ""
       envs: |
         - name: Code style checks
           linux: codestyle
 
-        - name: Python 3.13 with minimal dependencies, measuring coverage
-          linux: py313-test-cov
+        - name: Python 3.14 with minimal dependencies, measuring coverage
+          linux: py314-test-cov
           coverage: codecov
 
-        - name: Python 3.11 with all optional dependencies, measuring coverage
-          linux: py311-test-numpy126-alldeps-cov
+        - name: Python 3.14 with all optional dependencies, measuring coverage
+          linux: py314-test-alldeps-cov
           coverage: codecov
 
-        - name: Python 3.9 with oldest supported versions, measuring coverage
-          linux: py39-test-oldestdeps-cov
+        - name: Python 3.10 with oldest supported versions, measuring coverage
+          linux: py310-test-oldestdeps-cov
           coverage: codecov
   macos-test:
-    name: Python 3.11 with all optional dependencies (MacOS)
-    needs: [oorb-data]
-    runs-on: macos-13
+    name: Python 3.14 with all optional dependencies (MacOS)
+    # needs: [oorb-data]
+    runs-on: macos-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Restore cached files
-        uses: actions/cache/restore@v4
-        with:
-          path: oorb-data/
-          key: oorb-data
-      - name: Set environment
-        run: |
-          echo "OORB_DATA=$GITHUB_WORKSPACE/oorb-data" >> "$GITHUB_ENV"
+      # - name: Restore cached files
+      #   uses: actions/cache/restore@v4
+      #   with:
+      #     path: oorb-data/
+      #     key: oorb-data
+      # - name: Set environment
+      #   run: |
+      #     echo "OORB_DATA=$GITHUB_WORKSPACE/oorb-data" >> "$GITHUB_ENV"
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: 3.11
+          python-version: 3.14
       - name: Install tox
         run: |
           pip install tox
       - name: Run tests
         run: |
-          tox -e py311-test-numpy126-alldeps
+          tox -e py314-test-alldeps
