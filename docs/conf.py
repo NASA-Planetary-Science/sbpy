@@ -128,7 +128,6 @@ extensions += ["sphinx_changelog"]
 
 # By default, highlight as Python 3.
 highlight_language = "python3"
-highlight_language = "python3"
 
 # If your documentation needs a minimal Sphinx version, state it here.
 needs_sphinx = "3.0"
@@ -142,11 +141,6 @@ exclude_patterns.append("_templates")
 with open("substitutions.txt") as inf:
     rst_epilog += inf.read()
 
-extensions += [
-    "sphinx.ext.intersphinx",
-    "sphinx_automodapi.smart_resolver",
-    "sphinx.ext.autosectionlabel",
-]
 extensions += [
     "sphinx.ext.intersphinx",
     "sphinx_automodapi.smart_resolver",
@@ -247,7 +241,6 @@ modindex_common_prefix = ["sbpy."]
 # Add any paths that contain custom themes here, relative to this directory.
 # To use a different custom theme, add the directory containing the theme.
 # html_theme_path = []
-# html_theme_path = []
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes. To override the custom theme, set this to the
@@ -259,18 +252,13 @@ html_theme_options = {
     "logotext1": "sb",  # white,  semi-bold
     "logotext2": "py",  # orange, light
     "logotext3": ":docs",  # white,  light
-    "logotext1": "sb",  # white,  semi-bold
-    "logotext2": "py",  # orange, light
-    "logotext3": ":docs",  # white,  light
 }
 
 # Custom sidebar templates, maps document names to template names.
 # html_sidebars = {}
-# html_sidebars = {}
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-# html_logo = ''
 # html_logo = ''
 
 # The name of an image file (within the static path) to use as favicon of the
@@ -281,11 +269,9 @@ html_favicon = "_static/sbpy_logo.ico"
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
 # html_last_updated_fmt = ''
-# html_last_updated_fmt = ''
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
-html_title = "{0} v{1}".format(project, release)
 html_title = "{0} v{1}".format(project, release)
 
 # Output file base name for HTML help builder.
