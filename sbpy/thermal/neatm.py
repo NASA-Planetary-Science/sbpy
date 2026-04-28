@@ -5,24 +5,30 @@ sbpy Thermal Module
 created on June 27, 2017
 """
 
-__all__ = ["ThermalClass", "NonRotThermalModel", "FastRotThermalModel"]
-
-import abc
-import numpy as np
 from numpy import pi
-from numpy.linalg import norm
-from scipy.integrate import dblquad
 import astropy.units as u
 import astropy.constants as const
-from astropy.modeling.models import BlackBody
-from ..data import Phys, Obs, Ephem, dataclass_input, quantity_to_dataclass
 from ..shape import Sphere
 from ..surfaces import LambertianSurface
 from ..surfaces.thermal import InstantaneousEquilibrium
+from ..data import dataclass_input, Ephem
 
 
-def neatm(wave_freq, diameter, albedo, epsilon, eta, eph, unit="W m-2 um-1"):
+@u.quantity_input
+@dataclass_input
+def neatm(
+    wave_freq: u.Quantity["length"] | u.Quantity["frequency"],
+    diameter: u.Quantity["length"],
+    albedo: u.Quantity[""],
+    epsilon: u.Quantity[""],
+    eta: u.Quantity[""],
+    eph: Ephem,
+    unit: u.Unit | str = "W m-2 um-1",
+    **kwargs,
+):
     """Near-Earth Asteroid Thermal Model."""
+
+    unit = u.Unit(unit)
 
     shape = Sphere(diameter / 2)
     surface = LambertianSurface()
@@ -30,10 +36,19 @@ def neatm(wave_freq, diameter, albedo, epsilon, eta, eph, unit="W m-2 um-1"):
     thermal = InstantaneousEquilibrium(S, albedo, epsilon, eta, surface)
 
     def f(i, e, phi):
-        return thermal.emission(wave_freq, i, e, phi, unit=unit * u.m**2)
+        # return thermal.emission(wave_freq, i, e, phi, unit=unit / u.sr).value
+        return thermal._emission(wave_freq, i, e, phi)
 
-    fluxd = shape.integrate_i_e_phi(f, eph["phase"][0]) / eph["delta"][0] ** 2
-    return fluxd.to(unit)
+    if wave_freq.unit.is_equivalent(u.m):
+        func_unit = u.Unit("W m-3")
+    else:
+        func_unit = u.Unit("W m-2 Hz-1")
+
+    result = u.Quantity(shape.integrate_i_e_phi(f, eph["phase"][0], **kwargs))
+    fluxd, err = (result * func_unit / eph["delta"][0] ** 2).to(
+        unit, u.spectral_density(wave_freq)
+    )
+    return fluxd, err
 
 
 # @u.quantity_input(rh=u.km, R=u.km)

@@ -7,17 +7,22 @@ import numpy as np
 from astropy import units as u
 
 
-def min_zero_cos(a: u.physical.angle) -> u.Quantity[u.dimensionless_unscaled]:
+def min_zero_cos(a: u.Quantity["angle"]) -> u.Quantity[""]:
     """Use to ensure that cos(>=90 deg) equals 0."""
 
-    # handle scalars separately
-    if a.ndim == 0 and u.isclose(np.abs(a), 90 * u.deg):
-        return u.Quantity(0)
+    # handle scalars
+    if a.ndim == 0:
+        if a >= 90 * u.deg:
+            return u.Quantity(0)
+        return np.cos(a)
 
-    x = np.cos(a)
-    x[u.isclose(np.abs(a), 90 * u.deg)] = 0
+    # handle arrays
+    x = u.Quantity(np.zeros(len(a)))
+    i = a < 90 * u.deg
+    if np.any(i):
+        x[i] = np.cos(a[i])
 
-    return np.maximum(x, 0)
+    return x
 
 
 class Surface(ABC):
@@ -25,8 +30,8 @@ class Surface(ABC):
 
     @abstractmethod
     def absorptance(
-        self, epsilon: u.physical.dimensionless, i: u.physical.angle
-    ) -> u.Quantity[u.dimensionless_unscaled]:
+        self, epsilon: u.Quantity[""], i: u.Quantity["angle"]
+    ) -> u.Quantity[""]:
         r"""Absorptance of directional, incident light.
 
         The surface is illuminated at an angle of :math:`i`, measured from the
@@ -52,10 +57,10 @@ class Surface(ABC):
     @abstractmethod
     def emittance(
         self,
-        epsilon: u.physical.dimensionless,
-        e: u.physical.angle,
-        phi: u.physical.angle,
-    ) -> u.Quantity[u.dimensionless_unscaled]:
+        epsilon: u.Quantity[""],
+        e: u.Quantity["angle"],
+        phi: u.Quantity["angle"],
+    ) -> u.Quantity[""]:
         r"""Emittance of directional light from a surface.
 
         The surface is observed at an angle of :math:`e`, measured from the
@@ -85,10 +90,10 @@ class Surface(ABC):
     @abstractmethod
     def reflectance(
         self,
-        albedo: u.physical.dimensionless,
-        i: u.physical.angle,
-        e: u.physical.angle,
-        phi: u.physical.angle,
+        albedo: u.Quantity[""],
+        i: u.Quantity["angle"],
+        e: u.Quantity["angle"],
+        phi: u.Quantity["angle"],
     ) -> u.Quantity[u.sr**-1]:
         r"""Bidirectional reflectance.
 
@@ -120,19 +125,19 @@ class Surface(ABC):
         """
 
     @staticmethod
-    def _angle(a: u.Quantity, b: u.Quantity) -> u.physical.angle:
+    def _angle(a: u.Quantity, b: u.Quantity) -> u.Quantity["angle"]:
         a_hat = a / np.linalg.norm(a)
         b_hat = b / np.linalg.norm(b)
         return u.Quantity(np.arccos(np.dot(a_hat, b_hat)), "rad")
 
-    @u.quantity_input
+    # @u.quantity_input
     def absorptance_from_vectors(
         self,
-        epsilon: u.physical.dimensionless,
+        epsilon: u.Quantity[""],
         n: np.ndarray,
-        r: u.physical.length,
-        ro: Union[u.physical.length, None],
-    ) -> u.Quantity[u.dimensionless_unscaled]:
+        r: u.Quantity["length"],
+        ro: u.Quantity["length"] | None,
+    ) -> u.Quantity[""]:
         """Vector-based alternative to `absorptance`.
 
         Input vectors do not need to be normalized.
@@ -164,14 +169,14 @@ class Surface(ABC):
         i = self._angle(n, r)
         return self.absorptance(epsilon, i)
 
-    @u.quantity_input
+    # @u.quantity_input
     def emittance_from_vectors(
         self,
-        epsilon: u.physical.dimensionless,
+        epsilon: u.Quantity[""],
         n: np.ndarray,
-        r: u.physical.length,
-        ro: u.physical.length,
-    ) -> u.Quantity[u.dimensionless_unscaled]:
+        r: u.Quantity["length"],
+        ro: u.Quantity["length"],
+    ) -> u.Quantity[""]:
         r"""Vector-based alternative to `emittance`.
 
         Input vectors do not need to be normalized.
@@ -203,13 +208,13 @@ class Surface(ABC):
         phi = self._angle(r, ro)
         return self.emittance(epsilon, e, phi)
 
-    @u.quantity_input
+    # @u.quantity_input
     def reflectance_from_vectors(
         self,
-        albedo: u.physical.dimensionless,
+        albedo: u.Quantity[""],
         n: np.ndarray,
-        r: u.physical.length,
-        ro: u.physical.length,
+        r: u.Quantity["length"],
+        ro: u.Quantity["length"],
     ) -> u.Quantity[u.sr**-1]:
         """Vector-based alternative to `reflectance`.
 

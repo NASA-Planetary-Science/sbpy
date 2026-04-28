@@ -82,7 +82,7 @@ class Sphere(Shape):
         phase: u.physical.angle,
         **kwargs,
     ) -> tuple[u.Quantity, u.Quantity]:
-        """Integrate a function of $(i, e, \phi)$ over the sphere.
+        """Integrate a function of $(i, e, \\phi)$ over the sphere.
 
 
         Parameters

@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from typing import Union
 import numpy as np
 import astropy.units as u
 
@@ -54,42 +53,40 @@ class LambertianSurface(Surface):
 
     """
 
-    @u.quantity_input
+    # @u.quantity_input
     def absorptance(
-        self,
-        epsilon: float,
-        i: u.physical.angle,
+        self, epsilon: float, i: u.Quantity["angle"]
     ) -> u.Quantity[u.dimensionless_unscaled]:
         # use min_zero_cos(i) to ensure cos(>= 90 deg) = 0
         return epsilon * min_zero_cos(i)
 
-    @u.quantity_input
+    # @u.quantity_input
     def emittance(
         self,
         epsilon: float,
-        e: u.physical.angle,
-        phi: Union[u.physical.angle, None],
+        e: u.Quantity["angle"],
+        phi: u.Quantity["angle"] | None,
     ) -> u.Quantity[u.dimensionless_unscaled]:
         # use min_zero_cos(e) to ensure cos(>= 90 deg) = 0
         return epsilon * min_zero_cos(e)
 
-    @u.quantity_input
+    # @u.quantity_input
     def reflectance(
         self,
         albedo: float,
-        i: u.physical.angle,
-        e: u.physical.angle,
-        phi: u.physical.angle,
+        i: u.Quantity["angle"],
+        e: u.Quantity["angle"],
+        phi: u.Quantity["angle"],
     ) -> u.Quantity[u.sr**-1]:
         return albedo * min_zero_cos(i) * min_zero_cos(e) / np.pi / u.sr
 
-    @u.quantity_input
+    # @u.quantity_input
     def emittance_from_vectors(
         self,
         epsilon: float,
         n: np.ndarray,
-        r: Union[u.physical.length, None],
-        ro: u.physical.length,
+        r: u.Quantity["length"] | None,
+        ro: u.Quantity["length"],
     ) -> u.Quantity[u.dimensionless_unscaled]:
         e = self._angle(n, ro)
         return self.emittance(epsilon, e, None)

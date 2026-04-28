@@ -2,4 +2,4 @@
 SBPy Module for thermal modeling
 """
 
-from .core import *
+from .neatm import neatm
