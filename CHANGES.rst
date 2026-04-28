@@ -5,6 +5,56 @@ Update supported versions [#427]:
 - Python >= 3.10
 
 
+v0.7.0 (unreleased)
+===================
+
+New Features
+------------
+
+sbpy.dynamics
+^^^^^^^^^^^^^
+
+- Plot syndynes and synchrones with the new ``plot()`` methods on
+  `sbpy.dynamics.syndynes.Syndyne`, `sbpy.dynamics.syndynes.Syndynes`,
+  `sbpy.dynamics.syndynes.Synchrone`, and `sbpy.dynamics.syndynes.Synchrones`.
+  [#434]
+
+- New `sbpy.dynamics.syndynes.SourceOrbit` class to encapsulate a collection of
+  points along an object's orbit. [#434]
+
+
+API Changes
+-----------
+
+sbpy.dynamics
+^^^^^^^^^^^^^
+
+- Indexing `sbpy.dynamics.syndynes.Syndynes` or
+  `sbpy.dynamics.syndynes.Synchrones` with an integer, e.g., ``syndynes[0]``,
+  will return a single `sbpy.dynamics.syndynes.Syndyne` or
+  `sbpy.dynamics.syndynes.Synchrone`.  Indexing with a tuple or slice, e.g.,
+  ``syndynes[:2]`` will return `sbpy.dynamics.syndynes.Syndynes` or
+  `sbpy.dynamics.syndynes.Synchrones`.  Previously a list was returned. [#434]
+
+- `sbpy.dynamics.syndynes.SynGenerator.source_orbit` now returns a
+  `sbpy.dynamics.syndynes.SourceOrbit` object.  Previously the states and
+  projected coordinates were returned as separate objects. [#434]
+
+- Converting `sbpy.dynamics.syndynes.Syndynes` and
+  `sbpy.dynamics.syndynes.Synchrones` to ``Ephem`` objects no longer include the
+  ``SkyCoord`` column "coords", but all the data (RA, Dec, etc.) should still be
+  present as separate columns. [#434]
+
+
+Bug Fixes
+---------
+
+sbpy.dynamics
+^^^^^^^^^^^^^
+
+- Added missing `sbpy.dynamics.state.State.to_ephem`. [#434]
+
+
 v0.6.0 (2025-12-02)
 ===================
 

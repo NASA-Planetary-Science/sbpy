@@ -294,6 +294,112 @@ class StateBase(abc.ABC):
         else:
             return SkyCoord(self._data, obstime=self.t, representation_type="cartesian")
 
+    def to_ephem(
+        self, observer: StateType | None = None, coords: SkyCoord | None = None
+    ) -> Ephem:
+        r"""Convert to an sbpy ephemeris object.
+
+
+        Parameters
+        ----------
+        observer : `State`, optional
+            Include this observer in the metadata.  If ``coords`` is ``None``,
+            then also calculate RA/longitude, Dec/latitude, distance, etc for
+            this observer.
+
+        coords : `~astropy.coordinates.SkyCoord`, optional
+            Include these observer-based coordinates in the result.
+
+
+        Returns
+        -------
+        eph : Ephem
+
+
+        Notes
+        -----
+
+        Observer state is stored in the `Ephem.meta` attribute. ``coords`` is
+        calculated for the given observer.
+
+        =========================   ====================
+        Attribute or quantity       ``Ephem`` field name
+        =========================   ====================
+        t, as `Time`                date
+        t, as `Quantity`            t_relative
+        :math:`|r|`                 r
+        :math:`|v \cdot \hat{r}|`   rdot
+        coords.ra                   ra
+        coords.dec                  dec
+        coords.pm_ra_cosdec         ra*cos(dec)_rate
+        coords.pm_dec               dec_rate
+        coords.lon                  lon
+        coords.lat                  lat
+        coords.pm_lon_coslat        lon*cos(lat)_rate
+        coords.pm_lat               lat_rate
+        coords.distance             delta
+        coords.radial_velocity      deltadot
+        x                           x
+        y                           y
+        z                           z
+        v_x                         vx
+        v_y                         vy
+        v_z                         vz
+        =========================   ====================
+
+        """
+
+        data: dict = {}
+
+        if isinstance(self.t, Time):
+            data["date"] = self.t
+        else:
+            data["t_relative"] = self.t
+
+        data["r"] = abs(self)[0]
+        data["rdot"] = np.sum(self.r * self.v, 1) / np.sqrt(np.sum(self.r * self.r, 1))
+
+        data["x"] = self.x
+        data["y"] = self.y
+        data["z"] = self.z
+        data["vx"] = self.v_x
+        data["vy"] = self.v_y
+        data["vz"] = self.v_z
+
+        meta = {"frame": self.frame}
+
+        if observer is not None:
+            meta["observer"] = {
+                "r": observer.r,
+                "v": observer.v,
+                "t": observer.t,
+                "frame": observer.frame,
+            }
+
+            if coords is None:
+                coords = observer.observe(self)
+
+            # use SkyCoord's to_table() method, which will account for when
+            # RA/Dec vs lon/lat are used.
+            tab = coords.to_table()
+
+            # convert SkyCoord's column names to Ephem's field names
+            skycoord_to_ephem = {
+                "pm_ra": "ra_rate",
+                "pm_lon": "lon_rate",
+                "pm_ra_cosdec": "ra*cos(dec)_rate",
+                "pm_lon_coslat": "lon*cos(lat)_rate",
+                "pm_dec": "dec_rate",
+                "pm_lat": "lat_rate",
+                "distance": "delta",
+                "radial_velocity": "deltadot",
+            }
+            for col in tab.colnames:
+                field = skycoord_to_ephem.get(col, col)
+                data[field] = tab[col]
+
+        return Ephem.from_dict(data, meta=meta)
+
     def transform_to(self, frame: FrameInputTypes) -> StateBaseType:
         """Transform state into another reference frame.
 
