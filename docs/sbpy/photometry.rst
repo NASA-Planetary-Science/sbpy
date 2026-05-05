@@ -172,6 +172,17 @@ A few filter bandpasses are included with `sbpy` for internal tests and your con
   >>> print(bp.avgwave())    # doctest: +FLOAT_CMP
   6499.914781904409 Angstrom
 
+The returned `~synphot.spectrum.SpectralElement` can then be used within sbpy to, e.g., measure the absolute magnitude of the Sun:
+
+.. doctest-requires:: synphot
+
+  >>> from sbpy.calib import Sun
+  >>> bp = bandpass('LSST r')
+  >>> sun = Sun.from_default()
+  >>> M = sun.observe(bp, unit=u.ABmag)
+  >>> print(M)    # doctest: +FLOAT_CMP
+  -26.92867974339493 mag(AB)
+
 The list of available bandpasses and their sources may be found in the `~sbpy.photometry.bandpass` documentation.
 
 For other bandpasses, obtain the photon-counting relative spectral response curves as a two-column file.  If the first column is wavelength in Angstroms, and the second is the response, then read the file with:
