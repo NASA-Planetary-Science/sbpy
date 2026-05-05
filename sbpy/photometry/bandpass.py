@@ -30,7 +30,7 @@ def bandpass(name):
 
     Notes
     -----
-    Available filters:
+    See references for sources and additional notes.  Available filters:
 
     +-------------+---------------------------+
     | Name        | Source                    |
@@ -54,6 +54,18 @@ def bandpass(name):
     | Johnson B   | STScI CDBS, v4            |
     +-------------+---------------------------+
     | Johnson V   | STScI CDBS, v4            |
+    +-------------+---------------------------+
+    | LSST u      | LSST GitHub, v1.9         |
+    +-------------+---------------------------+
+    | LSST g      | LSST GitHub, v1.9         |
+    +-------------+---------------------------+
+    | LSST r      | LSST GitHub, v1.9         |
+    +-------------+---------------------------+
+    | LSST i      | LSST GitHub, v1.9         |
+    +-------------+---------------------------+
+    | LSST y      | LSST GitHub, v1.9         |
+    +-------------+---------------------------+
+    | LSST z      | LSST GitHub, v1.9         |
     +-------------+---------------------------+
     | PS1 g       | Tonry et al. 2012         |
     +-------------+---------------------------+
@@ -90,8 +102,10 @@ def bandpass(name):
     | WISE W4     | Jarrett et al. 2011       |
     +-------------+---------------------------+
 
+
     References
     ----------
+
     .. [CDBS] Space Telescope Science Institute.  HST Calibration Reference
        Data System.  https://hst-crds.stsci.edu/ .
 
@@ -101,6 +115,11 @@ def bandpass(name):
 
     .. [JAR11] Jarrett, T. H. et al. 2011.  The Spitzer-WISE Survey of
        the Ecliptic Poles. ApJ 735, 112.
+
+    .. [LSST23] LSST Throughputs Repository.  Version 1.9 of the baseline
+       "total" throughput curves are used, which include: mirrors, lenses,
+       filter, detector, and the zenith atmosphere.
+       https://github.com/lsst/throughputs  Commit 2273280.
 
     .. [SDSS] Sloan Digital Sky Survey.  Camera.
        www.sdss.org/instruments/camera .
@@ -126,12 +145,18 @@ def bandpass(name):
         "johnson u": "johnson_u_004_syn.fits",
         "johnson b": "johnson_b_004_syn.fits",
         "johnson v": "johnson_v_004_syn.fits",
+        "lsst u": "lsst_u.dat",
+        "lsst g": "lsst_g.dat",
+        "lsst r": "lsst_r.dat",
+        "lsst i": "lsst_i.dat",
+        "lsst z": "lsst_z.dat",
+        "lsst y": "lsst_y.dat",
         "ps1 g": "ps1-gp1.txt",
         "ps1 r": "ps1-rp1.txt",
         "ps1 i": "ps1-ip1.txt",
         "ps1 w": "ps1-wp1.txt",
-        "ps1 y": "ps1-yp1.txt",
         "ps1 z": "ps1-zp1.txt",
+        "ps1 y": "ps1-yp1.txt",
         "sdss u": "sdss-u.fits",
         "sdss g": "sdss-g.fits",
         "sdss r": "sdss-r.fits",
@@ -145,12 +170,18 @@ def bandpass(name):
         "wise w4": "WISE-RSR-W4.EE.txt",
     }
     wave_unit = {
+        "lsst u": "nm",
+        "lsst g": "nm",
+        "lsst r": "nm",
+        "lsst i": "nm",
+        "lsst z": "nm",
+        "lsst y": "nm",
         "ps1 g": "nm",
         "ps1 r": "nm",
         "ps1 i": "nm",
         "ps1 w": "nm",
-        "ps1 y": "nm",
         "ps1 z": "nm",
+        "ps1 y": "nm",
     }
 
     fn = get_pkg_data_path(

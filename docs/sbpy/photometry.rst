@@ -163,7 +163,7 @@ measurements.  The columns to be fitted are specified by a keyward argument
 
 Filter Bandpasses
 -----------------
-A few filter bandpasses are included with `sbpy` for internal tests and your convenience.  The function `~sbpy.photometry.bandpass` will return the filter transmission as a `~synphot.spectrum.SpectralElement` (requires `synphot`):
+A few filter bandpasses are included with `sbpy` for internal tests and your convenience.  The function `~sbpy.photometry.bandpass` will return the filter transmission as a `~synphot.spectrum.SpectralElement` (requires `synphot`).  The list of available bandpasses and their sources may be found in the `~sbpy.photometry.bandpass` documentation.
 
 .. doctest-requires:: synphot
 
@@ -171,6 +171,17 @@ A few filter bandpasses are included with `sbpy` for internal tests and your con
   >>> bp = bandpass('Cousins R')
   >>> print(bp.avgwave())    # doctest: +FLOAT_CMP
   6499.914781904409 Angstrom
+
+The returned `~synphot.spectrum.SpectralElement` can then be used within sbpy to, e.g., calculate the apparent magnitude of the Sun:
+
+.. doctest-requires:: synphot
+
+  >>> from sbpy.calib import Sun
+  >>> bp = bandpass('LSST r')
+  >>> sun = Sun.from_default()
+  >>> M = sun.observe(bp, unit=u.ABmag)
+  >>> print(M)    # doctest: +FLOAT_CMP
+  -26.92867974339493 mag(AB)
 
 For other bandpasses, obtain the photon-counting relative spectral response curves as a two-column file.  If the first column is wavelength in Angstroms, and the second is the response, then read the file with:
 
