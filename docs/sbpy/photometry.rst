@@ -172,6 +172,8 @@ A few filter bandpasses are included with `sbpy` for internal tests and your con
   >>> print(bp.avgwave())    # doctest: +FLOAT_CMP
   6499.914781904409 Angstrom
 
+The list of available bandpasses and their sources may be found in the `~sbpy.photometry.bandpass` documentation.
+
 For other bandpasses, obtain the photon-counting relative spectral response curves as a two-column file.  If the first column is wavelength in Angstroms, and the second is the response, then read the file with:
 
 .. doctest-requires:: synphot
