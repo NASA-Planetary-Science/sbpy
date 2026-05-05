@@ -172,7 +172,7 @@ A few filter bandpasses are included with `sbpy` for internal tests and your con
   >>> print(bp.avgwave())    # doctest: +FLOAT_CMP
   6499.914781904409 Angstrom
 
-The returned `~synphot.spectrum.SpectralElement` can then be used within sbpy to, e.g., measure the absolute magnitude of the Sun:
+The returned `~synphot.spectrum.SpectralElement` can then be used within sbpy to, e.g., calculate the apparent magnitude of the Sun:
 
 .. doctest-requires:: synphot
 
