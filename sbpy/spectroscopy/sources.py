@@ -137,7 +137,7 @@ class SpectralSource(ABC):
 
         # URL cache because synphot.SourceSpectrum.from_file does not
         if _is_url(filename):
-            fn = download_file(filename, cache=True)
+            fn = download_file(filename, cache=cache)
         else:
             fn = filename
 
