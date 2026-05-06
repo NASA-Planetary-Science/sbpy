@@ -151,7 +151,6 @@ Create a reddened source (e.g., a comet):
 
   >>> import astropy.units as u
   >>> from sbpy.calib import Sun
-  >>> from sbpy.photometry import bandpass
   >>> from sbpy.spectroscopy import SpectralGradient
   >>> import sbpy.units as sbu
   >>> S = SpectralGradient(18 * u.percent / sbu.hundred_nm, wave0=550 * u.nm)
@@ -163,6 +162,7 @@ example, LSST g and r), and calculate the specified color of the comet, where
 the list of available bandpasses and their sources may be found in the
 `~sbpy.photometry.bandpass` documentation:
 
+  >>> from sbpy.photometry import bandpass
   >>> bp_g = bandpass("LSST g")
   >>> bp_r = bandpass("LSST r")
   >>> _, r = comet.observe_bandpass(bp_r, unit=u.ABmag)
