@@ -140,7 +140,29 @@ The following example reddens a solar spectrum:
       ylabel='Flux density ({})'.format(fluxd_unit))
   plt.tight_layout()
 
+Colors using specified filters of a reddened object can also be computed using
+the ``bandpass`` function from the `~sbpy.photometry` module.  The following
+example computes the LSST g-r color of an object with an 18% spectral slope.
 
+.. doctest-requires:: synphot
+
+  >>> import astropy.units as u
+  >>> from sbpy.calib import Sun
+  >>> from sbpy.photometry import bandpass
+  >>> from sbpy.spectroscopy import SpectralGradient
+  >>> import sbpy.units as sbu
+
+  >>> S = SpectralGradient(18 * u.percent / sbu.hundred_nm, wave0=550 * u.nm)
+  >>> sun = Sun.from_builtin("calspec")
+  >>> comet = sun.redden(S)
+  >>> bp_g = bandpass("LSST g")
+  >>> bp_r = bandpass("LSST r")
+
+  >>> _, r = comet.observe_bandpass(bp_r, unit=u.ABmag)
+  >>> _, g = comet.observe_bandpass(bp_g, unit=u.ABmag)
+  >>> print("g-r =", g - r)
+
+  
 Reference/API
 -------------
 .. automodapi:: sbpy.spectroscopy
