@@ -142,7 +142,10 @@ The following example reddens a solar spectrum:
 
 Colors using specified filters of a reddened object can also be computed using
 the ``bandpass`` function from the `~sbpy.photometry` module.  The following
-example computes the LSST g-r color of an object with an 18% spectral slope.
+example computes the LSST g-r color of an object with an 18% spectral gradient
+(normalized to 550 nm).
+
+Create a reddened source (e.g., a comet):
 
 .. doctest-requires:: synphot
 
@@ -151,17 +154,21 @@ example computes the LSST g-r color of an object with an 18% spectral slope.
   >>> from sbpy.photometry import bandpass
   >>> from sbpy.spectroscopy import SpectralGradient
   >>> import sbpy.units as sbu
-
   >>> S = SpectralGradient(18 * u.percent / sbu.hundred_nm, wave0=550 * u.nm)
   >>> sun = Sun.from_builtin("calspec")
   >>> comet = sun.redden(S)
+
+Specify the bandpasses to be used for the desired color calculation (in this
+example, LSST g and r), and calculate the specified color of the comet, where
+the list of available bandpasses and their sources may be found in the
+`~sbpy.photometry.bandpass` documentation:
+
   >>> bp_g = bandpass("LSST g")
   >>> bp_r = bandpass("LSST r")
-
   >>> _, r = comet.observe_bandpass(bp_r, unit=u.ABmag)
   >>> _, g = comet.observe_bandpass(bp_g, unit=u.ABmag)
   >>> print("g-r =", g - r)
-
+  g-r = 0.7007308548908533 mag
   
 Reference/API
 -------------
