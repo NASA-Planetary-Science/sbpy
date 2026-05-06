@@ -161,7 +161,7 @@ documentation:
   >>>
   >>> S = SpectralGradient(18 * u.percent / sbu.hundred_nm, wave0=550 * u.nm)
   >>> sun = Sun.from_builtin("calspec")  # doctest: +REMOTE_DATA
-  >>> comet = sun.redden(S)
+  >>> comet = sun.redden(S)              # doctest: +REMOTE_DATA
   >>>
   >>> bp_g = bandpass("LSST g")
   >>> bp_r = bandpass("LSST r")
