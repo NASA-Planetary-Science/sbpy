@@ -141,7 +141,14 @@ class SpectralSource(ABC):
         else:
             fn = filename
 
-        spec = read_spec(fn, wave_unit=wave_unit, flux_unit=flux_unit)
+        # flux_unit and wave_unit were deprecated for FITS files in synphot 1.4;
+        # only use them if requested
+        read_kwargs = {}
+        if wave_unit is not None:
+            read_kwargs["wave_unit"] = wave_unit
+            read_kwargs["flux_unit"] = flux_unit
+
+        spec = read_spec(fn, **read_kwargs)
         i = np.isfinite(spec[1] * spec[2])
         source = synphot.SourceSpectrum(
             synphot.Empirical1D, points=spec[1][i], lookup_table=spec[2][i],
