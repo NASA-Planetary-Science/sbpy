@@ -155,7 +155,7 @@ Create a reddened source (e.g., a comet):
   >>> from sbpy.spectroscopy import SpectralGradient
   >>> import sbpy.units as sbu
   >>> S = SpectralGradient(18 * u.percent / sbu.hundred_nm, wave0=550 * u.nm)
-  >>> sun = Sun.from_builtin("calspec")
+  >>> sun = Sun.from_builtin("calspec")  # doctest: +REMOTE_DATA
   >>> comet = sun.redden(S)
 
 Specify the bandpasses to be used for the desired color calculation (in this
