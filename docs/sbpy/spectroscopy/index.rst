@@ -152,6 +152,7 @@ bandpasses and their sources may be found in the `~sbpy.photometry.bandpass`
 documentation:
 
 .. doctest-requires:: synphot
+.. doctest-remote-data:: 
 
   >>> import astropy.units as u
   >>> from sbpy.calib import Sun
@@ -160,8 +161,8 @@ documentation:
   >>> import sbpy.units as sbu
   >>>
   >>> S = SpectralGradient(18 * u.percent / sbu.hundred_nm, wave0=550 * u.nm)
-  >>> sun = Sun.from_builtin("calspec")  # doctest: +REMOTE_DATA
-  >>> comet = sun.redden(S)              # doctest: +REMOTE_DATA
+  >>> sun = Sun.from_builtin("calspec")
+  >>> comet = sun.redden(S)
   >>>
   >>> bp_g = bandpass("LSST g")
   >>> bp_r = bandpass("LSST r")
