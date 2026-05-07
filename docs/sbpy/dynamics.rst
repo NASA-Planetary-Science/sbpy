@@ -450,14 +450,17 @@ Here is an example that plots the syndynes and synchrones from above as offsets 
    >>> fig, ax = plt.subplots()
    >>>
    >>> # plot all but the last (beta=0) syndyne
-   >>> dust.syndynes()[:-1].plot(ax)
+   >>> syndynes = dust.syndynes()
+   >>> syndynes[:-1].plot(ax)
    >>>
    >>> # plot every 5th synchrone
-   >>> dust.synchrones()[4::5].plot(ax)
+   >>> synchrones = dust.synchrones()
+   >>> synchrones[4::5].plot(ax, ls="--")
    >>>
    >>> # plot the orbit
    >>> dt = np.linspace(-2, 2) * u.d
-   >>> dust.source_orbit(dt).plot(ax, color="k", ls=":", label="Orbit")
+   >>> orbit = dust.source_orbit(dt)
+   >>> orbit.plot(ax, color="k", ls=":", label="Orbit")
    >>>
    >>> ax.invert_xaxis()
    >>> plt.setp(ax,
@@ -499,14 +502,17 @@ Here is an example that plots the syndynes and synchrones from above as offsets 
    fig, ax = plt.subplots()
 
    # plot all but the last (beta=0) syndyne
-   dust.syndynes()[:-1].plot(ax)
+   syndynes = dust.syndynes()
+   syndynes[:-1].plot(ax)
 
    # plot every 5th synchrone
-   dust.synchrones()[4::5].plot(ax, ls="--", lw=1)
+   synchrones = dust.synchrones()
+   synchrones[4::5].plot(ax, ls="--", lw=1)
 
    # plot the orbit
    dt = np.linspace(-2, 2) * u.d
-   dust.source_orbit(dt).plot(ax, color="k", ls=":", label="Orbit")
+   orbit = dust.source_orbit(dt)
+   orbit.plot(ax, color="k", ls=":", label="Orbit")
 
    ax.invert_xaxis()
    plt.setp(ax,
@@ -570,11 +576,13 @@ The following example compares syndynes to a Spitzer Space Telesocpe image of co
    >>> ylim = ax.get_ylim()
    >>> 
    >>> # plot syndynes
-   >>> dust.syndynes().plot(ax, wcs=wcs)
+   >>> syndynes = dust.syndynes()
+   >>> syndynes.plot(ax, wcs=wcs)
    >>> 
    >>> # plot the orbit
    >>> dt = np.linspace(-1, 1) * u.d
-   >>> dust.source_orbit(dt).plot(ax, wcs=wcs, color="tab:cyan", lw=1, label="Orbit")
+   >>> orbit = dust.source_orbit(dt)
+   >>> orbit.plot(ax, wcs=wcs, color="tab:cyan", lw=1, label="Orbit")
    >>> 
    >>> plt.setp(ax, xlim=xlim, ylim=ylim)  # doctest: +SKIP
    >>> plt.legend()  # doctest: +SKIP
@@ -640,11 +648,13 @@ The following example compares syndynes to a Spitzer Space Telesocpe image of co
    ylim = ax.get_ylim()
 
    # plot syndynes
-   dust.syndynes().plot(ax, wcs=wcs)
+   syndynes = dust.syndynes()
+   syndynes.plot(ax, wcs=wcs)
 
    # plot the orbit
    dt = np.linspace(-1, 1) * u.d
-   dust.source_orbit(dt).plot(ax, wcs=wcs, color="tab:cyan", lw=1, label="Orbit")
+   orbit = dust.source_orbit(dt)
+   orbit.plot(ax, wcs=wcs, color="tab:cyan", lw=1, label="Orbit")
 
    plt.setp(ax, xlim=xlim, ylim=ylim)
    plt.legend()
