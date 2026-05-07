@@ -524,8 +524,66 @@ Here is an example that plots the syndynes and synchrones from above as offsets 
    plt.legend()
    plt.tight_layout()
 
+For more complex plot logic, e.g., specific line colors and styles, use the plot methods of the individual syndynes/synchrones:
 
-The following example compares syndynes to a Spitzer Space Telesocpe image of comet 48P/Johnson (`Reach et al. 2007 <https://scixplorer.org/abs/2007Icar..191..298R/abstract>`_).  The FITS world coordinate system is used to account for the image orientation and scale.  To precisely align the syndynes with the comet nucleus, we update the world coordinate system to use our calculated comet coordinates.
+.. doctest-requires:: scipy,astroquery,matplotlib
+.. doctest-remote-data::
+
+   >>> ls = ["-", "--", "-."]
+   >>> syndynes = dust.syndynes()
+   >>> for i in range(3):
+   ...     syndynes[i].plot(ax, color="k", ls=ls[i])
+
+.. plot::
+   :show-source-link:
+
+   import numpy as np
+   import matplotlib.pyplot as plt
+
+   import astropy.units as u
+   from astropy.time import Time
+   from sbpy.dynamics import State, SynGenerator
+
+   # define the dust source
+   r = [2, 0, 0] * u.au
+   v = [0, 30, 0] * u.km / u.s
+   t = Time("2023-12-08")
+   frame = "heliocentriceclipticiau76"
+   comet = State(r, v, t, frame=frame)
+
+   # define particle parameters
+   betas = [1, 0.1, 0.01, 0]
+   ages = np.linspace(0, 100, 25) * u.day
+
+   # observe it from a fixed location in the Solar System
+   observer = State(
+       r=[0, 2, 2] * u.au,
+       v=[0, 0, 0] * u.km / u.s,
+       t=comet.t,
+       frame="icrs",
+   )
+
+   # define the dust generator
+   dust = SynGenerator(comet, betas, ages, observer=observer)
+
+   # plot syndynes
+   fig, ax = plt.subplots()
+
+   ls = ["-", "--", "-."]
+   syndynes = dust.syndynes()
+   for i in range(3):
+      syndynes[i].plot(ax, color="k", ls=ls[i])
+      ax.invert_xaxis()
+
+   ax.set(ax,
+          xlim=[100, -10],
+          ylim=[-10, 100],
+          xlabel="$\\Delta$RA (arcsec)",
+          ylabel="$\\Delta$Dec (arcsec)",
+   )
+   fig.tight_layout()
+
+The following complete example compares syndynes to a Spitzer Space Telesocpe image of comet 48P/Johnson (`Reach et al. 2007 <https://scixplorer.org/abs/2007Icar..191..298R/abstract>`_).  The FITS world coordinate system is used to account for the image orientation and scale.  To precisely align the syndynes with the comet nucleus, we update the world coordinate system to use our calculated comet coordinates.
 
 .. note::
    The `sbpy` testing suite shows that arcsecond-level accuracy is possible, but this is generally not enough for direct comparison to typical images of comets, which need sub-arcsecond alignment.  The accuracy of the coordinates object depends on the the comet and observer states, but also on whether or not light travel time is accounted for, and the accuracy of the orbit integrator.
@@ -658,35 +716,6 @@ The following example compares syndynes to a Spitzer Space Telesocpe image of co
 
    plt.setp(ax, xlim=xlim, ylim=ylim)
    plt.legend()
-   plt.tight_layout()
-
-For more complex plot logic, e.g., to use specific line colors and styles, we can use the plot methods of the individual syndynes/synchrones:
-
-.. doctest-requires:: scipy,astroquery,matplotlib
-.. doctest-remote-data::
-
-   >>> ls = ["-", "--", "-."]
-   >>> syndynes = dust.syndynes()
-   >>> for i in range(3):
-   ...     syndynes[i].plot(ax, color="k", ls=ls[i])
-
-.. plot::
-   :context:
-
-   fig, ax = plt.subplots()
-
-   ls = ["-", "--", "-."]
-   syndynes = dust.syndynes()
-   for i in range(3):
-      syndynes[i].plot(ax, color="k", ls=ls[i])
-      ax.invert_xaxis()
-
-   plt.setp(ax,
-            xlim=[100, -10],
-            ylim=[-10, 100],
-            xlabel="$\\Delta$RA (arcsec)",
-            ylabel="$\\Delta$Dec (arcsec)",
-   )
    plt.tight_layout()
 
 
