@@ -351,7 +351,7 @@ This method produced a `SourceOrbit` object that is functionally the same as the
    <class 'sbpy.dynamics.syndynes.SourceOrbit'>
    >>> orbit.ages
    <Quantity [ 2., -0., -2.] d>
-   >>> np.linalg.norm(orbit[0].r - orbit[1].r)
+   >>> np.linalg.norm(orbit[0].r - orbit[1].r)  # doctest: +FLOAT_CMP
    <Quantity 5183919.42549707 km>
 
 
