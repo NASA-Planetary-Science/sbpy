@@ -314,6 +314,28 @@ To support generating synchrones at specific times, the :func:`~sbpy.dynamics.sy
    <Time object: scale='utc' format='iso' value=2023-10-01 00:00:00.000>
 
 
+Source object's orbit
+---------------------
+
+The `SynGenerator` can also generate points along the source object's oribit.  Calculating the positions of the projected orbit of the source object may be helpful for comparison to syndynes, or a comet's dust trail.  They are calculated with the :func:`~sbpy.dynamics.syndynes.SynGenerator.source_orbit` method.  To produce 3 points at -2, 0, and +2 days from the object's current position:
+
+.. doctest-requires:: scipy
+
+   >>> dt = np.linspace(-2, 2, 3) * u.d
+   >>> orbit = dust.source_orbit(dt)
+
+This method produced a `SourceOrbit` object that is functionally the same as the `Syndynes` and `Synchrones` objects above:
+
+.. doctest-requires:: scipy
+
+   >>> type(orbit)
+   sbpy.dynamics.syndynes.SourceOrbit
+   >>> orbit.ages
+   <Quantity [ 2., -0., -2.] d>
+   >>> np.linalg.norm(orbit[0].r - orbit[1].r)
+   <Quantity 5183919.42549707 km>
+
+
 Adding ejection velocity
 ------------------------
 
@@ -374,21 +396,6 @@ With the observer and coordinate frames defined, the generated syndynes and sync
    21h03m49s -34d30m22s
    21h05m19s -34d00m41s
    21h05m59s -33d30m26s
-
-
-Source object's projected orbit
--------------------------------
-
-Calculating the positions of the projected orbit of the source object may be helpful for interpreting an observation or a set of syndynes.  They are calculated with the :func:`~sbpy.dynamics.syndynes.SynGenerator.source_orbit` method:
-
-.. doctest-requires:: scipy
-
-   >>> dt = np.linspace(-2, 2, 3) * u.d
-   >>> orbit = dust.source_orbit(dt)
-   >>> print("\n".join(orbit.coords.to_string("hmsdms", precision=0)))
-   20h57m34s -35d17m04s
-   20h59m23s -35d18m48s
-   21h01m13s -35d20m36s
 
 
 Using other dynamical models
