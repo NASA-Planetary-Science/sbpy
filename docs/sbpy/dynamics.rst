@@ -575,11 +575,11 @@ For more complex plot logic, e.g., specific line colors and styles, use the plot
       syndynes[i].plot(ax, color="k", ls=ls[i])
       ax.invert_xaxis()
 
-   ax.set(ax,
-          xlim=[100, -10],
-          ylim=[-10, 100],
-          xlabel="$\\Delta$RA (arcsec)",
-          ylabel="$\\Delta$Dec (arcsec)",
+   ax.set(
+      xlim=[100, -10],
+      ylim=[-10, 100],
+      xlabel="$\\Delta$RA (arcsec)",
+      ylabel="$\\Delta$Dec (arcsec)",
    )
    fig.tight_layout()
 
