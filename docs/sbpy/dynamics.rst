@@ -224,13 +224,11 @@ Dust syndynes and synchrones
 
 Syndynes are lines in space connecting particles that are experiencing the same forces.  A syndyne is parameterized by :math:`\beta`, the ratio of the force from solar radiation to the force from solar gravity, :math:`F_r / F_g`, and age (or time of release).  Thus, all particles in a syndyne have a constant :math:`\beta` but variable age.  Similarly, synchrones are lines of constant particle age, but variable :math:`\beta`.
 
+sbpy has the `sbpy.dynamics.syndynes.SynGenerator` class to assist the user in the generation of syndynes, synchrones, and points along a source object's orbit.  Use the `~sbpy.dynamics.syndynes.SynGenerator`'s :func:`~sbpy.dynamics.syndynes.SynGenerator.syndynes`, :func:`~sbpy.dynamics.syndynes.SynGenerator.synchrones`, and :func:`~sbpy.dynamices.syndynes.SynGenerator.source_orbit` methods to produce `~sbpy.dynamics.syndynes.Syndynes`, `~sbpy.dynamics.syndynes.Synchrones`, and `~sbpy.dynamics.syndynes.SourceOrbit` objects, described in further detail below.
 
-Syndynes
---------
+First, setup a `~sbpy.dynamics.syndynes.SynGenerator` instance.  This requires a dust source described by a `~sbpy.dynamics.state.State` object, :math:`\beta` values, and particle ages from which to generate the syndynes/synchrones.
 
-Zero-ejection velocity syndynes are generated with the `~sbpy.dynamics.syndynes.SynGenerator` class.  The class requires a dust source described by a `~sbpy.dynamics.state.State` object, :math:`\beta` values, and particle ages from which to generate the syndynes.
-
-First, define the source of the syndynes, a comet at 2 au from the Sun:
+First, define the dust source, a comet at 2 au from the Sun:
 
 .. doctest::
 
@@ -243,7 +241,7 @@ First, define the source of the syndynes, a comet at 2 au from the Sun:
    >>> t = Time("2023-12-08")
    >>> comet = State(r, v, t)
 
-Next, initialize the syndyne object:
+Next, initialize the syn-generator object.  Here, we request dust with :math:`\beta` values from 0 to 1, generated over a 100-day period:
 
 .. doctest-requires:: scipy
 
@@ -268,7 +266,28 @@ The computed particle positions are saved in the :attr:`~sbpy.dynamics.syndynes.
    >>> print(len(dust.particles))
    104
 
-Get the results with the :func:`~sbpy.dynamics.syndynes.SynGenerator.syndynes` method, which returns a list-like collection of `~sbpy.dynamics.syndynes.Syndyne` objects.  `Syndyne` objects are specialized `State` objects.  For example, we can compute the linear distance from the comet to farthest particle in each syndyne:
+
+Syndynes
+--------
+
+Zero-ejection velocity syndynes are generated with the `~sbpy.dynamics.syndynes.SynGenerator` class, and this example uses the generator above.  Get the syndynes with the :func:`~sbpy.dynamics.syndynes.SynGenerator.syndynes` method, which returns `~sbpy.dynamics.syndynes.Syndynes` a list-like collection of `~sbpy.dynamics.syndynes.Syndyne` objects (note the use of plural and singular forms).
+
+.. doctest-requires:: scipy
+
+   >>> syndynes = dust.syndynes()
+   >>> syndynes
+   <Syndynes: betas=[1.   0.1  0.01 0.  ]>
+   >>> syndynes[0]
+   <Syndyne (<ArbitraryFrame Frame>):
+    r
+     [[ 2.99195741e+08  0.00000000e+00  0.00000000e+00]
+    [ 2.99284224e+08 -2.04410384e+03  0.00000000e+00]
+    [ 2.99549029e+08 -1.63231106e+04  0.00000000e+00]
+    [ 2.99988249e+08 -5.49241301e+04  0.00000000e+00]
+    [ 3.00598735e+08 -1.29642418e+05  0.00000000e+00]
+   ...
+
+`Syndyne` objects are specialized `State` objects.  For example, we can compute the linear distance from the comet to farthest particle in each syndyne:
 
 .. doctest-requires:: scipy
 
@@ -280,7 +299,7 @@ Get the results with the :func:`~sbpy.dynamics.syndynes.SynGenerator.syndynes` m
    0.01, 0.003 AU
    0.0, 0.000 AU
 
-Individual syndynes may be retrieved with the :func:`~sbpy.dynamics.syndynes.SynGenerator.syndyne` method and a syndyne index.  The index for the syndyne matches the index of the `betas` array, i.e., to get the :math:`\beta=0.1` syndyne from our example:
+Individual syndynes may also be retrieved directly from the `~sbpy.dynamics.syndynes.SynGenerator` object using the :func:`~sbpy.dynamics.syndynes.SynGenerator.syndyne` method and a syndyne index.  The index for the syndyne matches the index of the `betas` array, i.e., to get the :math:`\beta=0.1` syndyne from our example:
 
 .. doctest-requires:: scipy
 
@@ -417,12 +436,12 @@ In this example, we compute the syndynes of a comet orbiting β Pic (1.8 solar m
    >>> betapic_dust = SynGenerator(comet, [1, 0], [0, 100] * u.d, solver=solver)
 
 
-Plotting syndynes and synchrones
---------------------------------
+Plotting syndynes, synchrones, and orbits
+-----------------------------------------
 
-Generally, we are interested in visualizing the syndynes and synchrones for an observer.  `Syndynes`, `Synchrones`, and `SourceOrbit` have ``plot()`` methods to assist with this.  They can plot the coordinates relative to the comet with a simple tangent plane projection, or projected onto the image plane with an `astropy.wcs.WCS` object.
+Generally, we are interested in visualizing the syndynes and synchrones for an observer.  `Syndynes`, `Synchrones`, and `SourceOrbit` objects have ``plot()`` methods to assist with this.  They can plot the coordinates relative to the comet with a simple tangent plane projection, or projected onto the image plane with an `astropy.wcs.WCS` object.
 
-Here is a simple example that plots the syndynes and synchrones from above as offsets from the comet's coordinates:
+Here is an example that plots the syndynes and synchrones from above as offsets from the comet's coordinates:
 
 .. doctest-requires:: scipy,matplotlib
 
