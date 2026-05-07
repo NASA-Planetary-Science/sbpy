@@ -463,14 +463,14 @@ Here is an example that plots the syndynes and synchrones from above as offsets 
    >>> orbit.plot(ax, color="k", ls=":", label="Orbit")
    >>>
    >>> ax.invert_xaxis()
-   >>> plt.setp(ax,
-   ...          xlim=[100, -10],
-   ...          ylim=[-10, 100],
-   ...          xlabel="$\\Delta$RA (arcsec)",
-   ...          ylabel="$\\Delta$Dec (arcsec)",
+   >>> ax.set(
+   ...     xlim=[100, -10],
+   ...     ylim=[-10, 100],
+   ...     xlabel="$\\Delta$RA (arcsec)",
+   ...     ylabel="$\\Delta$Dec (arcsec)",
    ... ) # doctest: +SKIP
-   >>> plt.legend() # doctest: +SKIP
-   >>> plt.tight_layout()
+   >>> ax.legend() # doctest: +SKIP
+   >>> fig.tight_layout()
 
 .. plot::
    :context:
@@ -515,14 +515,14 @@ Here is an example that plots the syndynes and synchrones from above as offsets 
    orbit.plot(ax, color="k", ls=":", label="Orbit")
 
    ax.invert_xaxis()
-   plt.setp(ax,
-            xlim=[100, -10],
-            ylim=[-10, 100],
-            xlabel="$\\Delta$RA (arcsec)",
-            ylabel="$\\Delta$Dec (arcsec)",
+   ax.set(
+      xlim=[100, -10],
+      ylim=[-10, 100],
+      xlabel="$\\Delta$RA (arcsec)",
+      ylabel="$\\Delta$Dec (arcsec)",
    )
-   plt.legend()
-   plt.tight_layout()
+   ax.legend()
+   fig.tight_layout()
 
 For more complex plot logic, e.g., specific line colors and styles, use the plot methods of the individual syndynes/synchrones:
 
@@ -586,7 +586,7 @@ For more complex plot logic, e.g., specific line colors and styles, use the plot
 The following complete example compares syndynes to a Spitzer Space Telesocpe image of comet 48P/Johnson (`Reach et al. 2007 <https://scixplorer.org/abs/2007Icar..191..298R/abstract>`_).  The FITS world coordinate system is used to account for the image orientation and scale.  To precisely align the syndynes with the comet nucleus, we update the world coordinate system to use our calculated comet coordinates.
 
 .. note::
-   The `sbpy` testing suite shows that arcsecond-level accuracy is possible, but this is generally not enough for direct comparison to typical images of comets, which need sub-arcsecond alignment.  The accuracy of the coordinates object depends on the the comet and observer states, but also on whether or not light travel time is accounted for, and the accuracy of the orbit integrator.
+   The `sbpy` testing suite shows that arcsecond-level accuracy is possible, but this is generally not enough for direct comparison to typical images of comets, which need sub-arcsecond alignment.  The accuracy of the coordinates object depends on the the comet and observer states, but also on whether or not light travel time is accounted for, and the accuracy of the orbit integrator.  In the following example, the world coordinate system is edited to manually align the image and syndynes.
 
 .. doctest-requires:: scipy,astroquery,matplotlib
 .. doctest-remote-data::
@@ -642,8 +642,8 @@ The following complete example compares syndynes to a Spitzer Space Telesocpe im
    >>> orbit = dust.source_orbit(dt)
    >>> orbit.plot(ax, wcs=wcs, color="tab:cyan", lw=1, label="Orbit")
    >>> 
-   >>> plt.setp(ax, xlim=xlim, ylim=ylim)  # doctest: +SKIP
-   >>> plt.legend()  # doctest: +SKIP
+   >>> ax.set(xlim=xlim, ylim=ylim)  # doctest: +SKIP
+   >>> ax.legend()  # doctest: +SKIP
 
 .. plot::
    :show-source-link:
@@ -714,9 +714,9 @@ The following complete example compares syndynes to a Spitzer Space Telesocpe im
    orbit = dust.source_orbit(dt)
    orbit.plot(ax, wcs=wcs, color="tab:cyan", lw=1, label="Orbit")
 
-   plt.setp(ax, xlim=xlim, ylim=ylim)
-   plt.legend()
-   plt.tight_layout()
+   ax.set(xlim=xlim, ylim=ylim)
+   ax.legend()
+   fig.tight_layout()
 
 
 Reference/API
