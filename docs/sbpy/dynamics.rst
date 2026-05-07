@@ -224,9 +224,12 @@ Dust syndynes and synchrones
 
 Syndynes are lines in space connecting particles that are experiencing the same forces.  A syndyne is parameterized by :math:`\beta`, the ratio of the force from solar radiation to the force from solar gravity, :math:`F_r / F_g`, and age (or time of release).  Thus, all particles in a syndyne have a constant :math:`\beta` but variable age.  Similarly, synchrones are lines of constant particle age, but variable :math:`\beta`.
 
+Start with a `SynGenerator`
+---------------------------
+
 sbpy has the `sbpy.dynamics.syndynes.SynGenerator` class to assist the user in the generation of syndynes, synchrones, and points along a source object's orbit.  Use the `~sbpy.dynamics.syndynes.SynGenerator`'s :func:`~sbpy.dynamics.syndynes.SynGenerator.syndynes`, :func:`~sbpy.dynamics.syndynes.SynGenerator.synchrones`, and :func:`~sbpy.dynamices.syndynes.SynGenerator.source_orbit` methods to produce `~sbpy.dynamics.syndynes.Syndynes`, `~sbpy.dynamics.syndynes.Synchrones`, and `~sbpy.dynamics.syndynes.SourceOrbit` objects, described in further detail below.
 
-First, setup a `~sbpy.dynamics.syndynes.SynGenerator` instance.  This requires a dust source described by a `~sbpy.dynamics.state.State` object, :math:`\beta` values, and particle ages from which to generate the syndynes/synchrones.
+Setting up a `~sbpy.dynamics.syndynes.SynGenerator` instance requires a dust source, and dust :math:`\beta` values and ages from which to generate the syndynes/synchrones.
 
 First, define the dust source, a comet at 2 au from the Sun:
 
