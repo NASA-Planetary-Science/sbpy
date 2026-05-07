@@ -277,7 +277,7 @@ Zero-ejection velocity syndynes are generated with the `~sbpy.dynamics.syndynes.
    >>> syndynes = dust.syndynes()
    >>> syndynes
    <Syndynes: betas=[1.   0.1  0.01 0.  ]>
-   >>> syndynes[0]
+   >>> syndynes[0]  # doctest: +FLOAT_CMP
    <Syndyne (<ArbitraryFrame Frame>):
     r
      [[ 2.99195741e+08  0.00000000e+00  0.00000000e+00]
@@ -348,7 +348,7 @@ This method produced a `SourceOrbit` object that is functionally the same as the
 .. doctest-requires:: scipy
 
    >>> type(orbit)
-   sbpy.dynamics.syndynes.SourceOrbit
+   <class 'sbpy.dynamics.syndynes.SourceOrbit'>
    >>> orbit.ages
    <Quantity [ 2., -0., -2.] d>
    >>> np.linalg.norm(orbit[0].r - orbit[1].r)
