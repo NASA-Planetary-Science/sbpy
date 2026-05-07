@@ -583,7 +583,7 @@ For more complex plot logic, e.g., specific line colors and styles, use the plot
    )
    fig.tight_layout()
 
-The following complete example compares syndynes to a Spitzer Space Telesocpe image of comet 48P/Johnson (`Reach et al. 2007 <https://scixplorer.org/abs/2007Icar..191..298R/abstract>`_).  The FITS world coordinate system is used to account for the image orientation and scale.  To precisely align the syndynes with the comet nucleus, we update the world coordinate system to use our calculated comet coordinates.
+The following complete example compares syndynes to a Spitzer Space Telescope image of comet 48P/Johnson (`Reach et al. 2007 <https://scixplorer.org/abs/2007Icar..191..298R/abstract>`_).  The FITS world coordinate system is used to account for the image orientation and scale.  To precisely align the syndynes with the comet nucleus, we update the world coordinate system to use our calculated comet coordinates.
 
 .. note::
    The `sbpy` testing suite shows that arcsecond-level accuracy is possible, but this is generally not enough for direct comparison to typical images of comets, which need sub-arcsecond alignment.  The accuracy of the coordinates object depends on the the comet and observer states, but also on whether or not light travel time is accounted for, and the accuracy of the orbit integrator.  In the following example, the world coordinate system is edited to manually align the image and syndynes.
