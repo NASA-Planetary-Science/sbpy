@@ -71,7 +71,7 @@ if missing_requirements:
     logger.error(msg)
     sys.exit(1)
 
-
+from sphinx_astropy.conf.v1 import *  # noqa: E402
 from sphinx_astropy.conf.v1 import (  # noqa: E402
     exclude_patterns,
     extensions,
@@ -100,19 +100,22 @@ plot_pre_code = ""
 
 # The intersphinx_mapping in sphinx_astropy.sphinx refers to astropy for
 # the benefit of other packages who want to refer to objects in the
-# astropy core.  However, we don't want to cyclically reference astropy in its
-# own build so we remove it here.
-del intersphinx_mapping["astropy"]
+# astropy core.
 
 # add any custom intersphinx for astropy
 intersphinx_mapping.update(
     {
-        "sbpy-dev": ("https://docs.astropy.org/en/latest/", None),
-        "astroquery": ("https://astroquery.readthedocs.io/en/stable/", None),
-        "synphot": ("https://synphot.readthedocs.io/en/stable/", None),
         "astropy": ("https://docs.astropy.org/en/stable/", None),
+        "astroquery": ("https://astroquery.readthedocs.io/en/stable/", None),
+        "matplotlib": ("https://matplotlib.org/stable/", None),
+        "numpy": ("https://numpy.org/doc/stable/", None),
+        "python": ("https://docs.python.org/3/", None),
+        "sbpy-dev": ("https://docs.astropy.org/en/latest/", None),
+        "scipy": ("https://docs.scipy.org/doc/scipy/", None),
+        "synphot": ("https://synphot.readthedocs.io/en/stable/", None),
     }
 )
+intersphinx_resolve_self = "sbpy"
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.

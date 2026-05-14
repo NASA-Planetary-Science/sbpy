@@ -274,6 +274,7 @@ class Conf:
             "description": "RA*cos(Dec) Rate",
             "fieldnames": [
                 "RA*cos(Dec)_rate",
+                "ra*cos(dec)_rate",
                 "dra cos(dec)",
                 "dRA cos(Dec)",
                 "dra*cos(dec)",
