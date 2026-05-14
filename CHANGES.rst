@@ -56,6 +56,13 @@ sbpy.dynamics
 
 - Added missing `sbpy.dynamics.state.State.to_ephem`. [#434]
 
+sbpy.spectroscopy
+^^^^^^^^^^^^^^^^^
+
+- Avoid deprecation warning on flux_unit and wave_unit keyword arguments in
+  `sbpy.spectroscopy.sources.SpectralSource.from_file` when using synphot's
+  read_fits_spec. [#447]
+
 
 v0.6.0 (2025-12-02)
 ===================
