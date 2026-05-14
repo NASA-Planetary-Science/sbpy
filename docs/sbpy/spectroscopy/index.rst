@@ -140,16 +140,21 @@ The following example reddens a solar spectrum:
       ylabel='Flux density ({})'.format(fluxd_unit))
   plt.tight_layout()
 
-Colors using specified filters of a reddened object can also be computed using
-the ``bandpass`` function from the `~sbpy.photometry` module.  The following
-example computes the LSST g-r color of an object with an 18% spectral gradient
-(normalized to 550 nm).
+Conversion to Photometry
+------------------------
+
+Magnitudes using specified filters of a reddened object, which can then be
+used to compute equivalent broadband colors for an object with the specified
+spectral gradient, can be computed using the ``bandpass`` function from the
+`~sbpy.photometry` module.  The following example computes the LSST g-r
+color of an object with a spectral gradient of 18%/100 nm (normalized to 550 nm).
 
 First, create a reddened source (e.g., a comet).  Then, specify the bandpasses
 to be used for the desired color calculation (in this example, LSST g and r),
 and calculate the specified color of the comet, where the list of available
 bandpasses and their sources may be found in the `~sbpy.photometry.bandpass`
-documentation:
+documentation.  Alternatively, any other filter bandpass can also be provided
+as a `~synphot.spectrum.SpectralElement` object and used instead:
 
 .. doctest-requires:: synphot
 .. doctest-remote-data:: 
