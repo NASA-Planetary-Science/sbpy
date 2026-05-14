@@ -56,19 +56,21 @@ Convert to/from `Ephem` and `SkyCoord`
 State objects may be initialized from ephemeris objects (`~sbpy.data.Ephem`), provided they contain time, and 3D position and velocity:
 
 .. doctest-requires:: astroquery
+.. doctest-remote-data::
 
     >>> from sbpy.data import Ephem
     >>> eph = Ephem.from_horizons("9P",
     ...                           epochs=Time("2005-07-04"),
     ...                           id_type="designation",
-    ...                           closest_apparition=True)  # doctest: +REMOTE_DATA
-    >>> tempel1 = State.from_ephem(eph)                     # doctest: +REMOTE_DATA
+    ...                           closest_apparition=True)
+    >>> tempel1 = State.from_ephem(eph)
 
 And `State` may be converted to an `Ephem` object:
 
 .. doctest-requires:: astroquery
+.. doctest-remote-data::
 
-    >>> eph = tempel1.to_ephem()  # doctest: +REMOTE_DATA
+    >>> eph = tempel1.to_ephem()
 
 `astropy`'s `~astropy.coordinates.SkyCoord` objects may also be used, assuming the time and 3D vectors are fully defined:
 
@@ -168,6 +170,25 @@ Or, get the sky coordinates of the comet as seen from the Earth:
 The result, a `~astropy.coordinates.SkyCoord` object, is expressed in the reference frame of the observer.
 
 
+Fetching states from Horizons
+-----------------------------
+
+`Ephem.from_horizons` returns equatorial coordinates in the ICRF reference frame, which has its origin at the Solar System barycenter.  For `State` to correctly convert the ephemeris object to vectors, we need to set the Horizons observer to the Solar System barycenter (``"@ssb"``).  However, dynamical integrations are done in a heliocentric reference frame, so we transform the result to ``"heliocentriceclipticiau76"``:
+
+.. doctest-requires:: astroquery
+.. doctest-remote-data::
+
+   >>> eph = Ephem.from_horizons(
+   ...     "48P",
+   ...     id_type="designation",
+   ...     closest_apparition=True,
+   ...     epochs=Time("2004-10-13T21:08:23.894"),
+   ...     location="@ssb",
+   ... )
+   >>> comet = State.from_ephem(eph, frame="icrs")
+   >>> comet = comet.transform_to("heliocentriceclipticiau76")
+
+
 Dynamical integrators
 =====================
 
@@ -203,13 +224,14 @@ Dust syndynes and synchrones
 
 Syndynes are lines in space connecting particles that are experiencing the same forces.  A syndyne is parameterized by :math:`\beta`, the ratio of the force from solar radiation to the force from solar gravity, :math:`F_r / F_g`, and age (or time of release).  Thus, all particles in a syndyne have a constant :math:`\beta` but variable age.  Similarly, synchrones are lines of constant particle age, but variable :math:`\beta`.
 
+Start with a `SynGenerator`
+---------------------------
 
-Syndynes
---------
+sbpy has the `sbpy.dynamics.syndynes.SynGenerator` class to assist the user in the generation of syndynes, synchrones, and points along a source object's orbit.  Use the `~sbpy.dynamics.syndynes.SynGenerator`'s :func:`~sbpy.dynamics.syndynes.SynGenerator.syndynes`, :func:`~sbpy.dynamics.syndynes.SynGenerator.synchrones`, and :func:`~sbpy.dynamices.syndynes.SynGenerator.source_orbit` methods to produce `~sbpy.dynamics.syndynes.Syndynes`, `~sbpy.dynamics.syndynes.Synchrones`, and `~sbpy.dynamics.syndynes.SourceOrbit` objects, described in further detail below.
 
-Zero-ejection velocity syndynes are generated with the `~sbpy.dynamics.syndynes.SynGenerator` class.  The class requires a dust source described by a `~sbpy.dynamics.state.State` object, :math:`\beta` values, and particle ages from which to generate the syndynes.
+Setting up a `~sbpy.dynamics.syndynes.SynGenerator` instance requires a dust source, and dust :math:`\beta` values and ages from which to generate the syndynes/synchrones.
 
-First, define the source of the syndynes, a comet at 2 au from the Sun:
+First, define the dust source, a comet at 2 au from the Sun:
 
 .. doctest::
 
@@ -222,7 +244,7 @@ First, define the source of the syndynes, a comet at 2 au from the Sun:
    >>> t = Time("2023-12-08")
    >>> comet = State(r, v, t)
 
-Next, initialize the syndyne object:
+Next, initialize the syn-generator object.  Here, we request dust with :math:`\beta` values from 0 to 1, generated over a 100-day period:
 
 .. doctest-requires:: scipy
 
@@ -247,7 +269,28 @@ The computed particle positions are saved in the :attr:`~sbpy.dynamics.syndynes.
    >>> print(len(dust.particles))
    104
 
-Get the results with the :func:`~sbpy.dynamics.syndynes.SynGenerator.syndynes` method, which returns a list-like collection of `~sbpy.dynamics.syndynes.Syndyne` objects.  `Syndyne` objects are specialized `State` objects.  For example, we can compute the linear distance from the comet to farthest particle in each syndyne:
+
+Syndynes
+--------
+
+Zero-ejection velocity syndynes are generated with the `~sbpy.dynamics.syndynes.SynGenerator` class, and this example uses the generator above.  Get the syndynes with the :func:`~sbpy.dynamics.syndynes.SynGenerator.syndynes` method, which returns `~sbpy.dynamics.syndynes.Syndynes` a list-like collection of `~sbpy.dynamics.syndynes.Syndyne` objects (note the use of plural and singular forms).
+
+.. doctest-requires:: scipy
+
+   >>> syndynes = dust.syndynes()
+   >>> syndynes
+   <Syndynes: betas=[1.   0.1  0.01 0.  ]>
+   >>> syndynes[0]  # doctest: +FLOAT_CMP
+   <Syndyne (<ArbitraryFrame Frame>):
+    r
+     [[ 2.99195741e+08  0.00000000e+00  0.00000000e+00]
+    [ 2.99284224e+08 -2.04410384e+03  0.00000000e+00]
+    [ 2.99549029e+08 -1.63231106e+04  0.00000000e+00]
+    [ 2.99988249e+08 -5.49241301e+04  0.00000000e+00]
+    [ 3.00598735e+08 -1.29642418e+05  0.00000000e+00]
+   ...
+
+`Syndyne` objects are specialized `State` objects.  For example, we can compute the linear distance from the comet to farthest particle in each syndyne:
 
 .. doctest-requires:: scipy
 
@@ -259,7 +302,7 @@ Get the results with the :func:`~sbpy.dynamics.syndynes.SynGenerator.syndynes` m
    0.01, 0.003 AU
    0.0, 0.000 AU
 
-Individual syndynes may be retrieved with the :func:`~sbpy.dynamics.syndynes.SynGenerator.syndyne` method and a syndyne index.  The index for the syndyne matches the index of the `betas` array, i.e., to get the :math:`\beta=0.1` syndyne from our example:
+Individual syndynes may also be retrieved directly from the `~sbpy.dynamics.syndynes.SynGenerator` object using the :func:`~sbpy.dynamics.syndynes.SynGenerator.syndyne` method and a syndyne index.  The index for the syndyne matches the index of the `betas` array, i.e., to get the :math:`\beta=0.1` syndyne from our example:
 
 .. doctest-requires:: scipy
 
@@ -291,6 +334,28 @@ To support generating synchrones at specific times, the :func:`~sbpy.dynamics.sy
    >>> synchrone = dust.synchrone(0)
    >>> synchrone.epoch
    <Time object: scale='utc' format='iso' value=2023-10-01 00:00:00.000>
+
+
+Source object's orbit
+---------------------
+
+The `SynGenerator` can also generate points along the source object's oribit.  Calculating the positions of the projected orbit of the source object may be helpful for comparison to syndynes, or a comet's dust trail.  They are calculated with the :func:`~sbpy.dynamics.syndynes.SynGenerator.source_orbit` method.  To produce 3 points at -2, 0, and +2 days from the object's current position:
+
+.. doctest-requires:: scipy
+
+   >>> dt = np.linspace(-2, 2, 3) * u.d
+   >>> orbit = dust.source_orbit(dt)
+
+This method produced a `SourceOrbit` object that is functionally the same as the `Syndynes` and `Synchrones` objects above:
+
+.. doctest-requires:: scipy
+
+   >>> type(orbit)
+   <class 'sbpy.dynamics.syndynes.SourceOrbit'>
+   >>> orbit.ages
+   <Quantity [ 2., -0., -2.] d>
+   >>> np.linalg.norm(orbit[0].r - orbit[1].r)  # doctest: +FLOAT_CMP
+   <Quantity 5183919.42549707 km>
 
 
 Adding ejection velocity
@@ -355,17 +420,6 @@ With the observer and coordinate frames defined, the generated syndynes and sync
    21h05m59s -33d30m26s
 
 
-Source object's projected orbit
--------------------------------
-
-Calculating the positions of the projected orbit of the source object may be helpful for interpreting an observation or a set of syndynes.  They are calculated with the :func:`~sbpy.dynamics.syndynes.SynGenerator.source_orbit` method:
-
-.. doctest-requires:: scipy
-
-   >>> dt = np.linspace(-2, 2) * u.d
-   >>> orbit, coords = dust.source_orbit(dt)
-
-
 Using other dynamical models
 ----------------------------
 
@@ -385,52 +439,44 @@ In this example, we compute the syndynes of a comet orbiting β Pic (1.8 solar m
    >>> betapic_dust = SynGenerator(comet, [1, 0], [0, 100] * u.d, solver=solver)
 
 
-Plotting syndynes and synchrones
---------------------------------
+Plotting syndynes, synchrones, and orbits
+-----------------------------------------
 
-Generally, we are interested in plotting syndynes and synchrones on an image of a comet.  The accuracy of the coordinates object depends on the the comet and observer states, but also on whether or not light travel time is accounted for, and the accuracy of the orbit integrator.  The `sbpy` testing suite shows that arcsecond-level accuracy is possible, but this is generally not accurate enough for direct comparison to typical images of comets.  Instead, it helps to compute the positions of the syndynes and synchrone coordinate objects relative to the comet, and plot the results.
+Generally, we are interested in visualizing the syndynes and synchrones for an observer.  `Syndynes`, `Synchrones`, and `SourceOrbit` objects have ``plot()`` methods to assist with this.  They can plot the coordinates relative to the comet with a simple tangent plane projection, or projected onto the image plane with an `astropy.wcs.WCS` object.
+
+Here is an example that plots the syndynes and synchrones from above as offsets from the comet's coordinates:
 
 .. doctest-requires:: scipy,matplotlib
 
    >>> import matplotlib.pyplot as plt
-   >>> 
-   >>> coords0 = observer.observe(comet)
-   >>> def plot(ax, coords, **kwargs):
-   ...     dRA = coords.ra - coords0.ra
-   ...     dDec = coords.dec - coords0.dec
-   ...     ax.plot(dRA.arcsec, dDec.arcsec, **kwargs)
-   >>> 
+   >>>
    >>> fig, ax = plt.subplots()
-   >>> 
+   >>>
    >>> # plot all but the last (beta=0) syndyne
-   >>> for syndyne in dust.syndynes()[:-1]:
-   ...     plot(ax, syndyne.coords, label=f"$\\beta={syndyne.beta:.2g}$")
-   >>> 
+   >>> syndynes = dust.syndynes()
+   >>> syndynes[:-1].plot(ax)
+   >>>
    >>> # plot every 5th synchrone
-   >>> for synchrone in dust.synchrones()[4::5]:
-   ...     plot(
-   ...         ax,
-   ...         synchrone.coords,
-   ...         ls="--",
-   ...         label=f"$\\Delta t={synchrone.age.to(u.d):.2g}$"
-   ...     )
-   >>> 
-   >>> # and plot the orbit
+   >>> synchrones = dust.synchrones()
+   >>> synchrones[4::5].plot(ax, ls="--")
+   >>>
+   >>> # plot the orbit
    >>> dt = np.linspace(-2, 2) * u.d
-   >>> states, coords = dust.source_orbit(dt)
-   >>> plot(ax, coords, color="k", ls=":", label="Orbit")
+   >>> orbit = dust.source_orbit(dt)
+   >>> orbit.plot(ax, color="k", ls=":", label="Orbit")
    >>>
    >>> ax.invert_xaxis()
-   >>> plt.setp(ax,
-   ...          xlim=[100, -10],
-   ...          ylim=[-10, 100],
-   ...          xlabel="$\\Delta$RA (arcsec)",
-   ...          ylabel="$\\Delta$Dec (arcsec)",
+   >>> ax.set(
+   ...     xlim=[100, -10],
+   ...     ylim=[-10, 100],
+   ...     xlabel="$\\Delta$RA (arcsec)",
+   ...     ylabel="$\\Delta$Dec (arcsec)",
    ... ) # doctest: +SKIP
-   >>> plt.legend() # doctest: +SKIP
-   >>> plt.tight_layout()
+   >>> ax.legend() # doctest: +SKIP
+   >>> fig.tight_layout()
 
 .. plot::
+   :context:
 
    import numpy as np
    import matplotlib.pyplot as plt
@@ -455,43 +501,225 @@ Generally, we are interested in plotting syndynes and synchrones on an image of 
    )
    dust = SynGenerator(comet, betas, ages, observer=observer)
 
-   coords0 = observer.observe(comet)
-   def plot(ax, coords, **kwargs):
-       dRA = coords.ra - coords0.ra
-       dDec = coords.dec - coords0.dec
-       ax.plot(dRA.arcsec, dDec.arcsec, **kwargs)
-   
+   # plot
    fig, ax = plt.subplots()
-   
-   for syndyne in dust.syndynes():
-       # don't draw the beta = 0 syndyne
-       if syndyne.beta == 0:
-           continue
-       plot(ax, syndyne.coords, label=f"$\\beta={syndyne.beta:.2g}$")
-   
+
+   # plot all but the last (beta=0) syndyne
+   syndynes = dust.syndynes()
+   syndynes[:-1].plot(ax)
+
    # plot every 5th synchrone
-   for synchrone in dust.synchrones()[4::5]:
-       plot(
-           ax,
-           synchrone.coords,
-           ls="--",
-           label=f"$\\Delta t={synchrone.age.to(u.d):.2g}$",
-       )
-   
-   # and plot the orbit
+   synchrones = dust.synchrones()
+   synchrones[4::5].plot(ax, ls="--", lw=1)
+
+   # plot the orbit
    dt = np.linspace(-2, 2) * u.d
-   states, coords = dust.source_orbit(dt)
-   plot(ax, coords, color="k", ls=":", label="Orbit")
+   orbit = dust.source_orbit(dt)
+   orbit.plot(ax, color="k", ls=":", label="Orbit")
 
    ax.invert_xaxis()
-   plt.setp(ax,
-            xlim=[100, -10],
-            ylim=[-10, 100],
-            xlabel="$\\Delta$RA (arcsec)",
-            ylabel="$\\Delta$Dec (arcsec)",
+   ax.set(
+      xlim=[100, -10],
+      ylim=[-10, 100],
+      xlabel="$\\Delta$RA (arcsec)",
+      ylabel="$\\Delta$Dec (arcsec)",
    )
-   plt.legend()
-   plt.tight_layout()
+   ax.legend()
+   fig.tight_layout()
+
+For more complex plot logic, e.g., specific line colors and styles, use the plot methods of the individual syndynes/synchrones:
+
+.. doctest-requires:: scipy,astroquery,matplotlib
+.. doctest-remote-data::
+
+   >>> ls = ["-", "--", "-."]
+   >>> syndynes = dust.syndynes()
+   >>> for i in range(3):
+   ...     syndynes[i].plot(ax, color="k", ls=ls[i])
+
+.. plot::
+   :show-source-link:
+
+   import numpy as np
+   import matplotlib.pyplot as plt
+
+   import astropy.units as u
+   from astropy.time import Time
+   from sbpy.dynamics import State, SynGenerator
+
+   # define the dust source
+   r = [2, 0, 0] * u.au
+   v = [0, 30, 0] * u.km / u.s
+   t = Time("2023-12-08")
+   frame = "heliocentriceclipticiau76"
+   comet = State(r, v, t, frame=frame)
+
+   # define particle parameters
+   betas = [1, 0.1, 0.01, 0]
+   ages = np.linspace(0, 100, 25) * u.day
+
+   # observe it from a fixed location in the Solar System
+   observer = State(
+       r=[0, 2, 2] * u.au,
+       v=[0, 0, 0] * u.km / u.s,
+       t=comet.t,
+       frame="icrs",
+   )
+
+   # define the dust generator
+   dust = SynGenerator(comet, betas, ages, observer=observer)
+
+   # plot syndynes
+   fig, ax = plt.subplots()
+
+   ls = ["-", "--", "-."]
+   syndynes = dust.syndynes()
+   for i in range(3):
+      syndynes[i].plot(ax, color="k", ls=ls[i])
+      ax.invert_xaxis()
+
+   ax.set(
+      xlim=[100, -10],
+      ylim=[-10, 100],
+      xlabel="$\\Delta$RA (arcsec)",
+      ylabel="$\\Delta$Dec (arcsec)",
+   )
+   fig.tight_layout()
+
+The following complete example compares syndynes to a Spitzer Space Telescope image of comet 48P/Johnson (`Reach et al. 2007 <https://scixplorer.org/abs/2007Icar..191..298R/abstract>`_).  The FITS world coordinate system is used to account for the image orientation and scale.  To precisely align the syndynes with the comet nucleus, we update the world coordinate system to use our calculated comet coordinates.
+
+.. note::
+   The `sbpy` testing suite shows that arcsecond-level accuracy is possible, but this is generally not enough for direct comparison to typical images of comets, which need sub-arcsecond alignment.  The accuracy of the coordinates object depends on the the comet and observer states, but also on whether or not light travel time is accounted for, and the accuracy of the orbit integrator.  In the following example, the world coordinate system is edited to manually align the image and syndynes.
+
+.. doctest-requires:: scipy,astroquery,matplotlib
+.. doctest-remote-data::
+
+   >>> from astropy.io import fits
+   >>> from astropy.wcs import WCS
+   >>>
+   >>> image, header = fits.getdata("https://sbpy.org/data/48p-spitzer-reach07.fits", header=True)
+   >>> obstime = Time(header["DATE_OBS"])
+   >>>
+   >>> # get the comet state
+   >>> eph = Ephem.from_horizons(
+   ...     "48P",
+   ...     id_type="designation",
+   ...     closest_apparition=True,
+   ...     epochs=obstime,
+   ...     location="@ssb",
+   ... )
+   >>> comet = State.from_ephem(eph, frame="icrs")
+   >>> comet = comet.transform_to("heliocentriceclipticiau76")
+   >>> 
+   >>> # get the Spitzer Space Telescope state
+   >>> eph = Ephem.from_horizons("-79", id_type=None, epochs=obstime, location="@ssb")
+   >>> observer = State.from_ephem(eph, frame="icrs")
+   >>> 
+   >>> # set up the world coordinate system object and update the origin to align with
+   >>> # the calculated position of the comet
+   >>> wcs = WCS(header)
+   >>> coords0 = observer.observe(comet)[0].unmasked
+   >>> wcs.wcs.crval = coords0.ra.deg, coords0.dec.deg
+   >>> wcs.wcs.crpix = 209, 99
+   >>>
+   >>> # generate the syndynes
+   >>> betas = [1, 0.1, 0.01, 0.001]
+   >>> ages = np.linspace(0, 365, 51) * u.day
+   >>> dust = SynGenerator(comet[0], betas, ages, observer=observer[0])
+   >>> 
+   >>> # plot the image and syndynes
+   >>> fig, ax = plt.subplots(num=1, clear=True, figsize=(6.5, 3.25))
+   >>> 
+   >>> ax.imshow(image, origin="lower", vmin=49.1, vmax=49.5, cmap="gray_r")  # docte
+   >>> 
+   >>> # save xlim and ylim for later
+   >>> xlim = ax.get_xlim()
+   >>> ylim = ax.get_ylim()
+   >>> 
+   >>> # plot syndynes
+   >>> syndynes = dust.syndynes()
+   >>> syndynes.plot(ax, wcs=wcs)
+   >>> 
+   >>> # plot the orbit
+   >>> dt = np.linspace(-1, 1) * u.d
+   >>> orbit = dust.source_orbit(dt)
+   >>> orbit.plot(ax, wcs=wcs, color="tab:cyan", lw=1, label="Orbit")
+   >>> 
+   >>> ax.set(xlim=xlim, ylim=ylim)  # doctest: +SKIP
+   >>> ax.legend()  # doctest: +SKIP
+
+.. plot::
+   :show-source-link:
+
+   import numpy as np
+   import matplotlib.pyplot as plt
+   
+   import astropy.units as u
+   from astropy.time import Time
+   from astropy.io import fits
+   from astropy.wcs import WCS
+   
+   from sbpy.dynamics import State
+   from sbpy.data import Ephem
+   from sbpy.dynamics import SynGenerator
+   
+   image, header = fits.getdata("https://sbpy.org/data/48p-spitzer-reach07.fits", header=True)
+   obstime = Time(header["DATE_OBS"])
+   
+   # Ephem.from_horizons returns equatorial coordinates in the ICRF reference
+   # frame, which has its origin at the Solar System barycenter.  For State to
+   # correctly convert the ephemeris to vectors, we need to set the Horizons
+   # observer to the Solar System barycenter: @ssb
+   
+   # get the position of the comet and transform to a heliocentric frame for
+   # integration
+   eph = Ephem.from_horizons(
+       "48P",
+       id_type="designation",
+       closest_apparition=True,
+       epochs=obstime,
+       location="@ssb",
+   )
+   comet = State.from_ephem(eph, frame="icrs")
+   comet = comet.transform_to("heliocentriceclipticiau76")
+   
+   # get the position of the Spitzer Space Telescope
+   eph = Ephem.from_horizons("-79", id_type=None, epochs=obstime, location="@ssb")
+   observer = State.from_ephem(eph, frame="icrs")
+   
+   # generate the syndynes
+   betas = [1, 0.1, 0.01, 0.001]
+   ages = np.linspace(0, 365, 51) * u.day
+   dust = SynGenerator(comet[0], betas, ages, observer=observer[0])
+   
+   # Set up the world coordinate system object and update the origin to align with
+   # the calculated position of the comet.
+   wcs = WCS(header)
+   coords0 = observer.observe(comet)[0].unmasked
+   wcs.wcs.crval = coords0.ra.deg, coords0.dec.deg
+   wcs.wcs.crpix = 209, 99
+   
+   # plot
+   fig, ax = plt.subplots(num=1, clear=True, figsize=(6.5, 3.25))
+      
+   ax.imshow(image, origin="lower", vmin=49.1, vmax=49.5, cmap="gray_r")
+
+   # save xlim and ylim for later
+   xlim = ax.get_xlim()
+   ylim = ax.get_ylim()
+
+   # plot syndynes
+   syndynes = dust.syndynes()
+   syndynes.plot(ax, wcs=wcs)
+
+   # plot the orbit
+   dt = np.linspace(-1, 1) * u.d
+   orbit = dust.source_orbit(dt)
+   orbit.plot(ax, wcs=wcs, color="tab:cyan", lw=1, label="Orbit")
+
+   ax.set(xlim=xlim, ylim=ylim)
+   ax.legend()
+   fig.tight_layout()
 
 
 Reference/API

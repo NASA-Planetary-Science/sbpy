@@ -10,6 +10,16 @@ __all__ = ["required_packages", "optional_packages"]
 
 from importlib import import_module
 from warnings import warn
+from packaging.version import Version
+
+import numpy as np
+import astropy
+
+if Version(astropy.__version__) >= Version("7.0"):
+    from astropy.utils.masked import get_data_and_mask
+else:
+    get_data_and_mask = None
+
 from ..exceptions import RequiredPackageUnavailable, OptionalPackageUnavailable
 
 
@@ -100,3 +110,16 @@ def optional_packages(*packages, message=None):
             )
             return False
     return True
+
+
+def _unmasked(array):
+    """Return an unmasked version of the array."""
+
+    if get_data_and_mask is None:
+        if hasattr(array, "unmasked"):
+            return array.unmasked
+        elif isinstance(array, np.ma.MaskedArray):
+            return array._data
+        return array
+    else:
+        return get_data_and_mask(array)[0]

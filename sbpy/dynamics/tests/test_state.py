@@ -5,7 +5,7 @@ import pytest
 import numpy as np
 import astropy.units as u
 from astropy.time import Time
-from astropy.coordinates import HeliocentricEclipticIAU76, SkyCoord
+from astropy.coordinates import HeliocentricEclipticIAU76, SkyCoord, ICRS
 
 from ...data import Ephem
 from ..state import ArbitraryFrame, State
@@ -561,3 +561,37 @@ class TestState:
             del incomplete.table[k]
             with pytest.raises(ValueError):
                 State.from_ephem(incomplete)
+
+    def test_to_ephem(self):
+        r = np.arange(1, 7).reshape([2, 3]) * u.au
+        v = r.value / 10 * u.km / u.s
+        t = [0, 1] * u.day
+        state = State(r, v, t)
+        eph = state.to_ephem()
+
+        assert u.allclose(eph["x"], [1, 4] * u.au)
+        assert u.allclose(eph["y"], [2, 5] * u.au)
+        assert u.allclose(eph["z"], [3, 6] * u.au)
+        assert u.allclose(eph["vx"], [0.1, 0.4] * u.km / u.s)
+        assert u.allclose(eph["vy"], [0.2, 0.5] * u.km / u.s)
+        assert u.allclose(eph["vz"], [0.3, 0.6] * u.km / u.s)
+        assert np.allclose(eph["dt"], [0, 1] * u.day)
+        assert isinstance(eph.meta["frame"], ArbitraryFrame)
+
+        state = State(r, v, Time("2000-01-01") + t, frame="icrs")
+        eph = state.to_ephem()
+        assert np.allclose(eph["date"].mjd, [51544.0, 51545.0])
+        assert isinstance(eph.meta["frame"], ICRS)
+
+        # observer with an observer
+        observer = State(
+            [0, 0, 1] * u.au, [0, 0, 0] * u.km / u.s, state.t[0], frame="icrs"
+        )
+        eph = state.to_ephem(observer=observer)
+        coords = observer.observe(state)
+        assert all(eph["ra"] == coords.ra)
+        assert all(eph["dec"] == coords.dec)
+        assert all(eph["ra_rate"] == coords.pm_ra)
+        assert all(eph["dec_rate"] == coords.pm_dec)
+        assert all(eph["delta"] == coords.distance)
+        assert all(eph["deltadot"] == coords.radial_velocity)
