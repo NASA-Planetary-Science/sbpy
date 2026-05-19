@@ -55,6 +55,28 @@ def bandpass(name):
     +-------------+---------------------------+
     | Johnson V   | STScI CDBS, v4            |
     +-------------+---------------------------+
+    | HB OH       | Farnham et al. 2000       |
+    +-------------+---------------------------+
+    | HB NH       | Farnham et al. 2000       |
+    +-------------+---------------------------+
+    | HB UV       | Farnham et al. 2000       |
+    +-------------+---------------------------+
+    | HB CN       | Farnham et al. 2000       |
+    +-------------+---------------------------+
+    | HB C3       | Farnham et al. 2000       |
+    +-------------+---------------------------+
+    | HB CO+      | Farnham et al. 2000       |
+    +-------------+---------------------------+
+    | HB BC       | Farnham et al. 2000       |
+    +-------------+---------------------------+
+    | HB C2       | Farnham et al. 2000       |
+    +-------------+---------------------------+
+    | HB GC       | Farnham et al. 2000       |
+    +-------------+---------------------------+
+    | HB H2O+     | Farnham et al. 2000       |
+    +-------------+---------------------------+
+    | HB RC       | Farnham et al. 2000       |
+    +-------------+---------------------------+
     | LSST u      | LSST GitHub, v1.9         |
     +-------------+---------------------------+
     | LSST g      | LSST GitHub, v1.9         |
@@ -113,6 +135,9 @@ def bandpass(name):
        in the Infrared.  XIV.  The Absolute Calibration of 2MASS.  AJ
        126, 1090.
 
+    .. [FAR00] Farnham, T. L. et al. 2000.  HB Narrowband Comet Filters:
+       Standard Stars and Calibrations.  Icarus 147, 180–204.
+
     .. [JAR11] Jarrett, T. H. et al. 2011.  The Spitzer-WISE Survey of
        the Ecliptic Poles. ApJ 735, 112.
 
@@ -140,6 +165,17 @@ def bandpass(name):
         "2mass ks": "2mass-ks-rsr.txt",
         "atlas c": "atlas-c.txt",
         "atlas o": "atlas-o.txt",
+        "hb oh": "hb-oh.txt",
+        "hb nh": "hb-nh.txt",
+        "hb uv": "hb-uv.txt",
+        "hb cn": "hb-cn.txt",
+        "hb c3": "hb-c3.txt",
+        "hb co+": "hb-co+.txt",
+        "hb bc": "hb-bc.txt",
+        "hb c2": "hb-c2.txt",
+        "hb gc": "hb-gc.txt",
+        "hb h2o+": "hb-h2o+.txt",
+        "hb rc": "hb-rc.txt",
         "cousins r": "cousins_r_004_syn.fits",
         "cousins i": "cousins_i_004_syn.fits",
         "johnson u": "johnson_u_004_syn.fits",
@@ -182,6 +218,17 @@ def bandpass(name):
         "ps1 w": "nm",
         "ps1 z": "nm",
         "ps1 y": "nm",
+        "hb oh": "nm",
+        "hb nh": "nm",
+        "hb uv": "nm",
+        "hb cn": "nm",
+        "hb c3": "nm",
+        "hb co+": "nm",
+        "hb bc": "nm",
+        "hb c2": "nm",
+        "hb gc": "nm",
+        "hb h2o+": "nm",
+        "hb rc": "nm",
     }
 
     fn = get_pkg_data_path(
