@@ -20,6 +20,17 @@ from ...exceptions import RequiredPackageUnavailable
         ("johnson u", 3598.54452094),
         ("johnson b", 4385.9244053),
         ("johnson v", 5490.55520036),
+        ("hb oh", 3097),
+        ("hb nh", 3361),
+        ("hb uc", 3449),
+        ("hb cn", 3869),
+        ("hb c3", 4063),
+        ("hb co+", 4266),
+        ("hb bc", 4453),
+        ("hb c2", 5135),
+        ("hb gc", 5259),
+        ("hb h2o+", 7028),
+        ("hb rc", 7133),
         ("lsst u", 3724.0),  # https://lsstcam.lsst.io/index.html
         ("lsst g", 4807.0),
         ("lsst r", 6221.0),
@@ -46,6 +57,12 @@ from ...exceptions import RequiredPackageUnavailable
     ),
 )
 def test_bandpass(name, avgwave):
+    """Test bandpass average wavelength
+
+    The HB average wavelengths differ from the "center wavelength" from Farnham
+    et al. 2000.
+
+    """
     pytest.importorskip("synphot")
     bp = bandpass(name)
     atol = 0.5 if "lsst" in name else 0.005

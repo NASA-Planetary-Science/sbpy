@@ -59,7 +59,7 @@ def bandpass(name):
     +-------------+---------------------------+
     | HB NH       | Farnham et al. 2000       |
     +-------------+---------------------------+
-    | HB UV       | Farnham et al. 2000       |
+    | HB UC       | Farnham et al. 2000       |
     +-------------+---------------------------+
     | HB CN       | Farnham et al. 2000       |
     +-------------+---------------------------+
@@ -167,7 +167,7 @@ def bandpass(name):
         "atlas o": "atlas-o.txt",
         "hb oh": "hb-oh.txt",
         "hb nh": "hb-nh.txt",
-        "hb uv": "hb-uv.txt",
+        "hb uc": "hb-uc.txt",
         "hb cn": "hb-cn.txt",
         "hb c3": "hb-c3.txt",
         "hb co+": "hb-co+.txt",
@@ -220,7 +220,7 @@ def bandpass(name):
         "ps1 y": "nm",
         "hb oh": "nm",
         "hb nh": "nm",
-        "hb uv": "nm",
+        "hb uc": "nm",
         "hb cn": "nm",
         "hb c3": "nm",
         "hb co+": "nm",
