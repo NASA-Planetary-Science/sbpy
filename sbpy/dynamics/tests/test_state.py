@@ -481,6 +481,7 @@ class TestState:
     def test_from_ephem(self):
         """Test Ephem to State.
 
+        import numpy as np
         from astropy.time import Time
         from astroquery.jplhorizons import Horizons
         import spiceypy
@@ -495,12 +496,13 @@ class TestState:
         # au, rad, and rad/day
         sph = spiceypy.xfmsta(rec, "rectangular", "latitudinal", " ")
 
+        # xfmsta returns dra, but we will need dra*cos(dec)
         delta, ra, dec, deldot, dra, ddec = sph
 
         print(rec[:3])
         print(rec[3:])
         print(np.degrees((ra, dec)), "deg,", delta, "au")
-        print(np.degrees((dra, ddec)), "deg/day,", deldot, "au/day")
+        print(np.degrees((dra * np.cos(dec), ddec)), "deg/day,", deldot, "au/day")
 
         """
 
@@ -527,7 +529,7 @@ class TestState:
         state = State.from_ephem(eph)
 
         # and with the frame
-        state = State.from_ephem(eph, frame="icrs")
+        state = State.from_ephem(eph, frame="icrs")[0]
         assert u.allclose(state.r, r)
         assert u.allclose(state.v, v)
         assert np.isclose((state.t - t).jd, 0)
@@ -545,7 +547,7 @@ class TestState:
                 "ra": -62.27275959 * u.deg,
                 "dec": 57.28285294 * u.deg,
                 "delta": 2.3262610671524557 * u.au,
-                "RA*cos(Dec)_rate": 0.26043265 * u.deg / u.day,
+                "RA*cos(Dec)_rate": 0.0024568127963429023 * u.deg / u.day,
                 "Dec_rate": 0.17436216 * u.deg / u.day,
                 "delta_rate": -0.012413330003023705 * u.au / u.day,
                 "date": t,
