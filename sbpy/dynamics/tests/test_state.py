@@ -481,6 +481,7 @@ class TestState:
     def test_from_ephem(self):
         """Test Ephem to State.
 
+        import numpy as np
         from astropy.time import Time
         from astroquery.jplhorizons import Horizons
         import spiceypy
@@ -495,18 +496,19 @@ class TestState:
         # au, rad, and rad/day
         sph = spiceypy.xfmsta(rec, "rectangular", "latitudinal", " ")
 
+        # xfmsta returns dra, but we will need dra*cos(dec)
         delta, ra, dec, deldot, dra, ddec = sph
 
         print(rec[:3])
         print(rec[3:])
         print(np.degrees((ra, dec)), "deg,", delta, "au")
-        print(np.degrees((dra, ddec)), "deg/day,", deldot, "au/day")
+        print(np.degrees((dra * np.cos(dec), ddec)), "deg/day,", deldot, "au/day")
 
         """
 
-        r = [0.5849871061746752, -1.112950265888228, 1.957197574037426] * u.au
+        r = [0.5849901313190226, -1.112942283220293, 1.957189523210894] * u.au
         v = (
-            [-0.0008339472072142703, 0.01387010312203588, -0.006617657384488537]
+            [-0.0008339191946335428, 0.01387013925942148, -0.006617666089656045]
             * u.au
             / u.day
         )
@@ -527,7 +529,7 @@ class TestState:
         state = State.from_ephem(eph)
 
         # and with the frame
-        state = State.from_ephem(eph, frame="icrs")
+        state = State.from_ephem(eph, frame="icrs")[0]
         assert u.allclose(state.r, r)
         assert u.allclose(state.v, v)
         assert np.isclose((state.t - t).jd, 0)
@@ -542,16 +544,16 @@ class TestState:
         # barycenter
         eph = Ephem.from_dict(
             {
-                "ra": -62.27275959 * u.deg,
-                "dec": 57.28285294 * u.deg,
-                "delta": 2.3262610671524557 * u.au,
-                "RA*cos(Dec)_rate": 0.26043265 * u.deg / u.day,
-                "Dec_rate": 0.17436216 * u.deg / u.day,
-                "delta_rate": -0.012413330003023705 * u.au / u.day,
+                "ra": -62.27246831248106 * u.deg,
+                "dec": 57.28286302297011 * u.deg,
+                "delta": 2.3262512352036984 * u.au,
+                "RA*cos(Dec)_rate": 0.14076500428418215 * u.deg / u.day,
+                "Dec_rate": 0.17436263017100262 * u.deg / u.day,
+                "delta_rate": -0.012413330622647187 * u.au / u.day,
                 "date": t,
             },
         )
-        state = State.from_ephem(eph, "icrs")
+        state = State.from_ephem(eph, "icrs")[0]
         assert u.allclose(state.r, r)
         assert u.allclose(state.v, v)
         assert np.isclose((state.t - t).jd, 0)

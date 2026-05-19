@@ -56,6 +56,9 @@ sbpy.dynamics
 
 - Added missing `sbpy.dynamics.state.State.to_ephem`. [#434]
 
+- Fixed conversion between spherical and cartesian representations in
+  `sbpy.dynamics.state.State.from_ephem`. [#452]
+
 sbpy.spectroscopy
 ^^^^^^^^^^^^^^^^^
 

@@ -525,7 +525,7 @@ class State(StateBase):
             c: cr.SphericalRepresentation = cr.SphericalRepresentation(
                 eph["ra"], eph["dec"], eph["Delta"]
             )
-            d: cr.SphericalDifferential = cr.SphericalDifferential(
+            d = cr.SphericalCosLatDifferential(
                 eph["RA*cos(Dec)_rate"],
                 eph["Dec_rate"],
                 eph["deltadot"],
