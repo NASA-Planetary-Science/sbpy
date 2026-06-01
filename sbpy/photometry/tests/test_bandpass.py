@@ -3,7 +3,7 @@
 from unittest.mock import patch
 import pytest
 import numpy as np
-from ..bandpass import *
+from ..bandpass import bandpass
 from ...exceptions import RequiredPackageUnavailable
 
 
@@ -20,6 +20,17 @@ from ...exceptions import RequiredPackageUnavailable
         ("johnson u", 3598.54452094),
         ("johnson b", 4385.9244053),
         ("johnson v", 5490.55520036),
+        ("hb oh", 3097.787),
+        ("hb nh", 3359.772),
+        ("hb uc", 3448.275),
+        ("hb cn", 3868.290),
+        ("hb c3", 4062.329),
+        ("hb co+", 4265.633),
+        ("hb bc", 4453.045),
+        ("hb c2", 5134.342),
+        ("hb gc", 5258.483),
+        ("hb h2o+", 7027.369),
+        ("hb rc", 7133.222),
         ("lsst u", 3724.0),  # https://lsstcam.lsst.io/index.html
         ("lsst g", 4807.0),
         ("lsst r", 6221.0),
@@ -46,9 +57,21 @@ from ...exceptions import RequiredPackageUnavailable
     ),
 )
 def test_bandpass(name, avgwave):
+    """Test bandpass average wavelength
+
+    The HB average wavelengths differ from the "center wavelength" from Farnham
+    et al. 2000 up to 1.2 Å.  The test values are computed from the files.
+
+    """
     pytest.importorskip("synphot")
     bp = bandpass(name)
-    atol = 0.5 if "lsst" in name else 0.005
+
+    match name.split():
+        case ("lsst", _):
+            atol = 0.5
+        case _:
+            atol = 0.005
+
     assert np.isclose(bp.avgwave().value, avgwave, atol=atol)
 
 

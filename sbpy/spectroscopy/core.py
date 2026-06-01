@@ -8,7 +8,6 @@ created on June 23, 2017
 import numpy as np
 import astropy.units as u
 
-
 __all__ = ["Spectrum", "SpectralModel", "SpectralGradient"]
 
 __doctest_requires__ = {

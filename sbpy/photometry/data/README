@@ -10,6 +10,9 @@ Throughput files from:
     http://wise2.ipac.caltech.edu/docs/release/prelim/expsup/sec4_3g.html#WISEZMA
     https://iopscience.iop.org/0004-637X/750/2/99/suppdata/apj425122t3_mrt.txt
 
+    HB filter set scans from Dave Schleicher (barr.scans.zip).
+
+
 Split SDSS file:
 
 from astropy.io import fits
@@ -21,6 +24,7 @@ with fits.open(url) as hdu:
         tab['respt'].name = 'throughput'
         del tab['resbig'], tab['resnoa'], tab['xatm']
         tab.write('sdss-{}.fits'.format(filt))
+
 
 Split PS1 file:
 
