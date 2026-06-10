@@ -394,6 +394,13 @@ as ``obs.table``.
 Modifying an object
 -------------------
 
+`~sbpy.data.DataClass` objects can be modified in place, including adding rows
+and columns, and stacking a ``DataClass`` with another ``DataClass`` object or
+an `~astropy.table.Table` object.
+
+Update column data
+~~~~~~~~~~~~~~~~~~
+
 Individual elements, entire rows, and columns can be modified by
 directly addressing them:
 
@@ -403,10 +410,8 @@ directly addressing them:
     >>> obs['ra']
     <Quantity [10.323423, 10.333453, 10.343452] deg>
 
-The basic functionalities to modify the data table are implemented in
-`~sbpy.data.DataClass`, including adding rows and columns and stack a
-DataClass with another DataClass object or an `~astropy.table.Table`
-object.
+Add a new row
+~~~~~~~~~~~~~
 
 Let's assume you want to add some more observations to your ``obs``
 object:
@@ -424,7 +429,10 @@ object:
      10.25546  -12.3946 2451523.94653
   
 
-or if you want to add a column to your object:
+Add a new column
+~~~~~~~~~~~~~~~~
+
+If you want to add a column to your object:
 
     >>> obs.apply(['V', 'V', 'R', 'i'], name='filter')
     >>> obs
@@ -452,11 +460,10 @@ The same result can be achieved using the following syntax:
     10.343452 -12.40435  2451523.8525      R       R
      10.25546  -12.3946 2451523.94653      i       i
 
-Similarly, existing columns can be modified using:
+Joining objects by vertical stacking
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    >>> obs['filter'] = ['g', 'i', 'R', 'V']
-
-If you want to stack two observations into a single object:
+If you want to vertically stack two observation tables into a single object:
 
     >>> ra = [20.223423, 20.233453, 20.243452] * u.deg
     >>> dec = [12.42123, 12.41562, 12.40435] * u.deg
@@ -470,12 +477,12 @@ If you want to stack two observations into a single object:
     <QTable length=7>
         ra       dec          t       filter filter2  phase
        deg       deg                                   deg
-     float64   float64       Time      str1    str1  float64
+     float64   float64       Time     str32    str1  float64
     --------- --------- ------------- ------ ------- -------
-    10.323423 -12.42123  2451523.6234      g       V     ———
-    10.333453 -12.41562  2451523.7345      i       V     ———
+    10.323423 -12.42123  2451523.6234      V       V     ———
+    10.333453 -12.41562  2451523.7345      V       V     ———
     10.343452 -12.40435  2451523.8525      R       R     ———
-     10.25546  -12.3946 2451523.94653      V       i     ———
+     10.25546  -12.3946 2451523.94653      i       i     ———
     20.223423  12.42123  2451623.6234     --      --    10.1
     20.233453  12.41562  2451623.7345     --      --    12.3
     20.243452  12.40435  2451623.8525     --      --    15.6
@@ -483,7 +490,37 @@ If you want to stack two observations into a single object:
 Note that the data table to be stacked doesn't have to have the same
 columns as the original data table.  A keyword `join_type` is used to
 decide how to process the different sets of columns.  See
-`~astropy.table.Table.vstack()` for more detail.
+`~astropy.table.vstack()` for more detail.
+
+
+Joining objects by horizontal stacking
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Simiarly, to append the columns from another data object, use the
+`~sbpy.data.DataClass.hstack` method:
+
+    >>> t = Time("2026-06-10") + [0, 1, 2] * u.day
+    >>> ra = [10, 20, 30] * u.deg
+    >>> dec = [-1, -2, -3] * u.deg
+    >>> obs = Obs.from_dict({"t": t, "ra": ra, "dec": dec})
+    >>>
+    >>> rh = [1, 2, 3] * u.au
+    >>> eph = Ephem.from_dict({"rh": rh})
+    >>>
+    >>> obs.hstack(eph)
+    >>> obs
+    <QTable length=3>
+               t               ra     dec      rh
+                              deg     deg      AU
+              Time          float64 float64 float64
+    ----------------------- ------- ------- -------
+    2026-06-10 00:00:00.000    10.0    -1.0     1.0
+    2026-06-11 00:00:00.000    20.0    -2.0     2.0
+    2026-06-12 00:00:00.000    30.0    -3.0     3.0
+
+
+Modify the underlying table
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Because the underlying `~astropy.table.QTable` can be exposed by the
 `~sbpy.data.DataClass.table` property, it is possible to modify the data
@@ -491,6 +528,7 @@ table by directly accessing the underlying `~astropy.table.QTable` object.
 However, this is not generally advised.  You should use the mechanisms provided
 by `~sbpy.data.DataClass` to manipulate the data table as much as possible
 to maintain the integrity of the data table.
+
 
 Additional Data Container Concepts
 ==================================

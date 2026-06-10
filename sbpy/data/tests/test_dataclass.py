@@ -718,5 +718,36 @@ def test_vstack():
     field0 = tab.field_names
     tab.vstack(subtab)
     assert len(tab) == 8
-    assert 'rh' not in tab.table.colnames
-    assert set(field0).union({'phase'}) == set(tab.field_names)
+    assert "rh" not in tab.table.colnames
+    assert set(field0).union({"phase"}) == set(tab.field_names)
+
+
+def test_hstack():
+    # hstack with DataClass without conflicts
+    rh = [1, 2, 3] * u.au
+    delta = [1, 2, 3] * u.au
+    phase = [60, 30, 15] * u.deg
+    data1 = DataClass.from_dict({"rh": rh, "delta": delta})
+    data2 = DataClass.from_dict({"phase": phase})
+    data1.hstack(data2)
+
+    assert u.allclose(data1["rh"], rh)
+    assert u.allclose(data1["delta"], delta)
+    assert u.allclose(data1["phase"], phase)
+
+    # hstack with dict input with conflicts
+    data1.hstack({"r": rh * 2})
+
+    assert u.allclose(data1["rh_1"], rh)
+    assert u.allclose(data1["rh_2"], rh * 2)
+    assert u.allclose(data1["delta"], delta)
+
+    # hstack with Table input
+    data1.hstack(QTable({"delta": delta * 2}))
+
+    assert u.allclose(data1["delta_1"], delta)
+    assert u.allclose(data1["delta_2"], delta * 2)
+
+    # hstack with bad input
+    with pytest.raises(ValueError):
+        data1.hstack(rh)

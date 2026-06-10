@@ -7,18 +7,18 @@ sbpy.data core module
 created on June 22, 2017
 """
 
-from collections.abc import Mapping
 from copy import deepcopy
-from numpy import ndarray, array, hstack, iterable
-from astropy.table import QTable, Table, Column, Row, vstack
+from collections.abc import Mapping
+
+import numpy as np
+from astropy.table import QTable, Table, Column, Row, hstack, vstack
 from astropy.time import Time
-from astropy.coordinates import Angle
 import astropy.units as u
 
 from . import Conf
 from ..exceptions import SbpyException, SbpyWarning
 
-__all__ = ['DataClass', 'DataClassError', 'QueryError', 'TimeScaleWarning']
+__all__ = ["DataClass", "DataClassError", "QueryError", "TimeScaleWarning"]
 
 
 class DataClassError(SbpyException):
@@ -217,7 +217,7 @@ class DataClass():
         for key, val in data.items():
             if isinstance(val, (str, bytes)):
                 data[key] = [val]
-            elif not iterable(val):
+            elif not np.iterable(val):
                 if isinstance(val, u.Quantity):
                     data[key] = [val.value]*val.unit
                 elif isinstance(val, Time):
@@ -337,7 +337,7 @@ class DataClass():
             names = [names]
 
         # turn single column to a list
-        if not iterable(columns[0]):
+        if not np.iterable(columns[0]):
             columns = [columns]
         elif isinstance(columns[0], (str, bytes)):
             columns = [columns]
@@ -438,7 +438,7 @@ class DataClass():
                                  'and units.')
 
         # reorganize rows, if necessary
-        if not iterable(rows[0]):
+        if not np.iterable(rows[0]):
             rows = [rows]
         elif isinstance(rows[0], (str, bytes)):
             rows = [rows]
@@ -629,7 +629,7 @@ class DataClass():
 
         # list of field names
         if (
-            isinstance(ident, (list, tuple, ndarray))
+            isinstance(ident, (list, tuple, np.ndarray))
             and all([isinstance(i, str) for i in ident])
         ):
             self = self._convert_columns(ident)
@@ -673,7 +673,7 @@ class DataClass():
         be silently carried over and returned.
         """
 
-        if not isinstance(target_colnames, (list, ndarray, tuple)):
+        if not isinstance(target_colnames, (list, np.ndarray, tuple)):
             target_colnames = [target_colnames]
 
         translated_colnames = deepcopy(target_colnames)
@@ -701,7 +701,7 @@ class DataClass():
         field could not be converted.
         """
 
-        if not isinstance(target_colnames, (list, ndarray, tuple)):
+        if not isinstance(target_colnames, (list, np.ndarray, tuple)):
             target_colnames = [target_colnames]
 
         for colname in target_colnames:
@@ -866,11 +866,11 @@ class DataClass():
                 'Data parameter must have '
                 'same length as self._table')
 
-        _newcolumn = array([])
+        _newcolumn = np.array([])
         for i, val in enumerate(data):
-            if not isinstance(val, (list, tuple, ndarray)):
+            if not isinstance(val, (list, tuple, np.ndarray)):
                 val = [val]
-            _newcolumn = hstack([_newcolumn, val])
+            _newcolumn = np.hstack([_newcolumn, val])
             # add corresponding row from _table for each element in val
             for j in range(len(val)):
                 # initialize new QTable object
@@ -1051,3 +1051,50 @@ class DataClass():
 
         # join with the input table
         self.table = vstack([self.table, data.table], **kwargs)
+
+    def hstack(self, other, **kwargs):
+        """Stack another DataClass object along this object's columns (horizontally).
+
+        This object is modified in-place.
+
+
+        Parameters
+        ----------
+        other : `~sbpy.data.DataClass`, dict, `~astropy.table.Table`
+            Object to be joined with the current object.
+
+        kwargs : dict
+            Keyword parameters accepted by `astropy.table.hstack`.  Field name
+            conflicts are handled following ``hstack`` column resolution.
+
+
+        Examples
+        --------
+        >>> import astropy.units as u
+        >>> from sbpy.data import DataClass
+        >>>
+        >>> data1 = DataClass.from_dict({"rh": [1, 2, 3] * u.au, "delta": [1, 2, 3] * u.au})
+        >>> data2 = DataClass.from_dict({"phase": [60, 30, 15] * u.deg})
+        >>> data1.hstack(data2)
+
+        """
+
+        # check and process input data
+        if isinstance(other, dict):
+            _other = DataClass.from_dict(other)
+        elif isinstance(other, Table):
+            _other = DataClass.from_table(other)
+        elif isinstance(other, DataClass):
+            _other = DataClass.from_table(other.table, meta=other.meta)
+        else:
+            raise ValueError(
+                "DataClass, dict, or astorpy.table.Table are "
+                "expected, but {} is received.".format(type(other))
+            )
+
+        # adjust input column names for alises
+        alt = self._translate_columns(_other.field_names, ignore_missing=True)
+        _other.table.rename_columns(_other.field_names, alt)
+
+        # join with the input table
+        self.table = hstack([self.table, _other.table], **kwargs)

@@ -8,6 +8,12 @@ Update supported versions [#427]:
 New Features
 ------------
 
+sbpy.data
+^^^^^^^^^
+
+- Join data columns from another object with the new
+  `sbpy.data.DataClass.hstack` method. [#455]
+
 sbpy.dynamics
 ^^^^^^^^^^^^^
 
