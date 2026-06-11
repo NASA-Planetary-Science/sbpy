@@ -1,0 +1,49 @@
+# %ECSV 1.0
+# ---
+# datatype:
+# - {name: number, datatype: int64}
+# - {name: comettype, datatype: string}
+# - {name: note1, datatype: string}
+# - {name: desig, datatype: string}
+# - {name: note2, datatype: string}
+# - {name: epoch, unit: d, datatype: float64}
+# - {name: RA, unit: deg, datatype: float64}
+# - {name: DEC, unit: deg, datatype: float64}
+# - {name: mag, unit: mag, datatype: float64}
+# - {name: phottype, datatype: string}
+# - {name: catalog, datatype: string}
+# - {name: observatory, datatype: string}
+# meta: !!omap
+# - __serialized_columns__:
+#     DEC:
+#       __class__: astropy.units.quantity.Quantity
+#       unit: &id001 !astropy.units.Unit {unit: deg}
+#       value: !astropy.table.SerializedColumn {name: DEC}
+#     RA:
+#       __class__: astropy.units.quantity.Quantity
+#       unit: *id001
+#       value: !astropy.table.SerializedColumn {name: RA}
+#     epoch:
+#       __class__: astropy.units.quantity.Quantity
+#       unit: !astropy.units.Unit {unit: d}
+#       value: !astropy.table.SerializedColumn {name: epoch}
+#     mag:
+#       __class__: astropy.units.quantity.Quantity
+#       unit: !astropy.units.Unit {unit: mag}
+#       value: !astropy.table.SerializedColumn
+#         __class__: astropy.utils.masked.core.MaskedNDArray
+#         data: !astropy.table.SerializedColumn {name: mag}
+# schema: astropy-2.0
+number comettype note1 desig note2 epoch RA DEC mag phottype catalog observatory
+100 P "" "1985 L1" A 2446229.88141 176.99558333333331 4.349027777777778 16.0 T "" 413
+100 P "" "1985 L1" A 2446229.95086 177.01954166666664 4.307861111111111 "" "" "" 413
+100 P "" "1985 L1" A 2446229.96175 177.02299999999997 4.303138888888888 "" "" "" 413
+100 P "" "1985 L1" A 2446229.97911 177.02895833333332 4.2933055555555555 "" "" "" 413
+100 P "" "1985 L1" A 2446237.8587 180.04699999999997 -0.19469444444444442 "" "" "" 413
+100 P "" "1985 L1" A 2446237.86735 180.0499583333333 -0.1988611111111111 "" "" "" 413
+100 P "" "1985 L1" A 2446237.87606 180.05291666666665 -0.20294444444444446 "" "" "" 413
+100 P "" "1985 L1" A 2446256.94414 188.4240833333333 -10.276333333333334 "" "" "" 413
+100 P "" "1985 L1" A 2446273.69236 196.8997083333333 -18.092694444444444 "" "" "" 675
+100 P "" "1985 L1" A 2446273.69771 196.90254166666665 -18.095388888888888 "" "" "" 675
+100 P "" "1985 L1" A 2446274.69049 197.43662499999996 -18.527083333333334 "" "" "" 675
+100 P "" "1985 L1" A 2446274.69205 197.43774999999997 -18.527749999999997 "" "" "" 675

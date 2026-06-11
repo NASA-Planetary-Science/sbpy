@@ -71,11 +71,9 @@ class EphemerisCLI:
             print(str(e), file=sys.stderr)
             sys.exit(1)
 
-        print(
-            f"""# requested target: {cli.args.target}
+        print(f"""# requested target: {cli.args.target}
 # returned target: {cli.eph.meta['target']}
-# location: {cli.args.location}"""
-        )
+# location: {cli.args.location}""")
         cli.eph.table.pprint_all()
 
     @staticmethod
@@ -344,8 +342,10 @@ class EphemerisCLI:
             fields.insert(0, fields.pop(fields.index(k)))
 
         eph = eph[fields]
-        target = eph["target"][0]
-        del eph.table["target"]
-        eph.table.meta["target"] = target
+
+        if "target" in eph:
+            target = eph["target"][0]
+            del eph.table["target"]
+            eph.table.meta["target"] = target
 
         return eph

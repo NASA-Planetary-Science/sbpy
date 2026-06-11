@@ -537,7 +537,7 @@ class Ephem(DataClass):
     @requires("astroquery")
     @cite(
         {
-            "data source": "https://vo.imcce.fr/webservices/miriade/",
+            "data source": "https://ssp.imcce.fr/webservices/miriade/",
             "software: astroquery": "2019AJ....157...98G",
         }
     )
@@ -545,7 +545,7 @@ class Ephem(DataClass):
         cls, targetids, objtype="asteroid", epochs=None, location="500", **kwargs
     ):
         """Load target ephemerides from
-        `IMCCE Miriade <https://vo.imcce.fr/webservices/miriade/>`_ using
+        `IMCCE Miriade <https://ssp.imcce.fr/webservices/miriade/>`_ using
         `astroquery.imcce.MiriadeClass.get_ephemerides`
 
         Parameters
@@ -591,8 +591,8 @@ class Ephem(DataClass):
         -----
         * For detailed explanations of the queried fields, refer to
           `astroquery.imcce.MiriadeClass.get_ephemerides` and the
-          `Miriade documentation
-          <https://vo.imcce.fr/webservices/miriade/?documentation>`_.
+          `Miriade ephemeris documentation
+          <https://ssp.imcce.fr/webservices/miriade/api/ephemcc/>`_.
         * By default, all properties are provided in the J2000.0 reference
           system. Different settings can be chosen using
           additional keyword arguments as used by

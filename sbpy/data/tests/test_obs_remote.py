@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import pytest
+from packaging.version import Version
 
 from astropy.time import Time
 import astropy.units as u
@@ -9,7 +10,8 @@ from .. import Obs
 from ... import bib
 from ..core import QueryError
 
-pytest.importorskip("astroquery")
+astroquery = pytest.importorskip("astroquery")
+astroquery_version = Version(astroquery.__version__)
 
 
 @pytest.mark.remote_data
@@ -87,6 +89,10 @@ class TestSupplement:
 
         assert "sbpy.data.ephem.core.Ephem.from_mpc" in bib.show()
 
+    @pytest.mark.skipif(
+        astroquery_version < Version("0.4.12"),
+        reason="requires astroquery 0.4.12",
+    )
     def test_miriade(self):
         bib.track()
         obs = Obs.from_dict(

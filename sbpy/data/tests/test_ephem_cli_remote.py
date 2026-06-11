@@ -1,14 +1,29 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import pytest
+from packaging.version import Version
 from ..ephem.cli import EphemerisCLI
 
-pytest.importorskip("astroquery")
+astroquery = pytest.importorskip("astroquery")
+astroquery_version = Version(astroquery.__version__)
 
 
 @pytest.mark.remote_data()
 class TestEphemCLI:
-    @pytest.mark.parametrize("service", ("horizons", "mpc", "miriade"))
+    @pytest.mark.parametrize(
+        "service",
+        (
+            "horizons",
+            "mpc",
+            pytest.param(
+                "miriade",
+                marks=pytest.mark.skipif(
+                    astroquery_version < Version("0.4.12"),
+                    reason="requires astroquery 0.4.12",
+                ),
+            ),
+        ),
+    )
     def test_services(self, service):
         """Spot check results from the services."""
         cli = EphemerisCLI(

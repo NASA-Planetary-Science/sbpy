@@ -23,16 +23,20 @@ from .core import QueryError
 from ..bib import cite
 from ..utils.decorators import requires
 
-__all__ = ['Obs']
+__all__ = ["Obs"]
 
 
 class Obs(Ephem):
-    """Class for querying, storing, and manipulating observations """
+    """Class for querying, storing, and manipulating observations"""
 
     @classmethod
     @requires("astroquery")
-    @cite({'data source': 'https://minorplanetcenter.net/db_search',
-           'software: astroquery': '2019AJ....157...98G'})
+    @cite(
+        {
+            "data source": "https://minorplanetcenter.net/db_search",
+            "software: astroquery": "2019AJ....157...98G",
+        }
+    )
     def from_mpc(cls, targetid, id_type=None, **kwargs):
         """Load available observations for a target from the
         `Minor Planet Center <https://minorplanetcenter.net>`_ using
@@ -78,34 +82,41 @@ class Obs(Ephem):
 
         if id_type is None:
             id_type = Names.asteroid_or_comet(targetid)
-            if id_type == 'asteroid':
+            if id_type == "asteroid":
                 ident = Names.parse_asteroid(targetid)
-            elif id_type == 'comet':
+            elif id_type == "comet":
                 ident = Names.parse_comet(targetid)
-            if 'number' in ident:
-                id_type += ' number'
-            elif 'designation' in ident:
-                id_type += ' designation'
+            if "number" in ident:
+                id_type += " number"
+            elif "designation" in ident:
+                id_type += " designation"
 
         try:
-            results = MPC.get_observations(targetid, id_type=id_type,
-                                           **kwargs)
+            results = MPC.get_observations(targetid, id_type=id_type, **kwargs)
         except (RuntimeError, ValueError) as e:
             raise QueryError(
-                ('Error raised by '
-                 'astroquery.mpc.MPCClass.get_observations: '
-                 '{}').format(e))
+                (
+                    "Error raised by " "astroquery.mpc.MPCClass.get_observations: " "{}"
+                ).format(e)
+            )
 
-        results['epoch'] = Time(results['epoch'].to('d').value,
-                                scale='utc', format='jd')
+        results["epoch"] = Time(
+            results["epoch"].to("d").value, scale="utc", format="jd"
+        )
 
         return cls.from_table(results)
 
     @requires("astroquery")
-    @cite({'software: astroquery': '2019AJ....157...98G'})
-    def supplement(self, service='jplhorizons', id_field='targetname',
-                   epoch_field='epoch', location='500',
-                   modify_fieldnames='obs', **kwargs):
+    @cite({"software: astroquery": "2019AJ....157...98G"})
+    def supplement(
+        self,
+        service="jplhorizons",
+        id_field="targetname",
+        epoch_field="epoch",
+        location="500",
+        modify_fieldnames="obs",
+        **kwargs,
+    ):
         """Supplement observational data with ephemerides
         queried from the selected service.
 
@@ -120,7 +131,7 @@ class Obs(Ephem):
             <https://minorplanetcenter.net/iau/MPEph/MPEph.html>`_
             (using `~sbpy.data.Ephem.from_mpc`), and
             the `IMCCE Miriade service
-            <http://vo.imcce.fr/webservices/miriade/>`_
+            <https://ssp.imcce.fr/webservices/miriade/>`_
             (using `~sbpy.data.from_miriade`). Default:
             ``'jplhorizons'``
         id_field : str, optional
@@ -169,8 +180,7 @@ class Obs(Ephem):
         try:
             targetids = set(self[id_field])
         except (TypeError, KeyError):
-            raise QueryError('cannot use field {} as id_field.'.format(
-                id_field))
+            raise QueryError("cannot use field {} as id_field.".format(id_field))
 
         all_obs = None
         all_eph = None
@@ -179,46 +189,54 @@ class Obs(Ephem):
             if all_obs is None:
                 all_obs = self.table[self[id_field] == targetid]
             else:
-                all_obs = vstack([all_obs,
-                                  self.table[self[id_field] == targetid]])
+                all_obs = vstack([all_obs, self.table[self[id_field] == targetid]])
 
-            if service == 'jplhorizons':
+            if service == "jplhorizons":
                 eph = Ephem.from_horizons(
                     targetid,
                     epochs=self[self[id_field] == targetid][epoch_field],
                     location=location,
-                    **kwargs)
-                eph.table.remove_column('epoch')
-            elif service == 'mpc':
+                    **kwargs,
+                )
+                eph.table.remove_column("epoch")
+            elif service == "mpc":
                 eph = Ephem.from_mpc(
                     targetid,
                     epochs=self[self[id_field] == targetid][epoch_field],
                     location=location,
-                    **kwargs)
-                eph.table.remove_column('Date')
-            elif service == 'miriade':
+                    **kwargs,
+                )
+                eph.table.remove_column("Date")
+            elif service == "miriade":
                 eph = Ephem.from_miriade(
                     targetid,
                     epochs=self[self[id_field] == targetid][epoch_field],
                     location=location,
-                    **kwargs)
-                eph.table.remove_column('epoch')
+                    **kwargs,
+                )
+                eph.table.remove_column("epoch")
             else:
-                raise QueryError('service {} not known.'.format(service))
+                raise QueryError("service {} not known.".format(service))
 
             if all_eph is None:
                 all_eph = eph.table
             else:
                 all_eph = vstack([all_eph, eph.table])
 
-        # identify field names that both obs and eph have in common
-        fieldnames_intersect = set(all_eph.columns).intersection(
-            all_obs.columns)
-        for fieldname in fieldnames_intersect:
-            if modify_fieldnames == 'obs':
-                all_obs.rename_column(fieldname, fieldname+'_obs')
-            elif modify_fieldnames == 'eph':
-                all_eph.rename_column(fieldname, fieldname+'_eph')
+        # promote to sbpy objects to normalize field names
+        all_obs = Obs.from_table(all_obs, meta=self.meta)
+        all_eph = Ephem.from_table(all_eph)
 
-        return Obs.from_table(hstack([all_obs, all_eph]),
-                              meta=self.meta)
+        # insert eph columns into obs, renaming conflicts as requested
+        for k in all_eph.field_names:
+            name = k
+            if name in all_obs:
+                if modify_fieldnames == "obs":
+                    all_obs[name].name = name + "_obs"
+                elif modify_fieldnames == "eph":
+                    name = k + "_eph"
+                else:
+                    raise ValueError(f"Invalid modify_fieldnames={modify_fieldnames}")
+            all_obs[name] = all_eph[k]
+
+        return all_obs

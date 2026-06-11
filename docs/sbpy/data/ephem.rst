@@ -221,7 +221,7 @@ IMCCE's Miriade (`~sbpy.data.Ephem.from_miriade`)
 -------------------------------------------------
 
 Finally, `~sbpy.data.Ephem.from_miriade` will retrieve ephemerides from the
-`Miriade ephemeris generator <http://vo.imcce.fr/webservices/miriade/>`_ at
+`Miriade ephemeris generator <https://ssp.imcce.fr/webservices/miriade/>`_ at
 `Institut de Mécanique Céleste et de Calcul des Éphémérides
 <https://www.imcce.fr/>`_:
 

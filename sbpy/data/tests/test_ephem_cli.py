@@ -2,9 +2,17 @@
 
 import pytest
 from types import SimpleNamespace
+from packaging.version import Version
 
 import astropy.units as u
 from astropy.time import Time
+
+try:
+    import astroquery
+
+    astroquery_version = Version(astroquery.__version__)
+except ImportError:
+    astroquery_version = Version("0")
 
 from ..ephem.cli import EphemerisCLI
 from .test_ephem import patch_request  # noqa: F401
@@ -87,7 +95,18 @@ class TestEphemCLI:
 
     @pytest.mark.parametrize(
         "service, target",
-        [("horizons", "1 Ceres (A801 AA)"), ("mpc", "1"), ("miriade", "Ceres")],
+        [
+            ("horizons", "1 Ceres (A801 AA)"),
+            ("mpc", "1"),
+            pytest.param(
+                "miriade",
+                "Ceres",
+                marks=pytest.mark.skipif(
+                    astroquery_version < Version("0.4.12"),
+                    reason="requires astroquery 0.4.12",
+                ),
+            ),
+        ],
     )
     def test_asteroid(self, service, target, patch_request):  # noqa: F811
         """Test services with a comet designation"""
@@ -100,11 +119,27 @@ class TestEphemCLI:
         cli = EphemerisCLI(cmd.split())
 
         assert cli.eph["date"][0].iso == "2024-08-16 00:00:00.000"
-        assert cli.eph.meta["target"] == target
+
+        if service == "miriade":
+            # 2026 Jun 3: current astroquery (0.4.12.dev529+gc3e973f8b) does not return the target
+            assert "target" not in cli.eph.meta
+        else:
+            assert cli.eph.meta["target"] == target
 
     @pytest.mark.parametrize(
         "service, target",
-        [("horizons", "2P/Encke"), ("mpc", "2P"), ("miriade", "2P")],
+        [
+            ("horizons", "2P/Encke"),
+            ("mpc", "2P"),
+            pytest.param(
+                "miriade",
+                "2P",
+                marks=pytest.mark.skipif(
+                    astroquery_version < Version("0.4.12"),
+                    reason="requires astroquery 0.4.12",
+                ),
+            ),
+        ],
     )
     def test_comet(self, service, target, patch_request):  # noqa: F811
         """Test services with a comet designation"""
@@ -117,4 +152,9 @@ class TestEphemCLI:
         cli = EphemerisCLI(cmd.split())
 
         assert cli.eph["date"][0].iso == "2024-08-16 00:00:00.000"
-        assert cli.eph.meta["target"] == target
+
+        if service == "miriade":
+            # 2026 Jun 3: current astroquery (0.4.12.dev10784) does not return the target
+            assert "target" not in cli.eph.meta
+        else:
+            assert cli.eph.meta["target"] == target

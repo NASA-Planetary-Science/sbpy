@@ -391,7 +391,7 @@ methods.
 
 .. _JPL Horizons: https://ssd.jpl.nasa.gov/horizons/
 .. _Minor Planet Center: https://minorplanetcenter.net/
-.. _IMCCE: http://vo.imcce.fr/webservices/miriade/
+.. _IMCCE: http://ssp.imcce.fr/webservices/miriade/
 .. _Lowell Observatory: https://asteroid.lowell.edu/gui/
 .. _PyEphem: https://rhodesmill.org/pyephem
 .. _REBOUND: https://github.com/hannorein/rebound
@@ -399,7 +399,7 @@ methods.
 .. _SpiceyPy: https://github.com/AndrewAnnex/SpiceyPy
 .. _web-API: https://minorplanetcenter.net/search_db
 .. _Solar System Object Image Search function of the Canadian Astronomy Data Centre: https://www.cadc-ccda.hia-iha.nrc-cnrc.gc.ca/en/ssois/
-.. _skybot: http://vo.imcce.fr/webservices/skybot/
+.. _skybot: http://ssp.imcce.fr/webservices/skybot/
 .. _small bodies data ferret: https://sbnapps.psi.edu/ferret
 .. _github wiki: https://github.com/mommermi/sbpy/wiki
 .. _Ginga Image Viewer: https://ejeschke.github.io/ginga/

@@ -9,7 +9,7 @@ from astropy.time import Time
 import astropy.constants as const
 from erfa import ErfaWarning
 
-from ... import time  # for ephemeris time
+from ... import time  # noqa: F401 (for ephemeris time)
 from ..state import State
 from ..models import (
     FreeExpansion,
@@ -20,7 +20,6 @@ from ..models import (
 
 
 scipy = pytest.importorskip("scipy")
-scipy_version = [int(x) for x in scipy.__version__.split(".")]
 
 
 def test_spice_prop2b():

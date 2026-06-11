@@ -1,128 +1,856 @@
-<?xml version='1.0' encoding='UTF-8'?>
-<vot:VOTABLE version='1.3' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xmlns:vot='http://www.ivoa.net/xml/VOTable/v1.3' xsi:schemaLocation='http://www.ivoa.net/xml/VOTable/v1.3 http://www.ivoa.net/xml/VOTable/VOTable-1.3.xsd' xmlns:stc='http://www.ivoa.net/xml/STC/v1.30'>
-<vot:COOSYS ID='J2000RefFrame' system='eq_FK5' equinox='J2000'/>
-<vot:COOSYS ID='EphRefFrame' system='eq_FK5' equinox='J2000'/>
-<vot:INFO ID='supplier' name='supplier' value='Provided by IMCCE/CNRS/OBSPM' />
-<vot:RESOURCE name='Miriade.ephemcc'>
-<vot:DESCRIPTION>Miriade - Positional ephemeris</vot:DESCRIPTION>
-<vot:TABLE name='Miriade.ephemcc.results' nrows='61'>
-<vot:DESCRIPTION>Positional ephemeris</vot:DESCRIPTION>
-<vot:PARAM ID='targettype' name='targetType' datatype='char' ucd='src.class' arraysize='*' value='Asteroid' />
-<vot:PARAM ID='targetnum' name='targetNumber' datatype='int' ucd='meta.id.part'  value="1" />
-<vot:PARAM ID='targetname' name='targetName' datatype='char' ucd='meta.id' arraysize='*' value="Ceres" />
-<vot:PARAM ID='diameter' name='Diameter' datatype='float' ucd='phys.size.diameter' width='10' unit='km' value='848.40' />
-<vot:PARAM ID='ceu' name='CEU' datatype='float' ucd='stat.error;pos' width='16' unit='arcsec' value='0.19000000E-01' />
-<vot:PARAM ID='ceurate' name='CEU rate' datatype='float' ucd='stat.error;arith.rate;pos' width='16' unit='arcsec/d' value='-0.11000000E-03' />
-<vot:PARAM ID='orbital_period' name='Orbital period' datatype='float' ucd='time.period' width='15' unit='d' value='1.68082554E+03' />
-<vot:PARAM ID='system_mass' name='System mass' datatype='float' ucd='phys.mass' width='10' unit='kg' value='0.0000E+00' />
-<vot:PARAM ID='dynamical_class' name='Dynamical class' datatype='char' ucd='meta.code.class' arraysize='*' value='MB&gt;Middle' />
-<vot:PARAM ID='taxonomic_class' name='Taxonomic class' datatype='char' ucd='meta.code.class' arraysize='*' value='?' />
-<vot:PARAM ID='taxonomic_param' name='Taxonomic parameter' datatype='char' ucd='meta.code.class' arraysize='*' value='' />
-<vot:PARAM ID='taxonomic_source' name='Taxonomic source' datatype='char' ucd='meta.ref' arraysize='*' value='' />
-<vot:PARAM ID='time_scale' name='Time_Scale' datatype='char' ucd='meta.note' arraysize='*' value='UTC' />
-<vot:PARAM ID='planetary_theory' name='Planetary_Theory' datatype='char' ucd='meta.note' arraysize='8' value='INPOP13C' />
-<vot:PARAM ID='coordinates' name='Coordinates' datatype='char' ucd='meta.note' arraysize='*' value='Equatorial' />
-<vot:PARAM ID='frametype' name='frameType' datatype='char' ucd='pos.frame' arraysize='*' value='Astrometric J2000' />
-<vot:PARAM ID='framecentre' name='frameCentre' datatype='char' ucd='meta.note' arraysize='*' value='Geocenter' />
-<vot:FIELD ID='target' name='Target' ucd='meta.id' datatype='char' arraysize='20'>
-<vot:DESCRIPTION>Name or designation of the target</vot:DESCRIPTION>
-</vot:FIELD>
-<vot:FIELD ID='epoch' name='Date' ucd='time.epoch' datatype='double' width='20'>
-<vot:DESCRIPTION>Julian day (UTC)</vot:DESCRIPTION>
-</vot:FIELD>
-<vot:FIELD ID='ra' name='RA' ucd='pos.eq.ra' ref='EphRefFrame' datatype='char' arraysize='13' unit='"h:m:s"'>
-<vot:DESCRIPTION>Right ascension of target centre</vot:DESCRIPTION>
-</vot:FIELD>
-<vot:FIELD ID='dec' name='DEC' ucd='pos.eq.dec' ref='EphRefFrame' datatype='char' arraysize='13' unit='"d:m:s"'>
-<vot:DESCRIPTION>Declination of target centre</vot:DESCRIPTION>
-</vot:FIELD>
-<vot:FIELD ID='distance' name='Distance' ucd='phys.distance' ref='EphRefFrame' datatype='double' width='14' unit='au'>
-<vot:DESCRIPTION>Distance from observer</vot:DESCRIPTION>
-</vot:FIELD>
-<vot:FIELD ID='mv' name='Mv' ucd='em.opt.V' datatype='float' width='7' precision='3'>
-<vot:DESCRIPTION>Apparent visual magnitude</vot:DESCRIPTION>
-</vot:FIELD>
-<vot:FIELD ID='phase' name='Phase' ucd='pos.phaseAng' datatype='double' width='6' unit='deg'>
-<vot:DESCRIPTION>Phase angle</vot:DESCRIPTION>
-</vot:FIELD>
-<vot:FIELD ID='elongation' name='Elongation' ucd='pos.angDistance' datatype='double' width='6' unit='deg'>
-<vot:DESCRIPTION>Solar elongation</vot:DESCRIPTION>
-</vot:FIELD>
-<vot:FIELD ID='dracosdec' name='dRAcosDEC' ucd='pos.eq.ra;arith.rate' datatype='double' width='10' unit='arcsec/min'>
-<vot:DESCRIPTION>Rate of change of target center RA (multiplied by the cosine of the declination)</vot:DESCRIPTION>
-</vot:FIELD>
-<vot:FIELD ID='ddec' name='dDEC' ucd='pos.eq.dec;arith.rate' datatype='double' width='10' unit='arcsec/min'>
-<vot:DESCRIPTION>Rate of change of target center DE</vot:DESCRIPTION>
-</vot:FIELD>
-<vot:FIELD ID='dist_dot' name='dist_dot' ucd='phys.distance;arith.rate' datatype='double' width='12' unit='km/s'>
-<vot:DESCRIPTION>Rate of change of target distance from observer</vot:DESCRIPTION>
-</vot:FIELD>
-<vot:DATA>
-<vot:TABLEDATA>
-<vot:TR><vot:TD>Ceres</vot:TD><vot:TD> 2460538.50000000000</vot:TD><vot:TD>18 34 29.78990</vot:TD><vot:TD>-30 54 55.9994</vot:TD><vot:TD>   2.131085077</vot:TD><vot:TD>  8.13</vot:TD><vot:TD> 14.51</vot:TD><vot:TD>133.67</vot:TD><vot:TD>-0.15128E+00</vot:TD><vot:TD>-0.21151E-01</vot:TD><vot:TD>  18.0099122</vot:TD></vot:TR>
-<vot:TR><vot:TD>Ceres</vot:TD><vot:TD> 2460539.50000000000</vot:TD><vot:TD>18 34 13.67853</vot:TD><vot:TD>-30 55 24.4291</vot:TD><vot:TD>   2.141569346</vot:TD><vot:TD>  8.15</vot:TD><vot:TD> 14.75</vot:TD><vot:TD>132.66</vot:TD><vot:TD>-0.13659E+00</vot:TD><vot:TD>-0.18358E-01</vot:TD><vot:TD>  18.2946586</vot:TD></vot:TR>
-<vot:TR><vot:TD>Ceres</vot:TD><vot:TD> 2460540.50000000000</vot:TD><vot:TD>18 33 59.21049</vot:TD><vot:TD>-30 55 48.8930</vot:TD><vot:TD>   2.152216073</vot:TD><vot:TD>  8.17</vot:TD><vot:TD> 14.99</vot:TD><vot:TD>131.67</vot:TD><vot:TD>-0.12189E+00</vot:TD><vot:TD>-0.15643E-01</vot:TD><vot:TD>  18.5725087</vot:TD></vot:TR>
-<vot:TR><vot:TD>Ceres</vot:TD><vot:TD> 2460541.50000000000</vot:TD><vot:TD>18 33 46.38663</vot:TD><vot:TD>-30 56  9.5031</vot:TD><vot:TD>   2.163021335</vot:TD><vot:TD>  8.19</vot:TD><vot:TD> 15.21</vot:TD><vot:TD>130.67</vot:TD><vot:TD>-0.10719E+00</vot:TD><vot:TD>-0.13005E-01</vot:TD><vot:TD>  18.8436706</vot:TD></vot:TR>
-<vot:TR><vot:TD>Ceres</vot:TD><vot:TD> 2460542.50000000000</vot:TD><vot:TD>18 33 35.20658</vot:TD><vot:TD>-30 56 26.3679</vot:TD><vot:TD>   2.173981332</vot:TD><vot:TD>  8.21</vot:TD><vot:TD> 15.44</vot:TD><vot:TD>129.69</vot:TD><vot:TD>-0.92507E-01</vot:TD><vot:TD>-0.10441E-01</vot:TD><vot:TD>  19.1083672</vot:TD></vot:TR>
-<vot:TR><vot:TD>Ceres</vot:TD><vot:TD> 2460543.50000000000</vot:TD><vot:TD>18 33 25.66914</vot:TD><vot:TD>-30 56 39.5923</vot:TD><vot:TD>   2.185092391</vot:TD><vot:TD>  8.23</vot:TD><vot:TD> 15.65</vot:TD><vot:TD>128.71</vot:TD><vot:TD>-0.77835E-01</vot:TD><vot:TD>-0.79488E-02</vot:TD><vot:TD>  19.3668030</vot:TD></vot:TR>
-<vot:TR><vot:TD>Ceres</vot:TD><vot:TD> 2460544.50000000000</vot:TD><vot:TD>18 33 17.77260</vot:TD><vot:TD>-30 56 49.2777</vot:TD><vot:TD>   2.196350944</vot:TD><vot:TD>  8.24</vot:TD><vot:TD> 15.86</vot:TD><vot:TD>127.73</vot:TD><vot:TD>-0.63182E-01</vot:TD><vot:TD>-0.55253E-02</vot:TD><vot:TD>  19.6191289</vot:TD></vot:TR>
-<vot:TR><vot:TD>Ceres</vot:TD><vot:TD> 2460545.50000000000</vot:TD><vot:TD>18 33 11.51502</vot:TD><vot:TD>-30 56 55.5210</vot:TD><vot:TD>   2.207753487</vot:TD><vot:TD>  8.26</vot:TD><vot:TD> 16.07</vot:TD><vot:TD>126.76</vot:TD><vot:TD>-0.48548E-01</vot:TD><vot:TD>-0.31679E-02</vot:TD><vot:TD>  19.8654184</vot:TD></vot:TR>
-<vot:TR><vot:TD>Ceres</vot:TD><vot:TD> 2460546.50000000000</vot:TD><vot:TD>18 33  6.89430</vot:TD><vot:TD>-30 56 58.4156</vot:TD><vot:TD>   2.219296535</vot:TD><vot:TD>  8.28</vot:TD><vot:TD> 16.27</vot:TD><vot:TD>125.79</vot:TD><vot:TD>-0.33934E-01</vot:TD><vot:TD>-0.87394E-03</vot:TD><vot:TD>  20.1056634</vot:TD></vot:TR>
-<vot:TR><vot:TD>Ceres</vot:TD><vot:TD> 2460547.50000000000</vot:TD><vot:TD>18 33  3.90815</vot:TD><vot:TD>-30 56 58.0509</vot:TD><vot:TD>   2.230976578</vot:TD><vot:TD>  8.30</vot:TD><vot:TD> 16.46</vot:TD><vot:TD>124.83</vot:TD><vot:TD>-0.19342E-01</vot:TD><vot:TD> 0.13591E-02</vot:TD><vot:TD>  20.3397896</vot:TD></vot:TR>
-<vot:TR><vot:TD>Ceres</vot:TD><vot:TD> 2460548.50000000000</vot:TD><vot:TD>18 33  2.55391</vot:TD><vot:TD>-30 56 54.5130</vot:TD><vot:TD>   2.242790050</vot:TD><vot:TD>  8.32</vot:TD><vot:TD> 16.65</vot:TD><vot:TD>123.87</vot:TD><vot:TD>-0.47768E-02</vot:TD><vot:TD> 0.35338E-02</vot:TD><vot:TD>  20.5676815</vot:TD></vot:TR>
-<vot:TR><vot:TD>Ceres</vot:TD><vot:TD> 2460549.50000000000</vot:TD><vot:TD>18 33  2.82834</vot:TD><vot:TD>-30 56 47.8841</vot:TD><vot:TD>   2.254733312</vot:TD><vot:TD>  8.34</vot:TD><vot:TD> 16.83</vot:TD><vot:TD>122.92</vot:TD><vot:TD> 0.97571E-02</vot:TD><vot:TD> 0.56523E-02</vot:TD><vot:TD>  20.7892072</vot:TD></vot:TR>
-<vot:TR><vot:TD>Ceres</vot:TD><vot:TD> 2460550.50000000000</vot:TD><vot:TD>18 33  4.72748</vot:TD><vot:TD>-30 56 38.2435</vot:TD><vot:TD>   2.266802650</vot:TD><vot:TD>  8.35</vot:TD><vot:TD> 17.01</vot:TD><vot:TD>121.97</vot:TD><vot:TD> 0.24252E-01</vot:TD><vot:TD> 0.77171E-02</vot:TD><vot:TD>  21.0042374</vot:TD></vot:TR>
-<vot:TR><vot:TD>Ceres</vot:TD><vot:TD> 2460551.50000000000</vot:TD><vot:TD>18 33  8.24648</vot:TD><vot:TD>-30 56 25.6669</vot:TD><vot:TD>   2.278994279</vot:TD><vot:TD>  8.37</vot:TD><vot:TD> 17.18</vot:TD><vot:TD>121.03</vot:TD><vot:TD> 0.38701E-01</vot:TD><vot:TD> 0.97303E-02</vot:TD><vot:TD>  21.2126564</vot:TD></vot:TR>
-<vot:TR><vot:TD>Ceres</vot:TD><vot:TD> 2460552.50000000000</vot:TD><vot:TD>18 33 13.37950</vot:TD><vot:TD>-30 56 10.2270</vot:TD><vot:TD>   2.291304350</vot:TD><vot:TD>  8.39</vot:TD><vot:TD> 17.34</vot:TD><vot:TD>120.10</vot:TD><vot:TD> 0.53095E-01</vot:TD><vot:TD> 0.11694E-01</vot:TD><vot:TD>  21.4143677</vot:TD></vot:TR>
-<vot:TR><vot:TD>Ceres</vot:TD><vot:TD> 2460553.50000000000</vot:TD><vot:TD>18 33 20.11969</vot:TD><vot:TD>-30 55 51.9928</vot:TD><vot:TD>   2.303728967</vot:TD><vot:TD>  8.41</vot:TD><vot:TD> 17.50</vot:TD><vot:TD>119.17</vot:TD><vot:TD> 0.67425E-01</vot:TD><vot:TD> 0.13612E-01</vot:TD><vot:TD>  21.6092958</vot:TD></vot:TR>
-<vot:TR><vot:TD>Ceres</vot:TD><vot:TD> 2460554.50000000000</vot:TD><vot:TD>18 33 28.45912</vot:TD><vot:TD>-30 55 31.0303</vot:TD><vot:TD>   2.316264196</vot:TD><vot:TD>  8.42</vot:TD><vot:TD> 17.66</vot:TD><vot:TD>118.24</vot:TD><vot:TD> 0.81681E-01</vot:TD><vot:TD> 0.15484E-01</vot:TD><vot:TD>  21.7973868</vot:TD></vot:TR>
-<vot:TR><vot:TD>Ceres</vot:TD><vot:TD> 2460555.50000000000</vot:TD><vot:TD>18 33 38.38881</vot:TD><vot:TD>-30 55  7.4019</vot:TD><vot:TD>   2.328906077</vot:TD><vot:TD>  8.44</vot:TD><vot:TD> 17.80</vot:TD><vot:TD>117.32</vot:TD><vot:TD> 0.95855E-01</vot:TD><vot:TD> 0.17314E-01</vot:TD><vot:TD>  21.9786087</vot:TD></vot:TR>
-<vot:TR><vot:TD>Ceres</vot:TD><vot:TD> 2460556.50000000000</vot:TD><vot:TD>18 33 49.89871</vot:TD><vot:TD>-30 54 41.1668</vot:TD><vot:TD>   2.341650639</vot:TD><vot:TD>  8.46</vot:TD><vot:TD> 17.95</vot:TD><vot:TD>116.40</vot:TD><vot:TD> 0.10994E+00</vot:TD><vot:TD> 0.19105E-01</vot:TD><vot:TD>  22.1529508</vot:TD></vot:TR>
-<vot:TR><vot:TD>Ceres</vot:TD><vot:TD> 2460557.50000000000</vot:TD><vot:TD>18 34  2.97775</vot:TD><vot:TD>-30 54 12.3807</vot:TD><vot:TD>   2.354493911</vot:TD><vot:TD>  8.47</vot:TD><vot:TD> 18.08</vot:TD><vot:TD>115.49</vot:TD><vot:TD> 0.12392E+00</vot:TD><vot:TD> 0.20858E-01</vot:TD><vot:TD>  22.3204238</vot:TD></vot:TR>
-<vot:TR><vot:TD>Ceres</vot:TD><vot:TD> 2460558.50000000000</vot:TD><vot:TD>18 34 17.61388</vot:TD><vot:TD>-30 53 41.0959</vot:TD><vot:TD>   2.367431934</vot:TD><vot:TD>  8.49</vot:TD><vot:TD> 18.21</vot:TD><vot:TD>114.59</vot:TD><vot:TD> 0.13779E+00</vot:TD><vot:TD> 0.22576E-01</vot:TD><vot:TD>  22.4810584</vot:TD></vot:TR>
-<vot:TR><vot:TD>Ceres</vot:TD><vot:TD> 2460559.50000000000</vot:TD><vot:TD>18 34 33.79410</vot:TD><vot:TD>-30 53  7.3614</vot:TD><vot:TD>   2.380460770</vot:TD><vot:TD>  8.51</vot:TD><vot:TD> 18.34</vot:TD><vot:TD>113.69</vot:TD><vot:TD> 0.15155E+00</vot:TD><vot:TD> 0.24261E-01</vot:TD><vot:TD>  22.6349035</vot:TD></vot:TR>
-<vot:TR><vot:TD>Ceres</vot:TD><vot:TD> 2460560.50000000000</vot:TD><vot:TD>18 34 51.50452</vot:TD><vot:TD>-30 52 31.2228</vot:TD><vot:TD>   2.393576517</vot:TD><vot:TD>  8.52</vot:TD><vot:TD> 18.46</vot:TD><vot:TD>112.79</vot:TD><vot:TD> 0.16518E+00</vot:TD><vot:TD> 0.25915E-01</vot:TD><vot:TD>  22.7820241</vot:TD></vot:TR>
-<vot:TR><vot:TD>Ceres</vot:TD><vot:TD> 2460561.50000000000</vot:TD><vot:TD>18 35 10.73046</vot:TD><vot:TD>-30 51 52.7223</vot:TD><vot:TD>   2.406775312</vot:TD><vot:TD>  8.54</vot:TD><vot:TD> 18.57</vot:TD><vot:TD>111.90</vot:TD><vot:TD> 0.17868E+00</vot:TD><vot:TD> 0.27542E-01</vot:TD><vot:TD>  22.9224993</vot:TD></vot:TR>
-<vot:TR><vot:TD>Ceres</vot:TD><vot:TD> 2460562.50000000000</vot:TD><vot:TD>18 35 31.45645</vot:TD><vot:TD>-30 51 11.8988</vot:TD><vot:TD>   2.420053345</vot:TD><vot:TD>  8.56</vot:TD><vot:TD> 18.68</vot:TD><vot:TD>111.01</vot:TD><vot:TD> 0.19204E+00</vot:TD><vot:TD> 0.29142E-01</vot:TD><vot:TD>  23.0564210</vot:TD></vot:TR>
-<vot:TR><vot:TD>Ceres</vot:TD><vot:TD> 2460563.50000000000</vot:TD><vot:TD>18 35 53.66632</vot:TD><vot:TD>-30 50 28.7881</vot:TD><vot:TD>   2.433406859</vot:TD><vot:TD>  8.57</vot:TD><vot:TD> 18.79</vot:TD><vot:TD>110.13</vot:TD><vot:TD> 0.20527E+00</vot:TD><vot:TD> 0.30719E-01</vot:TD><vot:TD>  23.1838941</vot:TD></vot:TR>
-<vot:TR><vot:TD>Ceres</vot:TD><vot:TD> 2460564.50000000000</vot:TD><vot:TD>18 36 17.34326</vot:TD><vot:TD>-30 49 43.4227</vot:TD><vot:TD>   2.446832163</vot:TD><vot:TD>  8.59</vot:TD><vot:TD> 18.88</vot:TD><vot:TD>109.25</vot:TD><vot:TD> 0.21834E+00</vot:TD><vot:TD> 0.32274E-01</vot:TD><vot:TD>  23.3050386</vot:TD></vot:TR>
-<vot:TR><vot:TD>Ceres</vot:TD><vot:TD> 2460565.50000000000</vot:TD><vot:TD>18 36 42.46981</vot:TD><vot:TD>-30 48 55.8321</vot:TD><vot:TD>   2.460325643</vot:TD><vot:TD>  8.60</vot:TD><vot:TD> 18.98</vot:TD><vot:TD>108.38</vot:TD><vot:TD> 0.23126E+00</vot:TD><vot:TD> 0.33810E-01</vot:TD><vot:TD>  23.4199940</vot:TD></vot:TR>
-<vot:TR><vot:TD>Ceres</vot:TD><vot:TD> 2460566.50000000000</vot:TD><vot:TD>18 37  9.02798</vot:TD><vot:TD>-30 48  6.0426</vot:TD><vot:TD>   2.473883768</vot:TD><vot:TD>  8.62</vot:TD><vot:TD> 19.07</vot:TD><vot:TD>107.51</vot:TD><vot:TD> 0.24402E+00</vot:TD><vot:TD> 0.35328E-01</vot:TD><vot:TD>  23.5289255</vot:TD></vot:TR>
-<vot:TR><vot:TD>Ceres</vot:TD><vot:TD> 2460567.50000000000</vot:TD><vot:TD>18 37 36.99926</vot:TD><vot:TD>-30 47 14.0778</vot:TD><vot:TD>   2.487503117</vot:TD><vot:TD>  8.63</vot:TD><vot:TD> 19.15</vot:TD><vot:TD>106.65</vot:TD><vot:TD> 0.25661E+00</vot:TD><vot:TD> 0.36832E-01</vot:TD><vot:TD>  23.6320297</vot:TD></vot:TR>
-<vot:TR><vot:TD>Ceres</vot:TD><vot:TD> 2460568.50000000000</vot:TD><vot:TD>18 38  6.36477</vot:TD><vot:TD>-30 46 19.9580</vot:TD><vot:TD>   2.501180386</vot:TD><vot:TD>  8.65</vot:TD><vot:TD> 19.23</vot:TD><vot:TD>105.79</vot:TD><vot:TD> 0.26905E+00</vot:TD><vot:TD> 0.38322E-01</vot:TD><vot:TD>  23.7295369</vot:TD></vot:TR>
-<vot:TR><vot:TD>Ceres</vot:TD><vot:TD> 2460569.50000000000</vot:TD><vot:TD>18 38 37.10541</vot:TD><vot:TD>-30 45 23.7007</vot:TD><vot:TD>   2.514912419</vot:TD><vot:TD>  8.66</vot:TD><vot:TD> 19.30</vot:TD><vot:TD>104.94</vot:TD><vot:TD> 0.28132E+00</vot:TD><vot:TD> 0.39801E-01</vot:TD><vot:TD>  23.8217054</vot:TD></vot:TR>
-<vot:TR><vot:TD>Ceres</vot:TD><vot:TD> 2460570.50000000000</vot:TD><vot:TD>18 39  9.20215</vot:TD><vot:TD>-30 44 25.3200</vot:TD><vot:TD>   2.528696208</vot:TD><vot:TD>  8.68</vot:TD><vot:TD> 19.37</vot:TD><vot:TD>104.09</vot:TD><vot:TD> 0.29342E+00</vot:TD><vot:TD> 0.41271E-01</vot:TD><vot:TD>  23.9088025</vot:TD></vot:TR>
-<vot:TR><vot:TD>Ceres</vot:TD><vot:TD> 2460571.50000000000</vot:TD><vot:TD>18 39 42.63624</vot:TD><vot:TD>-30 43 24.8269</vot:TD><vot:TD>   2.542528897</vot:TD><vot:TD>  8.69</vot:TD><vot:TD> 19.43</vot:TD><vot:TD>103.24</vot:TD><vot:TD> 0.30536E+00</vot:TD><vot:TD> 0.42735E-01</vot:TD><vot:TD>  23.9910720</vot:TD></vot:TR>
-<vot:TR><vot:TD>Ceres</vot:TD><vot:TD> 2460572.50000000000</vot:TD><vot:TD>18 40 17.38954</vot:TD><vot:TD>-30 42 22.2291</vot:TD><vot:TD>   2.556407754</vot:TD><vot:TD>  8.70</vot:TD><vot:TD> 19.49</vot:TD><vot:TD>102.40</vot:TD><vot:TD> 0.31715E+00</vot:TD><vot:TD> 0.44195E-01</vot:TD><vot:TD>  24.0686973</vot:TD></vot:TR>
-<vot:TR><vot:TD>Ceres</vot:TD><vot:TD> 2460573.50000000000</vot:TD><vot:TD>18 40 53.44470</vot:TD><vot:TD>-30 41 17.5308</vot:TD><vot:TD>   2.570330130</vot:TD><vot:TD>  8.72</vot:TD><vot:TD> 19.55</vot:TD><vot:TD>101.57</vot:TD><vot:TD> 0.32880E+00</vot:TD><vot:TD> 0.45653E-01</vot:TD><vot:TD>  24.1417736</vot:TD></vot:TR>
-<vot:TR><vot:TD>Ceres</vot:TD><vot:TD> 2460574.50000000000</vot:TD><vot:TD>18 41 30.78517</vot:TD><vot:TD>-30 40 10.7332</vot:TD><vot:TD>   2.584293400</vot:TD><vot:TD>  8.73</vot:TD><vot:TD> 19.60</vot:TD><vot:TD>100.73</vot:TD><vot:TD> 0.34031E+00</vot:TD><vot:TD> 0.47111E-01</vot:TD><vot:TD>  24.2103021</vot:TD></vot:TR>
-<vot:TR><vot:TD>Ceres</vot:TD><vot:TD> 2460575.50000000000</vot:TD><vot:TD>18 42  9.39512</vot:TD><vot:TD>-30 39  1.8348</vot:TD><vot:TD>   2.598294922</vot:TD><vot:TD>  8.75</vot:TD><vot:TD> 19.64</vot:TD><vot:TD> 99.90</vot:TD><vot:TD> 0.35168E+00</vot:TD><vot:TD> 0.48571E-01</vot:TD><vot:TD>  24.2742095</vot:TD></vot:TR>
-<vot:TR><vot:TD>Ceres</vot:TD><vot:TD> 2460576.50000000000</vot:TD><vot:TD>18 42 49.25920</vot:TD><vot:TD>-30 37 50.8315</vot:TD><vot:TD>   2.612331992</vot:TD><vot:TD>  8.76</vot:TD><vot:TD> 19.68</vot:TD><vot:TD> 99.08</vot:TD><vot:TD> 0.36293E+00</vot:TD><vot:TD> 0.50035E-01</vot:TD><vot:TD>  24.3333801</vot:TD></vot:TR>
-<vot:TR><vot:TD>Ceres</vot:TD><vot:TD> 2460577.50000000000</vot:TD><vot:TD>18 43 30.36232</vot:TD><vot:TD>-30 36 37.7171</vot:TD><vot:TD>   2.626401839</vot:TD><vot:TD>  8.77</vot:TD><vot:TD> 19.72</vot:TD><vot:TD> 98.26</vot:TD><vot:TD> 0.37404E+00</vot:TD><vot:TD> 0.51504E-01</vot:TD><vot:TD>  24.3876884</vot:TD></vot:TR>
-<vot:TR><vot:TD>Ceres</vot:TD><vot:TD> 2460578.50000000000</vot:TD><vot:TD>18 44 12.68942</vot:TD><vot:TD>-30 35 22.4837</vot:TD><vot:TD>   2.640501622</vot:TD><vot:TD>  8.78</vot:TD><vot:TD> 19.75</vot:TD><vot:TD> 97.44</vot:TD><vot:TD> 0.38503E+00</vot:TD><vot:TD> 0.52978E-01</vot:TD><vot:TD>  24.4370212</vot:TD></vot:TR>
-<vot:TR><vot:TD>Ceres</vot:TD><vot:TD> 2460579.50000000000</vot:TD><vot:TD>18 44 56.22534</vot:TD><vot:TD>-30 34  5.1217</vot:TD><vot:TD>   2.654628438</vot:TD><vot:TD>  8.80</vot:TD><vot:TD> 19.78</vot:TD><vot:TD> 96.62</vot:TD><vot:TD> 0.39589E+00</vot:TD><vot:TD> 0.54460E-01</vot:TD><vot:TD>  24.4812886</vot:TD></vot:TR>
-<vot:TR><vot:TD>Ceres</vot:TD><vot:TD> 2460580.50000000000</vot:TD><vot:TD>18 45 40.95475</vot:TD><vot:TD>-30 32 45.6200</vot:TD><vot:TD>   2.668779343</vot:TD><vot:TD>  8.81</vot:TD><vot:TD> 19.80</vot:TD><vot:TD> 95.81</vot:TD><vot:TD> 0.40662E+00</vot:TD><vot:TD> 0.55951E-01</vot:TD><vot:TD>  24.5204262</vot:TD></vot:TR>
-<vot:TR><vot:TD>Ceres</vot:TD><vot:TD> 2460581.50000000000</vot:TD><vot:TD>18 46 26.86205</vot:TD><vot:TD>-30 31 23.9663</vot:TD><vot:TD>   2.682951361</vot:TD><vot:TD>  8.82</vot:TD><vot:TD> 19.82</vot:TD><vot:TD> 95.01</vot:TD><vot:TD> 0.41721E+00</vot:TD><vot:TD> 0.57450E-01</vot:TD><vot:TD>  24.5543927</vot:TD></vot:TR>
-<vot:TR><vot:TD>Ceres</vot:TD><vot:TD> 2460582.50000000000</vot:TD><vot:TD>18 47 13.93140</vot:TD><vot:TD>-30 30  0.1469</vot:TD><vot:TD>   2.697141498</vot:TD><vot:TD>  8.83</vot:TD><vot:TD> 19.83</vot:TD><vot:TD> 94.20</vot:TD><vot:TD> 0.42767E+00</vot:TD><vot:TD> 0.58959E-01</vot:TD><vot:TD>  24.5831663</vot:TD></vot:TR>
-<vot:TR><vot:TD>Ceres</vot:TD><vot:TD> 2460583.50000000000</vot:TD><vot:TD>18 48  2.14671</vot:TD><vot:TD>-30 28 34.1470</vot:TD><vot:TD>   2.711346753</vot:TD><vot:TD>  8.85</vot:TD><vot:TD> 19.84</vot:TD><vot:TD> 93.41</vot:TD><vot:TD> 0.43799E+00</vot:TD><vot:TD> 0.60478E-01</vot:TD><vot:TD>  24.6067418</vot:TD></vot:TR>
-<vot:TR><vot:TD>Ceres</vot:TD><vot:TD> 2460584.50000000000</vot:TD><vot:TD>18 48 51.49160</vot:TD><vot:TD>-30 27  5.9507</vot:TD><vot:TD>   2.725564124</vot:TD><vot:TD>  8.86</vot:TD><vot:TD> 19.85</vot:TD><vot:TD> 92.61</vot:TD><vot:TD> 0.44817E+00</vot:TD><vot:TD> 0.62010E-01</vot:TD><vot:TD>  24.6251282</vot:TD></vot:TR>
-<vot:TR><vot:TD>Ceres</vot:TD><vot:TD> 2460585.50000000000</vot:TD><vot:TD>18 49 41.94947</vot:TD><vot:TD>-30 25 35.5412</vot:TD><vot:TD>   2.739790623</vot:TD><vot:TD>  8.87</vot:TD><vot:TD> 19.85</vot:TD><vot:TD> 91.82</vot:TD><vot:TD> 0.45820E+00</vot:TD><vot:TD> 0.63553E-01</vot:TD><vot:TD>  24.6383488</vot:TD></vot:TR>
-<vot:TR><vot:TD>Ceres</vot:TD><vot:TD> 2460586.50000000000</vot:TD><vot:TD>18 50 33.50347</vot:TD><vot:TD>-30 24  2.9009</vot:TD><vot:TD>   2.754023273</vot:TD><vot:TD>  8.88</vot:TD><vot:TD> 19.85</vot:TD><vot:TD> 91.03</vot:TD><vot:TD> 0.46810E+00</vot:TD><vot:TD> 0.65108E-01</vot:TD><vot:TD>  24.6464401</vot:TD></vot:TR>
-<vot:TR><vot:TD>Ceres</vot:TD><vot:TD> 2460587.50000000000</vot:TD><vot:TD>18 51 26.13650</vot:TD><vot:TD>-30 22 28.0112</vot:TD><vot:TD>   2.768259128</vot:TD><vot:TD>  8.89</vot:TD><vot:TD> 19.84</vot:TD><vot:TD> 90.24</vot:TD><vot:TD> 0.47784E+00</vot:TD><vot:TD> 0.66677E-01</vot:TD><vot:TD>  24.6494531</vot:TD></vot:TR>
-<vot:TR><vot:TD>Ceres</vot:TD><vot:TD> 2460588.50000000000</vot:TD><vot:TD>18 52 19.83126</vot:TD><vot:TD>-30 20 50.8531</vot:TD><vot:TD>   2.782495272</vot:TD><vot:TD>  8.90</vot:TD><vot:TD> 19.83</vot:TD><vot:TD> 89.46</vot:TD><vot:TD> 0.48744E+00</vot:TD><vot:TD> 0.68259E-01</vot:TD><vot:TD>  24.6474522</vot:TD></vot:TR>
-<vot:TR><vot:TD>Ceres</vot:TD><vot:TD> 2460589.50000000000</vot:TD><vot:TD>18 53 14.57024</vot:TD><vot:TD>-30 19 11.4067</vot:TD><vot:TD>   2.796728831</vot:TD><vot:TD>  8.92</vot:TD><vot:TD> 19.82</vot:TD><vot:TD> 88.68</vot:TD><vot:TD> 0.49689E+00</vot:TD><vot:TD> 0.69855E-01</vot:TD><vot:TD>  24.6405158</vot:TD></vot:TR>
-<vot:TR><vot:TD>Ceres</vot:TD><vot:TD> 2460590.50000000000</vot:TD><vot:TD>18 54 10.33576</vot:TD><vot:TD>-30 17 29.6519</vot:TD><vot:TD>   2.810956980</vot:TD><vot:TD>  8.93</vot:TD><vot:TD> 19.80</vot:TD><vot:TD> 87.90</vot:TD><vot:TD> 0.50618E+00</vot:TD><vot:TD> 0.71466E-01</vot:TD><vot:TD>  24.6287353</vot:TD></vot:TR>
-<vot:TR><vot:TD>Ceres</vot:TD><vot:TD> 2460591.50000000000</vot:TD><vot:TD>18 55  7.10998</vot:TD><vot:TD>-30 15 45.5679</vot:TD><vot:TD>   2.825176951</vot:TD><vot:TD>  8.94</vot:TD><vot:TD> 19.78</vot:TD><vot:TD> 87.13</vot:TD><vot:TD> 0.51533E+00</vot:TD><vot:TD> 0.73091E-01</vot:TD><vot:TD>  24.6122157</vot:TD></vot:TR>
-<vot:TR><vot:TD>Ceres</vot:TD><vot:TD> 2460592.50000000000</vot:TD><vot:TD>18 56  4.87494</vot:TD><vot:TD>-30 13 59.1336</vot:TD><vot:TD>   2.839386041</vot:TD><vot:TD>  8.95</vot:TD><vot:TD> 19.76</vot:TD><vot:TD> 86.36</vot:TD><vot:TD> 0.52432E+00</vot:TD><vot:TD> 0.74730E-01</vot:TD><vot:TD>  24.5910763</vot:TD></vot:TR>
-<vot:TR><vot:TD>Ceres</vot:TD><vot:TD> 2460593.50000000000</vot:TD><vot:TD>18 57  3.61258</vot:TD><vot:TD>-30 12 10.3277</vot:TD><vot:TD>   2.853581620</vot:TD><vot:TD>  8.96</vot:TD><vot:TD> 19.73</vot:TD><vot:TD> 85.60</vot:TD><vot:TD> 0.53315E+00</vot:TD><vot:TD> 0.76385E-01</vot:TD><vot:TD>  24.5654529</vot:TD></vot:TR>
-<vot:TR><vot:TD>Ceres</vot:TD><vot:TD> 2460594.50000000000</vot:TD><vot:TD>18 58  3.30476</vot:TD><vot:TD>-30 10 19.1285</vot:TD><vot:TD>   2.867761142</vot:TD><vot:TD>  8.97</vot:TD><vot:TD> 19.70</vot:TD><vot:TD> 84.83</vot:TD><vot:TD> 0.54183E+00</vot:TD><vot:TD> 0.78054E-01</vot:TD><vot:TD>  24.5355018</vot:TD></vot:TR>
-<vot:TR><vot:TD>Ceres</vot:TD><vot:TD> 2460595.50000000000</vot:TD><vot:TD>18 59  3.93333</vot:TD><vot:TD>-30 08 25.5139</vot:TD><vot:TD>   2.881922158</vot:TD><vot:TD>  8.98</vot:TD><vot:TD> 19.66</vot:TD><vot:TD> 84.07</vot:TD><vot:TD> 0.55036E+00</vot:TD><vot:TD> 0.79740E-01</vot:TD><vot:TD>  24.5014029</vot:TD></vot:TR>
-<vot:TR><vot:TD>Ceres</vot:TD><vot:TD> 2460596.50000000000</vot:TD><vot:TD>19 00  5.48019</vot:TD><vot:TD>-30 06 29.4618</vot:TD><vot:TD>   2.896062331</vot:TD><vot:TD>  8.99</vot:TD><vot:TD> 19.62</vot:TD><vot:TD> 83.31</vot:TD><vot:TD> 0.55873E+00</vot:TD><vot:TD> 0.81440E-01</vot:TD><vot:TD>  24.4633616</vot:TD></vot:TR>
-<vot:TR><vot:TD>Ceres</vot:TD><vot:TD> 2460597.50000000000</vot:TD><vot:TD>19 01  7.92741</vot:TD><vot:TD>-30 04 30.9495</vot:TD><vot:TD>   2.910179448</vot:TD><vot:TD>  9.00</vot:TD><vot:TD> 19.58</vot:TD><vot:TD> 82.56</vot:TD><vot:TD> 0.56696E+00</vot:TD><vot:TD> 0.83157E-01</vot:TD><vot:TD>  24.4216046</vot:TD></vot:TR>
-<vot:TR><vot:TD>Ceres</vot:TD><vot:TD> 2460598.50000000000</vot:TD><vot:TD>19 02 11.25738</vot:TD><vot:TD>-30 02 29.9536</vot:TD><vot:TD>   2.924271431</vot:TD><vot:TD>  9.01</vot:TD><vot:TD> 19.54</vot:TD><vot:TD> 81.81</vot:TD><vot:TD> 0.57503E+00</vot:TD><vot:TD> 0.84890E-01</vot:TD><vot:TD>  24.3763655</vot:TD></vot:TR>
-</vot:TABLEDATA>
-</vot:DATA>
-</vot:TABLE>
-</vot:RESOURCE>
+<?xml version="1.0" encoding="UTF-8"?>
+<vot:VOTABLE version="1.4" xsi:schemaLocation="http://www.ivoa.net/xml/VOTable/v1.3 http://www.ivoa.net/xml/VOTable/v1.3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:vot="http://www.ivoa.net/xml/VOTable/v1.3" xmlns:stc="http://www.ivoa.net/xml/STC">
+  <vot:COOSYS ID="ICRS" system="ICRS" equinox="J2000"/>
+  <vot:INFO ID="status" name="QUERY_STATUS" value="OK"/>
+  <vot:INFO ID="supplier" name="Supplier" value="Provided by LTE/OBSPM/CNRS"/>
+  <vot:GROUP ID="ICRS-INPOP" utype="stc:AstroCoordSystem">
+    <vot:GROUP utype="stc:AstroCoordSystem.TimeFrame">
+      <vot:PARAM name="TimeScale" datatype="char" arraysize="*" utype="stc:AstroCoordSystem.TimeFrame.TimeScale" value="UTC"/>
+      <vot:PARAM name="RefPosition" datatype="char" arraysize="*" utype="stc:AstroCoordSystem.TimeFrame.ReferencePosition" value="GEOCENTER"/>
+    </vot:GROUP>
+    <vot:GROUP utype="stc:AstroCoordSystem.SpaceFrame">
+      <vot:PARAM name="CooFrame" datatype="char" arraysize="*" utype="stc:AstroCoordSystem.SpaceFrame.CoordRefFrame" value="ICRS"/>
+      <vot:PARAM name="CooFrameOrigin" datatype="char" arraysize="*" utype="stc:AstroCoordSystem.SpaceFrame.ReferencePosition" value="GEOCENTER"/>
+      <vot:PARAM name="Ephemeris" datatype="char" arraysize="*" utype="stc:AstroCoordSystem.SpaceFrame.ReferencePosition.PlanetaryEphem" value="INPOP">
+        <vot:DESCRIPTION>Planetary theory used to compute the ephemeris</vot:DESCRIPTION>
+      </vot:PARAM>
+      <vot:PARAM name="CooType" datatype="char" arraysize="*" utype="stc:AstroCoordSystem.SpaceFrame.CoordFlavor" value="SPHERICAL"/>
+      <vot:PARAM name="Naxes" datatype="char" arraysize="*" utype="stc:AstroCoordSystem.SpaceFrame.coord_naxes" value="3"/>
+    </vot:GROUP>
+  </vot:GROUP>
+  <vot:GROUP ID="Curation" utype="Curation">
+    <vot:PARAM name="Collection" datatype="char" arraysize="*" utype="DataID.Collection" value="Miriade.ephemcc"/>
+    <vot:PARAM name="Contact" datatype="char" arraysize="*" ucd="meta.human;meta.curation" utype="Curation.Contact.Name" value="J. Berthier"/>
+    <vot:PARAM name="CreationType" datatype="char" arraysize="*" utype="sed:Segment.DataID.CreationType" value="Calculation"/>
+    <vot:PARAM name="Creator" datatype="char" arraysize="*" utype="DataID.Creator" value="J. Berthier, F. Vachier, B. Carry"/>
+    <vot:PARAM name="Email" datatype="char" arraysize="*" utype="Curation.ContactEmail" value="vossp.lte@obspm.fr"/>
+    <vot:PARAM name="PubID" datatype="char" arraysize="*" ucd="meta.curation.pubid" utype="Curation.PubID" value="ivo://vopdc.obspm/imcce"/>
+    <vot:PARAM name="Publisher" datatype="char" arraysize="*" ucd="meta.organization;meta.curation" utype="Curation.Publisher" value="Service des ephemerides, LTE/OBSPM/CNRS"/>
+    <vot:PARAM name="Reference" datatype="char" arraysize="*" ucd="meta.bib.bibcode" utype="spec:Curation.Reference" value="2009epsc.conf..676B">
+      <vot:DESCRIPTION>Berthier et al., 2009, EPSC, 676</vot:DESCRIPTION>
+    </vot:PARAM>
+  </vot:GROUP>
+  <vot:RESOURCE name="Miriade.ephemcc">
+    <vot:DESCRIPTION>Positional ephemerides of solar system objects</vot:DESCRIPTION>
+    <vot:TABLE ID="Miriade.ephemcc.ephemeris" name="Miriade.ephemcc.ephemeris" nrows="61">
+      <vot:GROUP ID="Ephemeris" utype="stc:AstroCoords" ref="Ephemeris">
+        <vot:PARAM name="Ephemerides" datatype="char" arraysize="*" utype="stc:AstroCoords.coord_system_id" value="UTC-ICRS-GEO"/>
+        <vot:FIELDref ref="ra"/>
+        <vot:FIELDref ref="dec"/>
+        <vot:FIELDref ref="dobs"/>
+      </vot:GROUP>
+      <vot:PARAM ID="planetary_theory" name="Planetary theory" datatype="char" arraysize="*" ucd="meta.note" value="INPOP19A">
+        <vot:DESCRIPTION>Planetary theory</vot:DESCRIPTION>
+      </vot:PARAM>
+      <vot:PARAM ID="frame_type" name="Frame type" datatype="char" arraysize="*" ucd="pos.frame" value="J2000 astrometric">
+        <vot:DESCRIPTION>Frame type</vot:DESCRIPTION>
+      </vot:PARAM>
+      <vot:PARAM ID="coord_type" name="Coordinate type" datatype="char" arraysize="*" ucd="meta.note" value="Equatorial">
+        <vot:DESCRIPTION>Coordinate type</vot:DESCRIPTION>
+      </vot:PARAM>
+      <vot:PARAM ID="frame_center" name="Frame center" datatype="char" arraysize="*" ucd="meta.note" value="Geocenter">
+        <vot:DESCRIPTION>Frame center</vot:DESCRIPTION>
+      </vot:PARAM>
+      <vot:PARAM ID="precnut_model" name="Precession-Nutation model" datatype="char" arraysize="*" ucd="meta.note" value="IAU2000">
+        <vot:DESCRIPTION>Precession/nutation model</vot:DESCRIPTION>
+      </vot:PARAM>
+      <vot:PARAM ID="relativistic_correction" name="Relativistic correction" datatype="char" arraysize="*" ucd="meta.note" value="yes">
+        <vot:DESCRIPTION>Relativistic perturbations</vot:DESCRIPTION>
+      </vot:PARAM>
+      <vot:PARAM ID="relativistic_parameters" name="Relativistic parameters" datatype="char" arraysize="*" ucd="meta.note" value="beta=gamma=1,alpha=0">
+        <vot:DESCRIPTION>PPN coordinate system</vot:DESCRIPTION>
+      </vot:PARAM>
+      <vot:PARAM ID="target_type" name="Target type" datatype="char" arraysize="*" ucd="src.class" value="Asteroid"/>
+      <vot:PARAM ID="target_name" name="Target name" datatype="char" arraysize="*" ucd="meta.id" value="Ceres"/>
+      <vot:PARAM ID="target_num" name="Target number" datatype="int" ucd="meta.id.part" value="1"/>
+      <vot:PARAM ID="target_source" name="Target source" datatype="char" arraysize="*" ucd="meta.id.part" value="ASTORB"/>
+      <vot:PARAM ID="author_name" name="Author name" datatype="char" arraysize="*" ucd="meta.note" value="L.H. Wasserman"/>
+      <vot:PARAM ID="number_obs" name="Number of observations" datatype="int" ucd="meta.note" value="6927"/>
+      <vot:PARAM ID="orbit_arc" name="Orbital arc" datatype="int" ucd="meta.note" unit="d" value="82151"/>
+      <vot:PARAM ID="ceu" name="CEU" datatype="double" unit="arcsec" ucd="stat.error;pos" value="0.100E-01"/>
+      <vot:PARAM ID="ceu_rate" name="CEU rate" unit="arcsec/d" datatype="double" ucd="stat.error;arith.rate;pos" value="0.110E-04"/>
+      <vot:PARAM ID="diameter" name="Diameter" unit="km" datatype="double" ucd="phys.size.diameter" value="0.0000000000000000"/>
+      <vot:PARAM ID="absolute_magnitude" name="Absolute magnitude" unit="mag" datatype="double" ucd="meta.note" value="3.3500000000000001"/>
+      <vot:PARAM ID="slope_parameter" name="Slope parameter" datatype="double" ucd="meta.note" value="0.14999999999999999"/>
+      <vot:PARAM ID="orbital_period" name="Orbital period" unit="d" datatype="double" ucd="meta.note" value="1679.8531425079527"/>
+      <vot:PARAM ID="system_mass" name="System mass" unit="kg" datatype="double" ucd="meta.note" value="0.0000000000000000"/>
+      <vot:PARAM ID="dynamical_class" name="Dynamical class" datatype="char" arraysize="*" ucd="meta.note" value="MB&gt;Middle"/>
+      <vot:PARAM ID="taxonomical_class" name="Taxonomical class" datatype="char" arraysize="*" ucd="meta.note" value="C"/>
+      <vot:PARAM ID="taxonomical_param" name="Taxonomical parameter" datatype="char" arraysize="*" ucd="meta.note" value="a"/>
+      <vot:PARAM ID="taxonomical_source" name="Taxonomical source" datatype="char" arraysize="*" ucd="meta.note" value="DeMeo et al. (2009)"/>
+      <vot:PARAM ID="ref_epoch" name="Reference epoch" unit="d" datatype="double" ucd="meta.note" value="2461200.5000000000"/>
+      <vot:PARAM ID="semimajor_axis" name="Semi-major axis" unit="au" datatype="double" ucd="meta.note" value="2.7655526199999998"/>
+      <vot:PARAM ID="eccentricity" name="Eccentricity" datatype="double" ucd="meta.note" value="7.9692150000000003E-002"/>
+      <vot:PARAM ID="inclination" name="Inclination" unit="deg" datatype="double" ucd="meta.note" value="10.588018000000000"/>
+      <vot:PARAM ID="node_longitude" name="Longitude of the node" unit="deg" datatype="double" ucd="meta.note" value="80.248682000000002"/>
+      <vot:PARAM ID="perihelion_argument" name="Perihelion argument" unit="deg" datatype="double" ucd="meta.note" value="73.293873999999988"/>
+      <vot:PARAM ID="mean_anomaly" name="Mean anomaly" unit="deg" datatype="double" ucd="meta.note" value="274.41957399999995"/>
+      <vot:FIELD ID="date" name="Date" datatype="double" ucd="time.epoch" ref="Ephemeris" utype="stc:AstroCoords.Time.TimeInstant.JDTime">
+        <vot:DESCRIPTION>Date</vot:DESCRIPTION>
+      </vot:FIELD>
+      <vot:FIELD ID="RA" name="RA" datatype="char" arraysize="*" ucd="pos.eq.ra;meta.main" unit="h min s" ref="Ephemeris" utype="stc:AstroCoords.Position3D.Value3.C1">
+        <vot:DESCRIPTION>Right ascension</vot:DESCRIPTION>
+      </vot:FIELD>
+      <vot:FIELD ID="DEC" name="DEC" datatype="char" arraysize="*" ucd="pos.eq.dec;meta.main" unit="deg arcmin arcsec" ref="Ephemeris" utype="stc:AstroCoords.Position3D.Value3.C2">
+        <vot:DESCRIPTION>Declination</vot:DESCRIPTION>
+      </vot:FIELD>
+      <vot:FIELD ID="dobs" name="Dobs" datatype="double" width="14" precision="9" ucd="phys.distance" unit="au" ref="Ephemeris" utype="stc:AstroCoords.Position3D.Value3.C3">
+        <vot:DESCRIPTION>Range of target center to observer</vot:DESCRIPTION>
+      </vot:FIELD>
+      <vot:FIELD ID="vmag" name="VMag" datatype="double" width="7" precision="2" ucd="phot.mag" unit="mag">
+        <vot:DESCRIPTION>Apparent magnitude</vot:DESCRIPTION>
+      </vot:FIELD>
+      <vot:FIELD ID="phase" name="Phase" datatype="double" width="7" precision="2" ucd="pos.phaseAng" unit="deg">
+        <vot:DESCRIPTION>Phase angle</vot:DESCRIPTION>
+      </vot:FIELD>
+      <vot:FIELD ID="elong" name="Elong." datatype="double" width="8" precision="2" ucd="pos.angDistance" unit="deg">
+        <vot:DESCRIPTION>Sun elongation</vot:DESCRIPTION>
+      </vot:FIELD>
+      <vot:FIELD ID="dRAcosDEC" name="dRAcosDEC" datatype="double" width="12" precision="4" ucd="pos.eq.ra;arith.rate" unit="arcsec/min" ref="Ephemeris" utype="stc:AstroCoords.Velocity3D.C1">
+        <vot:DESCRIPTION>Component of proper motion in right ascension corrected for the declination</vot:DESCRIPTION>
+      </vot:FIELD>
+      <vot:FIELD ID="dDEC" name="dDEC" datatype="double" width="12" precision="4" ucd="pos.eq.dec;arith.rate" unit="arcsec/min" ref="Ephemeris" utype="stc:AstroCoords.Velocity3D.C2">
+        <vot:DESCRIPTION>Component of proper motion in declination</vot:DESCRIPTION>
+      </vot:FIELD>
+      <vot:FIELD ID="rv" name="RV" datatype="double" width="10" precision="5" ucd="phys.distance;arith.rate" unit="km/s">
+        <vot:DESCRIPTION>Radial velocity of target wrt observer</vot:DESCRIPTION>
+      </vot:FIELD>
+      <vot:DATA>
+        <vot:TABLEDATA>
+          <vot:TR>
+            <vot:TD>2.460538500000e6</vot:TD>
+            <vot:TD>+18 34 29.78613</vot:TD>
+            <vot:TD>-30 54 55.9391</vot:TD>
+            <vot:TD>2.131084368</vot:TD>
+            <vot:TD>8.14</vot:TD>
+            <vot:TD>14.51</vot:TD>
+            <vot:TD>133.67</vot:TD>
+            <vot:TD>-0.1513E+00</vot:TD>
+            <vot:TD>-0.2115E-01</vot:TD>
+            <vot:TD>18.00991</vot:TD>
+          </vot:TR>
+          <vot:TR>
+            <vot:TD>2.460539500000e6</vot:TD>
+            <vot:TD>+18 34 13.67474</vot:TD>
+            <vot:TD>-30 55 24.3692</vot:TD>
+            <vot:TD>2.141568635</vot:TD>
+            <vot:TD>8.16</vot:TD>
+            <vot:TD>14.75</vot:TD>
+            <vot:TD>132.66</vot:TD>
+            <vot:TD>-0.1366E+00</vot:TD>
+            <vot:TD>-0.1836E-01</vot:TD>
+            <vot:TD>18.29466</vot:TD>
+          </vot:TR>
+          <vot:TR>
+            <vot:TD>2.460540500000e6</vot:TD>
+            <vot:TD>+18 33 59.20668</vot:TD>
+            <vot:TD>-30 55 48.8336</vot:TD>
+            <vot:TD>2.152215361</vot:TD>
+            <vot:TD>8.18</vot:TD>
+            <vot:TD>14.98</vot:TD>
+            <vot:TD>131.67</vot:TD>
+            <vot:TD>-0.1219E+00</vot:TD>
+            <vot:TD>-0.1564E-01</vot:TD>
+            <vot:TD>18.57251</vot:TD>
+          </vot:TR>
+          <vot:TR>
+            <vot:TD>2.460541500000e6</vot:TD>
+            <vot:TD>+18 33 46.38280</vot:TD>
+            <vot:TD>-30 56 09.4441</vot:TD>
+            <vot:TD>2.163020621</vot:TD>
+            <vot:TD>8.20</vot:TD>
+            <vot:TD>15.21</vot:TD>
+            <vot:TD>130.67</vot:TD>
+            <vot:TD>-0.1072E+00</vot:TD>
+            <vot:TD>-0.1301E-01</vot:TD>
+            <vot:TD>18.84367</vot:TD>
+          </vot:TR>
+          <vot:TR>
+            <vot:TD>2.460542500000e6</vot:TD>
+            <vot:TD>+18 33 35.20274</vot:TD>
+            <vot:TD>-30 56 26.3093</vot:TD>
+            <vot:TD>2.173980617</vot:TD>
+            <vot:TD>8.22</vot:TD>
+            <vot:TD>15.43</vot:TD>
+            <vot:TD>129.69</vot:TD>
+            <vot:TD>-0.9251E-01</vot:TD>
+            <vot:TD>-0.1044E-01</vot:TD>
+            <vot:TD>19.10837</vot:TD>
+          </vot:TR>
+          <vot:TR>
+            <vot:TD>2.460543500000e6</vot:TD>
+            <vot:TD>+18 33 25.66528</vot:TD>
+            <vot:TD>-30 56 39.5342</vot:TD>
+            <vot:TD>2.185091676</vot:TD>
+            <vot:TD>8.23</vot:TD>
+            <vot:TD>15.65</vot:TD>
+            <vot:TD>128.71</vot:TD>
+            <vot:TD>-0.7784E-01</vot:TD>
+            <vot:TD>-0.7949E-02</vot:TD>
+            <vot:TD>19.36680</vot:TD>
+          </vot:TR>
+          <vot:TR>
+            <vot:TD>2.460544500000e6</vot:TD>
+            <vot:TD>+18 33 17.76873</vot:TD>
+            <vot:TD>-30 56 49.2199</vot:TD>
+            <vot:TD>2.196350227</vot:TD>
+            <vot:TD>8.25</vot:TD>
+            <vot:TD>15.86</vot:TD>
+            <vot:TD>127.73</vot:TD>
+            <vot:TD>-0.6318E-01</vot:TD>
+            <vot:TD>-0.5526E-02</vot:TD>
+            <vot:TD>19.61913</vot:TD>
+          </vot:TR>
+          <vot:TR>
+            <vot:TD>2.460545500000e6</vot:TD>
+            <vot:TD>+18 33 11.51113</vot:TD>
+            <vot:TD>-30 56 55.4636</vot:TD>
+            <vot:TD>2.207752769</vot:TD>
+            <vot:TD>8.27</vot:TD>
+            <vot:TD>16.07</vot:TD>
+            <vot:TD>126.76</vot:TD>
+            <vot:TD>-0.4855E-01</vot:TD>
+            <vot:TD>-0.3168E-02</vot:TD>
+            <vot:TD>19.86542</vot:TD>
+          </vot:TR>
+          <vot:TR>
+            <vot:TD>2.460546500000e6</vot:TD>
+            <vot:TD>+18 33 06.89039</vot:TD>
+            <vot:TD>-30 56 58.3587</vot:TD>
+            <vot:TD>2.219295816</vot:TD>
+            <vot:TD>8.29</vot:TD>
+            <vot:TD>16.27</vot:TD>
+            <vot:TD>125.79</vot:TD>
+            <vot:TD>-0.3393E-01</vot:TD>
+            <vot:TD>-0.8742E-03</vot:TD>
+            <vot:TD>20.10566</vot:TD>
+          </vot:TR>
+          <vot:TR>
+            <vot:TD>2.460547500000e6</vot:TD>
+            <vot:TD>+18 33 03.90423</vot:TD>
+            <vot:TD>-30 56 57.9944</vot:TD>
+            <vot:TD>2.230975858</vot:TD>
+            <vot:TD>8.31</vot:TD>
+            <vot:TD>16.46</vot:TD>
+            <vot:TD>124.83</vot:TD>
+            <vot:TD>-0.1934E-01</vot:TD>
+            <vot:TD>0.1359E-02</vot:TD>
+            <vot:TD>20.33979</vot:TD>
+          </vot:TR>
+          <vot:TR>
+            <vot:TD>2.460548500000e6</vot:TD>
+            <vot:TD>+18 33 02.54997</vot:TD>
+            <vot:TD>-30 56 54.4569</vot:TD>
+            <vot:TD>2.242789329</vot:TD>
+            <vot:TD>8.33</vot:TD>
+            <vot:TD>16.65</vot:TD>
+            <vot:TD>123.87</vot:TD>
+            <vot:TD>-0.4777E-02</vot:TD>
+            <vot:TD>0.3533E-02</vot:TD>
+            <vot:TD>20.56768</vot:TD>
+          </vot:TR>
+          <vot:TR>
+            <vot:TD>2.460549500000e6</vot:TD>
+            <vot:TD>+18 33 02.82438</vot:TD>
+            <vot:TD>-30 56 47.8284</vot:TD>
+            <vot:TD>2.254732590</vot:TD>
+            <vot:TD>8.35</vot:TD>
+            <vot:TD>16.83</vot:TD>
+            <vot:TD>122.92</vot:TD>
+            <vot:TD>0.9757E-02</vot:TD>
+            <vot:TD>0.5652E-02</vot:TD>
+            <vot:TD>20.78921</vot:TD>
+          </vot:TR>
+          <vot:TR>
+            <vot:TD>2.460550500000e6</vot:TD>
+            <vot:TD>+18 33 04.72351</vot:TD>
+            <vot:TD>-30 56 38.1883</vot:TD>
+            <vot:TD>2.266801928</vot:TD>
+            <vot:TD>8.36</vot:TD>
+            <vot:TD>17.01</vot:TD>
+            <vot:TD>121.97</vot:TD>
+            <vot:TD>0.2425E-01</vot:TD>
+            <vot:TD>0.7717E-02</vot:TD>
+            <vot:TD>21.00424</vot:TD>
+          </vot:TR>
+          <vot:TR>
+            <vot:TD>2.460551500000e6</vot:TD>
+            <vot:TD>+18 33 08.24249</vot:TD>
+            <vot:TD>-30 56 25.6121</vot:TD>
+            <vot:TD>2.278993555</vot:TD>
+            <vot:TD>8.38</vot:TD>
+            <vot:TD>17.18</vot:TD>
+            <vot:TD>121.03</vot:TD>
+            <vot:TD>0.3870E-01</vot:TD>
+            <vot:TD>0.9730E-02</vot:TD>
+            <vot:TD>21.21266</vot:TD>
+          </vot:TR>
+          <vot:TR>
+            <vot:TD>2.460552500000e6</vot:TD>
+            <vot:TD>+18 33 13.37549</vot:TD>
+            <vot:TD>-30 56 10.1726</vot:TD>
+            <vot:TD>2.291303626</vot:TD>
+            <vot:TD>8.40</vot:TD>
+            <vot:TD>17.34</vot:TD>
+            <vot:TD>120.10</vot:TD>
+            <vot:TD>0.5310E-01</vot:TD>
+            <vot:TD>0.1169E-01</vot:TD>
+            <vot:TD>21.41437</vot:TD>
+          </vot:TR>
+          <vot:TR>
+            <vot:TD>2.460553500000e6</vot:TD>
+            <vot:TD>+18 33 20.11567</vot:TD>
+            <vot:TD>-30 55 51.9388</vot:TD>
+            <vot:TD>2.303728242</vot:TD>
+            <vot:TD>8.42</vot:TD>
+            <vot:TD>17.50</vot:TD>
+            <vot:TD>119.17</vot:TD>
+            <vot:TD>0.6742E-01</vot:TD>
+            <vot:TD>0.1361E-01</vot:TD>
+            <vot:TD>21.60929</vot:TD>
+          </vot:TR>
+          <vot:TR>
+            <vot:TD>2.460554500000e6</vot:TD>
+            <vot:TD>+18 33 28.45508</vot:TD>
+            <vot:TD>-30 55 30.9767</vot:TD>
+            <vot:TD>2.316263470</vot:TD>
+            <vot:TD>8.43</vot:TD>
+            <vot:TD>17.65</vot:TD>
+            <vot:TD>118.24</vot:TD>
+            <vot:TD>0.8168E-01</vot:TD>
+            <vot:TD>0.1548E-01</vot:TD>
+            <vot:TD>21.79739</vot:TD>
+          </vot:TR>
+          <vot:TR>
+            <vot:TD>2.460555500000e6</vot:TD>
+            <vot:TD>+18 33 38.38475</vot:TD>
+            <vot:TD>-30 55 07.3488</vot:TD>
+            <vot:TD>2.328905351</vot:TD>
+            <vot:TD>8.45</vot:TD>
+            <vot:TD>17.80</vot:TD>
+            <vot:TD>117.32</vot:TD>
+            <vot:TD>0.9585E-01</vot:TD>
+            <vot:TD>0.1731E-01</vot:TD>
+            <vot:TD>21.97861</vot:TD>
+          </vot:TR>
+          <vot:TR>
+            <vot:TD>2.460556500000e6</vot:TD>
+            <vot:TD>+18 33 49.89464</vot:TD>
+            <vot:TD>-30 54 41.1141</vot:TD>
+            <vot:TD>2.341649913</vot:TD>
+            <vot:TD>8.47</vot:TD>
+            <vot:TD>17.94</vot:TD>
+            <vot:TD>116.40</vot:TD>
+            <vot:TD>0.1099E+00</vot:TD>
+            <vot:TD>0.1910E-01</vot:TD>
+            <vot:TD>22.15295</vot:TD>
+          </vot:TR>
+          <vot:TR>
+            <vot:TD>2.460557500000e6</vot:TD>
+            <vot:TD>+18 34 02.97367</vot:TD>
+            <vot:TD>-30 54 12.3284</vot:TD>
+            <vot:TD>2.354493185</vot:TD>
+            <vot:TD>8.48</vot:TD>
+            <vot:TD>18.08</vot:TD>
+            <vot:TD>115.49</vot:TD>
+            <vot:TD>0.1239E+00</vot:TD>
+            <vot:TD>0.2086E-01</vot:TD>
+            <vot:TD>22.32042</vot:TD>
+          </vot:TR>
+          <vot:TR>
+            <vot:TD>2.460558500000e6</vot:TD>
+            <vot:TD>+18 34 17.60978</vot:TD>
+            <vot:TD>-30 53 41.0441</vot:TD>
+            <vot:TD>2.367431207</vot:TD>
+            <vot:TD>8.50</vot:TD>
+            <vot:TD>18.21</vot:TD>
+            <vot:TD>114.59</vot:TD>
+            <vot:TD>0.1378E+00</vot:TD>
+            <vot:TD>0.2258E-01</vot:TD>
+            <vot:TD>22.48106</vot:TD>
+          </vot:TR>
+          <vot:TR>
+            <vot:TD>2.460559500000e6</vot:TD>
+            <vot:TD>+18 34 33.78998</vot:TD>
+            <vot:TD>-30 53 07.3100</vot:TD>
+            <vot:TD>2.380460043</vot:TD>
+            <vot:TD>8.52</vot:TD>
+            <vot:TD>18.34</vot:TD>
+            <vot:TD>113.69</vot:TD>
+            <vot:TD>0.1515E+00</vot:TD>
+            <vot:TD>0.2426E-01</vot:TD>
+            <vot:TD>22.63490</vot:TD>
+          </vot:TR>
+          <vot:TR>
+            <vot:TD>2.460560500000e6</vot:TD>
+            <vot:TD>+18 34 51.50039</vot:TD>
+            <vot:TD>-30 52 31.1718</vot:TD>
+            <vot:TD>2.393575789</vot:TD>
+            <vot:TD>8.53</vot:TD>
+            <vot:TD>18.46</vot:TD>
+            <vot:TD>112.79</vot:TD>
+            <vot:TD>0.1652E+00</vot:TD>
+            <vot:TD>0.2591E-01</vot:TD>
+            <vot:TD>22.78202</vot:TD>
+          </vot:TR>
+          <vot:TR>
+            <vot:TD>2.460561500000e6</vot:TD>
+            <vot:TD>+18 35 10.72631</vot:TD>
+            <vot:TD>-30 51 52.6717</vot:TD>
+            <vot:TD>2.406774585</vot:TD>
+            <vot:TD>8.55</vot:TD>
+            <vot:TD>18.57</vot:TD>
+            <vot:TD>111.90</vot:TD>
+            <vot:TD>0.1787E+00</vot:TD>
+            <vot:TD>0.2754E-01</vot:TD>
+            <vot:TD>22.92250</vot:TD>
+          </vot:TR>
+          <vot:TR>
+            <vot:TD>2.460562500000e6</vot:TD>
+            <vot:TD>+18 35 31.45229</vot:TD>
+            <vot:TD>-30 51 11.8487</vot:TD>
+            <vot:TD>2.420052618</vot:TD>
+            <vot:TD>8.56</vot:TD>
+            <vot:TD>18.68</vot:TD>
+            <vot:TD>111.01</vot:TD>
+            <vot:TD>0.1920E+00</vot:TD>
+            <vot:TD>0.2914E-01</vot:TD>
+            <vot:TD>23.05642</vot:TD>
+          </vot:TR>
+          <vot:TR>
+            <vot:TD>2.460563500000e6</vot:TD>
+            <vot:TD>+18 35 53.66215</vot:TD>
+            <vot:TD>-30 50 28.7384</vot:TD>
+            <vot:TD>2.433406131</vot:TD>
+            <vot:TD>8.58</vot:TD>
+            <vot:TD>18.78</vot:TD>
+            <vot:TD>110.13</vot:TD>
+            <vot:TD>0.2053E+00</vot:TD>
+            <vot:TD>0.3072E-01</vot:TD>
+            <vot:TD>23.18389</vot:TD>
+          </vot:TR>
+          <vot:TR>
+            <vot:TD>2.460564500000e6</vot:TD>
+            <vot:TD>+18 36 17.33907</vot:TD>
+            <vot:TD>-30 49 43.3734</vot:TD>
+            <vot:TD>2.446831436</vot:TD>
+            <vot:TD>8.60</vot:TD>
+            <vot:TD>18.88</vot:TD>
+            <vot:TD>109.25</vot:TD>
+            <vot:TD>0.2183E+00</vot:TD>
+            <vot:TD>0.3227E-01</vot:TD>
+            <vot:TD>23.30504</vot:TD>
+          </vot:TR>
+          <vot:TR>
+            <vot:TD>2.460565500000e6</vot:TD>
+            <vot:TD>+18 36 42.46561</vot:TD>
+            <vot:TD>-30 48 55.7832</vot:TD>
+            <vot:TD>2.460324916</vot:TD>
+            <vot:TD>8.61</vot:TD>
+            <vot:TD>18.98</vot:TD>
+            <vot:TD>108.38</vot:TD>
+            <vot:TD>0.2313E+00</vot:TD>
+            <vot:TD>0.3381E-01</vot:TD>
+            <vot:TD>23.41999</vot:TD>
+          </vot:TR>
+          <vot:TR>
+            <vot:TD>2.460566500000e6</vot:TD>
+            <vot:TD>+18 37 09.02377</vot:TD>
+            <vot:TD>-30 48 05.9942</vot:TD>
+            <vot:TD>2.473883042</vot:TD>
+            <vot:TD>8.63</vot:TD>
+            <vot:TD>19.06</vot:TD>
+            <vot:TD>107.51</vot:TD>
+            <vot:TD>0.2440E+00</vot:TD>
+            <vot:TD>0.3533E-01</vot:TD>
+            <vot:TD>23.52893</vot:TD>
+          </vot:TR>
+          <vot:TR>
+            <vot:TD>2.460567500000e6</vot:TD>
+            <vot:TD>+18 37 36.99503</vot:TD>
+            <vot:TD>-30 47 14.0297</vot:TD>
+            <vot:TD>2.487502390</vot:TD>
+            <vot:TD>8.64</vot:TD>
+            <vot:TD>19.15</vot:TD>
+            <vot:TD>106.65</vot:TD>
+            <vot:TD>0.2566E+00</vot:TD>
+            <vot:TD>0.3683E-01</vot:TD>
+            <vot:TD>23.63203</vot:TD>
+          </vot:TR>
+          <vot:TR>
+            <vot:TD>2.460568500000e6</vot:TD>
+            <vot:TD>+18 38 06.36053</vot:TD>
+            <vot:TD>-30 46 19.9104</vot:TD>
+            <vot:TD>2.501179661</vot:TD>
+            <vot:TD>8.66</vot:TD>
+            <vot:TD>19.23</vot:TD>
+            <vot:TD>105.79</vot:TD>
+            <vot:TD>0.2690E+00</vot:TD>
+            <vot:TD>0.3832E-01</vot:TD>
+            <vot:TD>23.72954</vot:TD>
+          </vot:TR>
+          <vot:TR>
+            <vot:TD>2.460569500000e6</vot:TD>
+            <vot:TD>+18 38 37.10116</vot:TD>
+            <vot:TD>-30 45 23.6534</vot:TD>
+            <vot:TD>2.514911693</vot:TD>
+            <vot:TD>8.67</vot:TD>
+            <vot:TD>19.30</vot:TD>
+            <vot:TD>104.94</vot:TD>
+            <vot:TD>0.2813E+00</vot:TD>
+            <vot:TD>0.3980E-01</vot:TD>
+            <vot:TD>23.82171</vot:TD>
+          </vot:TR>
+          <vot:TR>
+            <vot:TD>2.460570500000e6</vot:TD>
+            <vot:TD>+18 39 09.19789</vot:TD>
+            <vot:TD>-30 44 25.2732</vot:TD>
+            <vot:TD>2.528695483</vot:TD>
+            <vot:TD>8.69</vot:TD>
+            <vot:TD>19.37</vot:TD>
+            <vot:TD>104.09</vot:TD>
+            <vot:TD>0.2934E+00</vot:TD>
+            <vot:TD>0.4127E-01</vot:TD>
+            <vot:TD>23.90880</vot:TD>
+          </vot:TR>
+          <vot:TR>
+            <vot:TD>2.460571500000e6</vot:TD>
+            <vot:TD>+18 39 42.63196</vot:TD>
+            <vot:TD>-30 43 24.7805</vot:TD>
+            <vot:TD>2.542528172</vot:TD>
+            <vot:TD>8.70</vot:TD>
+            <vot:TD>19.43</vot:TD>
+            <vot:TD>103.24</vot:TD>
+            <vot:TD>0.3054E+00</vot:TD>
+            <vot:TD>0.4273E-01</vot:TD>
+            <vot:TD>23.99107</vot:TD>
+          </vot:TR>
+          <vot:TR>
+            <vot:TD>2.460572500000e6</vot:TD>
+            <vot:TD>+18 40 17.38526</vot:TD>
+            <vot:TD>-30 42 22.1831</vot:TD>
+            <vot:TD>2.556407030</vot:TD>
+            <vot:TD>8.71</vot:TD>
+            <vot:TD>19.49</vot:TD>
+            <vot:TD>102.40</vot:TD>
+            <vot:TD>0.3172E+00</vot:TD>
+            <vot:TD>0.4419E-01</vot:TD>
+            <vot:TD>24.06870</vot:TD>
+          </vot:TR>
+          <vot:TR>
+            <vot:TD>2.460573500000e6</vot:TD>
+            <vot:TD>+18 40 53.44040</vot:TD>
+            <vot:TD>-30 41 17.4852</vot:TD>
+            <vot:TD>2.570329407</vot:TD>
+            <vot:TD>8.73</vot:TD>
+            <vot:TD>19.54</vot:TD>
+            <vot:TD>101.57</vot:TD>
+            <vot:TD>0.3288E+00</vot:TD>
+            <vot:TD>0.4565E-01</vot:TD>
+            <vot:TD>24.14177</vot:TD>
+          </vot:TR>
+          <vot:TR>
+            <vot:TD>2.460574500000e6</vot:TD>
+            <vot:TD>+18 41 30.78087</vot:TD>
+            <vot:TD>-30 40 10.6881</vot:TD>
+            <vot:TD>2.584292678</vot:TD>
+            <vot:TD>8.74</vot:TD>
+            <vot:TD>19.59</vot:TD>
+            <vot:TD>100.73</vot:TD>
+            <vot:TD>0.3403E+00</vot:TD>
+            <vot:TD>0.4711E-01</vot:TD>
+            <vot:TD>24.21030</vot:TD>
+          </vot:TR>
+          <vot:TR>
+            <vot:TD>2.460575500000e6</vot:TD>
+            <vot:TD>+18 42 09.39080</vot:TD>
+            <vot:TD>-30 39 01.7901</vot:TD>
+            <vot:TD>2.598294200</vot:TD>
+            <vot:TD>8.75</vot:TD>
+            <vot:TD>19.64</vot:TD>
+            <vot:TD>99.90</vot:TD>
+            <vot:TD>0.3517E+00</vot:TD>
+            <vot:TD>0.4857E-01</vot:TD>
+            <vot:TD>24.27421</vot:TD>
+          </vot:TR>
+          <vot:TR>
+            <vot:TD>2.460576500000e6</vot:TD>
+            <vot:TD>+18 42 49.25487</vot:TD>
+            <vot:TD>-30 37 50.7871</vot:TD>
+            <vot:TD>2.612331271</vot:TD>
+            <vot:TD>8.77</vot:TD>
+            <vot:TD>19.68</vot:TD>
+            <vot:TD>99.08</vot:TD>
+            <vot:TD>0.3629E+00</vot:TD>
+            <vot:TD>0.5003E-01</vot:TD>
+            <vot:TD>24.33338</vot:TD>
+          </vot:TR>
+          <vot:TR>
+            <vot:TD>2.460577500000e6</vot:TD>
+            <vot:TD>+18 43 30.35798</vot:TD>
+            <vot:TD>-30 36 37.6732</vot:TD>
+            <vot:TD>2.626401119</vot:TD>
+            <vot:TD>8.78</vot:TD>
+            <vot:TD>19.71</vot:TD>
+            <vot:TD>98.26</vot:TD>
+            <vot:TD>0.3740E+00</vot:TD>
+            <vot:TD>0.5150E-01</vot:TD>
+            <vot:TD>24.38769</vot:TD>
+          </vot:TR>
+          <vot:TR>
+            <vot:TD>2.460578500000e6</vot:TD>
+            <vot:TD>+18 44 12.68506</vot:TD>
+            <vot:TD>-30 35 22.4402</vot:TD>
+            <vot:TD>2.640500902</vot:TD>
+            <vot:TD>8.79</vot:TD>
+            <vot:TD>19.75</vot:TD>
+            <vot:TD>97.44</vot:TD>
+            <vot:TD>0.3850E+00</vot:TD>
+            <vot:TD>0.5298E-01</vot:TD>
+            <vot:TD>24.43702</vot:TD>
+          </vot:TR>
+          <vot:TR>
+            <vot:TD>2.460579500000e6</vot:TD>
+            <vot:TD>+18 44 56.22098</vot:TD>
+            <vot:TD>-30 34 05.0786</vot:TD>
+            <vot:TD>2.654627720</vot:TD>
+            <vot:TD>8.81</vot:TD>
+            <vot:TD>19.77</vot:TD>
+            <vot:TD>96.62</vot:TD>
+            <vot:TD>0.3959E+00</vot:TD>
+            <vot:TD>0.5446E-01</vot:TD>
+            <vot:TD>24.48129</vot:TD>
+          </vot:TR>
+          <vot:TR>
+            <vot:TD>2.460580500000e6</vot:TD>
+            <vot:TD>+18 45 40.95038</vot:TD>
+            <vot:TD>-30 32 45.5773</vot:TD>
+            <vot:TD>2.668778626</vot:TD>
+            <vot:TD>8.82</vot:TD>
+            <vot:TD>19.80</vot:TD>
+            <vot:TD>95.81</vot:TD>
+            <vot:TD>0.4066E+00</vot:TD>
+            <vot:TD>0.5595E-01</vot:TD>
+            <vot:TD>24.52043</vot:TD>
+          </vot:TR>
+          <vot:TR>
+            <vot:TD>2.460581500000e6</vot:TD>
+            <vot:TD>+18 46 26.85767</vot:TD>
+            <vot:TD>-30 31 23.9240</vot:TD>
+            <vot:TD>2.682950645</vot:TD>
+            <vot:TD>8.83</vot:TD>
+            <vot:TD>19.82</vot:TD>
+            <vot:TD>95.01</vot:TD>
+            <vot:TD>0.4172E+00</vot:TD>
+            <vot:TD>0.5745E-01</vot:TD>
+            <vot:TD>24.55439</vot:TD>
+          </vot:TR>
+          <vot:TR>
+            <vot:TD>2.460582500000e6</vot:TD>
+            <vot:TD>+18 47 13.92701</vot:TD>
+            <vot:TD>-30 30 00.1050</vot:TD>
+            <vot:TD>2.697140783</vot:TD>
+            <vot:TD>8.84</vot:TD>
+            <vot:TD>19.83</vot:TD>
+            <vot:TD>94.20</vot:TD>
+            <vot:TD>0.4277E+00</vot:TD>
+            <vot:TD>0.5896E-01</vot:TD>
+            <vot:TD>24.58317</vot:TD>
+          </vot:TR>
+          <vot:TR>
+            <vot:TD>2.460583500000e6</vot:TD>
+            <vot:TD>+18 48 02.14230</vot:TD>
+            <vot:TD>-30 28 34.1055</vot:TD>
+            <vot:TD>2.711346039</vot:TD>
+            <vot:TD>8.86</vot:TD>
+            <vot:TD>19.84</vot:TD>
+            <vot:TD>93.41</vot:TD>
+            <vot:TD>0.4380E+00</vot:TD>
+            <vot:TD>0.6048E-01</vot:TD>
+            <vot:TD>24.60674</vot:TD>
+          </vot:TR>
+          <vot:TR>
+            <vot:TD>2.460584500000e6</vot:TD>
+            <vot:TD>+18 48 51.48719</vot:TD>
+            <vot:TD>-30 27 05.9096</vot:TD>
+            <vot:TD>2.725563412</vot:TD>
+            <vot:TD>8.87</vot:TD>
+            <vot:TD>19.85</vot:TD>
+            <vot:TD>92.61</vot:TD>
+            <vot:TD>0.4482E+00</vot:TD>
+            <vot:TD>0.6201E-01</vot:TD>
+            <vot:TD>24.62513</vot:TD>
+          </vot:TR>
+          <vot:TR>
+            <vot:TD>2.460585500000e6</vot:TD>
+            <vot:TD>+18 49 41.94505</vot:TD>
+            <vot:TD>-30 25 35.5005</vot:TD>
+            <vot:TD>2.739789911</vot:TD>
+            <vot:TD>8.88</vot:TD>
+            <vot:TD>19.85</vot:TD>
+            <vot:TD>91.82</vot:TD>
+            <vot:TD>0.4582E+00</vot:TD>
+            <vot:TD>0.6355E-01</vot:TD>
+            <vot:TD>24.63835</vot:TD>
+          </vot:TR>
+          <vot:TR>
+            <vot:TD>2.460586500000e6</vot:TD>
+            <vot:TD>+18 50 33.49904</vot:TD>
+            <vot:TD>-30 24 02.8606</vot:TD>
+            <vot:TD>2.754022564</vot:TD>
+            <vot:TD>8.89</vot:TD>
+            <vot:TD>19.85</vot:TD>
+            <vot:TD>91.03</vot:TD>
+            <vot:TD>0.4681E+00</vot:TD>
+            <vot:TD>0.6511E-01</vot:TD>
+            <vot:TD>24.64644</vot:TD>
+          </vot:TR>
+          <vot:TR>
+            <vot:TD>2.460587500000e6</vot:TD>
+            <vot:TD>+18 51 26.13206</vot:TD>
+            <vot:TD>-30 22 27.9713</vot:TD>
+            <vot:TD>2.768258420</vot:TD>
+            <vot:TD>8.90</vot:TD>
+            <vot:TD>19.84</vot:TD>
+            <vot:TD>90.24</vot:TD>
+            <vot:TD>0.4778E+00</vot:TD>
+            <vot:TD>0.6668E-01</vot:TD>
+            <vot:TD>24.64946</vot:TD>
+          </vot:TR>
+          <vot:TR>
+            <vot:TD>2.460588500000e6</vot:TD>
+            <vot:TD>+18 52 19.82681</vot:TD>
+            <vot:TD>-30 20 50.8136</vot:TD>
+            <vot:TD>2.782494565</vot:TD>
+            <vot:TD>8.91</vot:TD>
+            <vot:TD>19.83</vot:TD>
+            <vot:TD>89.46</vot:TD>
+            <vot:TD>0.4874E+00</vot:TD>
+            <vot:TD>0.6826E-01</vot:TD>
+            <vot:TD>24.64745</vot:TD>
+          </vot:TR>
+          <vot:TR>
+            <vot:TD>2.460589500000e6</vot:TD>
+            <vot:TD>+18 53 14.56579</vot:TD>
+            <vot:TD>-30 19 11.3676</vot:TD>
+            <vot:TD>2.796728126</vot:TD>
+            <vot:TD>8.92</vot:TD>
+            <vot:TD>19.82</vot:TD>
+            <vot:TD>88.68</vot:TD>
+            <vot:TD>0.4969E+00</vot:TD>
+            <vot:TD>0.6986E-01</vot:TD>
+            <vot:TD>24.64052</vot:TD>
+          </vot:TR>
+          <vot:TR>
+            <vot:TD>2.460590500000e6</vot:TD>
+            <vot:TD>+18 54 10.33130</vot:TD>
+            <vot:TD>-30 17 29.6132</vot:TD>
+            <vot:TD>2.810956277</vot:TD>
+            <vot:TD>8.94</vot:TD>
+            <vot:TD>19.80</vot:TD>
+            <vot:TD>87.90</vot:TD>
+            <vot:TD>0.5062E+00</vot:TD>
+            <vot:TD>0.7147E-01</vot:TD>
+            <vot:TD>24.62874</vot:TD>
+          </vot:TR>
+          <vot:TR>
+            <vot:TD>2.460591500000e6</vot:TD>
+            <vot:TD>+18 55 07.10551</vot:TD>
+            <vot:TD>-30 15 45.5296</vot:TD>
+            <vot:TD>2.825176250</vot:TD>
+            <vot:TD>8.95</vot:TD>
+            <vot:TD>19.78</vot:TD>
+            <vot:TD>87.13</vot:TD>
+            <vot:TD>0.5153E+00</vot:TD>
+            <vot:TD>0.7309E-01</vot:TD>
+            <vot:TD>24.61222</vot:TD>
+          </vot:TR>
+          <vot:TR>
+            <vot:TD>2.460592500000e6</vot:TD>
+            <vot:TD>+18 56 04.87046</vot:TD>
+            <vot:TD>-30 13 59.0957</vot:TD>
+            <vot:TD>2.839385341</vot:TD>
+            <vot:TD>8.96</vot:TD>
+            <vot:TD>19.75</vot:TD>
+            <vot:TD>86.36</vot:TD>
+            <vot:TD>0.5243E+00</vot:TD>
+            <vot:TD>0.7473E-01</vot:TD>
+            <vot:TD>24.59108</vot:TD>
+          </vot:TR>
+          <vot:TR>
+            <vot:TD>2.460593500000e6</vot:TD>
+            <vot:TD>+18 57 03.60809</vot:TD>
+            <vot:TD>-30 12 10.2902</vot:TD>
+            <vot:TD>2.853580922</vot:TD>
+            <vot:TD>8.97</vot:TD>
+            <vot:TD>19.73</vot:TD>
+            <vot:TD>85.60</vot:TD>
+            <vot:TD>0.5332E+00</vot:TD>
+            <vot:TD>0.7638E-01</vot:TD>
+            <vot:TD>24.56546</vot:TD>
+          </vot:TR>
+          <vot:TR>
+            <vot:TD>2.460594500000e6</vot:TD>
+            <vot:TD>+18 58 03.30027</vot:TD>
+            <vot:TD>-30 10 19.0913</vot:TD>
+            <vot:TD>2.867760446</vot:TD>
+            <vot:TD>8.98</vot:TD>
+            <vot:TD>19.69</vot:TD>
+            <vot:TD>84.83</vot:TD>
+            <vot:TD>0.5418E+00</vot:TD>
+            <vot:TD>0.7805E-01</vot:TD>
+            <vot:TD>24.53550</vot:TD>
+          </vot:TR>
+          <vot:TR>
+            <vot:TD>2.460595500000e6</vot:TD>
+            <vot:TD>+18 59 03.92883</vot:TD>
+            <vot:TD>-30 08 25.4771</vot:TD>
+            <vot:TD>2.881921464</vot:TD>
+            <vot:TD>8.99</vot:TD>
+            <vot:TD>19.66</vot:TD>
+            <vot:TD>84.07</vot:TD>
+            <vot:TD>0.5504E+00</vot:TD>
+            <vot:TD>0.7974E-01</vot:TD>
+            <vot:TD>24.50141</vot:TD>
+          </vot:TR>
+          <vot:TR>
+            <vot:TD>2.460596500000e6</vot:TD>
+            <vot:TD>+19 00 05.47569</vot:TD>
+            <vot:TD>-30 06 29.4254</vot:TD>
+            <vot:TD>2.896061639</vot:TD>
+            <vot:TD>9.00</vot:TD>
+            <vot:TD>19.62</vot:TD>
+            <vot:TD>83.31</vot:TD>
+            <vot:TD>0.5587E+00</vot:TD>
+            <vot:TD>0.8144E-01</vot:TD>
+            <vot:TD>24.46336</vot:TD>
+          </vot:TR>
+          <vot:TR>
+            <vot:TD>2.460597500000e6</vot:TD>
+            <vot:TD>+19 01 07.92290</vot:TD>
+            <vot:TD>-30 04 30.9134</vot:TD>
+            <vot:TD>2.910178758</vot:TD>
+            <vot:TD>9.01</vot:TD>
+            <vot:TD>19.58</vot:TD>
+            <vot:TD>82.56</vot:TD>
+            <vot:TD>0.5670E+00</vot:TD>
+            <vot:TD>0.8316E-01</vot:TD>
+            <vot:TD>24.42161</vot:TD>
+          </vot:TR>
+          <vot:TR>
+            <vot:TD>2.460598500000e6</vot:TD>
+            <vot:TD>+19 02 11.25286</vot:TD>
+            <vot:TD>-30 02 29.9179</vot:TD>
+            <vot:TD>2.924270743</vot:TD>
+            <vot:TD>9.02</vot:TD>
+            <vot:TD>19.53</vot:TD>
+            <vot:TD>81.81</vot:TD>
+            <vot:TD>0.5750E+00</vot:TD>
+            <vot:TD>0.8489E-01</vot:TD>
+            <vot:TD>24.37637</vot:TD>
+          </vot:TR>
+        </vot:TABLEDATA>
+      </vot:DATA>
+    </vot:TABLE>
+  </vot:RESOURCE>
 </vot:VOTABLE>
-

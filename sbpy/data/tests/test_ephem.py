@@ -47,7 +47,11 @@ def data_path(filename):
 
 
 def nonremote_request(self, request_type, url, **kwargs):
-    """monkeypatch replacement astroquery request function"""
+    """monkeypatch replacement astroquery request function
+
+    These mocked requests are also used in test_ephem_cli.py
+
+    """
 
     params = urlencode(kwargs.get("params", {}))
     data = urlencode(kwargs.get("data", {}))
@@ -95,20 +99,18 @@ def nonremote_request(self, request_type, url, **kwargs):
             ),
         ): "TestEphemerisCLI-2p-mpc.txt",
         (
-            ("URL", "http://vo.imcce.fr/webservices/miriade/ephemcc_query.php"),
+            ("URL", "https://ssp.imcce.fr/webservices/miriade/api/ephemcc.php"),
             (
                 "params",
-                "-name=2P&-type=Comet&-ep=2460538.5&-step=1.000000d&-nbd=61.0&-observer=500&-output=--jul&-tscale=UTC&"
-                "-theory=INPOP&-teph=1&-tcoor=1&-rplane=1&-oscelem=ASTORB&-mime=votable",
+                "-name=2P&-type=Comet&-ep=2460538.5&-step=1.000000d&-nbd=61.0&-observer=500&-output=--jd&-tscale=UTC&-theory=INPOP&-teph=1&-tcoor=1&-rplane=1&-oscelem=ASTORB&-mime=votable",
             ),
             ("data", ""),
         ): "TestEphemerisCLI-2p-miriade.txt",
         (
-            ("URL", "http://vo.imcce.fr/webservices/miriade/ephemcc_query.php"),
+            ("URL", "https://ssp.imcce.fr/webservices/miriade/api/ephemcc.php"),
             (
                 "params",
-                "-name=1&-type=Asteroid&-ep=2460538.5&-step=1.000000d&-nbd=61.0&-observer=500&-output=--jul&"
-                "-tscale=UTC&-theory=INPOP&-teph=1&-tcoor=1&-rplane=1&-oscelem=ASTORB&-mime=votable",
+                "-name=1&-type=Asteroid&-ep=2460538.5&-step=1.000000d&-nbd=61.0&-observer=500&-output=--jd&-tscale=UTC&-theory=INPOP&-teph=1&-tcoor=1&-rplane=1&-oscelem=ASTORB&-mime=votable",
             ),
             ("data", ""),
         ): "TestEphemerisCLI-ceres-miriade.txt",

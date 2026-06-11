@@ -2,6 +2,7 @@
 
 import pytest
 import warnings
+from packaging.version import Version
 
 from numpy.testing import assert_allclose
 import astropy.units as u
@@ -9,6 +10,13 @@ from astropy.io import ascii
 from astropy.time import Time
 from astropy.coordinates import EarthLocation
 from astropy.tests.helper import assert_quantity_allclose
+
+try:
+    import astroquery
+
+    astroquery_version = Version(astroquery.__version__)
+except ImportError:
+    astroquery_version = Version("0")
 
 from ... import bib
 from ..core import QueryError
@@ -305,6 +313,10 @@ class TestEphemFromMPC:
 
 
 @pytest.mark.remote_data
+@pytest.mark.skipif(
+    astroquery_version < Version("0.4.12"),
+    reason="requires astroquery 0.4.12",
+)
 class TestEphemFromMiriade:
     def test_singleobj_now(self):
         eph = Ephem.from_miriade("Ceres")
@@ -398,7 +410,6 @@ class TestEphemFromMiriade:
         eph2 = Ephem.from_miriade("Ceres", epochs=Time("2019-01-01"))
         assert abs(eph1["RA"][0] - eph2["RA"][0]) > 0.0001 * u.deg
 
-    @pytest.mark.xfail(reason="need astroquery to support updated miriade service")
     def test_queryfail(self):
         with pytest.raises(QueryError):
             Ephem.from_miriade("target does not exist")
