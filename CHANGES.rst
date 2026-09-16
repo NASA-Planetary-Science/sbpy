@@ -63,6 +63,9 @@ sbpy.spectroscopy
   `sbpy.spectroscopy.sources.SpectralSource.from_file` when using synphot's
   read_fits_spec. [#447]
 
+- Preserve `wave0` and `wave` attributes when indexing, slicing, or copying
+  `sbpy.spectroscopy.core.SpectralGradient`. [#457]
+
 
 v0.6.0 (2025-12-02)
 ===================

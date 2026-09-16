@@ -91,3 +91,70 @@ class TestSpectralGradient():
         with pytest.raises(ValueError):
             SpectralGradient(10 * u.percent /
                              hundred_nm).renormalize(650 * u.nm)
+
+    def test_indexing_slicing_preserves_attributes(self):
+        """Test that indexing, slicing, and copying preserve wave and wave0 (Issue #457)."""
+        # Case 1: Initialized with wave0 only (as in issue #457)
+        slopes1 = SpectralGradient(
+            np.arange(-5, 21) * u.percent / hundred_nm,
+            wave0=550 * u.nm,
+        )
+        assert slopes1.wave0 == 550 * u.nm
+        assert slopes1.wave is None
+
+        # Indexing scalar
+        item1 = slopes1[0]
+        assert isinstance(item1, SpectralGradient)
+        assert item1.wave0 == 550 * u.nm
+        assert item1.wave is None
+
+        # Slicing subarray
+        slice1 = slopes1[:5]
+        assert isinstance(slice1, SpectralGradient)
+        assert slice1.wave0 == 550 * u.nm
+        assert slice1.wave is None
+
+        # Case 2: Initialized with wave and wave0
+        slopes2 = SpectralGradient(
+            np.arange(-5, 21) * u.percent / hundred_nm,
+            wave=(500, 600) * u.nm,
+            wave0=550 * u.nm,
+        )
+        assert slopes2.wave0 == 550 * u.nm
+        assert np.all(slopes2.wave == (500, 600) * u.nm)
+
+        # Indexing
+        item2 = slopes2[2]
+        assert isinstance(item2, SpectralGradient)
+        assert item2.wave0 == 550 * u.nm
+        assert np.all(item2.wave == (500, 600) * u.nm)
+
+        # Slicing
+        slice2 = slopes2[1:4]
+        assert isinstance(slice2, SpectralGradient)
+        assert slice2.wave0 == 550 * u.nm
+        assert np.all(slice2.wave == (500, 600) * u.nm)
+
+        # Copy
+        copied = slopes2.copy()
+        assert isinstance(copied, SpectralGradient)
+        assert copied.wave0 == 550 * u.nm
+        assert np.all(copied.wave == (500, 600) * u.nm)
+
+        # Case 3: Initialized with wave only (wave0 auto-computed as mean)
+        slopes3 = SpectralGradient([10, 20] * u.percent / hundred_nm, wave=(500, 600) * u.nm)
+        assert slopes3.wave0 == 550 * u.nm
+        assert slopes3[0].wave0 == 550 * u.nm
+        assert np.all(slopes3[0].wave == (500, 600) * u.nm)
+
+    def test_instantiation_from_spectral_gradient(self):
+        """Test converting/re-instantiating from existing SpectralGradient."""
+        s1 = SpectralGradient([10, 20] * u.percent / hundred_nm, wave=(500, 600) * u.nm)
+        s2 = SpectralGradient(s1)
+        assert s2.wave0 == 550 * u.nm
+        assert np.all(s2.wave == (500, 600) * u.nm)
+
+        # Explicit override
+        s3 = SpectralGradient(s1, wave0=580 * u.nm)
+        assert s3.wave0 == 580 * u.nm
+        assert np.all(s3.wave == (500, 600) * u.nm)

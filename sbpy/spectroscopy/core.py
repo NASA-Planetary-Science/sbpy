@@ -100,13 +100,22 @@ class SpectralGradient(u.SpecificTypeQuantity):
                     "Two wavelengths must be provided, got {}".format(np.size(wave))
                 )
             S.wave = S._lambda_eff(wave)
+        elif not hasattr(S, "wave"):
+            S.wave = None
 
-        if wave0 is None and wave is not None:
-            S.wave0 = S.wave.mean()
-        else:
+        if wave0 is not None:
             S.wave0 = wave0
+        elif wave is not None:
+            S.wave0 = S.wave.mean()
+        elif not hasattr(S, "wave0"):
+            S.wave0 = None
 
         return S
+
+    def __array_finalize__(self, obj):
+        super().__array_finalize__(obj)
+        self.wave = getattr(obj, "wave", None)
+        self.wave0 = getattr(obj, "wave0", None)
 
     @classmethod
     def _lambda_eff(cls, wfb):
